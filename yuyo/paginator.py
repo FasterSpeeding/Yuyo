@@ -36,7 +36,6 @@ __slots__: typing.Sequence[str] = ["AbstractPaginator", "Paginator", "PaginatorP
 import abc
 import asyncio
 import datetime
-import logging
 import textwrap
 import typing
 
@@ -56,10 +55,22 @@ if typing.TYPE_CHECKING:
     from hikari import users
 
 
-LEFT_TRIANGLE: typing.Final[str] = "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
-STOP_SQUARE: typing.Final[str] = "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}"
-RIGHT_TRIANGLE: typing.Final[str] = "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
-SKULL_AND_CROSSBONES: typing.Final[str] = "\N{SKULL AND CROSSBONES}\N{VARIATION SELECTOR-16}"
+LEFT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
+)
+"""The emoji used to go back an entry."""
+STOP_SQUARE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}"
+)
+"""The emoji used to close a menu."""
+RIGHT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
+)
+"""The emoji used to continue to the next entry."""
+SKULL_AND_CROSSBONES: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{SKULL AND CROSSBONES}\N{VARIATION SELECTOR-16}"
+)
+"""The emoji used for the lesser-enabled skip to last entry button."""
 END = "END"
 """A return value used by `AbstractPaginator.on_reaction_modify`.
 
@@ -84,35 +95,102 @@ IteratorT = typing.Union[typing.AsyncIterator[ValueT], typing.Iterator[ValueT]]
 
 
 class AbstractPaginator(abc.ABC):
+    """The interface for a paginator handled within the `PaginatorPool`."""
+
     __slots__: typing.Sequence[str] = ()
 
     @property
     @abc.abstractmethod
     def authors(self) -> typing.AbstractSet[snowflakes.Snowflake]:
+        """The authors/owner of a enabled paginator.
+
+        !!! note
+            If this is empty then the paginator is considered public and
+            any user will be able to trigger it.
+
+        Returns
+        -------
+        typing.AbstractSet[hikari.snowflakes.Snowflake]
+            A set of the owner user IDs.
+        """
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def expired(self) -> bool:
+        """Whether this paginator has ended.
+
+        Returns
+        -------
+        bool
+            Whether this paginator has ended.
+        """
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def last_triggered(self) -> datetime.datetime:
+        """When this paginator was last triggered.
+
+        !!! note
+            If it hasn't ever been triggered then this will be when it was created.
+
+        Returns
+        -------
+        datetime.datetime
+            When this paginator was last triggered.
+        """
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def locked(self) -> bool:
+        """Whether this paginator has been locked by a call to it.
+
+        Returns
+        -------
+        bool
+            Whether this paginator has been locked by a call to it.
+        """
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def triggers(self) -> typing.Sequence[typing.Union[str, emojis.CustomEmoji]]:
+    def triggers(self) -> typing.Sequence[emojis.Emoji]:
+        """The enabled trigger emojis for this paginator.
+
+        Returns
+        -------
+        typing.Sequence[emojis.Emoji]
+            A sequence of the emojis that are enabled as triggers for
+            this paginator.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def add_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+        """Add a author/owner to this paginator.
+
+        Parameters
+        ----------
+        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
+            The user to add as an owner for this paginator.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+        """Remove a author/owner from this paginator.
+
+        !!! note
+            If the provided user isn't already a registered owner of this paginator
+            then this should pass silently without raising.
+
+        Parameters
+        ----------
+        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
+            The user to remove from this paginator's owners..
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -120,15 +198,11 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def on_reaction_modify(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
+    async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def register_message(self, message: messages.Message) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
         raise NotImplementedError
 
 
@@ -178,6 +252,14 @@ async def seek_iterator(iterator: IteratorT[ValueT], /) -> typing.Optional[Value
     return value
 
 
+def _process_known_custom_emoji(emoji: emojis.Emoji, /) -> emojis.Emoji:
+    # For the sake of equality checks we need to ensure we're handling CustomEmoji rather than KnownCustomEmoji
+    if isinstance(emoji, emojis.KnownCustomEmoji):
+        return emojis.CustomEmoji(id=emoji.id, name=emoji.name, is_animated=emoji.is_animated)
+
+    return emoji
+
+
 class Paginator(AbstractPaginator):
     __slots__: typing.Sequence[str] = (
         "_buffer",
@@ -198,7 +280,7 @@ class Paginator(AbstractPaginator):
         iterator: typing.Union[IteratorT[EntryT]],
         *,
         authors: typing.Optional[typing.Iterable[snowflakes.SnowflakeishOr[users.User]]],
-        triggers: typing.Sequence[str] = (
+        triggers: typing.Sequence[emojis.Emoji] = (
             LEFT_TRIANGLE,
             STOP_SQUARE,
             RIGHT_TRIANGLE,
@@ -211,13 +293,13 @@ class Paginator(AbstractPaginator):
         self._authors = set(map(snowflakes.Snowflake, authors)) if authors else set()
         self._buffer: typing.MutableSequence[EntryT] = [first_entry]
         self._emoji_mapping: typing.Mapping[
-            typing.Union[str, snowflakes.Snowflake],
+            typing.Union[emojis.Emoji, snowflakes.Snowflake],
             typing.Callable[[], typing.Coroutine[typing.Any, typing.Any, typing.Union[EntryT, None, str]]],
         ] = {
-            LEFT_TRIANGLE: self._previous_entry,
-            STOP_SQUARE: self._disable,
-            RIGHT_TRIANGLE: self._next_entry,
-            SKULL_AND_CROSSBONES: self._last_entry,
+            LEFT_TRIANGLE: self.on_previous,
+            STOP_SQUARE: self.on_disable,
+            RIGHT_TRIANGLE: self.on_next,
+            SKULL_AND_CROSSBONES: self.on_last,
         }
         self._index = 0
         self._iterator = iterator
@@ -225,7 +307,7 @@ class Paginator(AbstractPaginator):
         self._locked = False
         self.message: typing.Optional[messages.Message] = None
         self.timeout = timeout or datetime.timedelta(seconds=30)
-        self._triggers = triggers
+        self._triggers = tuple(_process_known_custom_emoji(emoji) for emoji in triggers)
 
     @property
     def authors(self) -> typing.AbstractSet[snowflakes.Snowflake]:
@@ -244,10 +326,10 @@ class Paginator(AbstractPaginator):
         return self._locked
 
     @property
-    def triggers(self) -> typing.Sequence[typing.Union[str, emojis.CustomEmoji]]:
+    def triggers(self) -> typing.Sequence[emojis.Emoji]:
         return self._triggers
 
-    async def _disable(self) -> str:
+    async def on_disable(self) -> str:
         if message := self.message:
             self.message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
@@ -256,13 +338,13 @@ class Paginator(AbstractPaginator):
 
         return END
 
-    async def _first_entry(self) -> typing.Optional[EntryT]:
+    async def on_first(self) -> typing.Optional[EntryT]:
         if self._index == 0:
             return None
 
         return self._buffer[0]
 
-    async def _next_entry(self) -> typing.Optional[EntryT]:
+    async def on_next(self) -> typing.Optional[EntryT]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) < self._index + 1:
             self._index += 1
@@ -275,7 +357,7 @@ class Paginator(AbstractPaginator):
 
         return entry
 
-    async def _last_entry(self) -> typing.Optional[EntryT]:
+    async def on_last(self) -> typing.Optional[EntryT]:
         self._locked = True
         if isinstance(self._iterator, typing.AsyncIterator):
             self._buffer.extend([embed async for embed in self._iterator])
@@ -291,7 +373,7 @@ class Paginator(AbstractPaginator):
 
         return None
 
-    async def _previous_entry(self) -> typing.Optional[EntryT]:
+    async def on_previous(self) -> typing.Optional[EntryT]:
         if self._index <= 0:
             return None
 
@@ -332,7 +414,7 @@ class Paginator(AbstractPaginator):
 
     async def register_message(self, message: messages.Message) -> None:
         self.message = message
-        for emoji in self.triggers:
+        for emoji in self._triggers:
             retry = backoff.Backoff()
             async for _ in retry:
                 try:
@@ -350,16 +432,13 @@ class Paginator(AbstractPaginator):
                 else:
                     break
 
-    async def on_reaction_modify(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
+    async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
         if self.expired:
             return END_AND_REMOVE
 
         if self.message is None or self._authors and user_id not in self._authors or self._locked:
             return None
 
-        emoji = emoji.id if isinstance(emoji, emojis.CustomEmoji) else emoji.name
-        # This would only be None if we tried to get the name of a CustomEmoji rather than of a UnicodeEmoji
-        assert emoji is not None, "The name of a UnicodeEmoji shouldn't ever be None."
         method = self._emoji_mapping.get(emoji)
         if emoji not in self._triggers or not method:
             return None
@@ -392,6 +471,8 @@ class Paginator(AbstractPaginator):
 
 
 class PaginatorPool:
+    __slots__: typing.Sequence[str] = ("blacklist", "_gc_task", "_listeners", "_rest")
+
     def __init__(self, rest: traits.RESTAware, dispatch: typing.Optional[traits.DispatcherAware] = None) -> None:
         if dispatch is None and isinstance(rest, traits.DispatcherAware):
             dispatch = rest
@@ -399,46 +480,37 @@ class PaginatorPool:
         if dispatch is None:
             raise ValueError("Missing dispatcher aware client.")
 
-        self._rest = rest
         self.blacklist: typing.MutableSequence[snowflakes.Snowflake] = []
+        self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._listeners: typing.MutableMapping[snowflakes.Snowflake, AbstractPaginator] = {}
+        self._rest = rest
         dispatch.dispatcher.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
         dispatch.dispatcher.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-        dispatch.dispatcher.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_modify)
-        dispatch.dispatcher.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_modify)
-        self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self.listeners: typing.MutableMapping[snowflakes.Snowflake, AbstractPaginator] = {}
-        self.logger = logging.getLogger(f"AbstractPaginator pool registered with {self._rest!r}")
-
-    async def close(self) -> None:
-        if self._gc_task is not None:
-            self._gc_task.cancel()
-            listeners = self.listeners
-            self.listeners = {}
-            await asyncio.gather(*(listener.deregister_message() for listener in listeners.values()))
+        dispatch.dispatcher.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+        dispatch.dispatcher.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
 
     async def _gc(self) -> None:
         while True:
-            self.logger.debug("performing embed paginator garbage collection pass.")
-            for listener_id, listener in tuple(self.listeners.items()):
-                if not listener.expired or listener_id not in self.listeners:
+            for listener_id, listener in tuple(self._listeners.items()):
+                if not listener.expired or listener_id not in self._listeners:
                     continue
 
-                del self.listeners[listener_id]
+                del self._listeners[listener_id]
                 # This may slow this gc task down but the more we yield the better.
                 await listener.deregister_message(remove_reactions=True)
 
             await asyncio.sleep(5)  # TODO: is this a good time?
 
-    async def _on_reaction_modify(
-        self, event: typing.Union[reaction_events.DMReactionAddEvent, reaction_events.ReactionDeleteEvent]
+    async def _on_reaction_event(
+        self, event: typing.Union[reaction_events.ReactionAddEvent, reaction_events.ReactionDeleteEvent]
     ) -> None:
         if event.user_id in self.blacklist:
             return
 
-        if listener := self.listeners.get(event.message_id):
-            result = await listener.on_reaction_modify(event.emoji, user_id=event.user_id)
-            if result is END and event.message_id in self.listeners:
-                del self.listeners[event.message_id]
+        if listener := self._listeners.get(event.message_id):
+            result = await listener.on_reaction_event(event.emoji, user_id=event.user_id)
+            if result is END and event.message_id in self._listeners:
+                del self._listeners[event.message_id]
                 await listener.deregister_message(result is END_AND_REMOVE)
 
     async def _on_starting_event(self, _: lifetime_events.StartingEvent) -> None:
@@ -447,15 +519,28 @@ class PaginatorPool:
     async def _on_stopping_event(self, _: lifetime_events.StoppingEvent) -> None:
         await self.close()
 
+    def add_paginator(self, message: messages.Message, paginator: AbstractPaginator) -> None:
+        self._listeners[message.id] = paginator
+
+    def get_paginator(self, message: snowflakes.SnowflakeishOr[messages.Message]) -> typing.Optional[AbstractPaginator]:
+        return self._listeners.get(snowflakes.Snowflake(message))
+
+    def remove_paginator(
+        self, message: snowflakes.SnowflakeishOr[messages.Message]
+    ) -> typing.Optional[AbstractPaginator]:
+        return self._listeners.pop(snowflakes.Snowflake(message))
+
+    async def close(self) -> None:
+        if self._gc_task is not None:
+            self._gc_task.cancel()
+            listeners = self._listeners
+            self._listeners = {}
+            await asyncio.gather(*(listener.deregister_message() for listener in listeners.values()))
+
     async def open(self) -> None:
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
             self.blacklist.append((await self._rest.rest.fetch_my_user()).id)
-
-    async def register_message(self, message: messages.Message, paginator: AbstractPaginator) -> None:
-        await self.open()
-        self.listeners[message.id] = paginator
-        await paginator.register_message(message)
 
 
 async def string_paginator(
