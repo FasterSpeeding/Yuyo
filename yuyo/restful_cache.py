@@ -49,7 +49,7 @@ if typing.TYPE_CHECKING:
 class RestfulCache:
     __slots__: typing.Sequence[str] = ("_cache", "_rest")
 
-    def __init__(self, cache: traits.CacheAware, rest: typing.Optional[traits.RESTAware] = None) -> None:
+    def __init__(self, cache: traits.CacheAware, rest: typing.Optional[traits.RESTAware] = None, /) -> None:
         if rest is None and isinstance(cache, traits.RESTAware):
             rest = cache
 

@@ -168,7 +168,7 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+    def add_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
         """Add a author/owner to this paginator.
 
         Parameters
@@ -179,7 +179,7 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
         """Remove a author/owner from this paginator.
 
         !!! note
@@ -194,19 +194,19 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def deregister_message(self, remove_reactions: bool = False) -> None:
+    async def deregister_message(self, *, remove_reactions: bool = False) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def register_message(self, message: messages.Message, /) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
         raise NotImplementedError
 
-    @abc.abstractmethod
-    async def register_message(self, message: messages.Message) -> None:
-        raise NotImplementedError
 
-
-async def _delete_message(message: messages.Message) -> None:
+async def _delete_message(message: messages.Message, /) -> None:
     retry = backoff.Backoff()
 
     async for _ in retry:
@@ -380,10 +380,10 @@ class Paginator(AbstractPaginator):
         self._index -= 1
         return self._buffer[self._index]
 
-    def add_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+    def add_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
         self._authors.add(snowflakes.Snowflake(user))
 
-    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User]) -> None:
+    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
         try:
             self._authors.remove(snowflakes.Snowflake(user))
         except KeyError:
@@ -412,7 +412,7 @@ class Paginator(AbstractPaginator):
                     else:
                         break
 
-    async def register_message(self, message: messages.Message) -> None:
+    async def register_message(self, message: messages.Message, /) -> None:
         self.message = message
         for emoji in self._triggers:
             retry = backoff.Backoff()
@@ -473,7 +473,7 @@ class Paginator(AbstractPaginator):
 class PaginatorPool:
     __slots__: typing.Sequence[str] = ("blacklist", "_gc_task", "_listeners", "_rest")
 
-    def __init__(self, rest: traits.RESTAware, dispatch: typing.Optional[traits.DispatcherAware] = None) -> None:
+    def __init__(self, rest: traits.RESTAware, dispatch: typing.Optional[traits.DispatcherAware] = None, /) -> None:
         if dispatch is None and isinstance(rest, traits.DispatcherAware):
             dispatch = rest
 
@@ -502,7 +502,7 @@ class PaginatorPool:
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     async def _on_reaction_event(
-        self, event: typing.Union[reaction_events.ReactionAddEvent, reaction_events.ReactionDeleteEvent]
+        self, event: typing.Union[reaction_events.ReactionAddEvent, reaction_events.ReactionDeleteEvent], /
     ) -> None:
         if event.user_id in self.blacklist:
             return
@@ -513,20 +513,22 @@ class PaginatorPool:
                 del self._listeners[event.message_id]
                 await listener.deregister_message(result is END_AND_REMOVE)
 
-    async def _on_starting_event(self, _: lifetime_events.StartingEvent) -> None:
+    async def _on_starting_event(self, _: lifetime_events.StartingEvent, /) -> None:
         await self.open()
 
-    async def _on_stopping_event(self, _: lifetime_events.StoppingEvent) -> None:
+    async def _on_stopping_event(self, _: lifetime_events.StoppingEvent, /) -> None:
         await self.close()
 
-    def add_paginator(self, message: messages.Message, paginator: AbstractPaginator) -> None:
+    def add_paginator(self, message: messages.Message, /, paginator: AbstractPaginator) -> None:
         self._listeners[message.id] = paginator
 
-    def get_paginator(self, message: snowflakes.SnowflakeishOr[messages.Message]) -> typing.Optional[AbstractPaginator]:
+    def get_paginator(
+        self, message: snowflakes.SnowflakeishOr[messages.Message], /
+    ) -> typing.Optional[AbstractPaginator]:
         return self._listeners.get(snowflakes.Snowflake(message))
 
     def remove_paginator(
-        self, message: snowflakes.SnowflakeishOr[messages.Message]
+        self, message: snowflakes.SnowflakeishOr[messages.Message], /
     ) -> typing.Optional[AbstractPaginator]:
         return self._listeners.pop(snowflakes.Snowflake(message))
 
