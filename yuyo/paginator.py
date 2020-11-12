@@ -550,39 +550,65 @@ async def string_paginator(
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
 ) -> typing.AsyncIterator[typing.Tuple[str, int]]:
+    """Lazily paginate an iterator of lines.
+
+    Parameters
+    ----------
+    lines : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
+        The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
+    char_limit : builtins.int
+        The limit for how many characters should be included per yielded page.
+        This defaults to 2000
+    line_limit : builtins.int
+        The limit for how many lines should be included per yielded page.
+        This defaults to 25.
+    wrapper : typing.Optional[builtins.str]
+        A wrapper for each yielded page. This should leave "{}" in it
+        to be replaced by the page's content.
+
+    Returns
+    -------
+    typing.AsyncIterator[typing.Tuple[builtins.str, builtins.int]]
+        An async iterator of page tuples (string context to int zero-based index).
+    """
     if wrapper:
         char_limit -= len(wrapper) + 2
 
-    page_number = 0
+    page_number = -1
     page_size = 0
     page: typing.MutableSequence[str] = []
 
     while (line := await seek_iterator(lines)) is not None:
-        line_too_long = len(line) >= char_limit
-        if page and (page_size + len(line) > char_limit or line_too_long or len(page) >= line_limit):
-            page_number += 1
-            page_size = 0
-            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number
+        # If the page is already populated and adding the current line would bring it over one of the predefined limits
+        # then we want to yield this page.
+        if len(page) >= line_limit or page and page_size + len(line) > char_limit:
+            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), (page_number := page_number + 1)
             page.clear()
+            page_size = 0
 
-        if line_too_long:
+        # If the current line doesn't fit into a page then we can assume the current page was yielded and that we need
+        # to split it up into sub-pages to yield.
+        if len(line) >= char_limit:
             sub_pages = textwrap.wrap(
                 line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
             )
 
+            # If the last page could possible fit into a page with other lines then added it to the next page
+            # to avoid sending small terraced pages.
             if len(sub_pages[-1]) < char_limit:
                 sub_line = sub_pages.pop(-1)
                 page_size += len(sub_line)
                 page.append(sub_line)
 
-            for sub_line in sub_pages:
-                page_number += 1
-                page_size = 0
-                yield wrapper.format(sub_line) if wrapper else sub_line, page_number
+            # yield all the sub-lines at once.
+            for sub_line in map(wrapper.format, sub_pages) if wrapper else sub_pages:
+                yield sub_line, (page_number := page_number + 1)
 
+        # Otherwise it should be added to the next page.
         else:
             page_size += len(line)
             page.append(line)
 
+    # This catches the likely dangling pages after iteration ends.
     if page:
         yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1

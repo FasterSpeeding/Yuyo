@@ -134,6 +134,7 @@ class Backoff:
         if self._finished:
             raise StopAsyncIteration
 
+        # We don't want to backoff on the first iteration.
         if not self._started:
             self._started = True
             return
@@ -148,7 +149,7 @@ class Backoff:
         await asyncio.sleep(backoff_)
 
     async def backoff(self, backoff_: typing.Optional[float], /) -> None:
-        """Sleep until for the provided backoff or for the next exponent.
+        """Sleep for the provided backoff or for the next exponent.
 
         This provides an alternative to iterating over this class.
 
