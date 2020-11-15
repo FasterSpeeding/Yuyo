@@ -419,10 +419,10 @@ class Paginator(AbstractPaginator):
             typing.Union[emojis.Emoji, snowflakes.Snowflake],
             typing.Callable[[], typing.Coroutine[typing.Any, typing.Any, typing.Union[EntryT, None, str]]],
         ] = {
-            LEFT_TRIANGLE: self.on_previous,
-            STOP_SQUARE: self.on_disable,
-            RIGHT_TRIANGLE: self.on_next,
-            SKULL_AND_CROSSBONES: self.on_last,
+            LEFT_TRIANGLE: self._on_previous,
+            STOP_SQUARE: self._on_disable,
+            RIGHT_TRIANGLE: self._on_next,
+            SKULL_AND_CROSSBONES: self._on_last,
         }
         self._index = 0
         self._iterator = iterator
@@ -458,7 +458,7 @@ class Paginator(AbstractPaginator):
         # <<inherited docstring from AbstractPaginator>>.
         return self._triggers
 
-    async def on_disable(self) -> str:
+    async def _on_disable(self) -> str:
         if message := self.message:
             self.message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
@@ -467,26 +467,13 @@ class Paginator(AbstractPaginator):
 
         return END
 
-    async def on_first(self) -> typing.Optional[EntryT]:
+    async def _on_first(self) -> typing.Optional[EntryT]:
         if self._index == 0:
             return None
 
         return self._buffer[0]
 
-    async def on_next(self) -> typing.Optional[EntryT]:
-        # Check to see if we're behind the buffer before trying to go forward in the generator.
-        if len(self._buffer) < self._index + 1:
-            self._index += 1
-            return self._buffer[self._index]
-
-        # If entry is not None then the generator's position was pushed forwards.
-        if (entry := await seek_iterator(self._iterator, default=None)) is not None:
-            self._index += 1
-            self._buffer.append(entry)
-
-        return entry
-
-    async def on_last(self) -> typing.Optional[EntryT]:
+    async def _on_last(self) -> typing.Optional[EntryT]:
         self._locked = True
         if isinstance(self._iterator, typing.AsyncIterator):
             self._buffer.extend([embed async for embed in self._iterator])
@@ -502,7 +489,20 @@ class Paginator(AbstractPaginator):
 
         return None
 
-    async def on_previous(self) -> typing.Optional[EntryT]:
+    async def _on_next(self) -> typing.Optional[EntryT]:
+        # Check to see if we're behind the buffer before trying to go forward in the generator.
+        if len(self._buffer) >= self._index + 2:
+            self._index += 1
+            return self._buffer[self._index]
+
+        # If entry is not None then the generator's position was pushed forwards.
+        if (entry := await seek_iterator(self._iterator, default=None)) is not None:
+            self._index += 1
+            self._buffer.append(entry)
+
+        return entry
+
+    async def _on_previous(self) -> typing.Optional[EntryT]:
         if self._index <= 0:
             return None
 
@@ -553,7 +553,7 @@ class Paginator(AbstractPaginator):
 
         retry = backoff.Backoff()
         if message is None:
-            entry = await self.on_next()
+            entry = await self._on_next()
 
             if entry is None:
                 raise ValueError("Paginator iterator yielded no pages.")
@@ -572,7 +572,7 @@ class Paginator(AbstractPaginator):
                     break
 
             retry.reset()
-            assert message is not None, "Mypy doesn't quite handle this scoping properly"
+            assert message is not None  # "Mypy doesn't quite handle this scoping properly"
 
         self.message = message
         for emoji in self._triggers:
@@ -631,6 +631,9 @@ class Paginator(AbstractPaginator):
 
             except (errors.NotFoundError, errors.ForbiddenError):
                 return END
+
+            else:
+                break
 
         return None
 
@@ -740,6 +743,7 @@ async def string_paginator(
     if wrapper:
         char_limit -= len(wrapper) + 2
 
+    # As this is incremented before yielding and zero-index we have to start at -1.
     page_number = -1
     page_size = 0
     page: typing.MutableSequence[str] = []
@@ -752,8 +756,8 @@ async def string_paginator(
             page.clear()
             page_size = 0
 
-        # If the current line doesn't fit into a page then we can assume the current page was yielded and that we need
-        # to split it up into sub-pages to yield.
+        # If the current line doesn't fit into a page then we need to split it up into sub-pages to yield and can
+        # assume the previous page was yielded and.
         if len(line) >= char_limit:
             sub_pages = textwrap.wrap(
                 line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
