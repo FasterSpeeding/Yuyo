@@ -572,13 +572,17 @@ class Paginator(AbstractPaginator):
                     break
 
             retry.reset()
-            assert message is not None, "Mypy doesn't quite haqndle this scoping properly"
+            assert message is not None, "Mypy doesn't quite handle this scoping properly"
 
         self.message = message
         for emoji in self._triggers:
             async for _ in retry:
                 try:
                     await message.add_reaction(emoji)
+
+                except (errors.NotFoundError, errors.ForbiddenError):
+                    self.message = None
+                    raise
 
                 except errors.RateLimitedError as exc:
                     retry.set_next_backoff(exc.retry_after)
