@@ -524,10 +524,10 @@ class Paginator(AbstractPaginator):
         # <<inherited docstring from AbstractPaginator>>.
         if message := self.message:
             self.message = None
+            retry = backoff.Backoff()
             # TODO: check if we can just clear the reactions before doing this using the cache.
             for emoji in self._triggers:
-                retry = backoff.Backoff()
-
+                retry.reset()
                 async for _ in retry:
                     try:
                         await message.remove_reaction(emoji)
