@@ -29,6 +29,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""Utilities used for handling reaction based paginated messages."""
+
 from __future__ import annotations
 
 __slots__: typing.Sequence[str] = ["AbstractPaginator", "Paginator", "PaginatorPool"]
@@ -51,6 +53,7 @@ from hikari.events import reaction_events
 from yuyo import backoff
 
 if typing.TYPE_CHECKING:
+    from hikari import channels
     from hikari import messages
     from hikari import users
 
@@ -76,12 +79,8 @@ END = "END"
 
 This indicates that the paginator should be removed from the pool.
 """
-END_AND_REMOVE = "END_AND_REMOVE"
-"""A return value used by `AbstractPaginator.on_reaction_modify`.
-
-This indicates that the paginator should be removed from the pool,
-removing any reactions on it's message in the process.
-"""
+DefaultT = typing.TypeVar("DefaultT")
+"""A type hint used to represent a "default" argument provided to a function."""
 EntryT = typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]
 """A type hint used to represent a paginator entry.
 
@@ -194,15 +193,78 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def deregister_message(self, *, remove_reactions: bool = False) -> None:
+    async def close(self, *, remove_reactions: bool = False) -> None:
+        """Close this paginator and deregister any previously registered message.
+
+        Other Parameters
+        ----------------
+        remove_reactions : builtins.bool
+            Whether this should remove the reactions that were being used to
+            paginate through this from the previously registered message.
+            This defaults to `builtins.False`.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def register_message(self, message: messages.Message, /) -> None:
+    async def start(
+        self, *, message: typing.Optional[messages.Message] = None, add_reactions: bool = True
+    ) -> typing.Optional[messages.Message]:
+        """Start this paginator and link it to a message.
+
+        Other Parameters
+        ----------------
+        message : typing.Optional[hikari.messages.Message]
+            If already created, the message this paginator should target.
+            If left as `builtins.None` then this call will create a message
+            in the channel provided when initiating the paginator.
+        add_reactions : bool
+            Whether this should also add reactions that'll be used to paginate
+            over this resource.
+            This defaults to `builtins.True`.
+
+        !!! note
+            Calling this multiple times will replace the previously registered message.
+
+        Parameters
+        ----------
+        message : hikari.messages.Message
+            The object of the message to register.
+
+        Returns
+        -------
+        typing.Optional[hikari.messages.Message]
+            The message that this paginator created or was passed as `message`.
+            This will be `builtins.None` if the paginator was already started.
+
+        Raises
+        ------
+        ValueError
+            If the provided iterator didn't yield any content for the first message.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
+        """The logic for handling reaction pagination.
+
+        !!! note
+            This should generally speaking only be called on ReactionAddEvent
+            and ReactionDeleteEvent.
+
+        Parameters
+        ----------
+        emoji : hikari.emojis.Emoji
+            The unicode or custom emoji being added or removed in this event.
+        user_id : hikari.snowflakes.Snowflake
+            The ID of the user adding or removing this reaction.
+
+        Returns
+        -------
+        typing.Optional[str]
+            This will either be a string command ('"END"' to signal that the
+            paginator has been de-registered and should be removed from the
+            pool) or `builtins.None`.
+        """
         raise NotImplementedError
 
 
@@ -227,6 +289,18 @@ async def _delete_message(message: messages.Message, /) -> None:
 
 
 async def collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequence[ValueT]:
+    """Collect the rest of an async or sync iterator into a mutable sequence
+
+    Parameters
+    ----------
+    iterator : typing.union[typing.AsyncIterator[ValueT], typing.Iterator[ValueT]]
+        The iterator to collect. This iterator may be asynchronous or synchronous.
+
+    Returns
+    -------
+    ValueT
+        A sequence of the remaining values in the iterator.
+    """
     if isinstance(iterator, typing.AsyncIterator):
         return [value async for value in iterator]
 
@@ -236,8 +310,28 @@ async def collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequ
     raise ValueError(f"{type(iterator)!r} is not a valid iterator")
 
 
-async def seek_iterator(iterator: IteratorT[ValueT], /) -> typing.Optional[ValueT]:
-    value: typing.Optional[ValueT] = None
+async def seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Optional[ValueT]:
+    """Get the next value in an async or sync iterator.
+
+    Parameters
+    ----------
+    iterator : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
+        The iterator to get the next value of. This iterator may be asynchronous or synchronous.
+
+    Other Parameters
+    ----------------
+    default : DefaultT
+        The value this should return if the iterator has been exhausted
+        (didn't yield any more values).
+        This defaults to `builtins.None`.
+
+    Returns
+    -------
+    typing.Union[ValueT, DefaultT]
+        The next value in the iterator if available else the value passed
+        for `default`.
+    """
+    value: typing.Union[ValueT, DefaultT] = default
     if isinstance(iterator, typing.AsyncIterator):
         async for value in iterator:
             break
@@ -261,37 +355,66 @@ def _process_known_custom_emoji(emoji: emojis.Emoji, /) -> emojis.Emoji:
 
 
 class Paginator(AbstractPaginator):
+    """The standard implementation of `AbstractPaginator`.
+
+    Parameters
+    ----------
+    rest : hikari.traits.RESTAware
+        The REST aware client this should be bound to.
+    iterator : Iterator[typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]]
+        Either an asynchronous or synchronous iterator of the entries this
+        should paginate through.
+        Entry[0] represents the message's possible content and can either be
+        `builtins.str` or `hikari.undefined.UNDEFINED` and Entry[1] represents
+        the message's possible embed and can either be `hikari.embeds.Embed`
+        or `hikari.undefined.UNDEFINED`.
+    authors : typing.Iterable[hikari.snowflakes.SnowflakeishOr[hikari.users.User]]
+        An iterable of IDs of the users who can call this paginator.
+        If left empty then all users will be able to call this
+        paginator.
+
+    Other Parameters
+    ----------------
+    timeout : datetime.timedelta
+        How long it should take for this paginator to timeout.
+        This defaults to a timdelta of 30 seconds.
+    """
+
     __slots__: typing.Sequence[str] = (
-        "_buffer",
-        "_emoji_mapping",
-        "_iterator",
-        "_index",
         "_authors",
+        "_buffer",
+        "_channel_id",
+        "_emoji_mapping",
+        "_index",
+        "_iterator",
         "_last_triggered",
         "_locked",
         "message",
+        "_rest",
         "timeout",
         "_triggers",
     )
 
     def __init__(
         self,
-        first_entry: EntryT,
+        rest: traits.RESTAware,
+        channel_id: snowflakes.SnowflakeishOr[channels.TextChannel],
         iterator: typing.Union[IteratorT[EntryT]],
         *,
-        authors: typing.Optional[typing.Iterable[snowflakes.SnowflakeishOr[users.User]]],
+        authors: typing.Iterable[snowflakes.SnowflakeishOr[users.User]],
         triggers: typing.Sequence[emojis.Emoji] = (
             LEFT_TRIANGLE,
             STOP_SQUARE,
             RIGHT_TRIANGLE,
         ),
-        timeout: typing.Optional[datetime.timedelta] = None,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
         if isinstance(iterator, typing.Iterator):
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        self._authors = set(map(snowflakes.Snowflake, authors)) if authors else set()
-        self._buffer: typing.MutableSequence[EntryT] = [first_entry]
+        self._authors = set(map(snowflakes.Snowflake, authors))
+        self._buffer: typing.MutableSequence[EntryT] = []
+        self._channel_id = channel_id
         self._emoji_mapping: typing.Mapping[
             typing.Union[emojis.Emoji, snowflakes.Snowflake],
             typing.Callable[[], typing.Coroutine[typing.Any, typing.Any, typing.Union[EntryT, None, str]]],
@@ -306,27 +429,33 @@ class Paginator(AbstractPaginator):
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._locked = False
         self.message: typing.Optional[messages.Message] = None
-        self.timeout = timeout or datetime.timedelta(seconds=30)
+        self._rest = rest
+        self.timeout = timeout
         self._triggers = tuple(_process_known_custom_emoji(emoji) for emoji in triggers)
 
     @property
     def authors(self) -> typing.AbstractSet[snowflakes.Snowflake]:
+        # <<inherited docstring from AbstractPaginator>>.
         return frozenset(self._authors)
 
     @property
     def expired(self) -> bool:
+        # <<inherited docstring from AbstractPaginator>>.
         return self.timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     @property
     def last_triggered(self) -> datetime.datetime:
+        # <<inherited docstring from AbstractPaginator>>.
         return self._last_triggered
 
     @property
     def locked(self) -> bool:
+        # <<inherited docstring from AbstractPaginator>>.
         return self._locked
 
     @property
     def triggers(self) -> typing.Sequence[emojis.Emoji]:
+        # <<inherited docstring from AbstractPaginator>>.
         return self._triggers
 
     async def on_disable(self) -> str:
@@ -351,7 +480,7 @@ class Paginator(AbstractPaginator):
             return self._buffer[self._index]
 
         # If entry is not None then the generator's position was pushed forwards.
-        if (entry := await seek_iterator(self._iterator)) is not None:
+        if (entry := await seek_iterator(self._iterator, default=None)) is not None:
             self._index += 1
             self._buffer.append(entry)
 
@@ -381,15 +510,18 @@ class Paginator(AbstractPaginator):
         return self._buffer[self._index]
 
     def add_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
+        # <<inherited docstring from AbstractPaginator>>.
         self._authors.add(snowflakes.Snowflake(user))
 
     def remove_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
+        # <<inherited docstring from AbstractPaginator>>.
         try:
             self._authors.remove(snowflakes.Snowflake(user))
         except KeyError:
             pass
 
-    async def deregister_message(self, remove_reactions: bool = False) -> None:
+    async def close(self, remove_reactions: bool = False) -> None:
+        # <<inherited docstring from AbstractPaginator>>.
         if message := self.message:
             self.message = None
             # TODO: check if we can just clear the reactions before doing this using the cache.
@@ -412,16 +544,23 @@ class Paginator(AbstractPaginator):
                     else:
                         break
 
-    async def register_message(self, message: messages.Message, /) -> None:
-        self.message = message
-        for emoji in self._triggers:
-            retry = backoff.Backoff()
+    async def start(
+        self, *, message: typing.Optional[messages.Message] = None, add_reactions: bool = True
+    ) -> typing.Optional[messages.Message]:
+        # <<inherited docstring from AbstractPaginator>>.
+        if self.message is not None:
+            return None
+
+        retry = backoff.Backoff()
+        if message is None:
+            entry = await self.on_next()
+
+            if entry is None:
+                raise ValueError("Paginator iterator yielded no pages.")
+
             async for _ in retry:
                 try:
-                    await message.add_reaction(emoji)
-
-                except (errors.NotFoundError, errors.ForbiddenError):
-                    return
+                    message = await self._rest.rest.create_message(self._channel_id, content=entry[0], embed=entry[1])
 
                 except errors.RateLimitedError as exc:
                     retry.set_next_backoff(exc.retry_after)
@@ -432,9 +571,31 @@ class Paginator(AbstractPaginator):
                 else:
                     break
 
+            retry.reset()
+            assert message is not None, "Mypy doesn't quite haqndle this scoping properly"
+
+        self.message = message
+        for emoji in self._triggers:
+            async for _ in retry:
+                try:
+                    await message.add_reaction(emoji)
+
+                except errors.RateLimitedError as exc:
+                    retry.set_next_backoff(exc.retry_after)
+
+                except errors.InternalServerError:
+                    continue
+
+                else:
+                    break
+
+        return self.message
+
     async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
+        # <<inherited docstring from AbstractPaginator>>.
         if self.expired:
-            return END_AND_REMOVE
+            asyncio.create_task(self.close(remove_reactions=True))
+            return END
 
         if self.message is None or self._authors and user_id not in self._authors or self._locked:
             return None
@@ -445,7 +606,7 @@ class Paginator(AbstractPaginator):
 
         result = await method()
         if isinstance(result, str) or result is None:
-            return result
+            return END
 
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         retry = backoff.Backoff()
@@ -497,7 +658,7 @@ class PaginatorPool:
 
                 del self._listeners[listener_id]
                 # This may slow this gc task down but the more we yield the better.
-                await listener.deregister_message(remove_reactions=True)
+                await listener.close(remove_reactions=True)
 
             await asyncio.sleep(5)  # TODO: is this a good time?
 
@@ -511,7 +672,6 @@ class PaginatorPool:
             result = await listener.on_reaction_event(event.emoji, user_id=event.user_id)
             if result is END and event.message_id in self._listeners:
                 del self._listeners[event.message_id]
-                await listener.deregister_message(result is END_AND_REMOVE)
 
     async def _on_starting_event(self, _: lifetime_events.StartingEvent, /) -> None:
         await self.open()
@@ -537,7 +697,7 @@ class PaginatorPool:
             self._gc_task.cancel()
             listeners = self._listeners
             self._listeners = {}
-            await asyncio.gather(*(listener.deregister_message() for listener in listeners.values()))
+            await asyncio.gather(*(listener.close() for listener in listeners.values()))
 
     async def open(self) -> None:
         if self._gc_task is None:
@@ -580,7 +740,7 @@ async def string_paginator(
     page_size = 0
     page: typing.MutableSequence[str] = []
 
-    while (line := await seek_iterator(lines)) is not None:
+    while (line := await seek_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:
