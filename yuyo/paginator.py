@@ -75,7 +75,7 @@ SKULL_AND_CROSSBONES: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
 )
 """The emoji used for the lesser-enabled skip to last entry button."""
 END = "END"
-"""A return value used by `AbstractPaginator.on_reaction_modify`.
+"""A return value used by `AbstractPaginator.on_reaction_event`.
 
 This indicates that the paginator should be removed from the pool.
 """
@@ -206,8 +206,11 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def start(
-        self, *, message: typing.Optional[messages.Message] = None, add_reactions: bool = True
+    async def open(
+        self,
+        *,
+        message: typing.Optional[snowflakes.SnowflakeishOr[messages.Message]] = None,
+        add_reactions: bool = True,
     ) -> typing.Optional[messages.Message]:
         """Start this paginator and link it to a message.
 
@@ -225,16 +228,11 @@ class AbstractPaginator(abc.ABC):
         !!! note
             Calling this multiple times will replace the previously registered message.
 
-        Parameters
-        ----------
-        message : hikari.messages.Message
-            The object of the message to register.
-
         Returns
         -------
         typing.Optional[hikari.messages.Message]
-            The message that this paginator created or was passed as `message`.
-            This will be `builtins.None` if the paginator was already started.
+            The message that this paginator created if `message_id` was left as `builtins.None`
+            else `builtins.None`.
 
         Raises
         ------
@@ -268,27 +266,7 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
 
-async def _delete_message(message: messages.Message, /) -> None:
-    retry = backoff.Backoff()
-
-    async for _ in retry:
-        try:
-            await message.delete()
-
-        except (errors.NotFoundError, errors.ForbiddenError):  # TODO: better permission handling.
-            return
-
-        except errors.InternalServerError:
-            continue
-
-        except errors.RateLimitedError as exc:
-            retry.set_next_backoff(exc.retry_after)
-
-        else:
-            break
-
-
-async def collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequence[ValueT]:
+async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequence[ValueT]:
     """Collect the rest of an async or sync iterator into a mutable sequence
 
     Parameters
@@ -310,7 +288,7 @@ async def collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequ
     raise ValueError(f"{type(iterator)!r} is not a valid iterator")
 
 
-async def seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Optional[ValueT]:
+async def _seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Optional[ValueT]:
     """Get the next value in an async or sync iterator.
 
     Parameters
@@ -361,6 +339,8 @@ class Paginator(AbstractPaginator):
     ----------
     rest : hikari.traits.RESTAware
         The REST aware client this should be bound to.
+    channel : hikari.snowflakes.SnowflakeishOr[hikari.channels.TextChannel]
+        The ID of the text channel this iterator targets.
     iterator : Iterator[typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]]
         Either an asynchronous or synchronous iterator of the entries this
         should paginate through.
@@ -389,7 +369,7 @@ class Paginator(AbstractPaginator):
         "_iterator",
         "_last_triggered",
         "_locked",
-        "message",
+        "_message_id",
         "_rest",
         "timeout",
         "_triggers",
@@ -398,7 +378,7 @@ class Paginator(AbstractPaginator):
     def __init__(
         self,
         rest: traits.RESTAware,
-        channel_id: snowflakes.SnowflakeishOr[channels.TextChannel],
+        channel: snowflakes.SnowflakeishOr[channels.TextChannel],
         iterator: typing.Union[IteratorT[EntryT]],
         *,
         authors: typing.Iterable[snowflakes.SnowflakeishOr[users.User]],
@@ -414,7 +394,7 @@ class Paginator(AbstractPaginator):
 
         self._authors = set(map(snowflakes.Snowflake, authors))
         self._buffer: typing.MutableSequence[EntryT] = []
-        self._channel_id = channel_id
+        self._channel_id = channel
         self._emoji_mapping: typing.Mapping[
             typing.Union[emojis.Emoji, snowflakes.Snowflake],
             typing.Callable[[], typing.Coroutine[typing.Any, typing.Any, typing.Union[EntryT, None, str]]],
@@ -428,7 +408,7 @@ class Paginator(AbstractPaginator):
         self._iterator = iterator
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._locked = False
-        self.message: typing.Optional[messages.Message] = None
+        self._message_id: typing.Optional[snowflakes.Snowflake] = None
         self._rest = rest
         self.timeout = timeout
         self._triggers = tuple(_process_known_custom_emoji(emoji) for emoji in triggers)
@@ -458,12 +438,31 @@ class Paginator(AbstractPaginator):
         # <<inherited docstring from AbstractPaginator>>.
         return self._triggers
 
+    async def _delete_message(self, message_id: snowflakes.Snowflake, /) -> None:
+        retry = backoff.Backoff()
+
+        async for _ in retry:
+            try:
+                await self._rest.rest.delete_message(self._channel_id, message_id)
+
+            except (errors.NotFoundError, errors.ForbiddenError):  # TODO: better permission handling.
+                return
+
+            except errors.InternalServerError:
+                continue
+
+            except errors.RateLimitedError as exc:
+                retry.set_next_backoff(exc.retry_after)
+
+            else:
+                break
+
     async def _on_disable(self) -> str:
-        if message := self.message:
-            self.message = None
+        if message_id := self._message_id:
+            self._message_id = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
             # possible.
-            asyncio.create_task(_delete_message(message))
+            asyncio.create_task(self._delete_message(message_id))
 
         return END
 
@@ -496,7 +495,7 @@ class Paginator(AbstractPaginator):
             return self._buffer[self._index]
 
         # If entry is not None then the generator's position was pushed forwards.
-        if (entry := await seek_iterator(self._iterator, default=None)) is not None:
+        if (entry := await _seek_iterator(self._iterator, default=None)) is not None:
             self._index += 1
             self._buffer.append(entry)
 
@@ -522,15 +521,15 @@ class Paginator(AbstractPaginator):
 
     async def close(self, remove_reactions: bool = False) -> None:
         # <<inherited docstring from AbstractPaginator>>.
-        if message := self.message:
-            self.message = None
+        if message_id := self._message_id:
+            self._message_id = None
             retry = backoff.Backoff()
             # TODO: check if we can just clear the reactions before doing this using the cache.
             for emoji in self._triggers:
                 retry.reset()
                 async for _ in retry:
                     try:
-                        await message.remove_reaction(emoji)
+                        await self._rest.rest.delete_my_reaction(self._channel_id, message_id, emoji)
 
                     except (errors.NotFoundError, errors.ForbiddenError):
                         return
@@ -544,11 +543,15 @@ class Paginator(AbstractPaginator):
                     else:
                         break
 
-    async def start(
-        self, *, message: typing.Optional[messages.Message] = None, add_reactions: bool = True
+    async def open(
+        self,
+        *,
+        message: typing.Optional[snowflakes.SnowflakeishOr[messages.Message]] = None,
+        add_reactions: bool = True,
     ) -> typing.Optional[messages.Message]:
         # <<inherited docstring from AbstractPaginator>>.
-        if self.message is not None:
+        created_message: typing.Optional[messages.Message] = None
+        if self._message_id is not None:
             return None
 
         retry = backoff.Backoff()
@@ -560,7 +563,10 @@ class Paginator(AbstractPaginator):
 
             async for _ in retry:
                 try:
-                    message = await self._rest.rest.create_message(self._channel_id, content=entry[0], embed=entry[1])
+                    created_message = await self._rest.rest.create_message(
+                        self._channel_id, content=entry[0], embed=entry[1]
+                    )
+                    message = created_message.id
 
                 except errors.RateLimitedError as exc:
                     retry.set_next_backoff(exc.retry_after)
@@ -574,14 +580,15 @@ class Paginator(AbstractPaginator):
             retry.reset()
             assert message is not None  # "Mypy doesn't quite handle this scoping properly"
 
-        self.message = message
+        message = snowflakes.Snowflake(message)
+        self._message_id = message
         for emoji in self._triggers:
             async for _ in retry:
                 try:
-                    await message.add_reaction(emoji)
+                    await self._rest.rest.add_reaction(self._channel_id, message, emoji)
 
                 except (errors.NotFoundError, errors.ForbiddenError):
-                    self.message = None
+                    self._message_id = None
                     raise
 
                 except errors.RateLimitedError as exc:
@@ -593,7 +600,7 @@ class Paginator(AbstractPaginator):
                 else:
                     break
 
-        return self.message
+        return created_message
 
     async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
         # <<inherited docstring from AbstractPaginator>>.
@@ -601,7 +608,7 @@ class Paginator(AbstractPaginator):
             asyncio.create_task(self.close(remove_reactions=True))
             return END
 
-        if self.message is None or self._authors and user_id not in self._authors or self._locked:
+        if self._message_id is None or self._authors and user_id not in self._authors or self._locked:
             return None
 
         method = self._emoji_mapping.get(emoji)
@@ -617,11 +624,13 @@ class Paginator(AbstractPaginator):
 
         async for _ in retry:
             # Mypy makes the false assumption that this value will stay as None while this function yields.
-            if self.message is None:
+            if self._message_id is None:
                 break  # type: ignore[unreachable]
 
             try:
-                await self.message.edit(content=result[0], embed=result[1])
+                await self._rest.rest.edit_message(
+                    self._channel_id, self._message_id, content=result[0], embed=result[1]
+                )
 
             except errors.InternalServerError:
                 continue
@@ -639,7 +648,27 @@ class Paginator(AbstractPaginator):
 
 
 class PaginatorPool:
-    __slots__: typing.Sequence[str] = ("blacklist", "_gc_task", "_listeners", "_rest")
+    """A class which handles the events for multiple registered paginators.
+
+    Parameters
+    ----------
+    rest : hikari.traits.RESTAware
+        The REST aware client to register this paginator pool with.
+    dispatch : typing.Optional[hikari.traits.DispatcherAware]
+        The dispatcher aware client to register this paginator pool with.
+
+        !!! note
+            This may only be left as `builtins.None` if `rest` is dispatcher
+            aware.
+
+    Raises
+    ------
+    ValueError
+        If `dispatch` is left as `builtins.None` when `rest` is not also
+        dispatcher aware.
+    """
+
+    __slots__: typing.Sequence[str] = ("blacklist", "_dispatch", "_gc_task", "_listeners", "_rest")
 
     def __init__(self, rest: traits.RESTAware, dispatch: typing.Optional[traits.DispatcherAware] = None, /) -> None:
         if dispatch is None and isinstance(rest, traits.DispatcherAware):
@@ -649,13 +678,10 @@ class PaginatorPool:
             raise ValueError("Missing dispatcher aware client.")
 
         self.blacklist: typing.MutableSequence[snowflakes.Snowflake] = []
+        self._dispatch = dispatch
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._listeners: typing.MutableMapping[snowflakes.Snowflake, AbstractPaginator] = {}
         self._rest = rest
-        dispatch.dispatcher.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        dispatch.dispatcher.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-        dispatch.dispatcher.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-        dispatch.dispatcher.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
 
     async def _gc(self) -> None:
         while True:
@@ -686,30 +712,84 @@ class PaginatorPool:
     async def _on_stopping_event(self, _: lifetime_events.StoppingEvent, /) -> None:
         await self.close()
 
-    def add_paginator(self, message: messages.Message, /, paginator: AbstractPaginator) -> None:
-        self._listeners[message.id] = paginator
+    def add_paginator(
+        self, message: snowflakes.SnowflakeishOr[messages.Message], /, paginator: AbstractPaginator
+    ) -> None:
+        """Add a paginator to this pool.
+
+        !!! note
+            This does not call `AbstractPaginator.open`.
+
+        Parameters
+        ----------
+        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+            The message ID to add register a paginator with.
+        paginator : AbstractPaginator
+            The object of the opened paginator to register in this pool.
+        """
+        self._listeners[snowflakes.Snowflake(message)] = paginator
 
     def get_paginator(
         self, message: snowflakes.SnowflakeishOr[messages.Message], /
     ) -> typing.Optional[AbstractPaginator]:
+        """Get a reference to a paginator registered in this pool.
+
+        !!! note
+            This does not call `AbstractPaginator.close`.
+
+        Parameters
+        ----------
+        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+            The message ID to remove a paginator for.
+
+        Returns
+        -------
+        AbstractPaginator
+            The object of the registered paginator if found else `builtins.None`.
+        """
         return self._listeners.get(snowflakes.Snowflake(message))
 
     def remove_paginator(
         self, message: snowflakes.SnowflakeishOr[messages.Message], /
     ) -> typing.Optional[AbstractPaginator]:
+        """Remove a paginator from this pool.
+
+        !!! note
+            This does not call `AbstractPaginator.close`.
+
+        Parameters
+        ----------
+        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+            The message ID to remove a paginator for.
+
+        Returns
+        -------
+        AbstractPaginator
+            The object of the registered paginator if found else `builtins.None`.
+        """
         return self._listeners.pop(snowflakes.Snowflake(message))
 
     async def close(self) -> None:
+        """Close this pool by unregistering any tasks and event listeners registered by `PaginatorPool.close`."""
         if self._gc_task is not None:
+            self._dispatch.dispatcher.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._dispatch.dispatcher.unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._dispatch.dispatcher.unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._dispatch.dispatcher.unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
             self._gc_task.cancel()
             listeners = self._listeners
             self._listeners = {}
             await asyncio.gather(*(listener.close() for listener in listeners.values()))
 
     async def open(self) -> None:
+        """Start this pool by registering the required tasks and event listeners for it to function."""
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
             self.blacklist.append((await self._rest.rest.fetch_my_user()).id)
+            self._dispatch.dispatcher.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._dispatch.dispatcher.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._dispatch.dispatcher.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._dispatch.dispatcher.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
 
 
 async def string_paginator(
@@ -748,7 +828,7 @@ async def string_paginator(
     page_size = 0
     page: typing.MutableSequence[str] = []
 
-    while (line := await seek_iterator(lines, default=None)) is not None:
+    while (line := await _seek_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:

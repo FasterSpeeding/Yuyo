@@ -36,7 +36,7 @@ This can be used to cover cases such as hitting rate-limits and failed requests.
 
 from __future__ import annotations
 
-__all__: typing.Final[typing.Sequence[str]] = ["Backoff"]
+__all__: typing.Sequence[str] = ["Backoff"]
 
 import asyncio
 import typing
