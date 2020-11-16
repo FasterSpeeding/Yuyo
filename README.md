@@ -7,7 +7,7 @@ A collection of utility classes and functions designed to expand Hikari.
 You can install yuyo from PyPI using the following command.
 
 ```
-python -m pip install hikari -U
+python -m pip install hikari-yuyo -U
 ```
 
 # Quick Usage.
