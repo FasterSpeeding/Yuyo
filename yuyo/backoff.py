@@ -133,7 +133,7 @@ class Backoff:
         jitter_multiplier: float = 1.0,
         initial_increment: int = 0,
     ) -> None:
-        if max_retries < 1:
+        if max_retries is not None and max_retries < 1:
             raise ValueError("max_retries must be greater than 1")
 
         self._backoff = rate_limits.ExponentialBackOff(
