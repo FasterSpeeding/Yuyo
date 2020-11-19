@@ -36,12 +36,15 @@ This can be used to cover cases such as hitting rate-limits and failed requests.
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["Backoff"]
+__all__: typing.Sequence[str] = ["Backoff", "ErrorManager"]
 
 import asyncio
 import typing
 
 from hikari.impl import rate_limits
+
+if typing.TYPE_CHECKING:
+    import types
 
 
 class Backoff:
@@ -54,6 +57,10 @@ class Backoff:
 
     Parameters
     ----------
+    max_retries : typing.Optional[builtins.int]
+        The maximum amount of times this should iterate for between resets.
+        If left as `builtins.None` then this iterator will be unlimited.
+        This must be greater than or equal to 1.
     base : builtins.float
         The base to use. Defaults to `2.0`.
     maximum : builtins.float
@@ -70,7 +77,7 @@ class Backoff:
     ValueError
         If an `builtins.int` that's too big to be represented as a
         `builtins.float` or a non-finite value is passed in place of a field
-        that's annotated as `builtins.float`.
+        that's annotated as `builtins.float` or if `max_retries` is less than 1.
 
     Examples
     --------
@@ -107,7 +114,7 @@ class Backoff:
         try:
             message = await bot.rest.fetch_message(channel_id, message_id)
         except errors.RateLimitedError as exc:
-            # If we have a specific backoff time then set it for the next iteration
+            # If we have a specific backoff time then set it for the next iteration.
             await backoff.backoff(exc.retry_after)
         except errors.InternalServerError:
             # Else let the iterator calculate an exponential backoff before the next loop.
@@ -115,23 +122,35 @@ class Backoff:
     ```
     """
 
-    __slots__: typing.Sequence[str] = ("_backoff", "_finished", "_next_backoff", "_started")
+    __slots__: typing.Sequence[str] = ("_backoff", "_finished", "_max_retries", "_next_backoff", "_retries", "_started")
 
     def __init__(
-        self, base: float = 2.0, maximum: float = 64.0, jitter_multiplier: float = 1.0, initial_increment: int = 0
+        self,
+        max_retries: typing.Optional[int] = None,
+        *,
+        base: float = 2.0,
+        maximum: float = 64.0,
+        jitter_multiplier: float = 1.0,
+        initial_increment: int = 0,
     ) -> None:
+        if max_retries < 1:
+            raise ValueError("max_retries must be greater than 1")
+
         self._backoff = rate_limits.ExponentialBackOff(
             base=base, maximum=maximum, jitter_multiplier=jitter_multiplier, initial_increment=initial_increment
         )
         self._finished = False
+        self._max_retries = max_retries
         self._next_backoff: typing.Optional[float] = None
+        self._retries = 0
         self._started = False
 
     def __aiter__(self) -> Backoff:
         return self
 
     async def __anext__(self) -> None:
-        if self._finished:
+        if self._finished or self._max_retries is not None and self._max_retries == self._retries:
+            self._finished = False
             raise StopAsyncIteration
 
         # We don't want to backoff on the first iteration.
@@ -146,6 +165,7 @@ class Backoff:
             backoff_ = self._next_backoff
             self._next_backoff = None
 
+        self._retries += 1
         await asyncio.sleep(backoff_)
 
     async def backoff(self, backoff_: typing.Optional[float], /) -> None:
@@ -171,14 +191,16 @@ class Backoff:
         await asyncio.sleep(backoff_)
 
     def finish(self) -> None:
-        """Mark the iterator as finished to break out of the loop."""
+        """Mark the iterator as finished to break out of the current loop."""
+        self.reset()
         self._finished = True
 
     def reset(self) -> None:
-        """Reset the backoff to it's original exponent to reuse it."""
+        """Reset the backoff to it's original state to reuse it."""
         self._backoff.reset()
         self._finished = False
         self._next_backoff = None
+        self._retries = 0
         self._started = False
 
     def set_next_backoff(self, backoff_: float, /) -> None:
@@ -191,3 +213,119 @@ class Backoff:
             previously set next backoff.
         """
         self._next_backoff = backoff_
+
+
+class ErrorManager:
+    """A context manager provided to allow for more concise error handling with `Backoff`.
+
+    Other Parameters
+    ----------------
+    *rules : typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]]
+        Rules to initiate this error context manager with.
+
+        These are each a 2-length tuple where the tuple[0] is an
+        iterable of types of the exceptions this rule should apply to
+        and tuple[1] is the rule's callback function.
+
+        The callback function will be called with the raised exception when it
+        matches one of the passed exceptions for the relevant rule and may
+        raise, return `builtins.True` to indicate that the current error should
+        be raised outside of the context manager or
+        `builtins.False`/`builtins.None` to suppress the current error.
+
+    Examples
+    --------
+    The following is an example of using `ErrorManager` alongside `Backoff`
+    in-order to handle the exceptions which may be raised while trying to
+    reply to a message.
+
+    ```py
+    retry = Backoff()
+    # Rules can either be passed to `ErrorManager`'s initiate as variable arguments
+    # or one at a time to `ErrorManager.with_rule` through possibly chained-calls.
+    error_handler = (
+        # For the 1st rule we catch two errors which would indicate the bot
+        # no-longer has access to the target channel and break out of the
+        # retry loop using `Backoff.retry`.
+        ErrorManager(((errors.NotFoundError, errors.ForbiddenError), lambda _: retry.finish()))
+            # For the 2nd rule we catch rate limited errors and set their
+            # `retry` value as the next backoff time before suppressing the
+            # error to allow this to retry the request.
+            .with_rule((errors.RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
+            # For the 3rd rule we suppress the internal server error to allow
+            # backoff to reach the next retry and exponentially backoff as we
+            # don't have any specific retry time for this error.
+            .with_rule((errors.InternalServerError,), lambda _: False)
+    )
+    async for _ in retry:
+        # We entre this context manager each iteration to catch errors before
+        # they cause us to break out of the `Backoff` loop.
+        with error_handler:
+            await message.reply("General Kenobi")
+            # We need to break out of `retry` if this request succeeds.
+            break
+    ```
+    """
+
+    __slots__: typing.Sequence[str] = ("_rules",)
+
+    def __init__(
+        self,
+        *rules: typing.Tuple[
+            typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]
+        ],
+    ) -> None:
+        self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
+
+    def __enter__(self) -> ErrorManager:
+        pass
+
+    def __exit__(
+        self,
+        exception_type: typing.Optional[typing.Type[BaseException]],
+        exception: typing.Optional[BaseException],
+        exception_traceback: typing.Optional[types.TracebackType],
+    ) -> typing.Optional[bool]:
+        if exception_type is None:
+            return None
+
+        assert exception is not None  # This shouldn't ever be None when exception_type isn't None.
+        for rule, callback in self._rules:
+            if issubclass(exception_type, rule):
+                # For ths context manager's rules we switch up how returns are handled to let the rules prevent
+                # exceptions from being raised outside of the context by default by having `None` and `False` both
+                # indicate don't re-raise (suppress) and `True` indicate that it should re-raise.
+                return not callback(exception)
+
+        return False
+
+    def clear_rules(self) -> None:
+        """Clear the rules registered with this handler."""
+        self._rules.clear()
+
+    def with_rule(
+        self,
+        exceptions: typing.Iterable[typing.Type[BaseException]],
+        result: typing.Callable[[typing.Any], typing.Optional[bool]],
+    ) -> ErrorManager:
+        """Add a rule to this exception context manager.
+
+        Parameters
+        ----------
+        exceptions : typing.Iterable[typing.Type[builtins.BaseException]]
+            An iterable of types of the exceptions this rule should apply to.
+        result : typing.Callable[[typing.Any], typing.Optional[builtins.bool]]
+            The function called with the raised exception when it matches one
+            of the passed `exceptions`.
+            This may raise, return `builtins.True` to indicate that the current
+            error should be raised outside of the context manager or
+            `builtins.False`/`builtins.None` to suppress the current error.
+
+        Returns
+        -------
+        ErrorManager
+            This returns the handler a rule was being added to in-order to
+            allow for chained calls.
+        """
+        self._rules.add((tuple(exceptions), result))
+        return self

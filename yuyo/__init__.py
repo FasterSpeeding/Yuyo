@@ -37,7 +37,8 @@ __slots__: typing.Sequence[str] = [
     # backoff.py
     "backoff",
     "Backoff",
-    # paginator.py
+    "ErrorManager",
+    # paginaton.py
     "paginator",
     "AbstractPaginator",
     "Paginator",
@@ -50,5 +51,5 @@ __slots__: typing.Sequence[str] = [
 import typing
 
 from yuyo.backoff import *
-from yuyo.paginator import *
+from yuyo.paginaton import *
 from yuyo.restful_cache import *

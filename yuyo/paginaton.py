@@ -770,7 +770,7 @@ class PaginatorPool:
         return self._listeners.pop(snowflakes.Snowflake(message))
 
     async def close(self) -> None:
-        """Close this pool by unregistering any tasks and event listeners registered by `PaginatorPool.close`."""
+        """Close this pool by unregistering any tasks and event listeners registered by `PaginatorPool.open`."""
         if self._gc_task is not None:
             self._dispatch.dispatcher.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
             self._dispatch.dispatcher.unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
@@ -837,13 +837,13 @@ async def string_paginator(
             page_size = 0
 
         # If the current line doesn't fit into a page then we need to split it up into sub-pages to yield and can
-        # assume the previous page was yielded and.
+        # assume the previous page was yielded.
         if len(line) >= char_limit:
             sub_pages = textwrap.wrap(
                 line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
             )
 
-            # If the last page could possible fit into a page with other lines then added it to the next page
+            # If the last page could possible fit into a page with other lines then we add it to the next page
             # to avoid sending small terraced pages.
             if len(sub_pages[-1]) < char_limit:
                 sub_line = sub_pages.pop(-1)
@@ -859,6 +859,6 @@ async def string_paginator(
             page_size += len(line)
             page.append(line)
 
-    # This catches the likely dangling pages after iteration ends.
+    # This catches the likely dangling page after iteration ends.
     if page:
         yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1
