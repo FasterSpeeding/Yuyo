@@ -58,6 +58,10 @@ if typing.TYPE_CHECKING:
     from hikari import users
 
 
+LEFT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
+)
+"""The emoji used to go back to the first entry."""
 LEFT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
     "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
@@ -70,8 +74,8 @@ RIGHT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
     "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to continue to the next entry."""
-SKULL_AND_CROSSBONES: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{SKULL AND CROSSBONES}\N{VARIATION SELECTOR-16}"
+RIGHT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+    "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used for the lesser-enabled skip to last entry button."""
 END = "END"
@@ -399,10 +403,11 @@ class Paginator(AbstractPaginator):
             typing.Union[emojis.Emoji, snowflakes.Snowflake],
             typing.Callable[[], typing.Coroutine[typing.Any, typing.Any, typing.Union[EntryT, None, str]]],
         ] = {
+            LEFT_DOUBLE_TRIANGLE: self._on_first,
             LEFT_TRIANGLE: self._on_previous,
             STOP_SQUARE: self._on_disable,
             RIGHT_TRIANGLE: self._on_next,
-            SKULL_AND_CROSSBONES: self._on_last,
+            RIGHT_DOUBLE_TRIANGLE: self._on_last,
         }
         self._index = 0
         self._iterator = iterator
@@ -548,13 +553,15 @@ class Paginator(AbstractPaginator):
         *,
         message: typing.Optional[snowflakes.SnowflakeishOr[messages.Message]] = None,
         add_reactions: bool = True,
+        max_retries: int = 5,
+        max_backoff: float = 2.0,
     ) -> typing.Optional[messages.Message]:
         # <<inherited docstring from AbstractPaginator>>.
         created_message: typing.Optional[messages.Message] = None
         if self._message_id is not None:
             return None
 
-        retry = backoff.Backoff()
+        retry = backoff.Backoff(max_retries=max_retries - 1, maximum=max_backoff)
         if message is None:
             entry = await self._on_next()
 
@@ -569,6 +576,9 @@ class Paginator(AbstractPaginator):
                     message = created_message.id
 
                 except errors.RateLimitedError as exc:
+                    if exc.retry_after > max_backoff:
+                        raise
+
                     retry.set_next_backoff(exc.retry_after)
 
                 except errors.InternalServerError:
@@ -577,12 +587,13 @@ class Paginator(AbstractPaginator):
                 else:
                     break
 
-            retry.reset()
-            assert message is not None  # "Mypy doesn't quite handle this scoping properly"
+            else:
+                message = await self._rest.rest.create_message(self._channel_id, content=entry[0], embed=entry[1])
 
         message = snowflakes.Snowflake(message)
         self._message_id = message
         for emoji in self._triggers:
+            retry.reset()
             async for _ in retry:
                 try:
                     await self._rest.rest.add_reaction(self._channel_id, message, emoji)
@@ -592,6 +603,9 @@ class Paginator(AbstractPaginator):
                     raise
 
                 except errors.RateLimitedError as exc:
+                    if exc.retry_after > max_backoff:
+                        raise
+
                     retry.set_next_backoff(exc.retry_after)
 
                 except errors.InternalServerError:
@@ -599,6 +613,9 @@ class Paginator(AbstractPaginator):
 
                 else:
                     break
+
+            else:
+                await self._rest.rest.add_reaction(self._channel_id, message, emoji)
 
         return created_message
 
