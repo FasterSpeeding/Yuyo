@@ -66,12 +66,18 @@ This can be used to cover cases such as hitting rate-limits and failed requests.
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [&#34;Backoff&#34;]
+__all__: typing.Sequence[str] = [&#34;Backoff&#34;, &#34;ErrorManager&#34;]
 
 import asyncio
 import typing
 
 from hikari.impl import rate_limits
+
+if typing.TYPE_CHECKING:
+    import types
+
+
+ErrorManagerT = typing.TypeVar(&#34;ErrorManagerT&#34;, bound=&#34;ErrorManager&#34;)
 
 
 class Backoff:
@@ -82,8 +88,12 @@ class Backoff:
     this will either back off for the time passed to `Backoff.set_next_backoff`
     if applicable or a time calculated exponentially.
 
-    Parameters
-    ----------
+    Other Parameters
+    ----------------
+    max_retries : typing.Optional[builtins.int]
+        The maximum amount of times this should iterate for between resets.
+        If left as `builtins.None` then this iterator will be unlimited.
+        This must be greater than or equal to 1.
     base : builtins.float
         The base to use. Defaults to `2.0`.
     maximum : builtins.float
@@ -100,7 +110,7 @@ class Backoff:
     ValueError
         If an `builtins.int` that&#39;s too big to be represented as a
         `builtins.float` or a non-finite value is passed in place of a field
-        that&#39;s annotated as `builtins.float`.
+        that&#39;s annotated as `builtins.float` or if `max_retries` is less than 1.
 
     Examples
     --------
@@ -137,7 +147,7 @@ class Backoff:
         try:
             message = await bot.rest.fetch_message(channel_id, message_id)
         except errors.RateLimitedError as exc:
-            # If we have a specific backoff time then set it for the next iteration
+            # If we have a specific backoff time then set it for the next iteration.
             await backoff.backoff(exc.retry_after)
         except errors.InternalServerError:
             # Else let the iterator calculate an exponential backoff before the next loop.
@@ -145,23 +155,35 @@ class Backoff:
     ```
     &#34;&#34;&#34;
 
-    __slots__: typing.Sequence[str] = (&#34;_backoff&#34;, &#34;_finished&#34;, &#34;_next_backoff&#34;, &#34;_started&#34;)
+    __slots__: typing.Sequence[str] = (&#34;_backoff&#34;, &#34;_finished&#34;, &#34;_max_retries&#34;, &#34;_next_backoff&#34;, &#34;_retries&#34;, &#34;_started&#34;)
 
     def __init__(
-        self, base: float = 2.0, maximum: float = 64.0, jitter_multiplier: float = 1.0, initial_increment: int = 0
+        self,
+        max_retries: typing.Optional[int] = None,
+        *,
+        base: float = 2.0,
+        maximum: float = 64.0,
+        jitter_multiplier: float = 1.0,
+        initial_increment: int = 0,
     ) -&gt; None:
+        if max_retries is not None and max_retries &lt; 1:
+            raise ValueError(&#34;max_retries must be greater than 1&#34;)
+
         self._backoff = rate_limits.ExponentialBackOff(
             base=base, maximum=maximum, jitter_multiplier=jitter_multiplier, initial_increment=initial_increment
         )
         self._finished = False
+        self._max_retries = max_retries
         self._next_backoff: typing.Optional[float] = None
+        self._retries = 0
         self._started = False
 
     def __aiter__(self) -&gt; Backoff:
         return self
 
     async def __anext__(self) -&gt; None:
-        if self._finished:
+        if self._finished or self.is_depleted:
+            self._finished = False
             raise StopAsyncIteration
 
         # We don&#39;t want to backoff on the first iteration.
@@ -176,7 +198,22 @@ class Backoff:
             backoff_ = self._next_backoff
             self._next_backoff = None
 
+        self._retries += 1
         await asyncio.sleep(backoff_)
+
+    @property
+    def is_depleted(self) -&gt; bool:
+        &#34;&#34;&#34;Whether &#34;max_retries&#34; has been reached.
+
+        This can be used to workout whether the loop was explicitly broken out
+        of using `Backoff.finish`/`break` or if it hit &#34;max_retries&#34;.
+
+        Returns
+        -------
+        bool
+            If &#34;max_retries&#34; has been hit.
+        &#34;&#34;&#34;
+        return self._max_retries is not None and self._max_retries == self._retries
 
     async def backoff(self, backoff_: typing.Optional[float], /) -&gt; None:
         &#34;&#34;&#34;Sleep for the provided backoff or for the next exponent.
@@ -201,14 +238,15 @@ class Backoff:
         await asyncio.sleep(backoff_)
 
     def finish(self) -&gt; None:
-        &#34;&#34;&#34;Mark the iterator as finished to break out of the loop.&#34;&#34;&#34;
+        &#34;&#34;&#34;Mark the iterator as finished to break out of the current loop.&#34;&#34;&#34;
         self._finished = True
 
     def reset(self) -&gt; None:
-        &#34;&#34;&#34;Reset the backoff to it&#39;s original exponent to reuse it.&#34;&#34;&#34;
+        &#34;&#34;&#34;Reset the backoff to it&#39;s original state to reuse it.&#34;&#34;&#34;
         self._backoff.reset()
         self._finished = False
         self._next_backoff = None
+        self._retries = 0
         self._started = False
 
     def set_next_backoff(self, backoff_: float, /) -&gt; None:
@@ -220,7 +258,123 @@ class Backoff:
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
         &#34;&#34;&#34;
-        self._next_backoff = backoff_</code></pre>
+        self._next_backoff = backoff_
+
+
+class ErrorManager:
+    &#34;&#34;&#34;A context manager provided to allow for more concise error handling with `Backoff`.
+
+    Other Parameters
+    ----------------
+    *rules : typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]]
+        Rules to initiate this error context manager with.
+
+        These are each a 2-length tuple where the tuple[0] is an
+        iterable of types of the exceptions this rule should apply to
+        and tuple[1] is the rule&#39;s callback function.
+
+        The callback function will be called with the raised exception when it
+        matches one of the passed exceptions for the relevant rule and may
+        raise, return `builtins.True` to indicate that the current error should
+        be raised outside of the context manager or
+        `builtins.False`/`builtins.None` to suppress the current error.
+
+    Examples
+    --------
+    The following is an example of using `ErrorManager` alongside `Backoff`
+    in-order to handle the exceptions which may be raised while trying to
+    reply to a message.
+
+    ```py
+    retry = Backoff()
+    # Rules can either be passed to `ErrorManager`&#39;s initiate as variable arguments
+    # or one at a time to `ErrorManager.with_rule` through possibly chained-calls.
+    error_handler = (
+        # For the 1st rule we catch two errors which would indicate the bot
+        # no-longer has access to the target channel and break out of the
+        # retry loop using `Backoff.retry`.
+        ErrorManager(((errors.NotFoundError, errors.ForbiddenError), lambda _: retry.finish()))
+            # For the 2nd rule we catch rate limited errors and set their
+            # `retry` value as the next backoff time before suppressing the
+            # error to allow this to retry the request.
+            .with_rule((errors.RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
+            # For the 3rd rule we suppress the internal server error to allow
+            # backoff to reach the next retry and exponentially backoff as we
+            # don&#39;t have any specific retry time for this error.
+            .with_rule((errors.InternalServerError,), lambda _: False)
+    )
+    async for _ in retry:
+        # We entre this context manager each iteration to catch errors before
+        # they cause us to break out of the `Backoff` loop.
+        with error_handler:
+            await message.reply(&#34;General Kenobi&#34;)
+            # We need to break out of `retry` if this request succeeds.
+            break
+    ```
+    &#34;&#34;&#34;
+
+    __slots__: typing.Sequence[str] = (&#34;_rules&#34;,)
+
+    def __init__(
+        self,
+        *rules: typing.Tuple[
+            typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]
+        ],
+    ) -&gt; None:
+        self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
+
+    def __enter__(self) -&gt; ErrorManager:
+        pass
+
+    def __exit__(
+        self,
+        exception_type: typing.Optional[typing.Type[BaseException]],
+        exception: typing.Optional[BaseException],
+        exception_traceback: typing.Optional[types.TracebackType],
+    ) -&gt; typing.Optional[bool]:
+        if exception_type is None:
+            return None
+
+        assert exception is not None  # This shouldn&#39;t ever be None when exception_type isn&#39;t None.
+        for rule, callback in self._rules:
+            if issubclass(exception_type, rule):
+                # For ths context manager&#39;s rules we switch up how returns are handled to let the rules prevent
+                # exceptions from being raised outside of the context by default by having `None` and `False` both
+                # indicate don&#39;t re-raise (suppress) and `True` indicate that it should re-raise.
+                return not callback(exception)
+
+        return False
+
+    def clear_rules(self) -&gt; None:
+        &#34;&#34;&#34;Clear the rules registered with this handler.&#34;&#34;&#34;
+        self._rules.clear()
+
+    def with_rule(
+        self: ErrorManagerT,
+        exceptions: typing.Iterable[typing.Type[BaseException]],
+        result: typing.Callable[[typing.Any], typing.Optional[bool]],
+    ) -&gt; ErrorManagerT:
+        &#34;&#34;&#34;Add a rule to this exception context manager.
+
+        Parameters
+        ----------
+        exceptions : typing.Iterable[typing.Type[builtins.BaseException]]
+            An iterable of types of the exceptions this rule should apply to.
+        result : typing.Callable[[typing.Any], typing.Optional[builtins.bool]]
+            The function called with the raised exception when it matches one
+            of the passed `exceptions`.
+            This may raise, return `builtins.True` to indicate that the current
+            error should be raised outside of the context manager or
+            `builtins.False`/`builtins.None` to suppress the current error.
+
+        Returns
+        -------
+        ErrorManager
+            This returns the handler a rule was being added to in-order to
+            allow for chained calls.
+        &#34;&#34;&#34;
+        self._rules.add((tuple(exceptions), result))
+        return self</code></pre>
 </details>
 </section>
 <section>
@@ -234,7 +388,7 @@ class Backoff:
 <dl>
 <dt id="yuyo.backoff.Backoff"><code class="flex name class">
 <span>class <span class="ident">Backoff</span></span>
-<span>(</span><span>base: float = 2.0, maximum: float = 64.0, jitter_multiplier: float = 1.0, initial_increment: int = 0)</span>
+<span>(</span><span>max_retries: typing.Optional[int] = None, *, base: float = 2.0, maximum: float = 64.0, jitter_multiplier: float = 1.0, initial_increment: int = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used to exponentially backoff asynchronously.</p>
@@ -242,8 +396,12 @@ class Backoff:
 provide implicit backoff where for every iteration other than the first
 this will either back off for the time passed to <code><a title="yuyo.backoff.Backoff.set_next_backoff" href="#yuyo.backoff.Backoff.set_next_backoff">Backoff.set_next_backoff()</a></code>
 if applicable or a time calculated exponentially.</p>
-<h2 id="parameters">Parameters</h2>
+<h2 id="other-parameters">Other Parameters</h2>
 <dl>
+<dt><strong><code>max_retries</code></strong> :&ensp;<code>typing.Optional[builtins.int]</code></dt>
+<dd>The maximum amount of times this should iterate for between resets.
+If left as <code>builtins.None</code> then this iterator will be unlimited.
+This must be greater than or equal to 1.</dd>
 <dt><strong><code>base</code></strong> :&ensp;<code>builtins.float</code></dt>
 <dd>The base to use. Defaults to <code>2.0</code>.</dd>
 <dt><strong><code>maximum</code></strong> :&ensp;<code>builtins.float</code></dt>
@@ -260,7 +418,7 @@ Set to <code>0</code> to disable jitter.</dd>
 <dt><code>ValueError</code></dt>
 <dd>If an <code>builtins.int</code> that's too big to be represented as a
 <code>builtins.float</code> or a non-finite value is passed in place of a field
-that's annotated as <code>builtins.float</code>.</dd>
+that's annotated as <code>builtins.float</code> or if <code>max_retries</code> is less than 1.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <p>An example of using this class as an asynchronous iterator may look like
@@ -291,7 +449,7 @@ while not message:
     try:
         message = await bot.rest.fetch_message(channel_id, message_id)
     except errors.RateLimitedError as exc:
-        # If we have a specific backoff time then set it for the next iteration
+        # If we have a specific backoff time then set it for the next iteration.
         await backoff.backoff(exc.retry_after)
     except errors.InternalServerError:
         # Else let the iterator calculate an exponential backoff before the next loop.
@@ -309,8 +467,12 @@ while not message:
     this will either back off for the time passed to `Backoff.set_next_backoff`
     if applicable or a time calculated exponentially.
 
-    Parameters
-    ----------
+    Other Parameters
+    ----------------
+    max_retries : typing.Optional[builtins.int]
+        The maximum amount of times this should iterate for between resets.
+        If left as `builtins.None` then this iterator will be unlimited.
+        This must be greater than or equal to 1.
     base : builtins.float
         The base to use. Defaults to `2.0`.
     maximum : builtins.float
@@ -327,7 +489,7 @@ while not message:
     ValueError
         If an `builtins.int` that&#39;s too big to be represented as a
         `builtins.float` or a non-finite value is passed in place of a field
-        that&#39;s annotated as `builtins.float`.
+        that&#39;s annotated as `builtins.float` or if `max_retries` is less than 1.
 
     Examples
     --------
@@ -364,7 +526,7 @@ while not message:
         try:
             message = await bot.rest.fetch_message(channel_id, message_id)
         except errors.RateLimitedError as exc:
-            # If we have a specific backoff time then set it for the next iteration
+            # If we have a specific backoff time then set it for the next iteration.
             await backoff.backoff(exc.retry_after)
         except errors.InternalServerError:
             # Else let the iterator calculate an exponential backoff before the next loop.
@@ -372,23 +534,35 @@ while not message:
     ```
     &#34;&#34;&#34;
 
-    __slots__: typing.Sequence[str] = (&#34;_backoff&#34;, &#34;_finished&#34;, &#34;_next_backoff&#34;, &#34;_started&#34;)
+    __slots__: typing.Sequence[str] = (&#34;_backoff&#34;, &#34;_finished&#34;, &#34;_max_retries&#34;, &#34;_next_backoff&#34;, &#34;_retries&#34;, &#34;_started&#34;)
 
     def __init__(
-        self, base: float = 2.0, maximum: float = 64.0, jitter_multiplier: float = 1.0, initial_increment: int = 0
+        self,
+        max_retries: typing.Optional[int] = None,
+        *,
+        base: float = 2.0,
+        maximum: float = 64.0,
+        jitter_multiplier: float = 1.0,
+        initial_increment: int = 0,
     ) -&gt; None:
+        if max_retries is not None and max_retries &lt; 1:
+            raise ValueError(&#34;max_retries must be greater than 1&#34;)
+
         self._backoff = rate_limits.ExponentialBackOff(
             base=base, maximum=maximum, jitter_multiplier=jitter_multiplier, initial_increment=initial_increment
         )
         self._finished = False
+        self._max_retries = max_retries
         self._next_backoff: typing.Optional[float] = None
+        self._retries = 0
         self._started = False
 
     def __aiter__(self) -&gt; Backoff:
         return self
 
     async def __anext__(self) -&gt; None:
-        if self._finished:
+        if self._finished or self.is_depleted:
+            self._finished = False
             raise StopAsyncIteration
 
         # We don&#39;t want to backoff on the first iteration.
@@ -403,7 +577,22 @@ while not message:
             backoff_ = self._next_backoff
             self._next_backoff = None
 
+        self._retries += 1
         await asyncio.sleep(backoff_)
+
+    @property
+    def is_depleted(self) -&gt; bool:
+        &#34;&#34;&#34;Whether &#34;max_retries&#34; has been reached.
+
+        This can be used to workout whether the loop was explicitly broken out
+        of using `Backoff.finish`/`break` or if it hit &#34;max_retries&#34;.
+
+        Returns
+        -------
+        bool
+            If &#34;max_retries&#34; has been hit.
+        &#34;&#34;&#34;
+        return self._max_retries is not None and self._max_retries == self._retries
 
     async def backoff(self, backoff_: typing.Optional[float], /) -&gt; None:
         &#34;&#34;&#34;Sleep for the provided backoff or for the next exponent.
@@ -428,14 +617,15 @@ while not message:
         await asyncio.sleep(backoff_)
 
     def finish(self) -&gt; None:
-        &#34;&#34;&#34;Mark the iterator as finished to break out of the loop.&#34;&#34;&#34;
+        &#34;&#34;&#34;Mark the iterator as finished to break out of the current loop.&#34;&#34;&#34;
         self._finished = True
 
     def reset(self) -&gt; None:
-        &#34;&#34;&#34;Reset the backoff to it&#39;s original exponent to reuse it.&#34;&#34;&#34;
+        &#34;&#34;&#34;Reset the backoff to it&#39;s original state to reuse it.&#34;&#34;&#34;
         self._backoff.reset()
         self._finished = False
         self._next_backoff = None
+        self._retries = 0
         self._started = False
 
     def set_next_backoff(self, backoff_: float, /) -&gt; None:
@@ -449,6 +639,38 @@ while not message:
         &#34;&#34;&#34;
         self._next_backoff = backoff_</code></pre>
 </details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="yuyo.backoff.Backoff.is_depleted"><code class="name">var <span class="ident">is_depleted</span> : bool</code></dt>
+<dd>
+<div class="desc"><p>Whether "max_retries" has been reached.</p>
+<p>This can be used to workout whether the loop was explicitly broken out
+of using <code><a title="yuyo.backoff.Backoff.finish" href="#yuyo.backoff.Backoff.finish">Backoff.finish()</a></code>/<code>break</code> or if it hit "max_retries".</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>If "max_retries" has been hit.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def is_depleted(self) -&gt; bool:
+    &#34;&#34;&#34;Whether &#34;max_retries&#34; has been reached.
+
+    This can be used to workout whether the loop was explicitly broken out
+    of using `Backoff.finish`/`break` or if it hit &#34;max_retries&#34;.
+
+    Returns
+    -------
+    bool
+        If &#34;max_retries&#34; has been hit.
+    &#34;&#34;&#34;
+    return self._max_retries is not None and self._max_retries == self._retries</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="yuyo.backoff.Backoff.backoff"><code class="name flex">
@@ -495,13 +717,13 @@ this will back off for the last time provided with
 <span>def <span class="ident">finish</span></span>(<span>self) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Mark the iterator as finished to break out of the loop.</p></div>
+<div class="desc"><p>Mark the iterator as finished to break out of the current loop.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def finish(self) -&gt; None:
-    &#34;&#34;&#34;Mark the iterator as finished to break out of the loop.&#34;&#34;&#34;
+    &#34;&#34;&#34;Mark the iterator as finished to break out of the current loop.&#34;&#34;&#34;
     self._finished = True</code></pre>
 </details>
 </dd>
@@ -509,16 +731,17 @@ this will back off for the last time provided with
 <span>def <span class="ident">reset</span></span>(<span>self) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reset the backoff to it's original exponent to reuse it.</p></div>
+<div class="desc"><p>Reset the backoff to it's original state to reuse it.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def reset(self) -&gt; None:
-    &#34;&#34;&#34;Reset the backoff to it&#39;s original exponent to reuse it.&#34;&#34;&#34;
+    &#34;&#34;&#34;Reset the backoff to it&#39;s original state to reuse it.&#34;&#34;&#34;
     self._backoff.reset()
     self._finished = False
     self._next_backoff = None
+    self._retries = 0
     self._started = False</code></pre>
 </details>
 </dd>
@@ -551,6 +774,247 @@ previously set next backoff.</p>
 </dd>
 </dl>
 </dd>
+<dt id="yuyo.backoff.ErrorManager"><code class="flex name class">
+<span>class <span class="ident">ErrorManager</span></span>
+<span>(</span><span>*rules: typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A context manager provided to allow for more concise error handling with <code><a title="yuyo.backoff.Backoff" href="#yuyo.backoff.Backoff">Backoff</a></code>.</p>
+<h2 id="other-parameters">Other Parameters</h2>
+<dl>
+<dt><strong><code>*rules</code></strong> :&ensp;<code>typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]]</code></dt>
+<dd>
+<p>Rules to initiate this error context manager with.</p>
+<p>These are each a 2-length tuple where the tuple[0] is an
+iterable of types of the exceptions this rule should apply to
+and tuple[1] is the rule's callback function.</p>
+<p>The callback function will be called with the raised exception when it
+matches one of the passed exceptions for the relevant rule and may
+raise, return <code>builtins.True</code> to indicate that the current error should
+be raised outside of the context manager or
+<code>builtins.False</code>/<code>builtins.None</code> to suppress the current error.</p>
+</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>The following is an example of using <code><a title="yuyo.backoff.ErrorManager" href="#yuyo.backoff.ErrorManager">ErrorManager</a></code> alongside <code><a title="yuyo.backoff.Backoff" href="#yuyo.backoff.Backoff">Backoff</a></code>
+in-order to handle the exceptions which may be raised while trying to
+reply to a message.</p>
+<pre><code class="language-py">retry = Backoff()
+# Rules can either be passed to `ErrorManager`'s initiate as variable arguments
+# or one at a time to `ErrorManager.with_rule` through possibly chained-calls.
+error_handler = (
+    # For the 1st rule we catch two errors which would indicate the bot
+    # no-longer has access to the target channel and break out of the
+    # retry loop using `Backoff.retry`.
+    ErrorManager(((errors.NotFoundError, errors.ForbiddenError), lambda _: retry.finish()))
+        # For the 2nd rule we catch rate limited errors and set their
+        # `retry` value as the next backoff time before suppressing the
+        # error to allow this to retry the request.
+        .with_rule((errors.RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
+        # For the 3rd rule we suppress the internal server error to allow
+        # backoff to reach the next retry and exponentially backoff as we
+        # don't have any specific retry time for this error.
+        .with_rule((errors.InternalServerError,), lambda _: False)
+)
+async for _ in retry:
+    # We entre this context manager each iteration to catch errors before
+    # they cause us to break out of the `Backoff` loop.
+    with error_handler:
+        await message.reply(&quot;General Kenobi&quot;)
+        # We need to break out of `retry` if this request succeeds.
+        break
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ErrorManager:
+    &#34;&#34;&#34;A context manager provided to allow for more concise error handling with `Backoff`.
+
+    Other Parameters
+    ----------------
+    *rules : typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]]
+        Rules to initiate this error context manager with.
+
+        These are each a 2-length tuple where the tuple[0] is an
+        iterable of types of the exceptions this rule should apply to
+        and tuple[1] is the rule&#39;s callback function.
+
+        The callback function will be called with the raised exception when it
+        matches one of the passed exceptions for the relevant rule and may
+        raise, return `builtins.True` to indicate that the current error should
+        be raised outside of the context manager or
+        `builtins.False`/`builtins.None` to suppress the current error.
+
+    Examples
+    --------
+    The following is an example of using `ErrorManager` alongside `Backoff`
+    in-order to handle the exceptions which may be raised while trying to
+    reply to a message.
+
+    ```py
+    retry = Backoff()
+    # Rules can either be passed to `ErrorManager`&#39;s initiate as variable arguments
+    # or one at a time to `ErrorManager.with_rule` through possibly chained-calls.
+    error_handler = (
+        # For the 1st rule we catch two errors which would indicate the bot
+        # no-longer has access to the target channel and break out of the
+        # retry loop using `Backoff.retry`.
+        ErrorManager(((errors.NotFoundError, errors.ForbiddenError), lambda _: retry.finish()))
+            # For the 2nd rule we catch rate limited errors and set their
+            # `retry` value as the next backoff time before suppressing the
+            # error to allow this to retry the request.
+            .with_rule((errors.RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
+            # For the 3rd rule we suppress the internal server error to allow
+            # backoff to reach the next retry and exponentially backoff as we
+            # don&#39;t have any specific retry time for this error.
+            .with_rule((errors.InternalServerError,), lambda _: False)
+    )
+    async for _ in retry:
+        # We entre this context manager each iteration to catch errors before
+        # they cause us to break out of the `Backoff` loop.
+        with error_handler:
+            await message.reply(&#34;General Kenobi&#34;)
+            # We need to break out of `retry` if this request succeeds.
+            break
+    ```
+    &#34;&#34;&#34;
+
+    __slots__: typing.Sequence[str] = (&#34;_rules&#34;,)
+
+    def __init__(
+        self,
+        *rules: typing.Tuple[
+            typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]
+        ],
+    ) -&gt; None:
+        self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
+
+    def __enter__(self) -&gt; ErrorManager:
+        pass
+
+    def __exit__(
+        self,
+        exception_type: typing.Optional[typing.Type[BaseException]],
+        exception: typing.Optional[BaseException],
+        exception_traceback: typing.Optional[types.TracebackType],
+    ) -&gt; typing.Optional[bool]:
+        if exception_type is None:
+            return None
+
+        assert exception is not None  # This shouldn&#39;t ever be None when exception_type isn&#39;t None.
+        for rule, callback in self._rules:
+            if issubclass(exception_type, rule):
+                # For ths context manager&#39;s rules we switch up how returns are handled to let the rules prevent
+                # exceptions from being raised outside of the context by default by having `None` and `False` both
+                # indicate don&#39;t re-raise (suppress) and `True` indicate that it should re-raise.
+                return not callback(exception)
+
+        return False
+
+    def clear_rules(self) -&gt; None:
+        &#34;&#34;&#34;Clear the rules registered with this handler.&#34;&#34;&#34;
+        self._rules.clear()
+
+    def with_rule(
+        self: ErrorManagerT,
+        exceptions: typing.Iterable[typing.Type[BaseException]],
+        result: typing.Callable[[typing.Any], typing.Optional[bool]],
+    ) -&gt; ErrorManagerT:
+        &#34;&#34;&#34;Add a rule to this exception context manager.
+
+        Parameters
+        ----------
+        exceptions : typing.Iterable[typing.Type[builtins.BaseException]]
+            An iterable of types of the exceptions this rule should apply to.
+        result : typing.Callable[[typing.Any], typing.Optional[builtins.bool]]
+            The function called with the raised exception when it matches one
+            of the passed `exceptions`.
+            This may raise, return `builtins.True` to indicate that the current
+            error should be raised outside of the context manager or
+            `builtins.False`/`builtins.None` to suppress the current error.
+
+        Returns
+        -------
+        ErrorManager
+            This returns the handler a rule was being added to in-order to
+            allow for chained calls.
+        &#34;&#34;&#34;
+        self._rules.add((tuple(exceptions), result))
+        return self</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="yuyo.backoff.ErrorManager.clear_rules"><code class="name flex">
+<span>def <span class="ident">clear_rules</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Clear the rules registered with this handler.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear_rules(self) -&gt; None:
+    &#34;&#34;&#34;Clear the rules registered with this handler.&#34;&#34;&#34;
+    self._rules.clear()</code></pre>
+</details>
+</dd>
+<dt id="yuyo.backoff.ErrorManager.with_rule"><code class="name flex">
+<span>def <span class="ident">with_rule</span></span>(<span>self: ErrorManagerT, exceptions: typing.Iterable[typing.Type[BaseException]], result: typing.Callable[[typing.Any], typing.Optional[bool]]) ‑> ~ErrorManagerT</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a rule to this exception context manager.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>exceptions</code></strong> :&ensp;<code>typing.Iterable[typing.Type[builtins.BaseException]]</code></dt>
+<dd>An iterable of types of the exceptions this rule should apply to.</dd>
+<dt><strong><code>result</code></strong> :&ensp;<code>typing.Callable[[typing.Any], typing.Optional[builtins.bool]]</code></dt>
+<dd>The function called with the raised exception when it matches one
+of the passed <code>exceptions</code>.
+This may raise, return <code>builtins.True</code> to indicate that the current
+error should be raised outside of the context manager or
+<code>builtins.False</code>/<code>builtins.None</code> to suppress the current error.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="yuyo.backoff.ErrorManager" href="#yuyo.backoff.ErrorManager">ErrorManager</a></code></dt>
+<dd>This returns the handler a rule was being added to in-order to
+allow for chained calls.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_rule(
+    self: ErrorManagerT,
+    exceptions: typing.Iterable[typing.Type[BaseException]],
+    result: typing.Callable[[typing.Any], typing.Optional[bool]],
+) -&gt; ErrorManagerT:
+    &#34;&#34;&#34;Add a rule to this exception context manager.
+
+    Parameters
+    ----------
+    exceptions : typing.Iterable[typing.Type[builtins.BaseException]]
+        An iterable of types of the exceptions this rule should apply to.
+    result : typing.Callable[[typing.Any], typing.Optional[builtins.bool]]
+        The function called with the raised exception when it matches one
+        of the passed `exceptions`.
+        This may raise, return `builtins.True` to indicate that the current
+        error should be raised outside of the context manager or
+        `builtins.False`/`builtins.None` to suppress the current error.
+
+    Returns
+    -------
+    ErrorManager
+        This returns the handler a rule was being added to in-order to
+        allow for chained calls.
+    &#34;&#34;&#34;
+    self._rules.add((tuple(exceptions), result))
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -572,8 +1036,16 @@ previously set next backoff.</p>
 <ul class="">
 <li><code><a title="yuyo.backoff.Backoff.backoff" href="#yuyo.backoff.Backoff.backoff">backoff</a></code></li>
 <li><code><a title="yuyo.backoff.Backoff.finish" href="#yuyo.backoff.Backoff.finish">finish</a></code></li>
+<li><code><a title="yuyo.backoff.Backoff.is_depleted" href="#yuyo.backoff.Backoff.is_depleted">is_depleted</a></code></li>
 <li><code><a title="yuyo.backoff.Backoff.reset" href="#yuyo.backoff.Backoff.reset">reset</a></code></li>
 <li><code><a title="yuyo.backoff.Backoff.set_next_backoff" href="#yuyo.backoff.Backoff.set_next_backoff">set_next_backoff</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="yuyo.backoff.ErrorManager" href="#yuyo.backoff.ErrorManager">ErrorManager</a></code></h4>
+<ul class="">
+<li><code><a title="yuyo.backoff.ErrorManager.clear_rules" href="#yuyo.backoff.ErrorManager.clear_rules">clear_rules</a></code></li>
+<li><code><a title="yuyo.backoff.ErrorManager.with_rule" href="#yuyo.backoff.ErrorManager.with_rule">with_rule</a></code></li>
 </ul>
 </li>
 </ul>
