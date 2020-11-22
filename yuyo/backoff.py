@@ -47,6 +47,9 @@ if typing.TYPE_CHECKING:
     import types
 
 
+ErrorManagerT = typing.TypeVar("ErrorManagerT", bound="ErrorManager")
+
+
 class Backoff:
     """Used to exponentially backoff asynchronously.
 
@@ -55,8 +58,8 @@ class Backoff:
     this will either back off for the time passed to `Backoff.set_next_backoff`
     if applicable or a time calculated exponentially.
 
-    Parameters
-    ----------
+    Other Parameters
+    ----------------
     max_retries : typing.Optional[builtins.int]
         The maximum amount of times this should iterate for between resets.
         If left as `builtins.None` then this iterator will be unlimited.
@@ -149,7 +152,7 @@ class Backoff:
         return self
 
     async def __anext__(self) -> None:
-        if self._finished or self._max_retries is not None and self._max_retries == self._retries:
+        if self._finished or self.is_depleted:
             self._finished = False
             raise StopAsyncIteration
 
@@ -167,6 +170,20 @@ class Backoff:
 
         self._retries += 1
         await asyncio.sleep(backoff_)
+
+    @property
+    def is_depleted(self) -> bool:
+        """Whether "max_retries" has been reached.
+
+        This can be used to workout whether the loop was explicitly broken out
+        of using `Backoff.finish`/`break` or if it hit "max_retries".
+
+        Returns
+        -------
+        bool
+            If "max_retries" has been hit.
+        """
+        return self._max_retries is not None and self._max_retries == self._retries
 
     async def backoff(self, backoff_: typing.Optional[float], /) -> None:
         """Sleep for the provided backoff or for the next exponent.
@@ -192,7 +209,6 @@ class Backoff:
 
     def finish(self) -> None:
         """Mark the iterator as finished to break out of the current loop."""
-        self.reset()
         self._finished = True
 
     def reset(self) -> None:
@@ -304,10 +320,10 @@ class ErrorManager:
         self._rules.clear()
 
     def with_rule(
-        self,
+        self: ErrorManagerT,
         exceptions: typing.Iterable[typing.Type[BaseException]],
         result: typing.Callable[[typing.Any], typing.Optional[bool]],
-    ) -> ErrorManager:
+    ) -> ErrorManagerT:
         """Add a rule to this exception context manager.
 
         Parameters
