@@ -393,7 +393,7 @@ class Paginator(AbstractPaginator):
         ),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        if isinstance(iterator, typing.Iterator):
+        if not isinstance(iterator, (typing.Iterator, typing.AsyncIterator)):
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         self._authors = set(map(snowflakes.Snowflake, authors))
@@ -450,7 +450,7 @@ class Paginator(AbstractPaginator):
             try:
                 await self._rest.rest.delete_message(self._channel_id, message_id)
 
-            except (errors.NotFoundError, errors.ForbiddenError):  # TODO: better permission handling.
+            except (errors.NotFoundError, errors.ForbiddenError):  # TODO: attempt to check permissions first
                 return
 
             except errors.InternalServerError:
@@ -598,9 +598,13 @@ class Paginator(AbstractPaginator):
                 try:
                     await self._rest.rest.add_reaction(self._channel_id, message, emoji)
 
-                except (errors.NotFoundError, errors.ForbiddenError):
+                except errors.NotFoundError:
                     self._message_id = None
                     raise
+
+                except errors.ForbiddenError:  # TODO: attempt to check permissions first
+                    # If this is reached then we just don't have reaction permissions in the channel.
+                    return created_message
 
                 except errors.RateLimitedError as exc:
                     if exc.retry_after > max_backoff:
