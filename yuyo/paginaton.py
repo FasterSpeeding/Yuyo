@@ -33,7 +33,7 @@
 
 from __future__ import annotations
 
-__slots__: typing.Sequence[str] = ["AbstractPaginator", "Paginator", "PaginatorPool"]
+__all__: typing.Sequence[str] = ["AbstractPaginator", "Paginator", "PaginatorPool"]
 
 import abc
 import asyncio
