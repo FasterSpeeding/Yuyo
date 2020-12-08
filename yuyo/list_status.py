@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__slot__: typing.Sequence[str] = ["Service", "ServiceManager"]
+__all__: typing.Sequence[str] = ["Service", "ServiceManager"]
 
 import asyncio
 import datetime
@@ -40,7 +40,6 @@ import typing
 import aiohttp
 
 if typing.TYPE_CHECKING:
-
     from hikari import traits
 
 ServiceT = typing.TypeVar("ServiceT", bound="Service")
@@ -82,20 +81,26 @@ class ServiceManager:
         cache: typing.Optional[traits.CacheAware] = None,
         /,
     ) -> None:
-        if shards is None and isinstance(rest, traits.ShardAware):
+        if shards is not None:
+            pass
+
+        elif isinstance(rest, traits.ShardAware):
             shards = rest
 
-        elif shards is None and isinstance(cache, traits.ShardAware):
+        elif isinstance(cache, traits.ShardAware):
             shards = cache
 
         else:
             raise ValueError("Missing shard aware Hikari implementation")
 
-        if cache is None and isinstance(rest, traits.CacheAware):
+        if cache is not None:
+            pass
+
+        elif isinstance(rest, traits.CacheAware):
             cache = rest
 
-        elif cache is None and isinstance(shards, traits.CacheAware):  # type: ignore[unreachable]
-            cache = shards  # type: ignore[unreachable]
+        elif isinstance(shards, traits.CacheAware):  # type: ignore[unreachable]
+            cache = shards
 
         # TODO: log/warn if this is running cache-lessly
         # TODO: can i make a function for this boilerplate of if elif statements?
@@ -135,12 +140,17 @@ class ServiceManager:
 
             if self.session and not self.session.closed:
                 await self.session.close()
+                self.session = None
 
     async def open(self) -> None:
         if not self.services:
             raise RuntimeError("Cannot run a client with no registered services.")
 
-        self._task = asyncio.create_task(self._loop())
+        if not self.session or self.session.closed:
+            self.session = aiohttp.ClientSession()
+
+        if not self._task:
+            self._task = asyncio.create_task(self._loop())
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if not self.session or self.session.closed:
@@ -149,17 +159,18 @@ class ServiceManager:
         return self.session
 
     async def _loop(self) -> None:
-        services = [(service.repeat, service) for service in self.services]
+        # This acts as a priority queue.
+        queue = [(service.repeat, service) for service in self.services]
         while True:
-            await asyncio.sleep(sleep := services[0][0])
-            services = [(time - sleep, service) for time, service in services]
+            await asyncio.sleep(sleep := queue[0][0])
+            queue = [(time - sleep, service) for time, service in queue]
 
-            while services[0][0] <= 0:
+            while queue[0][0] <= 0:
                 session = await self._get_session()
-                service = services.pop(0)[1]
+                service = queue.pop(0)[1]
                 # TODO: catch any error and warn or log based on it here
                 await service.function(session, self.cache_service, self.rest_service, self.shard_service)
-                self._queue_insert(services, lambda s: s[0] > service.repeat, (service.repeat, service))
+                self._queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
 
     @staticmethod
     def _queue_insert(

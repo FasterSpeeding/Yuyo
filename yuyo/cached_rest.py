@@ -44,6 +44,7 @@ if typing.TYPE_CHECKING:
     from hikari import emojis
     from hikari import guilds
     from hikari import invites
+    from hikari import messages
     from hikari import traits
     from hikari import users
 
@@ -56,8 +57,8 @@ class TimeLimitedMapping(typing.MutableMapping[KeyT, ValueT]):
     __slots__: typing.Sequence[str] = ("_data", "_expiry")
 
     def __init__(self, *, expire_delta: datetime.timedelta) -> None:
-        self._expiry = expire_delta.total_seconds()
         self._data: typing.Dict[KeyT, typing.Tuple[float, ValueT]] = {}
+        self._expiry = expire_delta.total_seconds()
 
     def __delitem__(self, key: KeyT) -> None:
         del self._data[key]
@@ -106,6 +107,7 @@ class CachedREST:
         "_me_expire",
         "_me_state_time",
         "_member_store",
+        "_message_store",
         "_rest",
         "_role_store",
         "_user_store",
@@ -116,10 +118,10 @@ class CachedREST:
     _guild_store: TimeLimitedMapping[snowflakes.Snowflake, guilds.Guild]
     _invite_store: TimeLimitedMapping[str, invites.Invite]
     _member_store: TimeLimitedMapping[str, guilds.Member]
+    _message_store: TimeLimitedMapping[snowflakes.Snowflake, messages.Message]
     _role_store: TimeLimitedMapping[snowflakes.Snowflake, guilds.Role]
     _user_store: TimeLimitedMapping[snowflakes.Snowflake, users.User]
 
-    # TODO: expire times
     def __init__(
         self,
         rest: traits.RESTAware,
@@ -131,9 +133,10 @@ class CachedREST:
         guild_expire: datetime.timedelta = datetime.timedelta(seconds=30),
         invite_expire: datetime.timedelta = datetime.timedelta(seconds=60),
         me_expire: datetime.timedelta = datetime.timedelta(seconds=120),
-        member_expire: datetime.timedelta = datetime.timedelta(seconds=10),
+        member_expire: datetime.timedelta = datetime.timedelta(seconds=5),
+        message_expire: datetime.timedelta = datetime.timedelta(seconds=10),
         role_expire: datetime.timedelta = datetime.timedelta(seconds=10),
-        user_expire: datetime.timedelta = datetime.timedelta(seconds=30),
+        user_expire: datetime.timedelta = datetime.timedelta(seconds=60),
     ) -> None:
         if cache is None and isinstance(rest, traits.CacheAware):
             cache = rest
@@ -146,8 +149,9 @@ class CachedREST:
         self._invite_store = TimeLimitedMapping(expire_delta=invite_expire)
         self._me_state: typing.Optional[users.OwnUser] = None
         self._me_expire = me_expire.total_seconds()
-        self._me_state_time: float = 0
+        self._me_state_time: float = 0.0
         self._member_store = TimeLimitedMapping(expire_delta=member_expire)
+        self._message_store = TimeLimitedMapping(expire_delta=message_expire)
         self._rest = rest
         self._role_store = TimeLimitedMapping(expire_delta=role_expire)
         self._user_store = TimeLimitedMapping(expire_delta=user_expire)
@@ -159,6 +163,7 @@ class CachedREST:
         self._invite_store.clear()
         self._me_state = None
         self._member_store.clear()
+        self._message_store.clear()
         self._role_store.clear()
         self._user_store.clear()
 
@@ -172,6 +177,7 @@ class CachedREST:
             self._me_state = None
 
         self._member_store.gc()
+        self._message_store.gc()
         self._role_store.gc()
         self._user_store.gc()
 
@@ -205,6 +211,7 @@ class CachedREST:
     ) -> emojis.KnownCustomEmoji:
         emoji = snowflakes.Snowflake(emoji)
         self._emoji_store.gc()
+
         cached_emoji = (self._cache and self._cache.cache.get_emoji(emoji)) or self._emoji_store.get(emoji)
         if cached_emoji:
             return cached_emoji
@@ -220,6 +227,7 @@ class CachedREST:
     async def fetch_guild(self, guild: snowflakes.SnowflakeishOr[guilds.PartialGuild], /) -> guilds.Guild:
         guild = snowflakes.Snowflake(guild)
         self._guild_store.gc()
+
         cached_guild = (self._cache and self._cache.cache.get_available_guild(guild)) or self._guild_store.get(guild)
         if cached_guild:
             return cached_guild
@@ -233,6 +241,7 @@ class CachedREST:
     async def fetch_invite(self, invite: typing.Union[str, invites.Invite], /) -> invites.Invite:
         invite_code = invite if isinstance(invite, str) else invite.code
         self._invite_store.gc()
+
         cached_invite = (self._cache and self._cache.cache.get_invite(invite_code)) or self._invite_store.get(
             invite_code
         )
@@ -275,18 +284,33 @@ class CachedREST:
         user = snowflakes.Snowflake(user)
         cache_id = f"{guild}:{user}"
         self._member_store.gc()
+
         cached_member = (self._cache and self._cache.cache.get_member(guild, user)) or self._member_store.get(cache_id)
         if cached_member:
             return cached_member
-
-        self._member_store.gc()
-        if cache_id in self._member_store:
-            return self._member_store[cache_id]
 
         rest_member = await self._rest.rest.fetch_member(guild, user)
         self._member_store[cache_id] = rest_member
         self._user_store[user] = rest_member.user
         return rest_member
+
+    async def fetch_message(
+        self,
+        channel: snowflakes.SnowflakeishOr[channels.PartialChannel],
+        message: snowflakes.SnowflakeishOr[messages.Message],
+        /,
+    ) -> messages.Message:
+        channel = snowflakes.Snowflake(channel)
+        message = snowflakes.Snowflake(message)
+        self._message_store.gc()
+
+        cached_message = (self._cache and self._cache.cache.get_message(message)) or self._message_store.get(message)
+        if cached_message:
+            return cached_message
+
+        rest_messages = await self._rest.rest.fetch_message(channel, message)
+        self._message_store[message] = rest_messages
+        return rest_messages
 
     async def fetch_role(
         self,
@@ -296,6 +320,7 @@ class CachedREST:
     ) -> guilds.Role:
         role = snowflakes.Snowflake(role)
         self._role_store.gc()
+
         cached_role = (self._cache and self._cache.cache.get_role(role)) or self._role_store.get(role)
         if cached_role:
             return cached_role
@@ -311,9 +336,14 @@ class CachedREST:
     async def fetch_user(self, user: snowflakes.SnowflakeishOr[users.User]) -> users.User:
         user = snowflakes.Snowflake(user)
         self._user_store.gc()
+
         cached_user = (self._cache and self._cache.cache.get_user(user)) or self._user_store.get(user)
         if cached_user:
             return cached_user
+
+        # A special case for if they try to get the current bot's user.
+        if self._me_state and user == self._me_state.id and not self._me_store_is_old():
+            return self._me_state
 
         rest_user = await self._rest.rest.fetch_user(user)
         self._user_store[user] = rest_user

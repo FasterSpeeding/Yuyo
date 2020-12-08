@@ -695,7 +695,7 @@ class PaginatorPool:
         if dispatch is None and isinstance(rest, traits.DispatcherAware):
             dispatch = rest
 
-        if dispatch is None:
+        elif dispatch is None:
             raise ValueError("Missing dispatcher aware client.")
 
         self.blacklist: typing.MutableSequence[snowflakes.Snowflake] = []
