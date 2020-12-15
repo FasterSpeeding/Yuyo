@@ -60,11 +60,11 @@ class TimeLimitedMapping(typing.MutableMapping[KeyT, ValueT]):
         self._data: typing.Dict[KeyT, typing.Tuple[float, ValueT]] = {}
         self._expiry = expire_delta.total_seconds()
 
-    def __delitem__(self, key: KeyT) -> None:
+    def __delitem__(self, key: KeyT, /) -> None:
         del self._data[key]
         self.gc()
 
-    def __getitem__(self, key: KeyT) -> ValueT:
+    def __getitem__(self, key: KeyT, /) -> ValueT:
         return self._data[key][1]
 
     def __iter__(self) -> typing.Iterator[KeyT]:
@@ -73,7 +73,7 @@ class TimeLimitedMapping(typing.MutableMapping[KeyT, ValueT]):
     def __len__(self) -> int:
         return len(self._data)
 
-    def __setitem__(self, key: KeyT, value: ValueT) -> None:
+    def __setitem__(self, key: KeyT, value: ValueT, /) -> None:
         self.gc()
 
         # Seeing as we rely on insertion order in _garbage_collect, we have to make sure that each item is added to
@@ -85,6 +85,9 @@ class TimeLimitedMapping(typing.MutableMapping[KeyT, ValueT]):
 
     def clear(self) -> None:
         self._data.clear()
+
+    def copy(self) -> typing.Dict[KeyT, ValueT]:
+        return {key: value for key, (_, value) in self._data.items()}
 
     def gc(self) -> None:
         current_time = time.perf_counter()
