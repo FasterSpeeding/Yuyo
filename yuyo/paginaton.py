@@ -270,7 +270,7 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
 
-async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequence[ValueT]:
+async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.List[ValueT]:
     """Collect the rest of an async or sync iterator into a mutable sequence
 
     Parameters
@@ -292,7 +292,7 @@ async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSeq
     raise ValueError(f"{type(iterator)!r} is not a valid iterator")
 
 
-async def _seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Optional[ValueT]:
+async def _seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Union[ValueT, DefaultT]:
     """Get the next value in an async or sync iterator.
 
     Parameters
