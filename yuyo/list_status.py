@@ -55,6 +55,7 @@ from hikari.events import guild_events
 from hikari.events import lifetime_events
 from hikari.events import shard_events
 
+from yuyo import _utility
 from yuyo import backoff
 
 if typing.TYPE_CHECKING:
@@ -258,41 +259,9 @@ class ServiceManager(ManagerProto):
         *,
         strategy: typing.Optional[CountStrategyProto] = None,
     ) -> None:
-        if cache:
-            pass
-
-        elif isinstance(dispatch, traits.CacheAware):
-            cache = dispatch  # type: ignore[unreachable]
-
-        elif isinstance(rest, traits.CacheAware):
-            cache = rest
-
-        elif isinstance(shards, traits.CacheAware):  # type: ignore[unreachable]
-            cache = shards
-
-        if dispatch:
-            pass
-
-        elif isinstance(cache, traits.DispatcherAware):
-            dispatch = cache
-
-        elif isinstance(rest, traits.DispatcherAware):
-            dispatch = rest
-
-        elif isinstance(shards, traits.DispatcherAware):
-            dispatch = shards  # type: ignore[unreachable]
-
-        if shards:
-            pass
-
-        elif isinstance(cache, traits.ShardAware):
-            shards = cache
-
-        elif isinstance(dispatch, traits.ShardAware):
-            shards = dispatch  # type: ignore[unreachable]
-
-        elif isinstance(rest, traits.ShardAware):
-            shards = rest
+        cache = _utility.try_find_type(traits.CacheAware, cache, rest, dispatch, shards)  # type: ignore[misc]
+        dispatch = _utility.try_find_type(traits.DispatcherAware, dispatch, rest, cache, shards)  # type: ignore[misc]
+        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, dispatch)  # type: ignore[misc]
 
         self._cache_service = cache
         self._dispatch_service = dispatch
@@ -450,7 +419,7 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
         content = await response.read()
 
     except Exception:
-        content = b"<Couldn't read response content.>"
+        content = b"<Couldn't read response content>"
 
     if response.status >= 500:
         _LOGGER.warning(
