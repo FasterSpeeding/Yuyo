@@ -277,7 +277,7 @@ class ErrorManager:
         # We entre this context manager each iteration to catch errors before
         # they cause us to break out of the `Backoff` loop.
         with error_handler:
-            await message.reply("General Kenobi")
+            await message.respond("General Kenobi")
             # We need to break out of `retry` if this request succeeds.
             break
     ```

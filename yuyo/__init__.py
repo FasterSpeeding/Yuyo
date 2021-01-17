@@ -39,7 +39,7 @@ __slots__: typing.Sequence[str] = [
     "Backoff",
     "ErrorManager",
     # paginaton.py
-    "paginator",
+    "paginaton",
     "AbstractPaginator",
     "Paginator",
     "PaginatorPool",
