@@ -689,17 +689,17 @@ class PaginatorPool:
         dispatcher aware.
     """
 
-    __slots__: typing.Sequence[str] = ("blacklist", "_dispatch", "_gc_task", "_listeners", "_rest")
+    __slots__: typing.Sequence[str] = ("blacklist", "_events", "_gc_task", "_listeners", "_rest")
 
-    def __init__(self, rest: traits.RESTAware, dispatch: typing.Optional[traits.DispatcherAware] = None, /) -> None:
-        if dispatch is None and isinstance(rest, traits.DispatcherAware):
-            dispatch = rest
+    def __init__(self, rest: traits.RESTAware, events: typing.Optional[traits.EventManagerAware] = None, /) -> None:
+        if events is None and isinstance(rest, traits.EventManagerAware):
+            events = rest
 
-        if dispatch is None:
-            raise ValueError("Missing dispatcher aware client.")
+        if events is None:
+            raise ValueError("Missing event manager aware client.")
 
         self.blacklist: typing.MutableSequence[snowflakes.Snowflake] = []
-        self._dispatch = dispatch
+        self._events = events
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._listeners: typing.MutableMapping[snowflakes.Snowflake, AbstractPaginator] = {}
         self._rest = rest
@@ -793,10 +793,10 @@ class PaginatorPool:
     async def close(self) -> None:
         """Close this pool by unregistering any tasks and event listeners registered by `PaginatorPool.open`."""
         if self._gc_task is not None:
-            self._dispatch.dispatcher.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._dispatch.dispatcher.unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._dispatch.dispatcher.unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._dispatch.dispatcher.unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self._events.event_manager.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._events.event_manager.unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._events.event_manager.unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._events.event_manager.unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
             self._gc_task.cancel()
             listeners = self._listeners
             self._listeners = {}
@@ -807,10 +807,10 @@ class PaginatorPool:
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
             self.blacklist.append((await self._rest.rest.fetch_my_user()).id)
-            self._dispatch.dispatcher.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._dispatch.dispatcher.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._dispatch.dispatcher.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._dispatch.dispatcher.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self._events.event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._events.event_manager.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._events.event_manager.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._events.event_manager.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
 
 
 async def string_paginator(
