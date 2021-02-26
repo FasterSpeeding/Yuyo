@@ -38,9 +38,14 @@ __slots__: typing.Sequence[str] = [
     "backoff",
     "Backoff",
     "ErrorManager",
-    # cached_rest.py
-    "cached_rest",
-    "CachedREST",
+    # list_status.py
+    "CountStrategyProto",
+    "DispatcherStrategy",
+    "RESTStrategy",
+    "ManagerProto",
+    "ServiceProto",
+    "ServiceManager",
+    "TopGG",
     # paginaton.py
     "paginator",
     "AbstractPaginator",
@@ -50,6 +55,6 @@ __slots__: typing.Sequence[str] = [
 
 import typing
 
-from yuyo.backoff import *
-from yuyo.cached_rest import *
-from yuyo.paginaton import *
+from .backoff import *
+from .list_status import *
+from .paginaton import *
