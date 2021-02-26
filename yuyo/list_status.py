@@ -55,8 +55,8 @@ from hikari.events import guild_events
 from hikari.events import lifetime_events
 from hikari.events import shard_events
 
-from yuyo import _utility
-from yuyo import backoff
+from . import _utility
+from . import backoff
 
 if typing.TYPE_CHECKING:
     from hikari import traits
@@ -65,7 +65,7 @@ ServiceT = typing.TypeVar("ServiceT", bound="ServiceProto")
 StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
 ValueT = typing.TypeVar("ValueT")
 _LOGGER = logging.getLogger("hikari.yuyo")
-_strategies: typing.MutableSequence[typing.Type[CountStrategyProto]] = []
+_strategies: typing.List[typing.Type[CountStrategyProto]] = []
 _USER_AGENT = "Yuyo.last_status instance for {}"
 
 
@@ -245,7 +245,7 @@ class ServiceManager(ManagerProto):
         "_rest_service",
         "services",
         "session",
-        "shard_service",
+        "_shard_service",
         "_task",
     )
 
