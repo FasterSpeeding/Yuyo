@@ -46,13 +46,9 @@ __slots__: typing.Sequence[str] = [
     "async_string_paginator",
     "sync_string_paginator",
     "string_paginator",
-    # restful_cache.py
-    "restful_cache",
-    "RestfulCache",
 ]
 
 import typing
 
 from yuyo.backoff import *
 from yuyo.paginaton import *
-from yuyo.restful_cache import *
