@@ -33,7 +33,7 @@ from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
     "CountStrategyProto",
-    "DispatcherStrategy",
+    "EventStrategy",
     "RESTStrategy",
     "ManagerProto",
     "ServiceProto",
@@ -96,11 +96,11 @@ class CountStrategyProto(typing.Protocol):
 
 
 @_as_strategy
-class DispatcherStrategy(CountStrategyProto):
-    __slots__: typing.Sequence[str] = ("_dispatch_service", "_guild_ids", "_shard_service", "_started")
+class EventStrategy(CountStrategyProto):
+    __slots__: typing.Sequence[str] = ("_event_service", "_guild_ids", "_shard_service", "_started")
 
-    def __init__(self, dispatch: traits.DispatcherAware, shards: traits.ShardAware) -> None:
-        self._dispatch_service = dispatch
+    def __init__(self, events: traits.EventManagerAware, shards: traits.ShardAware) -> None:
+        self._event_service = events
         self._guild_ids: typing.MutableSet[snowflakes.Snowflake] = set()
         self._shard_service = shards
         self._started = False
@@ -123,9 +123,9 @@ class DispatcherStrategy(CountStrategyProto):
         if not self._started:
             return
 
-        self._dispatch_service.dispatcher.unsubscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
-        self._dispatch_service.dispatcher.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        self._dispatch_service.dispatcher.unsubscribe(
+        self._event_service.event_manager.unsubscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
+        self._event_service.event_manager.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
+        self._event_service.event_manager.unsubscribe(
             guild_events.GuildVisibilityEvent, self._on_guild_visibility_event
         )
 
@@ -133,21 +133,21 @@ class DispatcherStrategy(CountStrategyProto):
         if self._started:
             return
 
-        self._dispatch_service.dispatcher.subscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
-        self._dispatch_service.dispatcher.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        self._dispatch_service.dispatcher.subscribe(guild_events.GuildVisibilityEvent, self._on_guild_visibility_event)
+        self._event_service.event_manager.subscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
+        self._event_service.event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
+        self._event_service.event_manager.subscribe(guild_events.GuildVisibilityEvent, self._on_guild_visibility_event)
 
     async def count(self) -> int:
         return len(self._guild_ids)
 
     @classmethod
-    def spawn(cls, manager: ManagerProto, /) -> DispatcherStrategy:
-        dispatch = manager.dispatch_service
+    def spawn(cls, manager: ManagerProto, /) -> EventStrategy:
+        events = manager.event_service
         shards = manager.shard_service
-        if not dispatch or not shards or not (shards.intents & intents.Intents.GUILDS) == intents.Intents.GUILDS:
+        if not events or not shards or not (shards.intents & intents.Intents.GUILDS) == intents.Intents.GUILDS:
             raise
 
-        return cls(dispatch, shards)
+        return cls(events, shards)
 
 
 # @_as_strategy
@@ -205,7 +205,7 @@ class ManagerProto(typing.Protocol):
         raise NotImplementedError
 
     @property
-    def dispatch_service(self) -> typing.Optional[traits.DispatcherAware]:
+    def event_service(self) -> typing.Optional[traits.EventManagerAware]:
         raise NotImplementedError
 
     @property
@@ -241,7 +241,7 @@ class _ServiceDescriptor:
 class ServiceManager(ManagerProto):
     __slots__: typing.Sequence[str] = (
         "_cache_service",
-        "_dispatch_service",
+        "_event_service",
         "_rest_service",
         "services",
         "session",
@@ -253,18 +253,18 @@ class ServiceManager(ManagerProto):
         self,
         rest: traits.RESTAware,
         cache: typing.Optional[traits.CacheAware] = None,
-        dispatch: typing.Optional[traits.DispatcherAware] = None,
+        events: typing.Optional[traits.EventManagerAware] = None,
         shards: typing.Optional[traits.ShardAware] = None,
         /,
         *,
         strategy: typing.Optional[CountStrategyProto] = None,
     ) -> None:
-        cache = _utility.try_find_type(traits.CacheAware, cache, rest, dispatch, shards)  # type: ignore[misc]
-        dispatch = _utility.try_find_type(traits.DispatcherAware, dispatch, rest, cache, shards)  # type: ignore[misc]
-        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, dispatch)  # type: ignore[misc]
+        cache = _utility.try_find_type(traits.CacheAware, cache, rest, events, shards)
+        events = _utility.try_find_type(traits.EventManagerAware, events, rest, cache, shards)
+        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, events)
 
         self._cache_service = cache
-        self._dispatch_service = dispatch
+        self._event_service = events
         self._rest_service = rest
         self.services: typing.MutableSequence[_ServiceDescriptor] = []
         self.session: typing.Optional[aiohttp.ClientSession] = None
@@ -295,8 +295,8 @@ class ServiceManager(ManagerProto):
         return self._counter
 
     @property
-    def dispatch_service(self) -> typing.Optional[traits.DispatcherAware]:
-        return self._dispatch_service
+    def event_service(self) -> typing.Optional[traits.EventManagerAware]:
+        return self._event_service
 
     @property
     def rest_service(self) -> traits.RESTAware:
