@@ -33,7 +33,14 @@
 
 from __future__ import annotations
 
-__slots__: typing.Sequence[str] = ["AbstractPaginator", "Paginator", "PaginatorPool"]
+__slots__: typing.Sequence[str] = [
+    "AbstractPaginator",
+    "Paginator",
+    "PaginatorPool",
+    "async_string_paginator",
+    "sync_string_paginator",
+    "string_paginator",
+]
 
 import abc
 import asyncio
@@ -292,40 +299,30 @@ async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSeq
     raise ValueError(f"{type(iterator)!r} is not a valid iterator")
 
 
-async def _seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Optional[ValueT]:
-    """Get the next value in an async or sync iterator.
-
-    Parameters
-    ----------
-    iterator : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
-        The iterator to get the next value of. This iterator may be asynchronous or synchronous.
-
-    Other Parameters
-    ----------------
-    default : DefaultT
-        The value this should return if the iterator has been exhausted
-        (didn't yield any more values).
-        This defaults to `builtins.None`.
-
-    Returns
-    -------
-    typing.Union[ValueT, DefaultT]
-        The next value in the iterator if available else the value passed
-        for `default`.
-    """
-    value: typing.Union[ValueT, DefaultT] = default
+async def _seek_iterator(iterator: IteratorT[ValueT], /, default: DefaultT) -> typing.Union[ValueT, DefaultT]:
+    """Get the next value in an async or sync iterator."""
     if isinstance(iterator, typing.AsyncIterator):
-        async for value in iterator:
-            break
+        return await _seek_async_iterator(iterator, default=default)
 
-    elif isinstance(iterator, typing.Iterator):
-        for value in iterator:
-            break
+    if isinstance(iterator, typing.Iterator):
+        return _seek_sync_iterator(iterator, default=default)
 
-    else:
-        raise ValueError(f"{type(iterator)!r} is not a valid iterator")
+    raise ValueError(f"{type(iterator)!r} is not a valid iterator")
 
-    return value
+
+async def _seek_async_iterator(
+    iterator: typing.AsyncIterator[ValueT], /, default: DefaultT
+) -> typing.Union[ValueT, DefaultT]:
+    """Get the next value in an async iterator."""
+    async for value in iterator:
+        return value
+
+    return default
+
+
+def _seek_sync_iterator(iterator: typing.Iterator[ValueT], /, default: DefaultT) -> typing.Union[ValueT, DefaultT]:
+    """Get the next value in an async iterator."""
+    return next(iterator, default=default)
 
 
 def _process_known_custom_emoji(emoji: emojis.Emoji, /) -> emojis.Emoji:
@@ -813,8 +810,64 @@ class PaginatorPool:
             self._events.event_manager.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
 
 
-async def string_paginator(
+@typing.overload
+def string_paginator(
+    lines: typing.Iterator[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> typing.Iterator[typing.Tuple[str, int]]:
+    ...
+
+
+@typing.overload
+def string_paginator(
+    lines: typing.AsyncIterator[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> typing.AsyncIterator[typing.Tuple[str, int]]:
+    ...
+
+
+def string_paginator(
     lines: IteratorT[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> IteratorT[typing.Tuple[str, int]]:
+    """Lazily paginate an iterator of lines.
+
+    Parameters
+    ----------
+    lines : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
+        The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
+    char_limit : builtins.int
+        The limit for how many characters should be included per yielded page.
+        This defaults to 2000
+    line_limit : builtins.int
+        The limit for how many lines should be included per yielded page.
+        This defaults to 25.
+    wrapper : typing.Optional[builtins.str]
+        A wrapper for each yielded page. This should leave "{}" in it
+        to be replaced by the page's content.
+
+    Returns
+    -------
+    typing.Union[AsyncIterator[typing.Tuple[builtins.str, builtins.int]], typing.Iterator[typing.Tuple[builtins.str, builtins.int]]]
+        An iterator of page tuples (string context to int zero-based index).
+    """
+    if isinstance(lines, typing.AsyncIterator):
+        return async_string_paginator(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
+
+    return sync_string_paginator(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
+
+
+async def async_string_paginator(
+    lines: typing.AsyncIterator[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
@@ -824,8 +877,8 @@ async def string_paginator(
 
     Parameters
     ----------
-    lines : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
-        The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
+    lines : typing.AsyncIterator[builtins.str]
+        The asynchronous iterator of lines to paginate.
     char_limit : builtins.int
         The limit for how many characters should be included per yielded page.
         This defaults to 2000
@@ -849,7 +902,79 @@ async def string_paginator(
     page_size = 0
     page: typing.MutableSequence[str] = []
 
-    while (line := await _seek_iterator(lines, default=None)) is not None:
+    while (line := await _seek_async_iterator(lines, default=None)) is not None:
+        # If the page is already populated and adding the current line would bring it over one of the predefined limits
+        # then we want to yield this page.
+        if len(page) >= line_limit or page and page_size + len(line) > char_limit:
+            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), (page_number := page_number + 1)
+            page.clear()
+            page_size = 0
+
+        # If the current line doesn't fit into a page then we need to split it up into sub-pages to yield and can
+        # assume the previous page was yielded.
+        if len(line) >= char_limit:
+            sub_pages = textwrap.wrap(
+                line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
+            )
+
+            # If the last page could possible fit into a page with other lines then we add it to the next page
+            # to avoid sending small terraced pages.
+            if len(sub_pages[-1]) < char_limit:
+                sub_line = sub_pages.pop(-1)
+                page_size += len(sub_line)
+                page.append(sub_line)
+
+            # yield all the sub-lines at once.
+            for sub_line in map(wrapper.format, sub_pages) if wrapper else sub_pages:
+                yield sub_line, (page_number := page_number + 1)
+
+        # Otherwise it should be added to the next page.
+        else:
+            page_size += len(line)
+            page.append(line)
+
+    # This catches the likely dangling page after iteration ends.
+    if page:
+        yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1
+
+
+def sync_string_paginator(
+    lines: typing.Iterator[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> typing.Iterator[typing.Tuple[str, int]]:
+    """Lazily paginate an iterator of lines.
+
+    Parameters
+    ----------
+    lines : typing.Iterator[builtins.str]
+        The iterator of lines to paginate.
+    char_limit : builtins.int
+        The limit for how many characters should be included per yielded page.
+        This defaults to 2000
+    line_limit : builtins.int
+        The limit for how many lines should be included per yielded page.
+        This defaults to 25.
+    wrapper : typing.Optional[builtins.str]
+        A wrapper for each yielded page. This should leave "{}" in it
+        to be replaced by the page's content.
+
+    Returns
+    -------
+    typing.Iterator[typing.Tuple[builtins.str, builtins.int]]
+        An iterator of page tuples (string context to int zero-based index).
+    """
+    if wrapper:
+        char_limit -= len(wrapper) + 2
+
+    # As this is incremented before yielding and zero-index we have to start at -1.
+    page_number = -1
+    page_size = 0
+    page: typing.MutableSequence[str] = []
+
+    while (line := _seek_sync_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:

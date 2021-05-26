@@ -43,6 +43,9 @@ __slots__: typing.Sequence[str] = [
     "AbstractPaginator",
     "Paginator",
     "PaginatorPool",
+    "async_string_paginator",
+    "sync_string_paginator",
+    "string_paginator",
     # restful_cache.py
     "restful_cache",
     "RestfulCache",
