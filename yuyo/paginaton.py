@@ -63,6 +63,7 @@ if typing.TYPE_CHECKING:
     from hikari import channels
     from hikari import messages
     from hikari import users
+    from hikari.api import event_manager
 
 
 LEFT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
@@ -787,13 +788,20 @@ class PaginatorPool:
         """
         return self._listeners.pop(snowflakes.Snowflake(message))
 
+    def _try_unsubscribe(self, event_type: typing.Type[event_manager.EventT_co], callback: event_manager.CallbackT) -> None:
+        try:
+            self._events.event_manager.unsubscribe(event_type, callback)
+        except (ValueError, LookupError):
+            # TODO: add logging here
+            pass
+
     async def close(self) -> None:
         """Close this pool by unregistering any tasks and event listeners registered by `PaginatorPool.open`."""
         if self._gc_task is not None:
-            self._events.event_manager.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._events.event_manager.unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._events.event_manager.unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._events.event_manager.unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self._try_unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._try_unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._try_unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._try_unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
             self._gc_task.cancel()
             listeners = self._listeners
             self._listeners = {}
