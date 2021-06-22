@@ -221,9 +221,9 @@ class AbstractPaginator(abc.ABC):
     async def open(
         self,
         *,
-        message: typing.Optional[snowflakes.SnowflakeishOr[messages.Message]] = None,
+        message: typing.Optional[messages.Message] = None,
         add_reactions: bool = True,
-    ) -> typing.Optional[messages.Message]:
+    ) -> messages.Message:
         """Start this paginator and link it to a message.
 
         Other Parameters
@@ -242,9 +242,10 @@ class AbstractPaginator(abc.ABC):
 
         Returns
         -------
-        typing.Optional[hikari.messages.Message]
-            The message that this paginator created if `message_id` was left as `builtins.None`
-            else `builtins.None`.
+        hikari.messages.Message
+            Object of the message this paginator now targets.
+            If `message` was not supplied then this will be the object of a newly created
+            message, otherwise this will be what was supplied as `message`.
 
         Raises
         ------
@@ -549,15 +550,14 @@ class Paginator(AbstractPaginator):
     async def open(
         self,
         *,
-        message: typing.Optional[snowflakes.SnowflakeishOr[messages.Message]] = None,
+        message: typing.Optional[messages.Message] = None,
         add_reactions: bool = True,
         max_retries: int = 5,
         max_backoff: float = 2.0,
-    ) -> typing.Optional[messages.Message]:
+    ) -> messages.Message:
         # <<inherited docstring from AbstractPaginator>>.
-        created_message: typing.Optional[messages.Message] = None
         if self._message_id is not None:
-            return None
+            raise RuntimeError("Paginator is already running")
 
         retry = backoff.Backoff(max_retries=max_retries - 1, maximum=max_backoff)
         if message is None:
@@ -568,10 +568,7 @@ class Paginator(AbstractPaginator):
 
             async for _ in retry:
                 try:
-                    created_message = await self._rest.rest.create_message(
-                        self._channel_id, content=entry[0], embed=entry[1]
-                    )
-                    message = created_message.id
+                    message = await self._rest.rest.create_message(self._channel_id, content=entry[0], embed=entry[1])
 
                 except errors.RateLimitedError as exc:
                     if exc.retry_after > max_backoff:
@@ -588,8 +585,7 @@ class Paginator(AbstractPaginator):
             else:
                 message = await self._rest.rest.create_message(self._channel_id, content=entry[0], embed=entry[1])
 
-        message = snowflakes.Snowflake(message)
-        self._message_id = message
+        self._message_id = message.id
         for emoji in self._triggers:
             retry.reset()
             async for _ in retry:
@@ -602,7 +598,7 @@ class Paginator(AbstractPaginator):
 
                 except errors.ForbiddenError:  # TODO: attempt to check permissions first
                     # If this is reached then we just don't have reaction permissions in the channel.
-                    return created_message
+                    return message
 
                 except errors.RateLimitedError as exc:
                     if exc.retry_after > max_backoff:
@@ -619,7 +615,7 @@ class Paginator(AbstractPaginator):
             else:
                 await self._rest.rest.add_reaction(self._channel_id, message, emoji)
 
-        return created_message
+        return message
 
     async def on_reaction_event(self, emoji: emojis.Emoji, user_id: snowflakes.Snowflake) -> typing.Optional[str]:
         # <<inherited docstring from AbstractPaginator>>.
@@ -788,7 +784,11 @@ class PaginatorPool:
         """
         return self._listeners.pop(snowflakes.Snowflake(message))
 
-    def _try_unsubscribe(self, event_type: typing.Type[event_manager.EventT_co], callback: event_manager.CallbackT) -> None:
+    def _try_unsubscribe(
+        self,
+        event_type: typing.Type[event_manager.EventT_co],
+        callback: event_manager.CallbackT[event_manager.EventT_co],
+    ) -> None:
         try:
             self._events.event_manager.unsubscribe(event_type, callback)
         except (ValueError, LookupError):
@@ -800,8 +800,8 @@ class PaginatorPool:
         if self._gc_task is not None:
             self._try_unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
             self._try_unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._try_unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._try_unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self._try_unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
+            self._try_unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
             self._gc_task.cancel()
             listeners = self._listeners
             self._listeners = {}
