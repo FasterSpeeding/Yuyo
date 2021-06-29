@@ -324,7 +324,7 @@ async def _seek_async_iterator(
 
 def _seek_sync_iterator(iterator: typing.Iterator[ValueT], /, default: DefaultT) -> typing.Union[ValueT, DefaultT]:
     """Get the next value in an async iterator."""
-    return next(iterator, default=default)
+    return next(iterator, default)
 
 
 def _process_known_custom_emoji(emoji: emojis.Emoji, /) -> emojis.Emoji:
