@@ -280,9 +280,15 @@ class ServiceManager(ManagerProto):
         strategy: typing.Optional[CountStrategyProto] = None,
         user_agent: typing.Optional[str] = None,
     ) -> None:
-        cache = _utility.try_find_type(traits.CacheAware, cache, rest, events, shards)
-        events = _utility.try_find_type(traits.EventManagerAware, events, rest, cache, shards)
-        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, events)
+        cache = _utility.try_find_type(
+            traits.CacheAware, cache, rest, events, shards  # type: ignore[misc]
+        )
+        events = _utility.try_find_type(
+            traits.EventManagerAware, events, rest, cache, shards  # type: ignore[misc]
+        )
+        shards = _utility.try_find_type(
+            traits.ShardAware, shards, rest, cache, events  # type: ignore[misc]
+        )
 
         self._cache_service = cache
         self._event_service = events
