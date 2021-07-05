@@ -534,6 +534,11 @@ class ServiceManager(ManagerProto):
         -------
         ServiceManager
             Object of this service manager.
+
+        Raises
+        ------
+        ValueError
+            If repeat is less than 1 second.
         """
         if self._task:
             raise RuntimeError("Cannot add a service to an already running manager")
@@ -543,6 +548,9 @@ class ServiceManager(ManagerProto):
 
         else:
             float_repeat = float(repeat)
+
+        if float_repeat < 1:
+            raise ValueError("Repeat cannot be under 1 second")
 
         self._queue_insert(self.services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
         return self
@@ -563,6 +571,11 @@ class ServiceManager(ManagerProto):
         -------
         typing.Callable[[ServiceT], ServiceT]
             Decorator callback used to add a service.
+
+        Raises
+        ------
+        ValueError
+            If repeat is less than 1 second.
         """
 
         def decorator(service: ServiceT, /) -> ServiceT:
