@@ -60,6 +60,7 @@ from hikari.events import guild_events
 from hikari.events import lifetime_events
 from hikari.events import shard_events
 
+from . import about
 from . import _utility
 from . import backoff
 
@@ -74,8 +75,8 @@ ServiceT = typing.TypeVar("ServiceT", bound="ServiceProto")
 StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[CountStrategyProto]] = []
-_DEFAULT_USER_AGENT = "Yuyo.last_status instance"
-_USER_AGENT = "Yuyo.last_status instance for {}"
+_DEFAULT_USER_AGENT = f"Yuyo.last_status/{about.__version__}"
+_USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
 
 def _as_strategy(strategy: typing.Type[StrategyT]) -> typing.Type[StrategyT]:
