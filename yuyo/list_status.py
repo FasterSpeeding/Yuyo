@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
+    "CacheStrategy",
     "CountStrategyProto",
     "EventStrategy",
     "RESTStrategy",
@@ -51,6 +52,7 @@ import time
 import typing
 
 import aiohttp
+from hikari import config
 from hikari import errors as hikari_errors
 from hikari import intents
 from hikari import snowflakes
@@ -63,12 +65,13 @@ from . import backoff
 
 if typing.TYPE_CHECKING:
     from hikari import traits
+    from hikari.api import event_manager
 
     _ServiceManagerT = typing.TypeVar("_ServiceManagerT", bound="ServiceManager")
+    _ValueT = typing.TypeVar("_ValueT")
 
 ServiceT = typing.TypeVar("ServiceT", bound="ServiceProto")
 StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
-ValueT = typing.TypeVar("ValueT")
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[CountStrategyProto]] = []
 _DEFAULT_USER_AGENT = "Yuyo.last_status instance"
@@ -104,6 +107,35 @@ class CountStrategyProto(typing.Protocol):
 
 
 @_as_strategy
+class CacheStrategy(CountStrategyProto):
+    __slots__: typing.Sequence[str] = ("_cache_service",)
+
+    def __init__(self, cache_service: traits.CacheAware) -> None:
+        self._cache_service = cache_service
+
+    async def close(self) -> None:
+        return None
+
+    async def open(self) -> None:
+        return None
+
+    async def count(self) -> int:
+        return len(self._cache_service.cache.get_guilds_view())
+
+    @classmethod
+    def spawn(cls, manager: ManagerProto, /) -> CacheStrategy:
+        if not manager.cache_service or not manager.shard_service:
+            raise InvalidStrategyError
+
+        cache_enabled = manager.cache_service.cache.settings.components & config.CacheComponents.GUILDS
+        shard_enabled = manager.shard_service.intents & intents.Intents.GUILDS
+        if not cache_enabled or not shard_enabled:
+            raise InvalidStrategyError
+
+        return cls(manager.cache_service)
+
+
+@_as_strategy
 class EventStrategy(CountStrategyProto):
     __slots__: typing.Sequence[str] = ("_event_service", "_guild_ids", "_shard_service", "_started")
 
@@ -127,15 +159,24 @@ class EventStrategy(CountStrategyProto):
         elif isinstance(event, guild_events.GuildLeaveEvent):
             self._guild_ids.remove(event.guild_id)
 
+    def _try_unsubscribe(
+        self,
+        event_type: typing.Type[event_manager.EventT_co],
+        callback: event_manager.CallbackT[event_manager.EventT_co],
+    ) -> None:
+        try:
+            self._event_service.event_manager.unsubscribe(event_type, callback)
+
+        except (ValueError, LookupError):
+            pass
+
     async def close(self) -> None:
         if not self._started:
             return
 
-        self._event_service.event_manager.unsubscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
-        self._event_service.event_manager.unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        self._event_service.event_manager.unsubscribe(
-            guild_events.GuildVisibilityEvent, self._on_guild_visibility_event
-        )
+        self._try_unsubscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
+        self._try_unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
+        self._try_unsubscribe(guild_events.GuildVisibilityEvent, self._on_guild_visibility_event)  # type: ignore[misc]
 
     async def open(self) -> None:
         if self._started:
@@ -153,7 +194,7 @@ class EventStrategy(CountStrategyProto):
         events = manager.event_service
         shards = manager.shard_service
         if not events or not shards or not (shards.intents & intents.Intents.GUILDS) == intents.Intents.GUILDS:
-            raise
+            raise InvalidStrategyError
 
         return cls(events, shards)
 
@@ -280,15 +321,9 @@ class ServiceManager(ManagerProto):
         strategy: typing.Optional[CountStrategyProto] = None,
         user_agent: typing.Optional[str] = None,
     ) -> None:
-        cache = _utility.try_find_type(
-            traits.CacheAware, cache, rest, events, shards  # type: ignore[misc]
-        )
-        events = _utility.try_find_type(
-            traits.EventManagerAware, events, rest, cache, shards  # type: ignore[misc]
-        )
-        shards = _utility.try_find_type(
-            traits.ShardAware, shards, rest, cache, events  # type: ignore[misc]
-        )
+        cache = _utility.try_find_type(traits.CacheAware, cache, rest, events, shards)  # type: ignore[misc]
+        events = _utility.try_find_type(traits.EventManagerAware, events, rest, cache, shards)  # type: ignore[misc]
+        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, events)  # type: ignore[misc]
 
         self._cache_service = cache
         self._event_service = events
@@ -342,7 +377,7 @@ class ServiceManager(ManagerProto):
         return self._user_agent or _DEFAULT_USER_AGENT
 
     def add_service(
-        self: _ServiceManagerT, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float]
+        self: _ServiceManagerT, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
     ) -> _ServiceManagerT:
         if self._task:
             raise RuntimeError("Cannot add a service to an already running manager")
@@ -446,7 +481,7 @@ class ServiceManager(ManagerProto):
 
     @staticmethod
     def _queue_insert(
-        sequence: typing.MutableSequence[ValueT], check: typing.Callable[[ValueT], bool], value: ValueT
+        sequence: typing.MutableSequence[_ValueT], check: typing.Callable[[_ValueT], bool], value: _ValueT
     ) -> None:
         # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
         index: int = -1
