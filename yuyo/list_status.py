@@ -178,7 +178,7 @@ class EventStrategy(CountStrategyProto):
 
     def __init__(self, events: traits.EventManagerAware, shards: traits.ShardAware) -> None:
         self._event_service = events
-        self._guild_ids: typing.MutableSet[snowflakes.Snowflake] = set()
+        self._guild_ids: typing.Set[snowflakes.Snowflake] = set()
         self._shard_service = shards
         self._started = False
 
@@ -717,9 +717,7 @@ class ServiceManager(ManagerProto):
                 self._queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
 
     @staticmethod
-    def _queue_insert(
-        sequence: typing.MutableSequence[_ValueT], check: typing.Callable[[_ValueT], bool], value: _ValueT
-    ) -> None:
+    def _queue_insert(sequence: typing.List[_ValueT], check: typing.Callable[[_ValueT], bool], value: _ValueT) -> None:
         # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
         index: int = -1
         for index, sub_value in enumerate(sequence):
