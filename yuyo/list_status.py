@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -378,7 +378,8 @@ class ManagerProto(typing.Protocol):
         Raises
         ------
         RuntimeError
-            If this is called in an environment with no running event loop.
+            * If this is called in an environment with no running event loop.
+            * If the client isn't running.
         """
         raise NotImplementedError
 
@@ -441,8 +442,8 @@ class ServiceManager(ManagerProto):
         "_cache_service",
         "_event_service",
         "_rest_service",
-        "services",
-        "session",
+        "_services",
+        "_session",
         "_shard_service",
         "_task",
         "_user_agent",
@@ -466,8 +467,8 @@ class ServiceManager(ManagerProto):
         self._cache_service = cache
         self._event_service = events
         self._rest_service = rest
-        self.services: typing.MutableSequence[_ServiceDescriptor] = []
-        self.session: typing.Optional[aiohttp.ClientSession] = None
+        self._services: typing.List[_ServiceDescriptor] = []
+        self._session: typing.Optional[aiohttp.ClientSession] = None
         self._shard_service = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
         self._me = (cache and cache.cache.get_me()) or None
@@ -490,6 +491,11 @@ class ServiceManager(ManagerProto):
             raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
 
     @property
+    def is_alive(self) -> bool:
+        """Return whether this manager is active."""
+        return self._task is not None
+
+    @property
     def cache_service(self) -> typing.Optional[traits.CacheAware]:
         return self._cache_service
 
@@ -508,6 +514,10 @@ class ServiceManager(ManagerProto):
     @property
     def shard_service(self) -> typing.Optional[traits.ShardAware]:
         return self._shard_service
+
+    @property
+    def services(self) -> typing.Sequence[ServiceProto]:
+        return [service.function for service in self._services]
 
     @property
     def user_agent(self) -> str:
@@ -539,6 +549,8 @@ class ServiceManager(ManagerProto):
         ------
         ValueError
             If repeat is less than 1 second.
+        RuntimeError
+            If the client is already running.
         """
         if self._task:
             raise RuntimeError("Cannot add a service to an already running manager")
@@ -552,8 +564,34 @@ class ServiceManager(ManagerProto):
         if float_repeat < 1:
             raise ValueError("Repeat cannot be under 1 second")
 
-        self._queue_insert(self.services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
+        self._queue_insert(self._services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
         return self
+
+    def remove_service(self, service: ServiceProto) -> None:
+        """Remove the first found entry of the registered service.
+
+        Parameters
+        ----------
+        service : ServiceProto
+            Service callback to unregister.
+
+        Raises
+        ------
+        RuntimeError
+            If called while the manager is active.
+        ValueError
+            If the service callback isn't found.
+        """
+        if self._task:
+            raise RuntimeError("Cannot remove a service while this manager is running")
+
+        for descriptor in self._services.copy():
+            if descriptor.function == service:
+                self._services.remove(descriptor)
+                break
+
+        else:
+            raise ValueError("Couldn't find service")
 
     def with_service(
         self, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60, /
@@ -576,6 +614,8 @@ class ServiceManager(ManagerProto):
         ------
         ValueError
             If repeat is less than 1 second.
+        RuntimeError
+            If the client is already running.
         """
 
         def decorator(service: ServiceT, /) -> ServiceT:
@@ -591,9 +631,9 @@ class ServiceManager(ManagerProto):
             self._task = None
             await self._counter.close()
 
-            if self.session and not self.session.closed:
-                await self.session.close()
-                self.session = None
+            if self._session and not self._session.closed:
+                await self._session.close()
+                self._session = None
 
     async def open(self) -> None:
         """Start this manager.
@@ -603,11 +643,11 @@ class ServiceManager(ManagerProto):
         RuntimeError
             If this manager is already running.
         """
-        if not self.services:
+        if not self._services:
             raise RuntimeError("Cannot run a client with no registered services.")
 
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession()
+        if not self._session or self._session.closed:
+            self._session = aiohttp.ClientSession()
 
         if not self._task:
             await self._counter.open()
@@ -644,15 +684,18 @@ class ServiceManager(ManagerProto):
 
     def get_session(self) -> aiohttp.ClientSession:
         # Asserts that this is only called within a running event loop.
-        asyncio.get_running_loop()
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession()
+        if not self._session:
+            raise RuntimeError("Client is currently inactive")
 
-        return self.session
+        asyncio.get_running_loop()
+        if self._session.closed:
+            self._session = aiohttp.ClientSession()
+
+        return self._session
 
     async def _loop(self) -> None:
         # This acts as a priority queue.
-        queue = [(service.repeat, service) for service in self.services]
+        queue = [(service.repeat, service) for service in self._services]
         while True:
             await asyncio.sleep(sleep := queue[0][0])
             queue = [(time_ - sleep, service) for time_, service in queue]
