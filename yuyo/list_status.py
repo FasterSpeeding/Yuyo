@@ -64,6 +64,8 @@ from . import backoff
 if typing.TYPE_CHECKING:
     from hikari import traits
 
+    _ServiceManagerT = typing.TypeVar("_ServiceManagerT", bound="ServiceManager")
+
 ServiceT = typing.TypeVar("ServiceT", bound="ServiceProto")
 StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
 ValueT = typing.TypeVar("ValueT")
@@ -162,7 +164,7 @@ class RESTStrategy(CountStrategyProto):
 
     def __init__(self, *, delta: datetime.timedelta = datetime.timedelta(hours=1)) -> None:
         self._count = -1
-        self._lock = asyncio.Lock()
+        self._lock: typing.Optional[asyncio.Lock] = None
         self._requesting = False
         self._time = 0.0
         self._delta = delta.total_seconds()
@@ -174,12 +176,15 @@ class RESTStrategy(CountStrategyProto):
         return None
 
     async def count(self) -> int:
+        if not self._lock:
+            self._lock = asyncio.Lock()
+
         async with self._lock:
             if self._count == -1:
                 self._time = time.perf_counter()
                 self._count = await self._calculate_count()
 
-            elif time.perf_counter() - self._time > self._delta:
+            elif time.perf_counter() - self._time > self._delta and not self._requesting:
                 self._time = time.perf_counter()
                 asyncio.create_task(self._calculate_count())
 
@@ -304,7 +309,7 @@ class ServiceManager(ManagerProto):
                 pass
 
         else:
-            raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari clients")
+            raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
 
     @property
     def cache_service(self) -> typing.Optional[traits.CacheAware]:
@@ -330,7 +335,9 @@ class ServiceManager(ManagerProto):
     def user_agent(self) -> str:
         return self._user_agent or _DEFAULT_USER_AGENT
 
-    def add_service(self, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float]) -> None:
+    def add_service(
+        self: _ServiceManagerT, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float]
+    ) -> _ServiceManagerT:
         if self._task:
             raise RuntimeError("Cannot add a service to an already running manager")
 
@@ -341,6 +348,7 @@ class ServiceManager(ManagerProto):
             float_repeat = float(repeat)
 
         self._queue_insert(self.services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
+        return self
 
     def with_service(
         self, repeat: typing.Union[datetime.timedelta, int, float], /
