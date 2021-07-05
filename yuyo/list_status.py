@@ -35,9 +35,12 @@ __all__: typing.Sequence[str] = [
     "CountStrategyProto",
     "EventStrategy",
     "RESTStrategy",
+    "InvalidStrategyError",
     "ManagerProto",
     "ServiceProto",
     "ServiceManager",
+    "BotsGG",
+    "DBoats",
     "TopGG",
 ]
 
@@ -66,6 +69,7 @@ StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
 ValueT = typing.TypeVar("ValueT")
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[CountStrategyProto]] = []
+_DEFAULT_USER_AGENT = "Yuyo.last_status instance"
 _USER_AGENT = "Yuyo.last_status instance for {}"
 
 
@@ -74,7 +78,9 @@ def _as_strategy(strategy: typing.Type[StrategyT]) -> typing.Type[StrategyT]:
     return strategy
 
 
-class InvalidStrategy(TypeError):
+class InvalidStrategyError(TypeError):
+    """Error raised when a strategy is invalid for the provided manager"""
+
     __slots__: typing.Sequence[str] = ()
 
 
@@ -190,7 +196,8 @@ class RESTStrategy(CountStrategyProto):
 
     @classmethod
     def spawn(cls, manager: ManagerProto, /) -> RESTStrategy:
-        return cls()
+        raise InvalidStrategyError
+        # return cls()
 
 
 class ManagerProto(typing.Protocol):
@@ -214,6 +221,13 @@ class ManagerProto(typing.Protocol):
 
     @property
     def rest_service(self) -> traits.RESTAware:
+        raise NotImplementedError
+
+    @property
+    def user_agent(self) -> str:
+        raise NotImplementedError
+
+    async def get_me(self) -> snowflakes.Snowflake:
         raise NotImplementedError
 
     async def get_session(self) -> aiohttp.ClientSession:
@@ -247,6 +261,7 @@ class ServiceManager(ManagerProto):
         "session",
         "_shard_service",
         "_task",
+        "_user_agent",
     )
 
     def __init__(
@@ -258,6 +273,7 @@ class ServiceManager(ManagerProto):
         /,
         *,
         strategy: typing.Optional[CountStrategyProto] = None,
+        user_agent: typing.Optional[str] = None,
     ) -> None:
         cache = _utility.try_find_type(traits.CacheAware, cache, rest, events, shards)
         events = _utility.try_find_type(traits.EventManagerAware, events, rest, cache, shards)
@@ -270,6 +286,10 @@ class ServiceManager(ManagerProto):
         self.session: typing.Optional[aiohttp.ClientSession] = None
         self._shard_service = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
+        me = cache and cache.cache.get_me()
+        self._me: typing.Optional[snowflakes.Snowflake] = me.id if me else None
+        self._me_lock: typing.Optional[asyncio.Lock] = None
+        self._user_agent = user_agent
 
         if strategy:
             self._counter = strategy
@@ -280,7 +300,7 @@ class ServiceManager(ManagerProto):
                 self._counter = strategy.spawn(self)
                 break
 
-            except InvalidStrategy:
+            except InvalidStrategyError:
                 pass
 
         else:
@@ -305,6 +325,10 @@ class ServiceManager(ManagerProto):
     @property
     def shard_service(self) -> typing.Optional[traits.ShardAware]:
         return self._shard_service
+
+    @property
+    def user_agent(self) -> str:
+        return self._user_agent or _DEFAULT_USER_AGENT
 
     def add_service(self, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float]) -> None:
         if self._task:
@@ -347,6 +371,35 @@ class ServiceManager(ManagerProto):
         if not self._task:
             await self._counter.open()
             self._task = asyncio.create_task(self._loop())
+
+    async def get_me(self) -> snowflakes.Snowflake:
+        if self._me:
+            return self._me
+
+        if not self._me_lock:
+            self._me_lock = asyncio.Lock()
+
+        async with self._me_lock:
+            retry = backoff.Backoff()
+
+            async for _ in retry:
+                try:
+                    self._me = (await self._rest_service.rest.fetch_my_user()).id
+                    break
+
+                except hikari_errors.InternalServerError:
+                    continue
+
+                except hikari_errors.RateLimitedError as exc:
+                    retry.set_next_backoff(exc.retry_after)
+
+            else:
+                self._me = (await self._rest_service.rest.fetch_my_user()).id
+
+        if not self._user_agent:
+            self._user_agent = _USER_AGENT.format(self._me)
+
+        return self._me
 
     async def get_session(self) -> aiohttp.ClientSession:
         if not self.session or self.session.closed:
@@ -393,23 +446,6 @@ class ServiceManager(ManagerProto):
         sequence.insert(index, value)
 
 
-async def _fetch_me(client: ManagerProto, /) -> snowflakes.Snowflake:  # type: ignore[return]
-    if client.cache_service and (user := client.cache_service.cache.get_me()):
-        return user.id
-
-    retry = backoff.Backoff()
-
-    async for _ in retry:
-        try:
-            return (await client.rest_service.rest.fetch_my_user()).id
-
-        except hikari_errors.InternalServerError:
-            continue
-
-        except hikari_errors.RateLimitedError as exc:
-            retry.set_next_backoff(exc.retry_after)
-
-
 async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) -> None:
     if response.status < 300:
         _LOGGER.debug("Posted bot's stats to %s", service_name)
@@ -443,19 +479,14 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
 
 
 class TopGG:
-    __slots__: typing.Sequence[str] = ("_me", "__token", "_user_agent")
+    __slots__: typing.Sequence[str] = ("__token",)
 
     def __init__(self, token: str, /) -> None:
-        self._me: typing.Optional[snowflakes.Snowflake] = None
         self.__token = token
-        self._user_agent = ""
 
     async def __call__(self, client: ManagerProto, /) -> None:
-        if not self._me:
-            self._me = await _fetch_me(client)
-            self._user_agent = _USER_AGENT.format(self._me)
-
-        headers = {"Authorization": self.__token, "User-Agent": self._user_agent}
+        me = await client.get_me()
+        headers = {"Authorization": self.__token, "User-Agent": client.user_agent}
         json = {"server_count": await client.counter.count()}
 
         if client.shard_service:
@@ -463,5 +494,42 @@ class TopGG:
 
         session = await client.get_session()
 
-        async with session.post(f"https://top.gg/api/bots/{self._me}/stats", headers=headers, json=json) as response:
+        async with session.post(f"https://top.gg/api/bots/{me}/stats", headers=headers, json=json) as response:
             await _log_response("Top.GG", response)
+
+
+class BotsGG:
+    __slots__: typing.Sequence[str] = ("__token",)
+
+    def __init__(self, token: str, /) -> None:
+        self.__token = token
+
+    async def __call__(self, client: ManagerProto, /) -> None:
+        me = await client.get_me()
+        headers = {"Authorization": self.__token, "User-Agent": client.user_agent}
+        json = {"guildCount": await client.counter.count()}
+
+        if client.shard_service:
+            json["shardCount"] = client.shard_service.shard_count
+
+        session = await client.get_session()
+        async with session.post(
+            f"https://discord.bots.gg/api/v1/bots/{me}/stats", headers=headers, json=json
+        ) as response:
+            await _log_response("Bots.GG", response)
+
+
+class DBoats:
+    __slots__: typing.Sequence[str] = "__token"
+
+    def __init__(self, token: str, /) -> None:
+        self.__token = token
+
+    async def __call__(self, client: ManagerProto, /) -> None:
+        me = await client.get_me()
+        headers = {"Authorization": self.__token, "User-Agent": client.user_agent}
+        json = {"server_count": await client.counter.count()}
+        session = await client.get_session()
+
+        async with session.post(f"https://discord.boats/api/bots/{me}", headers=headers, json=json) as response:
+            await _log_response("Bots.GG", response)
