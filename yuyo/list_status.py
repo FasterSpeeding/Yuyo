@@ -41,7 +41,7 @@ __all__: typing.Sequence[str] = [
     "ServiceProto",
     "ServiceManager",
     "make_bots_gg_service",
-    "make_d_bots_service",
+    "make_d_boats_service",
     "make_top_gg_service",
 ]
 
@@ -826,7 +826,7 @@ def make_bots_gg_service(token: str) -> ServiceProto:
     return update_bots_gg
 
 
-def make_d_bots_service(token: str) -> ServiceProto:
+def make_d_boats_service(token: str) -> ServiceProto:
     """Make a service callback to update a bot's status on https://discord.boats
 
     Parameters
@@ -840,7 +840,7 @@ def make_d_bots_service(token: str) -> ServiceProto:
         The service callback used to update a bot's status on https://discord.boats
     """
 
-    async def update_d_bots(client: ManagerProto, /) -> None:
+    async def update_d_boats(client: ManagerProto, /) -> None:
         me = await client.get_me()
         headers = {"Authorization": token, "User-Agent": client.user_agent}
         json = {"server_count": await client.counter.count()}
@@ -849,4 +849,4 @@ def make_d_bots_service(token: str) -> ServiceProto:
         async with session.post(f"https://discord.boats/api/bots/{me.id}", headers=headers, json=json) as response:
             await _log_response("Bots.GG", response)
 
-    return update_d_bots
+    return update_d_boats
