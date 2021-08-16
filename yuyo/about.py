@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ __ci__ = ""
 __copyright__ = "© 2020 Faster Speeding"
 __coverage__ = ""
 __docs__ = "https://fasterspeeding.github.io/Yuyo/"
-__email__ = "luke@lmbyrne.dev"
+__email__ = "lucina@lmbyrne.dev"
 __issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
 __license__ = "BSD"
 __url__ = "https://github.com/FasterSpeeding/Yuyo"

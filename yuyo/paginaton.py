@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 from __future__ import annotations
 
-__slots__: typing.Sequence[str] = [
+__all__: typing.Sequence[str] = [
     "AbstractPaginator",
     "Paginator",
     "PaginatorPool",
@@ -155,18 +155,6 @@ class AbstractPaginator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def locked(self) -> bool:
-        """Whether this paginator has been locked by a call to it.
-
-        Returns
-        -------
-        bool
-            Whether this paginator has been locked by a call to it.
-        """
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
     def triggers(self) -> typing.Sequence[emojis.Emoji]:
         """The enabled trigger emojis for this paginator.
 
@@ -279,7 +267,7 @@ class AbstractPaginator(abc.ABC):
         raise NotImplementedError
 
 
-async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.MutableSequence[ValueT]:
+async def _collect_iterator(iterator: IteratorT[ValueT], /) -> typing.List[ValueT]:
     """Collect the rest of an async or sync iterator into a mutable sequence
 
     Parameters
@@ -371,7 +359,7 @@ class Paginator(AbstractPaginator):
         "_index",
         "_iterator",
         "_last_triggered",
-        "_locked",
+        "_lock",
         "_message_id",
         "_rest",
         "timeout",
@@ -396,7 +384,7 @@ class Paginator(AbstractPaginator):
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         self._authors = set(map(snowflakes.Snowflake, authors))
-        self._buffer: typing.MutableSequence[EntryT] = []
+        self._buffer: typing.List[EntryT] = []
         self._channel_id = channel
         self._emoji_mapping: typing.Mapping[
             typing.Union[emojis.Emoji, snowflakes.Snowflake],
@@ -411,7 +399,7 @@ class Paginator(AbstractPaginator):
         self._index = 0
         self._iterator = iterator
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._locked = False
+        self._lock: typing.Optional[asyncio.Lock] = None
         self._message_id: typing.Optional[snowflakes.Snowflake] = None
         self._rest = rest
         self.timeout = timeout
@@ -431,11 +419,6 @@ class Paginator(AbstractPaginator):
     def last_triggered(self) -> datetime.datetime:
         # <<inherited docstring from AbstractPaginator>>.
         return self._last_triggered
-
-    @property
-    def locked(self) -> bool:
-        # <<inherited docstring from AbstractPaginator>>.
-        return self._locked
 
     @property
     def triggers(self) -> typing.Sequence[emojis.Emoji]:
@@ -477,14 +460,11 @@ class Paginator(AbstractPaginator):
         return self._buffer[0]
 
     async def _on_last(self) -> typing.Optional[EntryT]:
-        self._locked = True
         if isinstance(self._iterator, typing.AsyncIterator):
             self._buffer.extend([embed async for embed in self._iterator])
 
         elif isinstance(self._iterator, typing.Iterator):
             self._buffer.extend(self._iterator)
-
-        self._locked = False
 
         if self._buffer:
             self._index = len(self._buffer) - 1
@@ -623,41 +603,45 @@ class Paginator(AbstractPaginator):
             asyncio.create_task(self.close(remove_reactions=True))
             return END
 
-        if self._message_id is None or self._authors and user_id not in self._authors or self._locked:
+        if self._message_id is None or self._authors and user_id not in self._authors:
             return None
 
         method = self._emoji_mapping.get(emoji)
         if emoji not in self._triggers or not method:
             return None
 
-        result = await method()
-        if isinstance(result, str) or result is None:
-            return END
+        if not self._lock:
+            self._lock = asyncio.Lock()
 
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        retry = backoff.Backoff()
-
-        async for _ in retry:
-            # Mypy makes the false assumption that this value will stay as None while this function yields.
-            if self._message_id is None:
-                break  # type: ignore[unreachable]
-
-            try:
-                await self._rest.rest.edit_message(
-                    self._channel_id, self._message_id, content=result[0], embed=result[1]
-                )
-
-            except errors.InternalServerError:
-                continue
-
-            except errors.RateLimitedError as exc:
-                retry.set_next_backoff(exc.retry_after)
-
-            except (errors.NotFoundError, errors.ForbiddenError):
+        async with self._lock:
+            result = await method()
+            if isinstance(result, str) or result is None:
                 return END
 
-            else:
-                break
+            self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+            retry = backoff.Backoff()
+
+            async for _ in retry:
+                # Mypy makes the false assumption that this value will stay as None while this function yields.
+                if self._message_id is None:
+                    break  # type: ignore[unreachable]
+
+                try:
+                    await self._rest.rest.edit_message(
+                        self._channel_id, self._message_id, content=result[0], embed=result[1]
+                    )
+
+                except errors.InternalServerError:
+                    continue
+
+                except errors.RateLimitedError as exc:
+                    retry.set_next_backoff(exc.retry_after)
+
+                except (errors.NotFoundError, errors.ForbiddenError):
+                    return END
+
+                else:
+                    break
 
         return None
 
@@ -669,33 +653,33 @@ class PaginatorPool:
     ----------
     rest : hikari.traits.RESTAware
         The REST aware client to register this paginator pool with.
-    dispatch : typing.Optional[hikari.traits.DispatcherAware]
-        The dispatcher aware client to register this paginator pool with.
+    events : typing.Optional[hikari.traits.EventManagerAware]
+        The event manager aware client to register this paginator pool with.
 
         !!! note
-            This may only be left as `builtins.None` if `rest` is dispatcher
+            This may only be left as `None` if `rest` is event manager
             aware.
 
     Raises
     ------
     ValueError
-        If `dispatch` is left as `builtins.None` when `rest` is not also
-        dispatcher aware.
+        If `events` is left as `None` when `rest` is not also
+        event manager aware.
     """
 
     __slots__: typing.Sequence[str] = ("blacklist", "_events", "_gc_task", "_listeners", "_rest")
 
     def __init__(self, rest: traits.RESTAware, events: typing.Optional[traits.EventManagerAware] = None, /) -> None:
-        if events is None and isinstance(rest, traits.EventManagerAware):
+        if events is None:
+            if not isinstance(rest, traits.EventManagerAware):
+                raise ValueError("Missing event manager aware client.")
+
             events = rest
 
-        if events is None:
-            raise ValueError("Missing event manager aware client.")
-
-        self.blacklist: typing.MutableSequence[snowflakes.Snowflake] = []
+        self.blacklist: typing.List[snowflakes.Snowflake] = []
         self._events = events
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._listeners: typing.MutableMapping[snowflakes.Snowflake, AbstractPaginator] = {}
+        self._listeners: typing.Dict[snowflakes.Snowflake, AbstractPaginator] = {}
         self._rest = rest
 
     async def _gc(self) -> None:
@@ -726,6 +710,10 @@ class PaginatorPool:
 
     async def _on_stopping_event(self, _: lifetime_events.StoppingEvent, /) -> None:
         await self.close()
+
+    @property
+    def is_closed(self) -> bool:
+        return self._gc_task is None
 
     def add_paginator(
         self, message: snowflakes.SnowflakeishOr[messages.Message], /, paginator: AbstractPaginator
@@ -908,7 +896,7 @@ async def async_string_paginator(
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_number = -1
     page_size = 0
-    page: typing.MutableSequence[str] = []
+    page: typing.List[str] = []
 
     while (line := await _seek_async_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
@@ -980,7 +968,7 @@ def sync_string_paginator(
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_number = -1
     page_size = 0
-    page: typing.MutableSequence[str] = []
+    page: typing.List[str] = []
 
     while (line := _seek_sync_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits

@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -228,6 +228,7 @@ class Backoff:
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
         """
+        # TODO: maximum?
         self._next_backoff = backoff_
 
 
@@ -294,7 +295,7 @@ class ErrorManager:
         self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
 
     def __enter__(self) -> ErrorManager:
-        pass
+        return self
 
     def __exit__(
         self,

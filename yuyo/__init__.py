@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,12 @@
 
 from __future__ import annotations
 
-__slots__: typing.Sequence[str] = [
+__all__: typing.Sequence[str] = [
     # backoff.py
     "backoff",
     "Backoff",
     "ErrorManager",
-    # paginaton.py
+    # pagination.py
     "paginaton",
     "AbstractPaginator",
     "Paginator",
@@ -50,5 +50,5 @@ __slots__: typing.Sequence[str] = [
 
 import typing
 
-from yuyo.backoff import *
-from yuyo.paginaton import *
+from .backoff import *
+from .paginaton import *
