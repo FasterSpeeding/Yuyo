@@ -153,9 +153,7 @@ class ComponentContext:
                 self._response_future.set_result(self._interaction.build_deferred_response(defer_type).set_flags(flags))
 
             else:
-                await self._interaction.create_initial_response(
-                    hikari.ResponseType.DEFERRED_MESSAGE_CREATE, flags=flags
-                )
+                await self._interaction.create_initial_response(defer_type, flags=flags)
 
     async def create_followup(
         self,
@@ -580,8 +578,6 @@ class ComponentClient:
         except ExecutorClosed:
             self._executors.pop(interaction.message_id, None)
 
-            raise
-
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
@@ -858,23 +854,42 @@ class ComponentPaginator(ActionRowExecutor):
 
     async def _on_first(self, ctx: ComponentContext, /) -> None:
         # TODO: can we just give an empty message update if the index is already 0?
-        content, embed = self._buffer[0] if self._buffer else await self.get_next_entry()
-        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+        if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
+            content, embed = first_entry
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+
+        else:
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_previous(self, ctx: ComponentContext, /) -> None:
-        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+        if self._index > 0:
+            self._index -= 1
+            content, embed = self._buffer[self._index]
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+
+        else:
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
         await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, components=[])
         raise ExecutorClosed
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:
-        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+        if self._iterator:
+            self._buffer.extend(await pagination.collect_iterator(self._iterator))
+
+        if self._buffer:
+            self._index = len(self._buffer) - 1
+            content, embed = self._buffer[-1]
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+
+        else:
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_next(self, ctx: ComponentContext, /) -> None:
         if entry := await self.get_next_entry():
             content, embed = entry
-        else:
-            content, embed = hikari.UNDEFINED, hikari.UNDEFINED
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
-        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+        else:
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)

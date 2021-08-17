@@ -445,19 +445,13 @@ class ReactionPaginator(ReactionHandler):
         raise HandlerClosed
 
     async def _on_first(self, _: EventT, /) -> None:
-        if self._index != 0:
-            content, embed = self._buffer[0] if self._buffer else await self.get_next_entry()
+        if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
+            content, embed = first_entry
             await self._edit_message(content=content, embed=embed)
 
     async def _on_last(self, _: EventT, /) -> None:
-        if self._iterator is None:
-            pass
-
-        elif isinstance(self._iterator, typing.AsyncIterator):
-            self._buffer.extend([embed async for embed in self._iterator])
-
-        else:
-            self._buffer.extend(self._iterator)
+        if self._iterator:
+            self._buffer.extend(await pagination.collect_iterator(self._iterator))
 
         if self._buffer:
             self._index = len(self._buffer) - 1
