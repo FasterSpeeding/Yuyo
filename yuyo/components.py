@@ -641,7 +641,7 @@ class ComponentExecutor:
     ) -> None:
         ctx = ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
         callback = self._id_to_callback[interaction.custom_id]
-        asyncio.create_task(callback(ctx))
+        await callback(ctx)
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
         self._id_to_callback[id_] = callback
@@ -855,6 +855,7 @@ class ComponentPaginator(ActionRowExecutor):
     async def _on_first(self, ctx: ComponentContext, /) -> None:
         # TODO: can we just give an empty message update if the index is already 0?
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
+            self._index = 0
             content, embed = first_entry
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
@@ -871,6 +872,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
+        self._iterator = None
         await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, components=[])
         raise ExecutorClosed
 
