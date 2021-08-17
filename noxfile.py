@@ -29,13 +29,12 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import distutils.util
 import pathlib
 import shutil
 
 import nox
 
-nox.options.sessions = ["reformat-code", "lint", "spell-check", "type-check", "test"]  # type: ignore
+nox.options.sessions = ["reformat", "lint", "spell-check", "type-check", "test"]  # type: ignore
 GENERAL_TARGETS = ["./noxfile.py", "./yuyo", "./tests"]
 PYTHON_VERSIONS = ["3.8", "3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
 REQUIREMENTS = [
@@ -43,6 +42,7 @@ REQUIREMENTS = [
     "git+https://github.com/FasterSpeeding/hikari.git@task/api-impl-export",
     ".",
 ]
+TOML_REFORMATS = ["pyproject.toml"]
 
 
 def install_requirements(
@@ -62,16 +62,16 @@ def cleanup(session: nox.Session) -> None:
     # Remove directories
     from nox.logger import logger
 
-    paths = map(pathlib.Path, ["./dist", "./docs", "./.nox", "./.pytest_cache", "./hikari_yuyo.egg-info"])
-    for path in paths:
+    for raw_path in ["./dist", "./docs", "./.nox", "./.pytest_cache", "./hikari_yuyo.egg-info"]:
+        path = pathlib.Path(raw_path)
         try:
             shutil.rmtree(str(path.absolute()))
 
         except Exception as exc:
-            logger.error(f"[ FAIL ] Failed to remove '{path!s}': {exc!s}")  # type: ignore
+            logger.error(f"[ FAIL ] Failed to remove '{raw_path!s}': {exc!s}")  # type: ignore
 
         else:
-            logger.info(f"[  OK  ] Removed '{path!s}'")  # type: ignore
+            logger.info(f"[  OK  ] Removed '{raw_path!s}'")  # type: ignore
 
     # Remove individual files
     for path in map(pathlib.Path, ["./.coverage"]):
@@ -96,6 +96,7 @@ def generate_docs(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     install_requirements(session, ".[flake8]")
+    session.run("flake8", *GENERAL_TARGETS)
 
 
 @nox.session(reuse_venv=True, name="spell-check")
@@ -141,9 +142,8 @@ def test_publish(session: nox.Session) -> None:
     publish(session, test=True)
 
 
-@nox.session(name="reformat-code", reuse_venv=True)
-def reformat_code(session: nox.Session) -> None:
-    install_requirements(session, ".[reformat]", include_standard_requirements=False)
+@nox.session(reuse_venv=True)
+def reformat(session: nox.Session) -> None:
     session.run("black", *GENERAL_TARGETS)
     session.run("isort", *GENERAL_TARGETS)
 
@@ -164,5 +164,5 @@ def test_coverage(session: nox.Session) -> None:
 
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
-    install_requirements(session)
+    install_requirements(session, ".[dev]")
     session.run("pyright")

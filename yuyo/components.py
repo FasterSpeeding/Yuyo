@@ -46,8 +46,8 @@ __all__: typing.Sequence[str] = [
 import asyncio
 import datetime
 import inspect
-import random
 import typing
+import uuid
 
 import hikari
 from hikari import snowflakes
@@ -75,7 +75,7 @@ if typing.TYPE_CHECKING:
 
 
 def _random_id() -> str:
-    return str(random.randint(0, 2 ** 32 - 1))
+    return str(uuid.uuid4())
 
 
 _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
@@ -875,6 +875,6 @@ class ComponentPaginator(ActionRowExecutor):
         if entry := await self.get_next_entry():
             content, embed = entry
         else:
-            content, embed = hikari.UNDEFINED, hikari.UnauthorizedError
+            content, embed = hikari.UNDEFINED, hikari.UNDEFINED
 
         await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
