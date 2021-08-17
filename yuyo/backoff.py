@@ -125,7 +125,7 @@ class Backoff:
     ```
     """
 
-    __slots__: typing.Sequence[str] = ("_backoff", "_finished", "_max_retries", "_next_backoff", "_retries", "_started")
+    __slots__ = ("_backoff", "_finished", "_max_retries", "_next_backoff", "_retries", "_started")
 
     def __init__(
         self,
@@ -284,7 +284,7 @@ class ErrorManager:
     ```
     """
 
-    __slots__: typing.Sequence[str] = ("_rules",)
+    __slots__ = ("_rules",)
 
     def __init__(
         self,

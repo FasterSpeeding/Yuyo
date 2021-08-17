@@ -32,22 +32,37 @@
 """Utilities used for handling reaction based paginated messages."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = []
+__all__: typing.Sequence[str] = [
+    "ActionRowExecutor",
+    "as_component_callback",
+    "ComponentClient",
+    "ComponentContext",
+    "ComponentExecutor",
+    "ComponentPaginator",
+    "InteractiveButtonBuilder",
+    "SelectMenuBuilder",
+]
 
 import asyncio
+import datetime
 import inspect
+import random
 import typing
 
 import hikari
+from hikari import snowflakes
+from hikari.api import special_endpoints as special_endpoints_api
 from hikari.impl import special_endpoints
+
+from . import pagination
 
 if typing.TYPE_CHECKING:
     import types
 
     from hikari import traits
+    from hikari import users
     from hikari.api import event_manager as event_manager_api
     from hikari.api import interaction_server as interaction_server_api
-    from hikari.api import special_endpoints as special_endpoints_api
 
     _T = typing.TypeVar("_T")
 
@@ -59,6 +74,10 @@ if typing.TYPE_CHECKING:
             raise NotImplementedError
 
 
+def _random_id() -> str:
+    return str(random.randint(0, 2 ** 32 - 1))
+
+
 _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
 _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
 
@@ -66,15 +85,15 @@ _ResponseT = typing.Union[
     special_endpoints_api.InteractionMessageBuilder, special_endpoints_api.InteractionDeferredBuilder
 ]
 
-CallbackSig = typing.Callable[["Context"], typing.Awaitable[None]]
+CallbackSig = typing.Callable[["ComponentContext"], typing.Awaitable[None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 _ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
 
-_ActionRowExecutionerT = typing.TypeVar("_ActionRowExecutionerT", bound="ActionRowExecutioner")
+_ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
 
 
-class Context:
+class ComponentContext:
     __slots__ = (
         "_ephemeral_default",
         "_has_responded",
@@ -178,6 +197,8 @@ class Context:
 
     async def _create_initial_response(
         self,
+        response_type: hikari.ComponentResponseTypesT,
+        /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
@@ -206,7 +227,7 @@ class Context:
         self._has_responded = True
         if not self._response_future:
             await self._interaction.create_initial_response(
-                response_type=hikari.ResponseType.MESSAGE_CREATE,
+                response_type=response_type,
                 content=content,
                 component=component,
                 components=components,
@@ -237,7 +258,7 @@ class Context:
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
             # pre-fix in init.
             result = special_endpoints.InteractionMessageBuilder(
-                type=hikari.ResponseType.MESSAGE_CREATE,  # type: ignore
+                type=response_type,  # type: ignore
                 content=content,  # type: ignore
                 components=components,  # type: ignore
                 embeds=embeds,  # type: ignore
@@ -252,6 +273,8 @@ class Context:
 
     async def create_initial_response(
         self,
+        response_type: hikari.ComponentResponseTypesT,
+        /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
@@ -270,6 +293,7 @@ class Context:
     ) -> None:
         async with self._response_lock:
             await self._create_initial_response(
+                response_type,
                 content=content,
                 component=component,
                 components=components,
@@ -479,6 +503,7 @@ class Context:
                 )
 
             await self._create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE,
                 content=content,
                 component=component,
                 components=components,
@@ -491,6 +516,10 @@ class Context:
 
         if ensure_result:
             return await self._interaction.fetch_initial_response()
+
+
+class ExecutorClosed(Exception):
+    ...
 
 
 class ComponentClient:
@@ -539,20 +568,35 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
+    async def _execute_executor(
+        self,
+        executor: ComponentExecutor,
+        interaction: hikari.ComponentInteraction,
+        /,
+        future: typing.Optional[asyncio.Future[_ResponseT]] = None,
+    ) -> None:
+        try:
+            await executor.execute(interaction, future=future)
+        except ExecutorClosed:
+            self._executors.pop(interaction.message_id, None)
+
+            raise
+
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
         if executor := self._executors.get(event.interaction.message_id):
-            await executor.execute(event.interaction)
+            await self._execute_executor(executor, event.interaction)
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ResponseT:
         future: asyncio.Future[_ResponseT] = asyncio.Future()
         if executor := self._executors.get(interaction.message_id):
-            execution_task = asyncio.create_task(executor.execute(interaction, future=future))
-            done, pending = asyncio.wait((future, execution_task), return_when=asyncio.FIRST_COMPLETED)
+            execution_task = asyncio.create_task(self._execute_executor(executor, interaction, future=future))
+            done, _ = asyncio.wait((future, execution_task), return_when=asyncio.FIRST_COMPLETED)
 
             if future in done:
+                execution_task.cancel()
                 return await future
 
             raise RuntimeError("Execution finished without setting a response")
@@ -567,7 +611,7 @@ class ComponentClient:
         return self
 
 
-def as_listener(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         callback.__custom_id__ = custom_id
         return callback
@@ -576,10 +620,11 @@ def as_listener(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSi
 
 
 class ComponentExecutor:
-    __slots__ = ("_id_to_callback",)
+    __slots__ = ("_id_to_callback", "_lock")
 
     def __init__(self, *, load_from_attributes: bool = True) -> None:
         self._id_to_callback: dict[str, CallbackSig] = {}
+        self._lock = asyncio.Lock()
         if load_from_attributes and type(self) is not ComponentExecutor:
             for _, value in inspect.getmembers(self):  # TODO: might be a tada bit slow
                 try:
@@ -592,15 +637,15 @@ class ComponentExecutor:
                     self._id_to_callback[custom_id] = value
 
     @property
-    def listeners(self) -> typing.Mapping[str, CallbackSig]:
+    def callbacks(self) -> typing.Mapping[str, CallbackSig]:
         return self._id_to_callback.copy()
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[_ResponseT] = None
     ) -> None:
-        ctx = Context(ephemeral_default=False, interaction=interaction, response_future=future)
-        listener = self._id_to_callback[interaction.custom_id]
-        asyncio.create_task(listener(ctx))
+        ctx = ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
+        callback = self._id_to_callback[interaction.custom_id]
+        asyncio.create_task(callback(ctx))
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
         self._id_to_callback[id_] = callback
@@ -650,10 +695,11 @@ class SelectMenuBuilder(special_endpoints.SelectMenuBuilder[_ContainerProtoT]):
         return super().add_to_container()
 
 
-class ActionRowExecutioner(ComponentExecutor):
+class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
-    def __init__(self) -> None:
+    def __init__(self, *, load_from_attributes: bool = False) -> None:
+        super().__init__(load_from_attributes=load_from_attributes)
         self._components: typing.List[special_endpoints_api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -668,43 +714,66 @@ class ActionRowExecutioner(ComponentExecutor):
         self._stored_type = type_
 
     def add_component(
-        self: _ActionRowExecutionerT, component: special_endpoints_api.ComponentBuilder, /
-    ) -> _ActionRowExecutionerT:
+        self: _ActionRowExecutorT, component: special_endpoints_api.ComponentBuilder, /
+    ) -> _ActionRowExecutorT:
         self._components.append(component)
         return self
 
     @typing.overload
     def add_button(
-        self: _ActionRowExecutionerT, style: hikari.InteractiveButtonTypesT, custom_id: str, /
-    ) -> InteractiveButtonBuilder[_ActionRowExecutionerT]:
+        self: _ActionRowExecutorT,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+    ) -> InteractiveButtonBuilder[_ActionRowExecutorT]:
         ...
 
     @typing.overload
     def add_button(
-        self: _ActionRowExecutionerT,
+        self: _ActionRowExecutorT,
         style: typing.Union[typing.Literal[hikari.ButtonStyle.LINK], typing.Literal[5]],
         url: str,
         /,
-    ) -> special_endpoints.LinkButtonBuilder[_ActionRowExecutionerT]:
+    ) -> special_endpoints.LinkButtonBuilder[_ActionRowExecutorT]:
         ...
 
     def add_button(
-        self: _ActionRowExecutionerT, style: typing.Union[int, hikari.ButtonStyle], url_or_custom_id: str, /
+        self: _ActionRowExecutorT,
+        style: typing.Union[int, hikari.ButtonStyle],
+        callback_or_url: typing.Union[CallbackSig, str],
+        *,
+        custom_id: typing.Optional[str] = None,
     ) -> typing.Union[
-        special_endpoints.LinkButtonBuilder[_ActionRowExecutionerT], InteractiveButtonBuilder[_ActionRowExecutionerT]
+        special_endpoints.LinkButtonBuilder[_ActionRowExecutorT], InteractiveButtonBuilder[_ActionRowExecutorT]
     ]:
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if style in hikari.InteractiveButtonTypes:
             # Pyright doesn't properly support _ attrs kwargs
-            return InteractiveButtonBuilder(container=self, style=style, custom_id=url_or_custom_id)  # type: ignore
+            if custom_id is None:
+                custom_id = _random_id()
+
+            if not isinstance(callback_or_url, typing.Callable):
+                raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
+
+            return InteractiveButtonBuilder(
+                callback=callback_or_url, container=self, style=style, custom_id=custom_id  # type: ignore
+            )
 
         # Pyright doesn't properly support _ attrs kwargs
-        return special_endpoints.LinkButtonBuilder(container=self, style=style, url=url_or_custom_id)  # type: ignore
+        if not isinstance(callback_or_url, str):
+            raise ValueError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
+
+        return special_endpoints.LinkButtonBuilder(container=self, style=style, url=callback_or_url)  # type: ignore
 
     def add_select_menu(
-        self: _ActionRowExecutionerT, custom_id: str, callback: CallbackSig, /
-    ) -> SelectMenuBuilder[_ActionRowExecutionerT]:
+        self: _ActionRowExecutorT, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
+    ) -> SelectMenuBuilder[_ActionRowExecutorT]:
         self._assert_can_add_type(hikari.ComponentType.SELECT_MENU)
+        if custom_id is None:
+            custom_id = _random_id()
+
         return SelectMenuBuilder(callback=callback, container=self, custom_id=custom_id)
 
     def build(self) -> typing.Dict[str, typing.Any]:
@@ -714,5 +783,98 @@ class ActionRowExecutioner(ComponentExecutor):
         }
 
 
-class PaginatedExecutor:
-    __slots__ = ("_buffer", "_iterator")
+class ComponentPaginator(ActionRowExecutor):
+    __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock", "_timeout")
+
+    def __init__(
+        self,
+        iterator: pagination.IteratorT[pagination.EntryT],
+        *,
+        authors: typing.Iterable[hikari.SnowflakeishOr[users.User]],
+        triggers: typing.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        load_from_attributes: bool = False,
+    ) -> None:
+        super().__init__(load_from_attributes=load_from_attributes)
+
+        self._authors = set(map(snowflakes.Snowflake, authors))
+        self._buffer: typing.List[pagination.EntryT] = []
+        self._index: int = 0
+        self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
+        self._lock = asyncio.Lock()
+        self._timeout = timeout
+
+        if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
+            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_first).set_emoji(
+                pagination.LEFT_DOUBLE_TRIANGLE
+            ).add_to_container()
+
+        if pagination.LEFT_TRIANGLE in triggers:
+            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_previous).set_emoji(
+                pagination.LEFT_TRIANGLE
+            ).add_to_container()
+
+        if pagination.STOP_SQUARE in triggers:
+            self.add_button(hikari.ButtonStyle.DANGER, self._on_disable).set_emoji(
+                pagination.STOP_SQUARE
+            ).add_to_container()
+
+        if pagination.RIGHT_TRIANGLE in triggers:
+            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_next).set_emoji(
+                pagination.RIGHT_TRIANGLE
+            ).add_to_container()
+
+        if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
+            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_last).set_emoji(
+                pagination.RIGHT_DOUBLE_TRIANGLE
+            ).add_to_container()
+
+    async def execute(
+        self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[_ResponseT] = None
+    ) -> None:
+        if self._authors and interaction.user.id not in self._authors:
+            await interaction.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You cannot use this button", flags=hikari.MessageFlag.EPHEMERAL
+            )
+            return
+
+        await super().execute(interaction, future=future)
+
+    async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
+        # Check to see if we're behind the buffer before trying to go forward in the generator.
+        if len(self._buffer) >= self._index + 2:
+            self._index += 1
+            return self._buffer[self._index]
+
+        # If entry is not None then the generator's position was pushed forwards.
+        if self._iterator and (entry := await pagination.seek_iterator(self._iterator, default=None)):
+            self._index += 1
+            self._buffer.append(entry)
+            return entry
+
+    async def _on_first(self, ctx: ComponentContext, /) -> None:
+        # TODO: can we just give an empty message update if the index is already 0?
+        content, embed = self._buffer[0] if self._buffer else await self.get_next_entry()
+        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+
+    async def _on_previous(self, ctx: ComponentContext, /) -> None:
+        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+
+    async def _on_disable(self, ctx: ComponentContext, /) -> None:
+        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, components=[])
+        raise ExecutorClosed
+
+    async def _on_last(self, ctx: ComponentContext, /) -> None:
+        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+
+    async def _on_next(self, ctx: ComponentContext, /) -> None:
+        if entry := await self.get_next_entry():
+            content, embed = entry
+        else:
+            content, embed = hikari.UNDEFINED, hikari.UnauthorizedError
+
+        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)

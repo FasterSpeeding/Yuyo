@@ -33,7 +33,13 @@
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["AbstractReactionHandler", "ReactionHandler", "ReactionPaginator", "ReactionClient"]
+__all__: typing.Sequence[str] = [
+    "as_reaction_callback",
+    "AbstractReactionHandler",
+    "ReactionHandler",
+    "ReactionPaginator",
+    "ReactionClient",
+]
 
 import abc
 import asyncio
@@ -57,40 +63,12 @@ if typing.TYPE_CHECKING:
     from hikari import channels
     from hikari import messages
     from hikari import users
-    from hikari.api import event_manager
+    from hikari.api import event_manager as event_manager_api
     from hikari.api import rest as rest_api
 
     _ReactionHandlerT = typing.TypeVar("_ReactionHandlerT", bound="ReactionHandler")
     _ReactionPaginatorT = typing.TypeVar("_ReactionPaginatorT", bound="ReactionPaginator")
     _ReactionClientT = typing.TypeVar("_ReactionClientT", bound="ReactionClient")
-
-
-LEFT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
-)
-"""The emoji used to go back to the first entry."""
-LEFT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
-)
-"""The emoji used to go back an entry."""
-STOP_SQUARE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}"
-)
-"""The emoji used to close a menu."""
-RIGHT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
-)
-"""The emoji used to continue to the next entry."""
-RIGHT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
-    "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
-)
-"""The emoji used for the lesser-enabled skip to last entry button."""
-EntryT = typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]
-"""A type hint used to represent a paginator entry.
-
-This should be a tuple of the string message content or `hikari.undefined.UNDEFINED`
-to the message's embed if set else `hikari.undefined.UNDEFINED`.
-"""
 
 
 class HandlerClosed(Exception):
@@ -100,7 +78,7 @@ class HandlerClosed(Exception):
 class AbstractReactionHandler(abc.ABC):
     """The interface for a reaction handler used with `ReactionClient`."""
 
-    __slots__: typing.Sequence[str] = ()
+    __slots__ = ()
 
     @property
     @abc.abstractmethod
@@ -167,7 +145,7 @@ CallbackSig = typing.Callable[[EventT], typing.Awaitable[None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 
-def as_callback(
+def as_reaction_callback(
     emoji_identifier: typing.Union[snowflakes.SnowflakeishOr[emojis.CustomEmoji], str], /
 ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
@@ -182,7 +160,7 @@ def as_callback(
 
 
 class ReactionHandler(AbstractReactionHandler):
-    __slots__ = ("_author", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
+    __slots__ = ("_authors", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
 
     def __init__(
         self,
@@ -255,7 +233,7 @@ class ReactionHandler(AbstractReactionHandler):
     def add_callback(
         self: _ReactionHandlerT,
         emoji_identifier: typing.Union[str, snowflakes.SnowflakeishOr[emojis.CustomEmoji]],
-        callback: CallbackSigT,
+        callback: CallbackSig,
         /,
     ) -> _ReactionHandlerT:
         """Add a callback to this reaction handler.
@@ -375,10 +353,6 @@ class ReactionPaginator(ReactionHandler):
 
     Parameters
     ----------
-    rest : hikari.traits.RESTAware
-        The REST aware client this should be bound to.
-    channel : hikari.snowflakes.SnowflakeishOr[hikari.channels.TextableChannel]
-        The ID of the text channel this iterator targets.
     iterator : Iterator[typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]]
         Either an asynchronous or synchronous iterator of the entries this
         should paginate through.
@@ -398,17 +372,17 @@ class ReactionPaginator(ReactionHandler):
         This defaults to a timdelta of 30 seconds.
     """
 
-    __slots__: typing.Sequence[str] = ("_buffer", "_index", "_iterator", "_triggers")
+    __slots__ = ("_buffer", "_index", "_iterator", "_triggers")
 
     def __init__(
         self,
-        iterator: pagination.IteratorT[EntryT],
+        iterator: pagination.IteratorT[pagination.EntryT],
         *,
         authors: typing.Iterable[snowflakes.SnowflakeishOr[users.User]],
         triggers: typing.Collection[str] = (
-            LEFT_TRIANGLE,
-            STOP_SQUARE,
-            RIGHT_TRIANGLE,
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
         ),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
@@ -416,25 +390,25 @@ class ReactionPaginator(ReactionHandler):
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
-        self._buffer: typing.List[EntryT] = []
+        self._buffer: typing.List[pagination.EntryT] = []
         self._index = 0
-        self._iterator = iterator
+        self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
 
-        if LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_callback(LEFT_DOUBLE_TRIANGLE, self._on_first)
+        if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
+            self.add_callback(pagination.LEFT_DOUBLE_TRIANGLE, self._on_first)
 
-        if LEFT_TRIANGLE in triggers:
-            self.add_callback(LEFT_TRIANGLE, self._on_previous)
+        if pagination.LEFT_TRIANGLE in triggers:
+            self.add_callback(pagination.LEFT_TRIANGLE, self._on_previous)
 
-        if STOP_SQUARE in triggers:
-            self.add_callback(STOP_SQUARE, self._on_disable)
+        if pagination.STOP_SQUARE in triggers:
+            self.add_callback(pagination.STOP_SQUARE, self._on_disable)
 
-        if RIGHT_TRIANGLE in triggers:
-            self.add_callback(RIGHT_TRIANGLE, self._on_next)
+        if pagination.RIGHT_TRIANGLE in triggers:
+            self.add_callback(pagination.RIGHT_TRIANGLE, self._on_next)
 
-        if RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_callback(RIGHT_DOUBLE_TRIANGLE, self._on_last)
+        if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
+            self.add_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
 
     async def _edit_message(
         self, *, content: undefined.UndefinedNoneOr[str], embed: undefined.UndefinedNoneOr[embeds.Embed]
@@ -472,14 +446,17 @@ class ReactionPaginator(ReactionHandler):
 
     async def _on_first(self, _: EventT, /) -> None:
         if self._index != 0:
-            content, embed = self._buffer[0]
+            content, embed = self._buffer[0] if self._buffer else await self.get_next_entry()
             await self._edit_message(content=content, embed=embed)
 
     async def _on_last(self, _: EventT, /) -> None:
-        if isinstance(self._iterator, typing.AsyncIterator):
+        if self._iterator is None:
+            pass
+
+        elif isinstance(self._iterator, typing.AsyncIterator):
             self._buffer.extend([embed async for embed in self._iterator])
 
-        elif isinstance(self._iterator, typing.Iterator):
+        else:
             self._buffer.extend(self._iterator)
 
         if self._buffer:
@@ -487,20 +464,20 @@ class ReactionPaginator(ReactionHandler):
             content, embed = self._buffer[-1]
             await self._edit_message(content=content, embed=embed)
 
-    async def _get_next_entry(self, /) -> typing.Optional[EntryT]:
+    async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
             return self._buffer[self._index]
 
         # If entry is not None then the generator's position was pushed forwards.
-        if (entry := await pagination.seek_iterator(self._iterator, default=None)) is not None:
+        if self._iterator and (entry := await pagination.seek_iterator(self._iterator, default=None)):
             self._index += 1
             self._buffer.append(entry)
             return entry
 
     async def _on_next(self, _: EventT, /) -> None:
-        if entry := await self._get_next_entry():
+        if entry := await self.get_next_entry():
             content, embed = entry
             await self._edit_message(content=content, embed=embed)
 
@@ -632,7 +609,7 @@ class ReactionPaginator(ReactionHandler):
         max_retries: int = 5,
         max_backoff: float = 2.0,
     ) -> messages.Message:
-        """Start this handler and link it to a message.
+        """Start this handler and link it to a bot message.
 
         Other Parameters
         ----------------
@@ -664,7 +641,7 @@ class ReactionPaginator(ReactionHandler):
             raise RuntimeError("ReactionPaginator is already running")
 
         retry = backoff.Backoff(max_retries=max_retries - 1, maximum=max_backoff)
-        entry = await self._get_next_entry()
+        entry = await self.get_next_entry()
 
         if entry is None:
             raise ValueError("ReactionPaginator iterator yielded no pages.")
@@ -695,38 +672,42 @@ class ReactionPaginator(ReactionHandler):
 class ReactionClient:
     """A class which handles the events for multiple registered reaction handlers.
 
+    .. note::
+        For a quicker way to initialise this client from a bot, see
+        `ReactionClient.from_gateway_bot`.
+
     Parameters
     ----------
-    rest : hikari.traits.RESTAware
-        The REST aware client to register this reaction client with.
-    events : typing.Optional[hikari.traits.EventManagerAware]
-        The event manager aware client to register this reaction client with.
-
-        !!! note
-            This may only be left as `None` if `rest` is event manager
-            aware.
-
-    Raises
-    ------
-    ValueError
-        If `events` is left as `None` when `rest` is not also
-        event manager aware.
+    rest : hikari.api.rest.RESTClient
+        The REST client to register this reaction client with.
+    event_manager : hikari.api.event_manager.EventManager
+        The event manager client to register this reaction client with.
     """
 
-    __slots__: typing.Sequence[str] = ("blacklist", "_events", "_gc_task", "_listeners", "_rest")
+    __slots__ = ("blacklist", "_event_manager", "_gc_task", "_listeners", "_rest")
 
-    def __init__(self, rest: traits.RESTAware, events: typing.Optional[traits.EventManagerAware] = None, /) -> None:
-        if events is None:
-            if not isinstance(rest, traits.EventManagerAware):
-                raise ValueError("Missing event manager aware client.")
-
-            events = rest
-
+    def __init__(self, *, rest: rest_api.RESTClient, event_manager: event_manager_api.EventManager) -> None:
         self.blacklist: typing.List[snowflakes.Snowflake] = []
-        self._events = events
+        self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._listeners: typing.Dict[snowflakes.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
+
+    @classmethod
+    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /) -> ReactionClient:
+        """Build a `ReactionClient` from a gateway bot.
+
+        Parameters
+        ----------
+        bot : hikari.traits.GatewayBotAware
+            The bot to build a reaction client for.
+
+        Returns
+        -------
+        ReactionClient
+            The reaction client for the bot.
+        """
+        return cls(rest=bot.rest, event_manager=bot.event_manager)
 
     async def _gc(self) -> None:
         while True:
@@ -825,11 +806,11 @@ class ReactionClient:
 
     def _try_unsubscribe(
         self,
-        event_type: typing.Type[event_manager.EventT],
-        callback: event_manager.CallbackT[event_manager.EventT],
+        event_type: typing.Type[event_manager_api.EventT],
+        callback: event_manager_api.CallbackT[event_manager_api.EventT],
     ) -> None:
         try:
-            self._events.event_manager.unsubscribe(event_type, callback)
+            self._event_manager.unsubscribe(event_type, callback)
         except (ValueError, LookupError):
             # TODO: add logging here
             pass
@@ -850,8 +831,8 @@ class ReactionClient:
         """Start this client by registering the required tasks and event listeners for it to function."""
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
-            self.blacklist.append((await self._rest.rest.fetch_my_user()).id)
-            self._events.event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._events.event_manager.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._events.event_manager.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._events.event_manager.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self.blacklist.append((await self._rest.fetch_my_user()).id)
+            self._event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
+            self._event_manager.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
+            self._event_manager.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
+            self._event_manager.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)

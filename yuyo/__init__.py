@@ -34,17 +34,35 @@
 from __future__ import annotations
 
 __all__: typing.List[str] = [
-    # backoff.py
+    # /__init__.py
+    "__author__",
+    "__ci__",
+    "__copyright__",
+    "__docs__",
+    "__email__",
+    "__issue_tracker__",
+    "__license__",
+    "__url__",
+    "__version__",
+    "__git_sha1__",
+    # /backoff.py
     "backoff",
     "Backoff",
     "ErrorManager",
-    # reactions.py
+    # /components.py
+    "ActionRowExecutor",
+    "as_component_callback",
+    "ComponentClient",
+    "ComponentContext",
+    "ComponentExecutor",
+    "ComponentPaginator",
+    # /reactions.py
     "reactions",
     "AbstractReactionHandler",
     "ReactionHandler",
     "ReactionPaginator",
     "ReactionClient"
-    # pagination.py
+    # /pagination.py
     "pagination",
     "async_string_paginator",
     "sync_string_paginator",
@@ -54,5 +72,17 @@ __all__: typing.List[str] = [
 import typing
 
 from .backoff import *
+from .components import *
 from .pagination import *
 from .reactions import *
+
+__author__ = "Faster Speeding"
+__ci__ = ""
+__copyright__ = "© 2020 Faster Speeding"
+__coverage__ = ""
+__docs__ = "https://fasterspeeding.github.io/Yuyo/"
+__email__ = "lucina@lmbyrne.dev"
+__issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
+__license__ = "BSD"
+__url__ = "https://github.com/FasterSpeeding/Yuyo"
+__version__ = "0.0.3a7"
