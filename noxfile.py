@@ -38,11 +38,10 @@ nox.options.sessions = ["reformat", "lint", "spell-check", "type-check", "test"]
 GENERAL_TARGETS = ["./noxfile.py", "./yuyo", "./tests"]
 PYTHON_VERSIONS = ["3.8", "3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
 REQUIREMENTS = [
-    # Temporarily assume #master for hikari and yuyo
+    # Temporarily assume #master for hikari
     "git+https://github.com/FasterSpeeding/hikari.git@task/api-impl-export",
     ".",
 ]
-TOML_REFORMATS = ["pyproject.toml"]
 
 
 def install_requirements(
@@ -144,6 +143,7 @@ def test_publish(session: nox.Session) -> None:
 
 @nox.session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
+    install_requirements(session, ".[reformat]", include_standard_requirements=False)
     session.run("black", *GENERAL_TARGETS)
     session.run("isort", *GENERAL_TARGETS)
 
@@ -164,5 +164,5 @@ def test_coverage(session: nox.Session) -> None:
 
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
-    install_requirements(session, ".[dev]")
-    session.run("pyright")
+    install_requirements(session, ".[dev] .[tests]")
+    session.run("pyright", external=True)

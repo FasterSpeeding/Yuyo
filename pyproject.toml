@@ -28,14 +28,6 @@ classifiers = [
 ]
 dependencies = ["hikari~=2.0.0.dev101"]
 
-[project.urls]
-    homepage = "https://github.com/FasterSpeeding/Yuyo"
-    repository = "https://github.com/FasterSpeeding/Yuyo"
-    documentation = "https://fasterspeeding.github.io/Yuyo/"
-
-[tool.flit.module]
-name = "yuyo"
-
 [project.optional-dependencies]
 dev = ["nox==2021.6.12"]
 flake8 = [
@@ -72,6 +64,14 @@ lint = ["codespell==2.1.0"]
 publish = ["flit"]
 reformat = ["black~=21.7b0", "isort==5.9.3"]
 tests = ["pytest==6.2.4", "pytest-asyncio==0.15.1", "pytest-cov==2.12.1"]
+
+[project.urls]
+    homepage = "https://github.com/FasterSpeeding/Yuyo"
+    repository = "https://github.com/FasterSpeeding/Yuyo"
+    documentation = "https://fasterspeeding.github.io/Yuyo/"
+
+[tool.flit.module]
+name = "yuyo"
 
 [tool.black]
 line-length     = 120
