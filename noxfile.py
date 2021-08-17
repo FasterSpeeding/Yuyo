@@ -36,13 +36,12 @@ import shutil
 import nox
 
 nox.options.sessions = ["reformat-code", "lint", "spell-check", "type-check", "test"]  # type: ignore
-GENERAL_TARGETS = ["./noxfile.py", "./setup.py", "./yuyo", "./tests"]
+GENERAL_TARGETS = ["./noxfile.py", "./yuyo", "./tests"]
 PYTHON_VERSIONS = ["3.8", "3.9", "3.10"]  # TODO: @nox.session(python=["3.6", "3.7", "3.8"])?
 REQUIREMENTS = [
     # Temporarily assume #master for hikari and yuyo
     "git+https://github.com/FasterSpeeding/hikari.git@task/api-impl-export",
-    "-r",
-    "requirements.txt",
+    ".",
 ]
 
 
@@ -111,6 +110,7 @@ def spell_check(session: nox.Session) -> None:
         "flake8-requirements.txt",
         "LICENSE",
         "pyproject.toml",
+        "setup.cfg",
         "README.md",
         "requirements.txt",
     )
@@ -118,9 +118,9 @@ def spell_check(session: nox.Session) -> None:
 
 @nox.session(reuse_venv=True)
 def publish(session: nox.Session, test: bool = False) -> None:
-    session.install("--upgrade", "wheel")
     session.log("Building Yuyo")
-    session.run("python", "./setup.py", "sdist")
+    install_dev_requirements(session, include_standard_requirements=False)
+    session.run("python", "-m", "build")
 
     if not session.interactive:
         session.log("PYPI upload unavailable in non-interactive session")
@@ -164,7 +164,6 @@ def reformat_code(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     install_dev_requirements(session)
-    session.install(".", "--no-deps", "--force-reinstall")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "--import-mode", "importlib")
 
@@ -172,7 +171,6 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
     install_dev_requirements(session)
-    session.install(".", "--no-deps")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "--cov=yuyo", "--import-mode", "importlib")
 
