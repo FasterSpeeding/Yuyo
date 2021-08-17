@@ -29,30 +29,3 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""A collection of utility functions and classes designed to enhances Hikari."""
-
-from __future__ import annotations
-
-__all__: typing.List[str] = [
-    # backoff.py
-    "backoff",
-    "Backoff",
-    "ErrorManager",
-    # reactions.py
-    "reactions",
-    "AbstractReactionHandler",
-    "ReactionHandler",
-    "ReactionPaginator",
-    "ReactionClient"
-    # pagination.py
-    "pagination",
-    "async_string_paginator",
-    "sync_string_paginator",
-    "string_paginator",
-]
-
-import typing
-
-from .backoff import *
-from .pagination import *
-from .reactions import *

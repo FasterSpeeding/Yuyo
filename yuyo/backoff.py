@@ -309,7 +309,7 @@ class ErrorManager:
         assert exception is not None  # This shouldn't ever be None when exception_type isn't None.
         for rule, callback in self._rules:
             if issubclass(exception_type, rule):
-                # For ths context manager's rules we switch up how returns are handled to let the rules prevent
+                # For this context manager's rules we switch up how returns are handled to let the rules prevent
                 # exceptions from being raised outside of the context by default by having `None` and `False` both
                 # indicate don't re-raise (suppress) and `True` indicate that it should re-raise.
                 return not callback(exception)

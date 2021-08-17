@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+# cython: language_level=3
 import os
 import re
-import setuptools
 import types
+
+import setuptools
 
 MAIN_MODULE_NAME = "yuyo"
 TARGET_PROJECT_NAME = "hikari-yuyo"
