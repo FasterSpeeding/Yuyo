@@ -45,14 +45,14 @@ REQUIREMENTS = [
 ]
 
 
-def install_dev_requirements(
+def install_requirements(
     session: nox.Session, *other_requirements: str, include_standard_requirements: bool = True
 ) -> None:
     session.install("--upgrade", "wheel")
-    requirements = ["-r", "dev-requirements.txt", *other_requirements]
+    requirements = [*REQUIREMENTS, *other_requirements]
 
     if include_standard_requirements:
-        requirements = REQUIREMENTS + requirements
+        pass
 
     session.install("--upgrade", *requirements)
 
@@ -87,7 +87,7 @@ def cleanup(session: nox.Session) -> None:
 
 @nox.session(name="generate-docs", reuse_venv=True)
 def generate_docs(session: nox.Session) -> None:
-    install_dev_requirements(session)
+    install_requirements(session, ".[docs]")
     session.log("Building docs into ./docs")
     session.run("pdoc", "--docformat", "numpy", "-o", "./docs", "./yuyo")
     session.log("Docs generated: %s", pathlib.Path("./docs/index.html").absolute())
@@ -95,58 +95,45 @@ def generate_docs(session: nox.Session) -> None:
 
 @nox.session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
-    install_dev_requirements(session, "-r", "flake8-requirements.txt")
+    install_requirements(session, ".[flake8]")
 
 
 @nox.session(reuse_venv=True, name="spell-check")
 def spell_check(session: nox.Session) -> None:
-    install_dev_requirements(session, include_standard_requirements=False)
+    install_requirements(session, ".[lint]", include_standard_requirements=False)
     session.run(
         "codespell",
         *GENERAL_TARGETS,
         ".flake8",
         ".gitignore",
-        "dev-requirements.txt",
-        "flake8-requirements.txt",
         "LICENSE",
         "pyproject.toml",
-        "setup.cfg",
         "README.md",
         "requirements.txt",
     )
 
 
 @nox.session(reuse_venv=True)
-def publish(session: nox.Session, test: bool = False) -> None:
-    session.log("Building Yuyo")
-    install_dev_requirements(session, include_standard_requirements=False)
-    session.run("python", "-m", "build")
+def build(session: nox.Session) -> None:
+    session.install("flit")
+    session.log("Starting build")
+    session.run("flit", "build")
 
+
+@nox.session(reuse_venv=True)
+def publish(session: nox.Session, test: bool = False) -> None:
     if not session.interactive:
         session.log("PYPI upload unavailable in non-interactive session")
         return
 
-    session.log("Do you want to upload the build now (y/n)?")
-    while True:
-        try:
-            upload_to_pypi = distutils.util.strtobool(input())
-            break
-
-        except ValueError:
-            session.log("Please enter y or n.")
-
-    if not upload_to_pypi:
-        session.log("TestPYPI upload disabled" if test else "PYPI upload disabled")
-        return
-
-    session.install("--upgrade", "twine")
+    session.install("flit")
     if test:
         session.log("Initiating TestPYPI upload")
-        session.run("twine", "upload", "--repository", "testpypi", "./dist/*")
+        session.run("flit", "publish", "--repository", "testpypi")
 
     else:
         session.log("Initiating PYPI upload")
-        session.run("twine", "upload", "./dist/*")
+        session.run("flit", "publish")
 
 
 @nox.session(name="test-publish", reuse_venv=True)
@@ -156,26 +143,26 @@ def test_publish(session: nox.Session) -> None:
 
 @nox.session(name="reformat-code", reuse_venv=True)
 def reformat_code(session: nox.Session) -> None:
-    install_dev_requirements(session, include_standard_requirements=False)
+    install_requirements(session, ".[reformat]", include_standard_requirements=False)
     session.run("black", *GENERAL_TARGETS)
     session.run("isort", *GENERAL_TARGETS)
 
 
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
-    install_dev_requirements(session)
+    install_requirements(session, ".[tests]")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "--import-mode", "importlib")
 
 
 @nox.session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
-    install_dev_requirements(session)
+    install_requirements(session, ".[tests]")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "--cov=yuyo", "--import-mode", "importlib")
 
 
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
-    install_dev_requirements(session)
+    install_requirements(session)
     session.run("pyright")
