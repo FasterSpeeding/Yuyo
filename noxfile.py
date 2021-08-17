@@ -109,7 +109,6 @@ def spell_check(session: nox.Session) -> None:
         "LICENSE",
         "pyproject.toml",
         "README.md",
-        "requirements.txt",
     )
 
 
