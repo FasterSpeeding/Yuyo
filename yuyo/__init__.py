@@ -44,7 +44,6 @@ __all__: typing.List[str] = [
     "__license__",
     "__url__",
     "__version__",
-    "__git_sha1__",
     # /backoff.py
     "backoff",
     "Backoff",

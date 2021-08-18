@@ -612,7 +612,7 @@ class ComponentClient:
         if executor := self._executors.get(interaction.message_id):
             if executor.has_expired:
                 del self._executors[interaction.message_id]
-                return
+                raise LookupError("Not found")
 
             execution_task = asyncio.create_task(self._execute_executor(executor, interaction, future=future))
             done, _ = asyncio.wait((future, execution_task), return_when=asyncio.FIRST_COMPLETED)
