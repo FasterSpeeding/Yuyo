@@ -521,7 +521,7 @@ class ExecutorClosed(Exception):
 
 
 class ComponentClient:
-    __slots__ = ("_event_manager", "_executors", "_server")
+    __slots__ = ("_event_manager", "_executors", "_gc_task", "_server")
 
     def __init__(
         self,
@@ -531,6 +531,7 @@ class ComponentClient:
     ) -> None:
         self._event_manager = event_manager
         self._executors: typing.Dict[int, ComponentExecutor] = {}
+        self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._server = server
 
     def __enter__(self) -> None:
@@ -552,12 +553,33 @@ class ComponentClient:
     def from_rest_bot(cls, bot: traits.RESTBotAware, /) -> ComponentClient:
         return cls(server=bot.interaction_server)
 
+    async def _gc(self) -> None:
+        while True:
+            for message_id, executor in tuple(self._executors.items()):
+                if executor.has_expired or message_id not in self._executors:
+                    continue
+
+                del self._executors[message_id]
+                # This may slow this gc task down but the more we yield the better.
+                # await executor.close()  # TODO: this
+
+            await asyncio.sleep(5)  # TODO: is this a good time?
+
     def close(self) -> None:
+        if self._gc_task:
+            self._gc_task.cancel()
+            self._gc_task = None
+
         if self._server:
             self._server.set_listener(hikari.ComponentInteraction, None)
 
         if self._event_manager:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
+
+        # executor = self._executors
+        self._executors = {}
+        # for executor in executor.values():  # TODO: finjish
+        #     executor.close()
 
     def open(self) -> None:
         if self._server:
@@ -588,6 +610,10 @@ class ComponentClient:
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ResponseT:
         future: asyncio.Future[_ResponseT] = asyncio.Future()
         if executor := self._executors.get(interaction.message_id):
+            if executor.has_expired:
+                del self._executors[interaction.message_id]
+                return
+
             execution_task = asyncio.create_task(self._execute_executor(executor, interaction, future=future))
             done, _ = asyncio.wait((future, execution_task), return_when=asyncio.FIRST_COMPLETED)
 
@@ -616,11 +642,15 @@ def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], 
 
 
 class ComponentExecutor:
-    __slots__ = ("_id_to_callback", "_lock")
+    __slots__ = ("_id_to_callback", "_last_triggered", "_lock", "_timeout")
 
-    def __init__(self, *, load_from_attributes: bool = True) -> None:
+    def __init__(
+        self, *, load_from_attributes: bool = True, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+    ) -> None:
         self._id_to_callback: dict[str, CallbackSig] = {}
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)  # TODO: finish
         self._lock = asyncio.Lock()
+        self._timeout = timeout
         if load_from_attributes and type(self) is not ComponentExecutor:
             for _, value in inspect.getmembers(self):  # TODO: might be a tada bit slow
                 try:
@@ -635,6 +665,17 @@ class ComponentExecutor:
     @property
     def callbacks(self) -> typing.Mapping[str, CallbackSig]:
         return self._id_to_callback.copy()
+
+    @property
+    def has_expired(self) -> bool:
+        """Whether this handler has ended.
+
+        Returns
+        -------
+        bool
+            Whether this handler has ended.
+        """
+        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[_ResponseT] = None
@@ -694,8 +735,10 @@ class SelectMenuBuilder(special_endpoints.SelectMenuBuilder[_ContainerProtoT]):
 class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
-    def __init__(self, *, load_from_attributes: bool = False) -> None:
-        super().__init__(load_from_attributes=load_from_attributes)
+    def __init__(
+        self, *, load_from_attributes: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+    ) -> None:
+        super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
         self._components: typing.List[special_endpoints_api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -780,7 +823,7 @@ class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilde
 
 
 class ComponentPaginator(ActionRowExecutor):
-    __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock", "_timeout")
+    __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
 
     def __init__(
         self,
@@ -792,40 +835,39 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
         load_from_attributes: bool = False,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        super().__init__(load_from_attributes=load_from_attributes)
+        super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
 
         self._authors = set(map(snowflakes.Snowflake, authors))
         self._buffer: typing.List[pagination.EntryT] = []
         self._index: int = 0
         self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
-        self._timeout = timeout
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_first).set_emoji(
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_first).set_emoji(
                 pagination.LEFT_DOUBLE_TRIANGLE
             ).add_to_container()
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_previous).set_emoji(
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_previous).set_emoji(
                 pagination.LEFT_TRIANGLE
             ).add_to_container()
 
         if pagination.STOP_SQUARE in triggers:
             self.add_button(hikari.ButtonStyle.DANGER, self._on_disable).set_emoji(
-                pagination.STOP_SQUARE
+                pagination.BLACK_CROSS
             ).add_to_container()
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_next).set_emoji(
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_next).set_emoji(
                 pagination.RIGHT_TRIANGLE
             ).add_to_container()
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.PRIMARY, self._on_last).set_emoji(
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last).set_emoji(
                 pagination.RIGHT_DOUBLE_TRIANGLE
             ).add_to_container()
 
@@ -852,6 +894,10 @@ class ComponentPaginator(ActionRowExecutor):
             self._buffer.append(entry)
             return entry
 
+    @staticmethod
+    def _noop(ctx: ComponentContext) -> typing.Awaitable[None]:
+        return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+
     async def _on_first(self, ctx: ComponentContext, /) -> None:
         # TODO: can we just give an empty message update if the index is already 0?
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
@@ -860,7 +906,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+            await self._noop(ctx)
 
     async def _on_previous(self, ctx: ComponentContext, /) -> None:
         if self._index > 0:
@@ -869,7 +915,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+            await self._noop(ctx)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
         self._iterator = None
@@ -878,20 +924,39 @@ class ComponentPaginator(ActionRowExecutor):
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:
         if self._iterator:
+            # TODO: option to not lock on last
+            loading_component = (
+                ctx.interaction.app.rest.build_action_row()
+                .add_button(hikari.ButtonStyle.PRIMARY, "loading")
+                .set_is_disabled(True)
+                .set_emoji(585958072850317322)
+                .add_to_container()
+            )
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
             self._buffer.extend(await pagination.collect_iterator(self._iterator))
+            self._index = len(self._buffer) - 1
+            self._iterator = None
 
-        if self._buffer:
+            if self._buffer:
+                content, embed = self._buffer[self._index]
+                await ctx.edit_initial_response(component=self, content=content, embed=embed)
+
+            else:
+                await ctx.edit_initial_response()
+
+        elif self._buffer:
             self._index = len(self._buffer) - 1
             content, embed = self._buffer[-1]
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+            await self._noop(ctx)
 
     async def _on_next(self, ctx: ComponentContext, /) -> None:
         if entry := await self.get_next_entry():
+            await ctx.defer(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
             content, embed = entry
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+            await ctx.edit_initial_response(content=content, embed=embed)
 
         else:
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+            await self._noop(ctx)

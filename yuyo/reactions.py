@@ -82,7 +82,7 @@ class AbstractReactionHandler(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def expired(self) -> bool:
+    def has_expired(self) -> bool:
         """Whether this handler has ended.
 
         Returns
@@ -203,9 +203,9 @@ class ReactionHandler(AbstractReactionHandler):
         return frozenset(self._authors)
 
     @property
-    def expired(self) -> bool:
+    def has_expired(self) -> bool:
         # <<inherited docstring from AbstractReactionHandler>>.
-        return self.timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     @property
     def last_triggered(self) -> datetime.datetime:
@@ -306,7 +306,7 @@ class ReactionHandler(AbstractReactionHandler):
 
     async def on_reaction_event(self, event: EventT, /) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
-        if self.expired:
+        if self.has_expired:
             asyncio.create_task(self.close())
             raise
 
@@ -678,13 +678,13 @@ class ReactionClient:
         The event manager client to register this reaction client with.
     """
 
-    __slots__ = ("blacklist", "_event_manager", "_gc_task", "_listeners", "_rest")
+    __slots__ = ("blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
 
     def __init__(self, *, rest: rest_api.RESTClient, event_manager: event_manager_api.EventManager) -> None:
         self.blacklist: typing.List[snowflakes.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._listeners: typing.Dict[snowflakes.Snowflake, AbstractReactionHandler] = {}
+        self._handlers: typing.Dict[snowflakes.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
 
     @classmethod
@@ -705,11 +705,11 @@ class ReactionClient:
 
     async def _gc(self) -> None:
         while True:
-            for listener_id, listener in tuple(self._listeners.items()):
-                if not listener.expired or listener_id not in self._listeners:
+            for listener_id, listener in tuple(self._handlers.items()):
+                if not listener.has_expired or listener_id not in self._handlers:
                     continue
 
-                del self._listeners[listener_id]
+                del self._handlers[listener_id]
                 # This may slow this gc task down but the more we yield the better.
                 await listener.close()
 
@@ -721,11 +721,11 @@ class ReactionClient:
         if event.user_id in self.blacklist:
             return
 
-        if listener := self._listeners.get(event.message_id):
+        if listener := self._handlers.get(event.message_id):
             try:
                 await listener.on_reaction_event(event)
             except HandlerClosed:
-                self._listeners.pop(event.message_id, None)
+                self._handlers.pop(event.message_id, None)
 
     async def _on_starting_event(self, _: lifetime_events.StartingEvent, /) -> None:
         await self.open()
@@ -755,7 +755,7 @@ class ReactionClient:
         paginator : AbstractReactionHandler
             The object of the opened paginator to register in this reaction client.
         """
-        self._listeners[snowflakes.Snowflake(message)] = paginator
+        self._handlers[snowflakes.Snowflake(message)] = paginator
         return self
 
     def get_handler(
@@ -776,7 +776,7 @@ class ReactionClient:
         AbstractReactionHandler
             The object of the registered paginator if found else `builtins.None`.
         """
-        return self._listeners.get(snowflakes.Snowflake(message))
+        return self._handlers.get(snowflakes.Snowflake(message))
 
     def remove_handler(
         self, message: snowflakes.SnowflakeishOr[messages.Message], /
@@ -796,7 +796,7 @@ class ReactionClient:
         AbstractReactionHandler
             The object of the registered paginator if found else `builtins.None`.
         """
-        return self._listeners.pop(snowflakes.Snowflake(message))
+        return self._handlers.pop(snowflakes.Snowflake(message))
 
     def _try_unsubscribe(
         self,
@@ -817,8 +817,8 @@ class ReactionClient:
             self._try_unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
             self._try_unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
             self._gc_task.cancel()
-            listeners = self._listeners
-            self._listeners = {}
+            listeners = self._handlers
+            self._handlers = {}
             await asyncio.gather(*(listener.close() for listener in listeners.values()))
 
     async def open(self) -> None:
