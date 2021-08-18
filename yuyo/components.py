@@ -50,9 +50,6 @@ import typing
 import uuid
 
 import hikari
-from hikari import snowflakes
-from hikari.api import special_endpoints as special_endpoints_api
-from hikari.impl import special_endpoints
 
 from . import pagination
 
@@ -60,9 +57,6 @@ if typing.TYPE_CHECKING:
     import types
 
     from hikari import traits
-    from hikari import users
-    from hikari.api import event_manager as event_manager_api
-    from hikari.api import interaction_server as interaction_server_api
 
     _T = typing.TypeVar("_T")
 
@@ -70,7 +64,7 @@ if typing.TYPE_CHECKING:
         def add_callback(self: _T, id_: str, callback: CallbackSig, /) -> _T:
             raise NotImplementedError
 
-        def add_component(self: _T, component: special_endpoints_api.ComponentBuilder, /) -> _T:
+        def add_component(self: _T, component: hikari.api.ComponentBuilder, /) -> _T:
             raise NotImplementedError
 
 
@@ -81,9 +75,7 @@ def _random_id() -> str:
 _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
 _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
 
-_ResponseT = typing.Union[
-    special_endpoints_api.InteractionMessageBuilder, special_endpoints_api.InteractionDeferredBuilder
-]
+_ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
 CallbackSig = typing.Callable[["ComponentContext"], typing.Awaitable[None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
@@ -161,8 +153,8 @@ class ComponentContext:
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -199,8 +191,8 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -255,7 +247,7 @@ class ComponentContext:
 
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
             # pre-fix in init.
-            result = special_endpoints.InteractionMessageBuilder(
+            result = hikari.impl.InteractionMessageBuilder(
                 type=response_type,  # type: ignore
                 content=content,  # type: ignore
                 components=components,  # type: ignore
@@ -275,8 +267,8 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -323,8 +315,8 @@ class ComponentContext:
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         replace_attachments: bool = False,
@@ -358,8 +350,8 @@ class ComponentContext:
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         replace_attachments: bool = False,
@@ -422,8 +414,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: typing.Literal[False] = False,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -442,8 +434,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: typing.Literal[True],
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -461,8 +453,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: bool = False,
-        component: hikari.UndefinedOr[special_endpoints_api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[special_endpoints_api.ComponentBuilder]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -526,8 +518,8 @@ class ComponentClient:
     def __init__(
         self,
         *,
-        event_manager: typing.Optional[event_manager_api.EventManager] = None,
-        server: typing.Optional[interaction_server_api.InteractionServer] = None,
+        event_manager: typing.Optional[hikari.api.EventManager] = None,
+        server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
         self._event_manager = event_manager
         self._executors: typing.Dict[int, ComponentExecutor] = {}
@@ -696,7 +688,7 @@ class ComponentExecutor:
         return decorator
 
 
-class InteractiveButtonBuilder(special_endpoints.InteractiveButtonBuilder[_ContainerProtoT]):
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerProtoT]):
     __slots__ = ("_callback",)
 
     def __init__(
@@ -715,7 +707,7 @@ class InteractiveButtonBuilder(special_endpoints.InteractiveButtonBuilder[_Conta
         return super().add_to_container()
 
 
-class SelectMenuBuilder(special_endpoints.SelectMenuBuilder[_ContainerProtoT]):
+class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):
     __slots__ = ("_callback",)
 
     def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
@@ -732,18 +724,18 @@ class SelectMenuBuilder(special_endpoints.SelectMenuBuilder[_ContainerProtoT]):
         return super().add_to_container()
 
 
-class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilder):
+class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
         self, *, load_from_attributes: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
     ) -> None:
         super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
-        self._components: typing.List[special_endpoints_api.ComponentBuilder] = []
+        self._components: typing.List[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
     @property
-    def components(self) -> typing.Sequence[special_endpoints_api.ComponentBuilder]:
+    def components(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
         return self._components.copy()
 
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> None:
@@ -752,9 +744,7 @@ class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilde
 
         self._stored_type = type_
 
-    def add_component(
-        self: _ActionRowExecutorT, component: special_endpoints_api.ComponentBuilder, /
-    ) -> _ActionRowExecutorT:
+    def add_component(self: _ActionRowExecutorT, component: hikari.api.ComponentBuilder, /) -> _ActionRowExecutorT:
         self._components.append(component)
         return self
 
@@ -775,7 +765,7 @@ class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilde
         style: typing.Union[typing.Literal[hikari.ButtonStyle.LINK], typing.Literal[5]],
         url: str,
         /,
-    ) -> special_endpoints.LinkButtonBuilder[_ActionRowExecutorT]:
+    ) -> hikari.impl.LinkButtonBuilder[_ActionRowExecutorT]:
         ...
 
     def add_button(
@@ -785,7 +775,7 @@ class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilde
         *,
         custom_id: typing.Optional[str] = None,
     ) -> typing.Union[
-        special_endpoints.LinkButtonBuilder[_ActionRowExecutorT], InteractiveButtonBuilder[_ActionRowExecutorT]
+        hikari.impl.LinkButtonBuilder[_ActionRowExecutorT], InteractiveButtonBuilder[_ActionRowExecutorT]
     ]:
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if style in hikari.InteractiveButtonTypes:
@@ -804,7 +794,7 @@ class ActionRowExecutor(ComponentExecutor, special_endpoints_api.ComponentBuilde
         if not isinstance(callback_or_url, str):
             raise ValueError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return special_endpoints.LinkButtonBuilder(container=self, style=style, url=callback_or_url)  # type: ignore
+        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)  # type: ignore
 
     def add_select_menu(
         self: _ActionRowExecutorT, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
@@ -829,7 +819,7 @@ class ComponentPaginator(ActionRowExecutor):
         self,
         iterator: pagination.IteratorT[pagination.EntryT],
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[users.User]],
+        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
         triggers: typing.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
@@ -840,7 +830,7 @@ class ComponentPaginator(ActionRowExecutor):
     ) -> None:
         super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
 
-        self._authors = set(map(snowflakes.Snowflake, authors))
+        self._authors = set(map(hikari.Snowflake, authors))
         self._buffer: typing.List[pagination.EntryT] = []
         self._index: int = 0
         self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator

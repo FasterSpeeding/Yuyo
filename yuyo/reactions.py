@@ -47,24 +47,14 @@ import datetime
 import inspect
 import typing
 
-from hikari import embeds
-from hikari import emojis
-from hikari import errors
-from hikari import snowflakes
-from hikari import traits
-from hikari import undefined
-from hikari.events import lifetime_events
-from hikari.events import reaction_events
+import hikari
 
 from . import backoff
 from . import pagination
 
 if typing.TYPE_CHECKING:
-    from hikari import channels
-    from hikari import messages
-    from hikari import users
+    from hikari import traits
     from hikari.api import event_manager as event_manager_api
-    from hikari.api import rest as rest_api
 
     _ReactionHandlerT = typing.TypeVar("_ReactionHandlerT", bound="ReactionHandler")
     _ReactionPaginatorT = typing.TypeVar("_ReactionPaginatorT", bound="ReactionPaginator")
@@ -113,7 +103,7 @@ class AbstractReactionHandler(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def open(self, message: messages.Message, /) -> None:
+    async def open(self, message: hikari.Message, /) -> None:
         """Open this handler.
 
         Parameters
@@ -140,17 +130,17 @@ class AbstractReactionHandler(abc.ABC):
         raise NotImplementedError
 
 
-EventT = typing.Union[reaction_events.ReactionAddEvent, reaction_events.ReactionDeleteEvent]
+EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 CallbackSig = typing.Callable[[EventT], typing.Awaitable[None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 
 def as_reaction_callback(
-    emoji_identifier: typing.Union[snowflakes.SnowflakeishOr[emojis.CustomEmoji], str], /
+    emoji_identifier: typing.Union[hikari.SnowflakeishOr[hikari.CustomEmoji], str], /
 ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         nonlocal emoji_identifier
-        if isinstance(emoji_identifier, emojis.CustomEmoji):
+        if isinstance(emoji_identifier, hikari.CustomEmoji):
             emoji_identifier = emoji_identifier.id
 
         callback.__emoji_identifier__ = emoji_identifier
@@ -165,15 +155,15 @@ class ReactionHandler(AbstractReactionHandler):
     def __init__(
         self,
         *,
-        authors: typing.Iterable[snowflakes.SnowflakeishOr[users.User]] = (),
+        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
         load_from_attributes: bool = True,
     ) -> None:
-        self._authors = set(map(snowflakes.Snowflake, authors))
+        self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: typing.Dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
-        self._message: typing.Optional[messages.Message] = None
+        self._message: typing.Optional[hikari.Message] = None
         self._timeout = timeout
 
         if load_from_attributes and type(self) is not ReactionHandler:
@@ -188,7 +178,7 @@ class ReactionHandler(AbstractReactionHandler):
                     self._callbacks[identifier] = value
 
     @property
-    def authors(self) -> typing.AbstractSet[snowflakes.Snowflake]:
+    def authors(self) -> typing.AbstractSet[hikari.Snowflake]:
         """Authors/owner of a enabled handler.
 
         !!! note
@@ -223,7 +213,7 @@ class ReactionHandler(AbstractReactionHandler):
         """
         return self._timeout
 
-    async def open(self, message: messages.Message, /) -> None:
+    async def open(self, message: hikari.Message, /) -> None:
         self._message = message
 
     async def close(self) -> None:
@@ -232,7 +222,7 @@ class ReactionHandler(AbstractReactionHandler):
 
     def add_callback(
         self: _ReactionHandlerT,
-        emoji_identifier: typing.Union[str, snowflakes.SnowflakeishOr[emojis.CustomEmoji]],
+        emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]],
         callback: CallbackSig,
         /,
     ) -> _ReactionHandlerT:
@@ -251,14 +241,14 @@ class ReactionHandler(AbstractReactionHandler):
             This should be a function that accepts a single parameter,
             which is the event that triggered this reaction.
         """
-        if isinstance(emoji_identifier, emojis.CustomEmoji):
+        if isinstance(emoji_identifier, hikari.CustomEmoji):
             emoji_identifier = emoji_identifier.id
 
         self._callbacks[emoji_identifier] = callback
         return self
 
     def remove_callback(
-        self, emoji_identifier: typing.Union[str, snowflakes.SnowflakeishOr[emojis.CustomEmoji]], /
+        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
     ) -> None:
         """Remove a callback from this reaction handler.
 
@@ -270,13 +260,13 @@ class ReactionHandler(AbstractReactionHandler):
             This should be a snowfake if this is for a custom emoji or a string
             if this is for a unicode emoji.
         """
-        if isinstance(emoji_identifier, emojis.CustomEmoji):
+        if isinstance(emoji_identifier, hikari.CustomEmoji):
             emoji_identifier = emoji_identifier.id
 
         del self._callbacks[emoji_identifier]
 
     def with_callback(
-        self, emoji_identifier: typing.Union[str, snowflakes.SnowflakeishOr[emojis.CustomEmoji]], /
+        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
     ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
         """Add a callback to this reaction handler through a decorator call.
 
@@ -296,7 +286,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         def decorator(callback: CallbackSigT, /) -> CallbackSigT:
             nonlocal emoji_identifier
-            if isinstance(emoji_identifier, emojis.CustomEmoji):
+            if isinstance(emoji_identifier, hikari.CustomEmoji):
                 emoji_identifier = emoji_identifier.id
 
             self.add_callback(emoji_identifier, callback)
@@ -328,20 +318,20 @@ class ReactionHandler(AbstractReactionHandler):
             self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
-async def _delete_message(message: messages.Message, /) -> None:
+async def _delete_message(message: hikari.Message, /) -> None:
     retry = backoff.Backoff()
 
     async for _ in retry:
         try:
             await message.delete()
 
-        except (errors.NotFoundError, errors.ForbiddenError):  # TODO: attempt to check permissions first
+        except (hikari.NotFoundError, hikari.ForbiddenError):  # TODO: attempt to check permissions first
             return
 
-        except errors.InternalServerError:
+        except hikari.InternalServerError:
             continue
 
-        except errors.RateLimitedError as exc:
+        except hikari.RateLimitedError as exc:
             retry.set_next_backoff(exc.retry_after)
 
         else:
@@ -378,7 +368,7 @@ class ReactionPaginator(ReactionHandler):
         self,
         iterator: pagination.IteratorT[pagination.EntryT],
         *,
-        authors: typing.Iterable[snowflakes.SnowflakeishOr[users.User]],
+        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
         triggers: typing.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
@@ -411,7 +401,7 @@ class ReactionPaginator(ReactionHandler):
             self.add_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
 
     async def _edit_message(
-        self, *, content: undefined.UndefinedNoneOr[str], embed: undefined.UndefinedNoneOr[embeds.Embed]
+        self, *, content: hikari.UndefinedNoneOr[str], embed: hikari.UndefinedNoneOr[hikari.Embed]
     ) -> None:
         retry = backoff.Backoff()
 
@@ -423,13 +413,13 @@ class ReactionPaginator(ReactionHandler):
             try:
                 await self._message.edit(content=content, embed=embed)
 
-            except errors.InternalServerError:
+            except hikari.InternalServerError:
                 continue
 
-            except errors.RateLimitedError as exc:
+            except hikari.RateLimitedError as exc:
                 retry.set_next_backoff(exc.retry_after)
 
-            except (errors.NotFoundError, errors.ForbiddenError) as exc:
+            except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
                 raise HandlerClosed() from exc
 
             else:
@@ -481,7 +471,7 @@ class ReactionPaginator(ReactionHandler):
             content, embed = self._buffer[self._index]
             await self._edit_message(content=content, embed=embed)
 
-    def add_author(self: _ReactionPaginatorT, user: snowflakes.SnowflakeishOr[users.User], /) -> _ReactionPaginatorT:
+    def add_author(self: _ReactionPaginatorT, user: hikari.SnowflakeishOr[hikari.User], /) -> _ReactionPaginatorT:
         """Add a author/owner to this handler.
 
         Parameters
@@ -489,10 +479,10 @@ class ReactionPaginator(ReactionHandler):
         user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
             The user to add as an owner for this handler.
         """
-        self._authors.add(snowflakes.Snowflake(user))
+        self._authors.add(hikari.Snowflake(user))
         return self
 
-    def remove_author(self, user: snowflakes.SnowflakeishOr[users.User], /) -> None:
+    def remove_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> None:
         """Remove a author/owner from this handler.
 
         !!! note
@@ -505,7 +495,7 @@ class ReactionPaginator(ReactionHandler):
             The user to remove from this handler's owners..
         """
         try:
-            self._authors.remove(snowflakes.Snowflake(user))
+            self._authors.remove(hikari.Snowflake(user))
         except KeyError:
             pass
 
@@ -538,13 +528,13 @@ class ReactionPaginator(ReactionHandler):
                     try:
                         await message.remove_reaction(emoji_name)
 
-                    except (errors.NotFoundError, errors.ForbiddenError):
+                    except (hikari.NotFoundError, hikari.ForbiddenError):
                         return
 
-                    except errors.RateLimitedError as exc:
+                    except hikari.RateLimitedError as exc:
                         retry.set_next_backoff(exc.retry_after)
 
-                    except errors.InternalServerError:
+                    except hikari.InternalServerError:
                         continue
 
                     else:
@@ -552,7 +542,7 @@ class ReactionPaginator(ReactionHandler):
 
     async def open(
         self,
-        message: messages.Message,
+        message: hikari.Message,
         /,
         *,
         add_reactions: bool = True,
@@ -570,21 +560,21 @@ class ReactionPaginator(ReactionHandler):
                 try:
                     await message.add_reaction(emoji_name)
 
-                except errors.NotFoundError:
+                except hikari.NotFoundError:
                     self._message = None
                     raise
 
-                except errors.ForbiddenError:  # TODO: attempt to check permissions first
+                except hikari.ForbiddenError:  # TODO: attempt to check permissions first
                     # If this is reached then we just don't have reaction permissions in the channel.
                     return
 
-                except errors.RateLimitedError as exc:
+                except hikari.RateLimitedError as exc:
                     if exc.retry_after > max_backoff:
                         raise
 
                     retry.set_next_backoff(exc.retry_after)
 
-                except errors.InternalServerError:
+                except hikari.InternalServerError:
                     continue
 
                 else:
@@ -595,14 +585,14 @@ class ReactionPaginator(ReactionHandler):
 
     async def create_message(
         self,
-        rest: rest_api.RESTClient,
-        channel_id: snowflakes.SnowflakeishOr[channels.TextableChannel],
+        rest: hikari.api.RESTClient,
+        channel_id: hikari.SnowflakeishOr[hikari.TextableChannel],
         /,
         *,
         add_reactions: bool = True,
         max_retries: int = 5,
         max_backoff: float = 2.0,
-    ) -> messages.Message:
+    ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
         Other Parameters
@@ -644,13 +634,13 @@ class ReactionPaginator(ReactionHandler):
             try:
                 message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
 
-            except errors.RateLimitedError as exc:
+            except hikari.RateLimitedError as exc:
                 if exc.retry_after > max_backoff:
                     raise
 
                 retry.set_next_backoff(exc.retry_after)
 
-            except errors.InternalServerError:
+            except hikari.InternalServerError:
                 continue
 
             else:
@@ -680,11 +670,11 @@ class ReactionClient:
 
     __slots__ = ("blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
 
-    def __init__(self, *, rest: rest_api.RESTClient, event_manager: event_manager_api.EventManager) -> None:
-        self.blacklist: typing.List[snowflakes.Snowflake] = []
+    def __init__(self, *, rest: hikari.api.RESTClient, event_manager: hikari.api.EventManager) -> None:
+        self.blacklist: typing.List[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._handlers: typing.Dict[snowflakes.Snowflake, AbstractReactionHandler] = {}
+        self._handlers: typing.Dict[hikari.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
 
     @classmethod
@@ -716,7 +706,7 @@ class ReactionClient:
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     async def _on_reaction_event(
-        self, event: typing.Union[reaction_events.ReactionAddEvent, reaction_events.ReactionDeleteEvent], /
+        self, event: typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent], /
     ) -> None:
         if event.user_id in self.blacklist:
             return
@@ -727,10 +717,10 @@ class ReactionClient:
             except HandlerClosed:
                 self._handlers.pop(event.message_id, None)
 
-    async def _on_starting_event(self, _: lifetime_events.StartingEvent, /) -> None:
+    async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         await self.open()
 
-    async def _on_stopping_event(self, _: lifetime_events.StoppingEvent, /) -> None:
+    async def _on_stopping_event(self, _: hikari.StoppingEvent, /) -> None:
         await self.close()
 
     @property
@@ -739,7 +729,7 @@ class ReactionClient:
 
     def add_handler(
         self: _ReactionClientT,
-        message: snowflakes.SnowflakeishOr[messages.Message],
+        message: hikari.SnowflakeishOr[hikari.Message],
         /,
         paginator: AbstractReactionHandler,
     ) -> _ReactionClientT:
@@ -755,11 +745,11 @@ class ReactionClient:
         paginator : AbstractReactionHandler
             The object of the opened paginator to register in this reaction client.
         """
-        self._handlers[snowflakes.Snowflake(message)] = paginator
+        self._handlers[hikari.Snowflake(message)] = paginator
         return self
 
     def get_handler(
-        self, message: snowflakes.SnowflakeishOr[messages.Message], /
+        self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractReactionHandler]:
         """Get a reference to a paginator registered in this reaction client.
 
@@ -776,10 +766,10 @@ class ReactionClient:
         AbstractReactionHandler
             The object of the registered paginator if found else `builtins.None`.
         """
-        return self._handlers.get(snowflakes.Snowflake(message))
+        return self._handlers.get(hikari.Snowflake(message))
 
     def remove_handler(
-        self, message: snowflakes.SnowflakeishOr[messages.Message], /
+        self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractReactionHandler]:
         """Remove a paginator from this reaction client.
 
@@ -796,7 +786,7 @@ class ReactionClient:
         AbstractReactionHandler
             The object of the registered paginator if found else `builtins.None`.
         """
-        return self._handlers.pop(snowflakes.Snowflake(message))
+        return self._handlers.pop(hikari.Snowflake(message))
 
     def _try_unsubscribe(
         self,
@@ -812,10 +802,10 @@ class ReactionClient:
     async def close(self) -> None:
         """Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`."""
         if self._gc_task is not None:
-            self._try_unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._try_unsubscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._try_unsubscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
-            self._try_unsubscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
+            self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
+            self._try_unsubscribe(hikari.StoppingEvent, self._on_stopping_event)
+            self._try_unsubscribe(hikari.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
+            self._try_unsubscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
             self._gc_task.cancel()
             listeners = self._handlers
             self._handlers = {}
@@ -826,7 +816,7 @@ class ReactionClient:
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
             self.blacklist.append((await self._rest.fetch_my_user()).id)
-            self._event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-            self._event_manager.subscribe(lifetime_events.StoppingEvent, self._on_stopping_event)
-            self._event_manager.subscribe(reaction_events.ReactionAddEvent, self._on_reaction_event)
-            self._event_manager.subscribe(reaction_events.ReactionDeleteEvent, self._on_reaction_event)
+            self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
+            self._event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
+            self._event_manager.subscribe(hikari.ReactionAddEvent, self._on_reaction_event)
+            self._event_manager.subscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)

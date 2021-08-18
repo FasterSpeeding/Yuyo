@@ -37,9 +37,7 @@ import collections.abc as collections
 import textwrap
 import typing
 
-from hikari import embeds
-from hikari import emojis
-from hikari import undefined
+import hikari
 
 T = typing.TypeVar("T")
 """A type hint used to represent the type handled by an iterator."""
@@ -48,34 +46,34 @@ DefaultT = typing.TypeVar("DefaultT")
 """A type hint used to represent a "default" argument provided to a function."""
 
 
-EntryT = typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]
+EntryT = typing.Tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
 """A type hint used to represent a paginator entry.
 
 This should be a tuple of the string message content or `hikari.undefined.UNDEFINED`
 to the message's embed if set else `hikari.undefined.UNDEFINED`.
 """
 
-LEFT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+LEFT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to go back to the first entry."""
-LEFT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+LEFT_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to go back an entry."""
-STOP_SQUARE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+STOP_SQUARE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to close a menu in a reaction context."""
-RIGHT_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+RIGHT_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to continue to the next entry."""
-RIGHT_DOUBLE_TRIANGLE: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+RIGHT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used for the lesser-enabled skip to last entry button."""
-BLACK_CROSS: typing.Final[emojis.UnicodeEmoji] = emojis.UnicodeEmoji(
+BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to close a menu in a component context."""
