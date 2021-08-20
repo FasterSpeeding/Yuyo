@@ -33,19 +33,25 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
+    "AbstractComponentExecutor",
     "ActionRowExecutor",
+    "as_child_executor",
     "as_component_callback",
+    "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
     "InteractiveButtonBuilder",
+    "MultiComponentExecutor",
     "SelectMenuBuilder",
 ]
 
+import abc
 import asyncio
 import datetime
 import inspect
+import itertools
 import typing
 import uuid
 
@@ -61,10 +67,17 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
 
     class _ContainerProto(typing.Protocol):
-        def add_callback(self: _T, id_: str, callback: CallbackSig, /) -> _T:
+        def add_callback(self: _T, _: str, __: CallbackSig, /) -> _T:
             raise NotImplementedError
 
-        def add_component(self: _T, component: hikari.api.ComponentBuilder, /) -> _T:
+        def add_component(self: _T, _: hikari.api.ComponentBuilder, /) -> _T:
+            raise NotImplementedError
+
+    class _ParentExecutorProto(typing.Protocol):
+        def add_builder(self: _T, _: hikari.api.ComponentBuilder, /) -> _T:
+            raise NotImplementedError
+
+        def add_executor(self: _T, _: AbstractComponentExecutor, /) -> _T:
             raise NotImplementedError
 
 
@@ -72,17 +85,18 @@ def _random_id() -> str:
     return str(uuid.uuid4())
 
 
-_ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
-_ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
-
-_ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
-
+AbstractComponentExecutorT = typing.TypeVar("AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 CallbackSig = typing.Callable[["ComponentContext"], typing.Awaitable[None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
+ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
+ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
+ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
-_ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
 
 _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
+_ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
+_ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
+_MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
 
 class ComponentContext:
@@ -101,7 +115,7 @@ class ComponentContext:
         *,
         ephemeral_default: bool,
         interaction: hikari.ComponentInteraction,
-        response_future: typing.Optional[asyncio.Future[_ResponseT]] = None,
+        response_future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         self._ephemeral_default = ephemeral_default
         self._has_responded = False
@@ -522,7 +536,7 @@ class ComponentClient:
         server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
         self._event_manager = event_manager
-        self._executors: typing.Dict[int, ComponentExecutor] = {}
+        self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._server = server
 
@@ -570,7 +584,7 @@ class ComponentClient:
 
         # executor = self._executors
         self._executors = {}
-        # for executor in executor.values():  # TODO: finjish
+        # for executor in executor.values():  # TODO: finish
         #     executor.close()
 
     def open(self) -> None:
@@ -582,10 +596,10 @@ class ComponentClient:
 
     async def _execute_executor(
         self,
-        executor: ComponentExecutor,
+        executor: AbstractComponentExecutor,
         interaction: hikari.ComponentInteraction,
         /,
-        future: typing.Optional[asyncio.Future[_ResponseT]] = None,
+        future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         try:
             await executor.execute(interaction, future=future)
@@ -599,8 +613,8 @@ class ComponentClient:
         if executor := self._executors.get(event.interaction.message_id):
             await self._execute_executor(executor, event.interaction)
 
-    async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ResponseT:
-        future: asyncio.Future[_ResponseT] = asyncio.Future()
+    async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
+        future: asyncio.Future[ResponseT] = asyncio.Future()
         if executor := self._executors.get(interaction.message_id):
             if executor.has_expired:
                 del self._executors[interaction.message_id]
@@ -619,7 +633,7 @@ class ComponentClient:
         raise LookupError("Not found")
 
     def add_executor(
-        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: ComponentExecutor, /
+        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> _ComponentClientT:
         self._executors[int(message)] = executor
         return self
@@ -633,18 +647,35 @@ def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], 
     return decorator
 
 
-class ComponentExecutor:
+class AbstractComponentExecutor(abc.ABC):
+    __slots__ = ()
+
+    @property
+    def custom_ids(self) -> typing.Collection[str]:
+        raise NotImplementedError
+
+    @property
+    def has_expired(self) -> bool:
+        raise NotImplementedError
+
+    async def execute(
+        self, _: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
+    ) -> None:
+        raise NotImplementedError
+
+
+class ComponentExecutor(AbstractComponentExecutor):
     __slots__ = ("_id_to_callback", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
         self, *, load_from_attributes: bool = True, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
     ) -> None:
         self._id_to_callback: dict[str, CallbackSig] = {}
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)  # TODO: finish
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._timeout = timeout
         if load_from_attributes and type(self) is not ComponentExecutor:
-            for _, value in inspect.getmembers(self):  # TODO: might be a tada bit slow
+            for _, value in inspect.getmembers(self):  # TODO: might be a tad bit slow
                 try:
                     custom_id = value.__custom_id__
 
@@ -659,18 +690,22 @@ class ComponentExecutor:
         return self._id_to_callback.copy()
 
     @property
+    def custom_ids(self) -> typing.Collection[str]:
+        return self._id_to_callback.keys()
+
+    @property
     def has_expired(self) -> bool:
-        """Whether this handler has ended.
+        """Whether this executor has ended.
 
         Returns
         -------
         bool
-            Whether this handler has ended.
+            Whether this executor has ended.
         """
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[_ResponseT] = None
+        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
         ctx = ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
         callback = self._id_to_callback[interaction.custom_id]
@@ -688,11 +723,11 @@ class ComponentExecutor:
         return decorator
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerProtoT]):
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):
     __slots__ = ("_callback",)
 
     def __init__(
-        self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
+        self, callback: CallbackSig, container: ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
@@ -702,15 +737,15 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> _ContainerProtoT:
+    def add_to_container(self) -> ContainerProtoT:
         self._container.add_callback(self.custom_id, self.callback)
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):
+class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
+    def __init__(self, callback: CallbackSig, container: ContainerProtoT, custom_id: str) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
         super().__init__(container=container, custom_id=custom_id)  # type: ignore
@@ -719,7 +754,7 @@ class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> _ContainerProtoT:
+    def add_to_container(self) -> ContainerProtoT:
         self._container.add_callback(self.custom_id, self.callback)
         return super().add_to_container()
 
@@ -812,6 +847,94 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         }
 
 
+class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorProtoT]):
+    __slots__ = ("_parent",)
+
+    def __init__(self, parent: ParentExecutorProtoT, *, load_from_attributes: bool = False) -> None:
+        super().__init__(load_from_attributes=load_from_attributes)
+        self._parent = parent
+
+    def add_to_parent(self) -> ParentExecutorProtoT:
+        return self._parent.add_executor(self).add_builder(self)
+
+
+def as_child_executor(executor: typing.Type[AbstractComponentExecutorT], /) -> typing.Type[AbstractComponentExecutorT]:
+    executor.__is_child_executor__ = True  # type: ignore
+    return executor
+
+
+class MultiComponentExecutor(AbstractComponentExecutor):
+    __slots__ = ("_executors", "_last_triggered", "_lock", "_timeout")
+
+    def __init__(
+        self,
+        *,
+        load_from_attributes: bool = False,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+    ) -> None:
+        self._builders: typing.List[hikari.api.ComponentBuilder] = []
+        self._executors: typing.List[AbstractComponentExecutor] = []
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._lock = asyncio.Lock()
+        self._timeout = timeout
+        if load_from_attributes and type(self) is not MultiComponentExecutor:
+            for _, value in inspect.getmembers(self):  # TODO: might be a tad bit slow
+                try:
+                    if value.__is_child_executor__:
+                        self._executors.append(value())
+
+                except AttributeError:
+                    pass
+
+    @property
+    def builders(self) -> typing.Collection[hikari.api.ComponentBuilder]:
+        return self._builders
+
+    @property
+    def custom_ids(self) -> typing.Collection[str]:
+        return list(itertools.chain.from_iterable(component.custom_ids for component in self._executors))
+
+    @property
+    def executors(self) -> typing.Sequence[AbstractComponentExecutor]:
+        return self._executors.copy()
+
+    @property
+    def has_expired(self) -> bool:
+        """Whether this executor has ended.
+
+        Returns
+        -------
+        bool
+            Whether this executor has ended.
+        """
+        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+
+    def add_builder(
+        self: _MultiComponentExecutorT, builder: hikari.api.ComponentBuilder, /
+    ) -> _MultiComponentExecutorT:
+        self._builders.append(builder)
+        return self
+
+    def add_action_row(self: _MultiComponentExecutorT) -> ChildActionRowExecutor[_MultiComponentExecutorT]:
+        return ChildActionRowExecutor(self)
+
+    def add_executor(
+        self: _MultiComponentExecutorT, executor: AbstractComponentExecutor, /
+    ) -> _MultiComponentExecutorT:
+        self._executors.append(executor)
+        return self
+
+    async def execute(
+        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
+    ) -> None:
+        for executor in self._executors:
+            if interaction.custom_id in executor.custom_ids:
+                await executor.execute(interaction, future=future)
+                return
+
+        raise KeyError("Custom ID not found")
+
+
 class ComponentPaginator(ActionRowExecutor):
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
 
@@ -862,7 +985,7 @@ class ComponentPaginator(ActionRowExecutor):
             ).add_to_container()
 
     async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[_ResponseT] = None
+        self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[ResponseT] = None
     ) -> None:
         if self._authors and interaction.user.id not in self._authors:
             await interaction.create_initial_response(
@@ -889,7 +1012,6 @@ class ComponentPaginator(ActionRowExecutor):
         return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_first(self, ctx: ComponentContext, /) -> None:
-        # TODO: can we just give an empty message update if the index is already 0?
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
             self._index = 0
             content, embed = first_entry

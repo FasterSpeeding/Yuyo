@@ -49,18 +49,26 @@ __all__: typing.List[str] = [
     "Backoff",
     "ErrorManager",
     # /components.py
+    "components",
+    "AbstractComponentExecutor",
     "ActionRowExecutor",
+    "as_child_executor",
     "as_component_callback",
+    "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "InteractiveButtonBuilder",
+    "MultiComponentExecutor",
+    "SelectMenuBuilder",
     # /reactions.py
     "reactions",
+    "as_reaction_callback",
     "AbstractReactionHandler",
     "ReactionHandler",
     "ReactionPaginator",
-    "ReactionClient"
+    "ReactionClient",
     # /pagination.py
     "pagination",
     "async_string_paginator",
