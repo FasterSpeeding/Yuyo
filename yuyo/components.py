@@ -1054,7 +1054,7 @@ class ComponentPaginator(ActionRowExecutor):
                 await ctx.edit_initial_response(component=self, content=content, embed=embed)
 
             else:
-                await ctx.edit_initial_response()
+                await ctx.edit_initial_response(component=self)
 
         elif self._buffer:
             self._index = len(self._buffer) - 1
