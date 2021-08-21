@@ -65,6 +65,10 @@ if typing.TYPE_CHECKING:
     from hikari import traits
 
     _T = typing.TypeVar("_T")
+    _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
+    _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
+    _ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
+    _MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
     class _ContainerProto(typing.Protocol):
         def add_callback(self: _T, _: str, __: CallbackSig, /) -> _T:
@@ -91,12 +95,6 @@ CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
 ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
-
-
-_ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
-_ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
-_ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
-_MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
 
 class ComponentContext:
@@ -651,13 +649,22 @@ class AbstractComponentExecutor(abc.ABC):
     __slots__ = ()
 
     @property
+    @abc.abstractmethod
     def custom_ids(self) -> typing.Collection[str]:
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def has_expired(self) -> bool:
-        raise NotImplementedError
+        """Whether this executor has ended.
 
+        Returns
+        -------
+        bool
+            Whether this executor has ended.
+        """
+
+    @abc.abstractmethod
     async def execute(
         self, _: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
@@ -665,11 +672,16 @@ class AbstractComponentExecutor(abc.ABC):
 
 
 class ComponentExecutor(AbstractComponentExecutor):
-    __slots__ = ("_id_to_callback", "_last_triggered", "_lock", "_timeout")
+    __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
-        self, *, load_from_attributes: bool = True, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+        self,
+        *,
+        ephemeral_default: bool = False,
+        load_from_attributes: bool = True,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
@@ -695,19 +707,14 @@ class ComponentExecutor(AbstractComponentExecutor):
 
     @property
     def has_expired(self) -> bool:
-        """Whether this executor has ended.
-
-        Returns
-        -------
-        bool
-            Whether this executor has ended.
-        """
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
-        ctx = ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
+        ctx = ComponentContext(
+            ephemeral_default=self._ephemeral_default, interaction=interaction, response_future=future
+        )
         callback = self._id_to_callback[interaction.custom_id]
         await callback(ctx)
 
@@ -763,9 +770,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
-        self, *, load_from_attributes: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+        self,
+        *,
+        ephemeral_default: bool = False,
+        load_from_attributes: bool = False,
+        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
+        super().__init__(
+            ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
+        )
         self._components: typing.List[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -850,8 +863,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorProtoT]):
     __slots__ = ("_parent",)
 
-    def __init__(self, parent: ParentExecutorProtoT, *, load_from_attributes: bool = False) -> None:
-        super().__init__(load_from_attributes=load_from_attributes)
+    def __init__(
+        self, parent: ParentExecutorProtoT, *, ephemeral_default: bool = False, load_from_attributes: bool = False
+    ) -> None:
+        super().__init__(ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes)
         self._parent = parent
 
     def add_to_parent(self) -> ParentExecutorProtoT:
@@ -900,13 +915,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     @property
     def has_expired(self) -> bool:
-        """Whether this executor has ended.
-
-        Returns
-        -------
-        bool
-            Whether this executor has ended.
-        """
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     def add_builder(
@@ -943,6 +951,7 @@ class ComponentPaginator(ActionRowExecutor):
         iterator: pagination.IteratorT[pagination.EntryT],
         *,
         authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        ephemeral_default: bool = False,
         triggers: typing.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
@@ -951,10 +960,13 @@ class ComponentPaginator(ActionRowExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        super().__init__(load_from_attributes=load_from_attributes, timeout=timeout)
+        super().__init__(
+            ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
+        )
 
         self._authors = set(map(hikari.Snowflake, authors))
         self._buffer: typing.List[pagination.EntryT] = []
+        self._ephemeral_default = ephemeral_default
         self._index: int = 0
         self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
@@ -983,6 +995,9 @@ class ComponentPaginator(ActionRowExecutor):
             self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last).set_emoji(
                 pagination.RIGHT_DOUBLE_TRIANGLE
             ).add_to_container()
+
+    def builder(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+        return [self]
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[ResponseT] = None
@@ -1039,9 +1054,9 @@ class ComponentPaginator(ActionRowExecutor):
             # TODO: option to not lock on last
             loading_component = (
                 ctx.interaction.app.rest.build_action_row()
-                .add_button(hikari.ButtonStyle.PRIMARY, "loading")
+                .add_button(hikari.ButtonStyle.SECONDARY, "loading")
                 .set_is_disabled(True)
-                .set_emoji(585958072850317322)
+                .set_emoji(878377505344614461)
                 .add_to_container()
             )
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
@@ -1051,10 +1066,10 @@ class ComponentPaginator(ActionRowExecutor):
 
             if self._buffer:
                 content, embed = self._buffer[self._index]
-                await ctx.edit_initial_response(component=self, content=content, embed=embed)
+                await ctx.edit_initial_response(components=self.builder(), content=content, embed=embed)
 
             else:
-                await ctx.edit_initial_response(component=self)
+                await ctx.edit_initial_response(components=self.builder())
 
         elif self._buffer:
             self._index = len(self._buffer) - 1
