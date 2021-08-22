@@ -602,20 +602,20 @@ class ComponentClient:
         try:
             await executor.execute(interaction, future=future)
         except ExecutorClosed:
-            self._executors.pop(interaction.message_id, None)
+            self._executors.pop(interaction.message.id, None)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        if executor := self._executors.get(event.interaction.message_id):
+        if executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
         future: asyncio.Future[ResponseT] = asyncio.Future()
-        if executor := self._executors.get(interaction.message_id):
+        if executor := self._executors.get(interaction.message.id):
             if executor.has_expired:
-                del self._executors[interaction.message_id]
+                del self._executors[interaction.message.id]
                 raise LookupError("Not found")
 
             execution_task = asyncio.create_task(self._execute_executor(executor, interaction, future=future))
