@@ -46,7 +46,7 @@ def test_as_reaction_callback():
 
 def test_as_reaction_callback_with_custom_emoji():
     obj = mock.Mock()
-    emoji = hikari.CustomEmoji(id=123, name="ok", is_animated=False)
+    emoji = hikari.CustomEmoji(id=hikari.Snowflake(123), name="ok", is_animated=False)
 
     assert reactions.as_reaction_callback(emoji)(obj) is obj
 

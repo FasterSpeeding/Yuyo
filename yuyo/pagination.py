@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["async_string_paginator", "sync_string_paginator", "string_paginator"]
+__all__: typing.Sequence[str] = ["async_paginate_string", "sync_paginate_string", "paginate_string"]
 
 import collections.abc as collections
 import textwrap
@@ -129,7 +129,7 @@ def seek_sync_iterator(iterator: typing.Iterator[T], /, default: DefaultT) -> ty
     return next(iterator, default)
 
 
-async def async_string_paginator(
+async def async_paginate_string(
     lines: typing.AsyncIterator[str],
     *,
     char_limit: int = 2000,
@@ -201,7 +201,7 @@ async def async_string_paginator(
         yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1
 
 
-def sync_string_paginator(
+def sync_paginate_string(
     lines: typing.Iterator[str],
     *,
     char_limit: int = 2000,
@@ -274,18 +274,7 @@ def sync_string_paginator(
 
 
 @typing.overload
-def string_paginator(
-    lines: typing.Iterator[str],
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
-) -> typing.Iterator[typing.Tuple[str, int]]:
-    ...
-
-
-@typing.overload
-def string_paginator(
+def paginate_string(
     lines: typing.AsyncIterator[str],
     *,
     char_limit: int = 2000,
@@ -295,7 +284,18 @@ def string_paginator(
     ...
 
 
-def string_paginator(
+@typing.overload
+def paginate_string(
+    lines: typing.Iterator[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> typing.Iterator[typing.Tuple[str, int]]:
+    ...
+
+
+def paginate_string(
     lines: IteratorT[str],
     *,
     char_limit: int = 2000,
@@ -324,6 +324,6 @@ def string_paginator(
         An iterator of page tuples (string context to int zero-based index).
     """  # noqa: E501  - line too long
     if isinstance(lines, typing.AsyncIterator):
-        return async_string_paginator(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
+        return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
-    return sync_string_paginator(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
+    return sync_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)

@@ -98,6 +98,8 @@ ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.Intera
 
 
 class ComponentContext:
+    """The general context passed around for a component trigger."""
+
     __slots__ = (
         "_ephemeral_default",
         "_has_responded",
@@ -125,14 +127,45 @@ class ComponentContext:
 
     @property
     def has_been_deferred(self) -> bool:
+        """Whether this context's initial response has been deferred.
+
+        Returns
+        -------
+        bool
+            Whether this context's initial response has been deferred.
+
+            This will be true if `ComponentContext.defer` has been called.
+        """
         return self._has_been_deferred
 
     @property
     def has_responded(self) -> bool:
+        """Whether an initial response has been made to this context yet.
+
+        It's worth noting that a context must be either responded to or
+        deferred within 3 seconds from it being received otherwise it'll be
+        marked as failed.
+
+        Returns
+        -------
+        bool
+            Whether an initial response has been made to this context yet.
+
+            This will be true if either `CompontentContext.respond`,
+            `ComponentContext.create_initial_response` or
+            `ComponentContext.edit_initial_response` (after a deferral) has been called.
+        """
         return self._has_responded
 
     @property
     def interaction(self) -> hikari.ComponentInteraction:
+        """Object of the interaction this context is for.
+
+        Returns
+        -------
+        hikari.ComponentInteraction
+            The interaction this context is for.
+        """
         return self._interaction
 
     def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]) -> int:
@@ -147,9 +180,28 @@ class ComponentContext:
         defer_type: hikari.DeferredResponseTypesT,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
+        """Mark this context as deferred.
+
+        Parameters
+        ----------
+        defer_type : hikari.DeferredResponseTypesT
+            The type of deferral this should be.
+
+            This may either be `hikari.ResponseType.DEFERRED_MESSAGE_CREATE` to
+            indicate that the following up call to `ComponentContext.edit_initial_response`
+            or `ComponentContext.respond` should create a new message or
+            `hikari.ResponseType.DEFERRED_MESSAGE_UPDATE` to indicate that the following
+            call to the aforementioned methods should update the existing message.
+        flags : typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]
+            The flags to set for this deferral.
+
+            As of writing, the only message flag which can be set here is
+            `hikari.MessageFlag.EPHEMERAL` which indicates that the deferred
+            message create should be only visible by the interaction's author.
+        """
         flags = self._get_flags(flags)
         async with self._response_lock:
-            if self._has_been_deferred:
+            if self._has_been_deferred or self._has_responded:
                 raise RuntimeError("Context has already been responded to")
 
             self._has_been_deferred = True
@@ -179,6 +231,133 @@ class ComponentContext:
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> hikari.Message:
+        """Respond to this context with a followup message.
+
+        Parameters
+        ----------
+        content : hikari.UndefinedOr[typing.Any]
+            The content to respond with.
+
+            If provided, the message contents. If
+            `hikari.undefined.UNDEFINED`, then nothing will be sent
+            in the content. Any other value here will be cast to a
+            `str`.
+
+            If this is a `hikari.embeds.Embed` and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a `hikari.files.Resource`, then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+
+        Other Parameters
+        ----------------
+        ensure_result : bool
+            This parameter does nothing but necessary to keep the signature with `Context`.
+        tts : hikari.UndefinedOr[bool]
+            Whether to respond with tts/text to speech or no.
+        reply : hikari.Undefinedor[hikari.SnowflakeishOr[hikari.PartialMessage]]
+            Whether to reply instead of sending the content to the context.
+        nonce : hikari.UndefinedOr[str]
+            The nonce that validates that the message was sent.
+        attachment : hikari.UndefinedOr[hikari.Resourceish]
+            A singular attachment to respond with.
+        attachments : hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
+            A sequence of attachments to respond with.
+        component : hikari.undefined.UndefinedOr[hikari.api.special_endpoints.ComponentBuilder]
+            If provided, builder object of the component to include in this message.
+        components : hikari.undefined.UndefinedOr[typing.Sequence[hikari.api.special_endpoints.ComponentBuilder]]
+            If provided, a sequence of the component builder objects to include
+            in this message.
+        embed : hikari.UndefinedOr[hikari.Embed]
+            An embed to respond with.
+        embeds : hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
+            A sequence of embeds to respond with.
+        mentions_everyone : hikari.undefined.UndefinedOr[bool]
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions : hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.users.PartialUser], bool]]
+            If provided, and `True`, all mentions will be parsed.
+            If provided, and `False`, no mentions will be parsed.
+            Alternatively this may be a collection of
+            `hikari.snowflakes.Snowflake`, or `hikari.users.PartialUser`
+            derivatives to enforce mentioning specific users.
+        role_mentions : hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.guilds.PartialRole], bool]]
+            If provided, and `True`, all mentions will be parsed.
+            If provided, and `False`, no mentions will be parsed.
+            Alternatively this may be a collection of
+            `hikari.snowflakes.Snowflake`, or
+            `hikari.guilds.PartialRole` derivatives to enforce mentioning
+            specific roles.
+
+        Notes
+        -----
+        Attachments can be passed as many different things, to aid in
+        convenience.
+        * If a `pathlib.PurePath` or `str` to a valid URL, the
+            resource at the given URL will be streamed to Discord when
+            sending the message. Subclasses of
+            `hikari.files.WebResource` such as
+            `hikari.files.URL`,
+            `hikari.messages.Attachment`,
+            `hikari.emojis.Emoji`,
+            `EmbedResource`, etc will also be uploaded this way.
+            This will use bit-inception, so only a small percentage of the
+            resource will remain in memory at any one time, thus aiding in
+            scalability.
+        * If a `hikari.files.Bytes` is passed, or a `str`
+            that contains a valid data URI is passed, then this is uploaded
+            with a randomized file name if not provided.
+        * If a `hikari.files.File`, `pathlib.PurePath` or
+            `str` that is an absolute or relative path to a file
+            on your file system is passed, then this resource is uploaded
+            as an attachment using non-blocking code internally and streamed
+            using bit-inception where possible. This depends on the
+            type of `concurrent.futures.Executor` that is being used for
+            the application (default is a thread pool which supports this
+            behaviour).
+
+        Returns
+        -------
+        hikari.messages.Message
+            The message that has been created.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+        TypeError
+            If both `attachment` and `attachments` are specified.
+        hikari.errors.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; if `reply` is not found or not in the
+            same channel as `channel`; too many components.
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.errors.NotFoundError
+            If the channel is not found.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """  # noqa: E501 - Line too long
         async with self._response_lock:
             message = await self._interaction.execute(
                 content=content,
@@ -391,7 +570,7 @@ class ComponentContext:
                 role_mentions=role_mentions,
             )
 
-        if self._has_responded:
+        if self._has_responded or self._has_been_deferred:
             return await self.edit_initial_response(
                 content=content,
                 attachment=attachment,
@@ -521,7 +700,7 @@ class ComponentContext:
 
 
 class ExecutorClosed(Exception):
-    ...
+    """Error used to indicate that an executor is now closed during execution."""
 
 
 class ComponentClient:
@@ -618,14 +797,8 @@ class ComponentClient:
                 del self._executors[interaction.message.id]
                 raise LookupError("Not found")
 
-            execution_task = asyncio.create_task(self._execute_executor(executor, interaction, future=future))
-            done, _ = asyncio.wait((future, execution_task), return_when=asyncio.FIRST_COMPLETED)
-
-            if future in done:
-                execution_task.cancel()
-                return await future
-
-            raise RuntimeError("Execution finished without setting a response")
+            asyncio.create_task(self._execute_executor(executor, interaction, future=future))
+            return await future
 
         # TODO: gonna need a way to mark as giving an error response on hikari without actually erroring
         raise LookupError("Not found")
@@ -671,7 +844,7 @@ class AbstractComponentExecutor(abc.ABC):
         raise NotImplementedError
 
 
-class ComponentExecutor(AbstractComponentExecutor):
+class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
@@ -703,15 +876,18 @@ class ComponentExecutor(AbstractComponentExecutor):
 
     @property
     def custom_ids(self) -> typing.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         return self._id_to_callback.keys()
 
     @property
     def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         ctx = ComponentContext(
             ephemeral_default=self._ephemeral_default, interaction=interaction, response_future=future
         )
@@ -728,6 +904,78 @@ class ComponentExecutor(AbstractComponentExecutor):
             return callback
 
         return decorator
+
+
+async def _pre_execution_error(
+    interaction: hikari.ComponentInteraction, future: typing.Optional[asyncio.Future[ResponseT]], message: str, /
+) -> None:
+    if future:
+        future.set_result(
+            interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
+            .set_content("You cannot use this button")
+            .set_flags(hikari.MessageFlag.EPHEMERAL)
+        )
+
+    else:
+        await interaction.create_initial_response(
+            hikari.ResponseType.MESSAGE_CREATE, flags=hikari.MessageFlag.EPHEMERAL
+        )
+
+
+class WaitFor(AbstractComponentExecutor):
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_timeout")
+
+    def __init__(
+        self,
+        *,
+        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        timeout: datetime.timedelta,
+        ephemeral_default: bool = False,
+    ) -> None:
+        self._authors = (hikari.Snowflake(user) for user in authors)
+        self._ephemeral_default = ephemeral_default
+        self._finished = False
+        self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
+        self._made_at: typing.Optional[datetime.datetime] = None
+        self._timeout = timeout
+
+    @property
+    def custom_ids(self) -> typing.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return []
+
+    @property
+    def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return bool(
+            self._finished
+            or self._made_at
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
+        )
+
+    def wait_for(self) -> asyncio.Future[ComponentContext]:
+        if self._future:
+            raise RuntimeError("This executor is already being waited for")
+
+        self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._future = asyncio.get_running_loop().create_future()
+        return self._future
+
+    async def execute(
+        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
+    ) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        if not self._future:
+            return
+
+        if self._authors and interaction.user.id not in self._authors:
+            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
+            return
+
+        self._finished = True
+        self._future.set_result(
+            ComponentContext(interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default)
+        )
 
 
 class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):
@@ -861,6 +1109,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
 
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorProtoT]):
+    """Extended implementation of `ActionRowExecutor` which can be tied to a `MultiComponentExecutor`."""
+
     __slots__ = ("_parent",)
 
     def __init__(
@@ -870,6 +1120,13 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorPro
         self._parent = parent
 
     def add_to_parent(self) -> ParentExecutorProtoT:
+        """Add this action row to its parent executor.
+
+        Returns
+        -------
+        ParentExecutorProtoT
+            The parent executor this action row was added to.
+        """
         return self._parent.add_executor(self).add_builder(self)
 
 
@@ -879,6 +1136,25 @@ def as_child_executor(executor: typing.Type[AbstractComponentExecutorT], /) -> t
 
 
 class MultiComponentExecutor(AbstractComponentExecutor):
+    """Multi-component implementation of a component executor.
+
+    This implementation allows for multiple components to be executed as a single
+    view.
+
+    Parameters
+    ----------
+    load_from_attributes: bool
+        Whether this should load sub-components from its attributes.
+
+        This is helpful when inheritance and `as_child_executor` are being
+        used to declare child executors within this executor.
+    timeout : datetime.timedelta
+        The amount of time to wait after the component's last execution or creation
+        until it times out.
+
+        Defaults to 30 seconds.
+    """
+
     __slots__ = ("_executors", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
@@ -902,55 +1178,150 @@ class MultiComponentExecutor(AbstractComponentExecutor):
                     pass
 
     @property
-    def builders(self) -> typing.Collection[hikari.api.ComponentBuilder]:
+    def builders(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+        """Component builders within this executor.
+
+        Returns
+        -------
+        typing.Sequence[hikari.api.ComponentBuilder]
+            Seqeuence of the component builders within this executor.
+        """
         return self._builders
 
     @property
     def custom_ids(self) -> typing.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         return list(itertools.chain.from_iterable(component.custom_ids for component in self._executors))
 
     @property
     def executors(self) -> typing.Sequence[AbstractComponentExecutor]:
+        """Child executors within this multi-executor.
+
+        Returns
+        -------
+        typing.Sequence[AbstractComponentExecutor]
+            A sequence of the child executors within this multi-executor.
+        """
         return self._executors.copy()
 
     @property
     def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
     def add_builder(
         self: _MultiComponentExecutorT, builder: hikari.api.ComponentBuilder, /
     ) -> _MultiComponentExecutorT:
+        """Add a non-executable component builder to this executor.
+
+        This is useful for adding components that are not meant to be executed, such as a
+        a row of link buttons.
+
+        Parameters
+        ----------
+        builder : hikari.api.ComponentBuilder
+            The component builder to add.
+
+        Returns
+        -------
+        Self
+        """
         self._builders.append(builder)
         return self
 
     def add_action_row(self: _MultiComponentExecutorT) -> ChildActionRowExecutor[_MultiComponentExecutorT]:
+        """Create a builder class to add an action row to this executor.
+
+        For the most part this follows the same implementation as `ActionRowExecutor`
+        except with the added detail that `ChildActionRowExecutor.add_to_parent`
+        must be called to add the action row to the parent executor.
+
+        Returns
+        -------
+        ChildActionRowExecutor[_MultiComponentExecutorT]
+            A builder class to add an action row to this executor.
+
+            `ChildActionRowExecutor.add_to_parent` should be called to finalise
+            the action row and will return the parent executor for chained calls.
+        """
         return ChildActionRowExecutor(self)
 
     def add_executor(
         self: _MultiComponentExecutorT, executor: AbstractComponentExecutor, /
     ) -> _MultiComponentExecutorT:
+        """Add a component executor to this multi-component executor.
+
+        This method is internally used by the `add_{component}` methods.
+
+        Parameters
+        ----------
+        executor : AbstractComponentExecutor
+            The component executor to add.
+
+        Returns
+        -------
+        Self
+            The multi-component executor instance to enable chained calls.
+        """
         self._executors.append(executor)
         return self
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         for executor in self._executors:
             if interaction.custom_id in executor.custom_ids:
                 await executor.execute(interaction, future=future)
                 return
 
-        raise KeyError("Custom ID not found")
+        raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
 
 
 class ComponentPaginator(ActionRowExecutor):
+    """Standard implementation of an action row executor used for pagination.
+
+    This is a convenience class that allows you to easily implement a paginator.
+
+    Parameters
+    ----------
+    iterator: yuyo.pagination.IteratorT[pagination.EntryT]
+        The iterator to paginate.
+
+        This should be an iterator of tuples of `(content: hikari.UndefinedOr[str],
+        embed: hikari.UndefinedOr[hikari.Embed])`.
+    authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]
+        The authors of the entries.
+
+        If None is passed here then the paginator will be public (meaning that
+        anybody can use it).
+
+    Other Parameters
+    ----------------
+    ephemeral_default: bool
+        Whether or not the responses made on contexts spawned from this paginator
+        should default to ephemeral (meaning only the author can see them) unless
+        `flags` is specified on the response method.
+    triggers: typing.Collection[str]
+        Collection of the unicode emojis that should trigger this paginator.
+
+        As of current the only usable emojis are `pagination.LEFT_TRIANGLE`,
+        `pagination.RIGHT_TRIANGLE`, `pagination.STOP_SQUARE`,
+        `pagination.LEFT_DOUBLE_TRIANGLE` and `pagination.LEFT_RIGHT_TRIANGLE`.
+    timeout : datetime.timedelta
+        The amount of time to wait after the component's last execution or creation
+        until it times out.
+
+        This defaults to 30 seconds.
+    """
+
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
 
     def __init__(
         self,
         iterator: pagination.IteratorT[pagination.EntryT],
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
         triggers: typing.Collection[str] = (
             pagination.LEFT_TRIANGLE,
@@ -964,7 +1335,7 @@ class ComponentPaginator(ActionRowExecutor):
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
         )
 
-        self._authors = set(map(hikari.Snowflake, authors))
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: typing.List[pagination.EntryT] = []
         self._ephemeral_default = ephemeral_default
         self._index: int = 0
@@ -997,20 +1368,50 @@ class ComponentPaginator(ActionRowExecutor):
             ).add_to_container()
 
     def builder(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+        """Get a sequence of the component builders for this paginator.
+
+        Returns
+        -------
+        typing.Sequence[hikari.api.ComponentBuilder]
+            The component builders for this paginator.
+        """
         return [self]
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[ResponseT] = None
     ) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
         if self._authors and interaction.user.id not in self._authors:
-            await interaction.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "You cannot use this button", flags=hikari.MessageFlag.EPHEMERAL
-            )
+            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
             return
 
         await super().execute(interaction, future=future)
 
     async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
+        """Get the next entry in this paginator.
+
+        This is generally helpful for making the message which the paginator will be based off
+        and will still internally store the entry and increment the position of the paginator.
+
+        Examples
+        --------
+        ```py
+        response_paginator = yuyo.ComponentPaginator(
+            pages,
+            authors=(ctx.author.id,)
+        )
+        first_response = await response_paginator.get_next_entry()
+        assert first_response
+        content, embed = first_response
+        message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)
+        component_client.add_executor(message, response_paginator)
+        ```
+
+        Returns
+        -------
+        typing.Optional[pagination.EntryT]
+            The next entry in this paginator, or `None` if there are no more entries.
+        """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
@@ -1046,7 +1447,8 @@ class ComponentPaginator(ActionRowExecutor):
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
         self._iterator = None
-        await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, components=[])
+        await ctx.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
+        await ctx.delete_initial_response()
         raise ExecutorClosed
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:

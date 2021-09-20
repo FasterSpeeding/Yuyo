@@ -29,6 +29,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportUnknownMemberType=none
+# This leads to too many false-positives around mocks.
+
+import typing
 from collections import abc as collections
 from unittest import mock
 
@@ -57,7 +62,7 @@ from yuyo import pagination
         ),
     ],
 )
-async def test_collect_iterator_with_async_iterator(value, result):
+async def test_collect_iterator_with_async_iterator(value: typing.AsyncIterator[int], result: typing.List[int]):
     assert await pagination.collect_iterator(value) == result
 
 
@@ -69,7 +74,7 @@ async def test_collect_iterator_with_async_iterator(value, result):
         (iter([]), []),
     ],
 )
-async def test_collect_iterator_with_sync_iterator(value, result):
+async def test_collect_iterator_with_sync_iterator(value: typing.Iterator[int], result: typing.List[int]):
     assert await pagination.collect_iterator(value) == result
 
 
@@ -122,30 +127,30 @@ def test_seek_sync_iterator_when_exhausted():
 
 
 @pytest.mark.skip()
-async def test_async_string_paginator():
+async def test_async_paginate_string():
     raise NotImplementedError
 
 
 @pytest.mark.skip()
-def test_sync_string_paginator():
+def test_sync_paginate_string():
     raise NotImplementedError
 
 
-def test_string_paginator_with_async_iterator():
+def test_paginate_string_with_async_iterator():
     mock_iterator = mock.Mock(collections.AsyncIterator, __aiter__=mock.Mock(), __anext__=mock.Mock())
 
-    with mock.patch.object(pagination, "async_string_paginator") as async_string_paginator:
-        result = pagination.string_paginator(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
+    with mock.patch.object(pagination, "async_paginate_string") as async_paginate_string:
+        result = pagination.paginate_string(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
 
-        assert result is async_string_paginator.return_value
-        async_string_paginator.assert_called_once_with(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
+        assert result is async_paginate_string.return_value
+        async_paginate_string.assert_called_once_with(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
 
 
-def test_string_paginator_with_sync_iterator():
+def test_paginate_string_with_sync_iterator():
     mock_iterator = iter((1, 2, 3))
 
-    with mock.patch.object(pagination, "sync_string_paginator") as sync_string_paginator:
-        result = pagination.string_paginator(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
+    with mock.patch.object(pagination, "sync_paginate_string") as sync_paginate_string:
+        result = pagination.paginate_string(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
 
-        assert result is sync_string_paginator.return_value
-        sync_string_paginator.assert_called_once_with(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
+        assert result is sync_paginate_string.return_value
+        sync_paginate_string.assert_called_once_with(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")

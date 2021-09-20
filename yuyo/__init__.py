@@ -71,9 +71,9 @@ __all__: typing.List[str] = [
     "ReactionClient",
     # /pagination.py
     "pagination",
-    "async_string_paginator",
-    "sync_string_paginator",
-    "string_paginator",
+    "async_paginate_string",
+    "sync_paginate_string",
+    "paginate_string",
 ]
 
 import typing
@@ -84,9 +84,9 @@ from .pagination import *
 from .reactions import *
 
 __author__ = "Faster Speeding"
-__ci__ = ""
+__ci__ = "https://github.com/FasterSpeeding/Yuyo/actions"
 __copyright__ = "© 2020 Faster Speeding"
-__coverage__ = ""
+__coverage__ = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
 __docs__ = "https://fasterspeeding.github.io/Yuyo/"
 __email__ = "lucina@lmbyrne.dev"
 __issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
