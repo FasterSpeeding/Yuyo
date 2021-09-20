@@ -147,7 +147,7 @@ def test_paginate_string_with_async_iterator():
 
 
 def test_paginate_string_with_sync_iterator():
-    mock_iterator = iter((1, 2, 3))
+    mock_iterator = iter(("1", "2", "3"))
 
     with mock.patch.object(pagination, "sync_paginate_string") as sync_paginate_string:
         result = pagination.paginate_string(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
