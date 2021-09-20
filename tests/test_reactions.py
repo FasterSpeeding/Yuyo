@@ -29,67 +29,32 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""A collection of utility functions and classes designed to enhances Hikari."""
+from unittest import mock
 
-from __future__ import annotations
+import hikari
 
-__all__: typing.Sequence[str] = [
-    # /__init__.py
-    "__author__",
-    "__ci__",
-    "__copyright__",
-    "__docs__",
-    "__email__",
-    "__issue_tracker__",
-    "__license__",
-    "__url__",
-    "__version__",
-    # /backoff.py
-    "backoff",
-    "Backoff",
-    "ErrorManager",
-    # /components.py
-    "components",
-    "AbstractComponentExecutor",
-    "ActionRowExecutor",
-    "as_child_executor",
-    "as_component_callback",
-    "ChildActionRowExecutor",
-    "ComponentClient",
-    "ComponentContext",
-    "ComponentExecutor",
-    "ComponentPaginator",
-    "InteractiveButtonBuilder",
-    "MultiComponentExecutor",
-    "SelectMenuBuilder",
-    # /reactions.py
-    "reactions",
-    "as_reaction_callback",
-    "AbstractReactionHandler",
-    "ReactionHandler",
-    "ReactionPaginator",
-    "ReactionClient",
-    # /pagination.py
-    "pagination",
-    "async_paginate_string",
-    "sync_paginate_string",
-    "paginate_string",
-]
+from yuyo import reactions
 
-import typing
 
-from .backoff import *
-from .components import *
-from .pagination import *
-from .reactions import *
+def test_as_reaction_callback():
+    obj = mock.Mock()
 
-__author__ = "Faster Speeding"
-__ci__ = "https://github.com/FasterSpeeding/Yuyo/actions"
-__copyright__ = "© 2020 Faster Speeding"
-__coverage__ = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
-__docs__ = "https://fasterspeeding.github.io/Yuyo/"
-__email__ = "lucina@lmbyrne.dev"
-__issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
-__license__ = "BSD"
-__url__ = "https://github.com/FasterSpeeding/Yuyo"
-__version__ = "0.0.3a7"
+    assert reactions.as_reaction_callback("ok")(obj) is obj
+
+    assert obj.__emoji_identifier__ == "ok"
+
+
+def test_as_reaction_callback_with_custom_emoji():
+    obj = mock.Mock()
+    emoji = hikari.CustomEmoji(id=hikari.Snowflake(123), name="ok", is_animated=False)
+
+    assert reactions.as_reaction_callback(emoji)(obj) is obj
+
+    assert obj.__emoji_identifier__ == 123
+
+
+class TestReactionHandler:
+    def test_authors_property(self):
+        handler = reactions.ReactionHandler(authors=[123, 321, 543, 1234])
+
+        assert handler.authors == {123, 321, 543, 1234}

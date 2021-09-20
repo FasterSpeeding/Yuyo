@@ -2,7 +2,7 @@
 # cython: language_level=3
 # BSD 3-Clause License
 #
-# Copyright (c) 2020, Faster Speeding
+# Copyright (c) 2020-2021, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -125,7 +125,7 @@ class Backoff:
     ```
     """
 
-    __slots__: typing.Sequence[str] = ("_backoff", "_finished", "_max_retries", "_next_backoff", "_retries", "_started")
+    __slots__ = ("_backoff", "_finished", "_max_retries", "_next_backoff", "_retries", "_started")
 
     def __init__(
         self,
@@ -228,6 +228,7 @@ class Backoff:
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
         """
+        # TODO: maximum?
         self._next_backoff = backoff_
 
 
@@ -283,7 +284,7 @@ class ErrorManager:
     ```
     """
 
-    __slots__: typing.Sequence[str] = ("_rules",)
+    __slots__ = ("_rules",)
 
     def __init__(
         self,
@@ -294,7 +295,7 @@ class ErrorManager:
         self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
 
     def __enter__(self) -> ErrorManager:
-        pass
+        return self
 
     def __exit__(
         self,
@@ -308,7 +309,7 @@ class ErrorManager:
         assert exception is not None  # This shouldn't ever be None when exception_type isn't None.
         for rule, callback in self._rules:
             if issubclass(exception_type, rule):
-                # For ths context manager's rules we switch up how returns are handled to let the rules prevent
+                # For this context manager's rules we switch up how returns are handled to let the rules prevent
                 # exceptions from being raised outside of the context by default by having `None` and `False` both
                 # indicate don't re-raise (suppress) and `True` indicate that it should re-raise.
                 return not callback(exception)
