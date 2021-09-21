@@ -1086,18 +1086,25 @@
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span>
+                <span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">,</span> <span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span>
+            <span class="p">)</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-                <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
+                <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+                <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
 
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
-            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
-        <span class="c1"># TODO: gonna need a way to mark as giving an error response on hikari without actually erroring</span>
-        <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">interaction</span><span class="o">.</span><span class="n">build_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
@@ -1208,13 +1215,13 @@
     <span class="k">if</span> <span class="n">future</span><span class="p">:</span>
         <span class="n">future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span>
             <span class="n">interaction</span><span class="o">.</span><span class="n">build_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="s2">&quot;You cannot use this button&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">interaction</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span>
-            <span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span>
+            <span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span>
         <span class="p">)</span>
 
 
@@ -2458,18 +2465,25 @@ inheritance.</p>
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span>
+                <span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">,</span> <span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span>
+            <span class="p">)</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-                <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
+                <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+                <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
 
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
-            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
-        <span class="c1"># TODO: gonna need a way to mark as giving an error response on hikari without actually erroring</span>
-        <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">interaction</span><span class="o">.</span><span class="n">build_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
@@ -2637,6 +2651,11 @@ inheritance.</p>
 
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span>
+                <span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">,</span> <span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span>
+            <span class="p">)</span>
 </pre></div>
 
         </details>
@@ -2659,17 +2678,19 @@ inheritance.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
-                <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
+                <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+                <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
 
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">future</span><span class="p">))</span>
-            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
-        <span class="c1"># TODO: gonna need a way to mark as giving an error response on hikari without actually erroring</span>
-        <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;Not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">interaction</span><span class="o">.</span><span class="n">build_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_CREATE</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="s2">&quot;This message has timed-out.&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
+        <span class="p">)</span>
 </pre></div>
 
         </details>
