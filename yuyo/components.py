@@ -790,18 +790,25 @@ class ComponentClient:
         if executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
 
+        else:
+            await event.interaction.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
+            )
+
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
-        future: asyncio.Future[ResponseT] = asyncio.Future()
         if executor := self._executors.get(interaction.message.id):
-            if executor.has_expired:
-                del self._executors[interaction.message.id]
-                raise LookupError("Not found")
+            if not executor.has_expired:
+                future: asyncio.Future[ResponseT] = asyncio.Future()
+                asyncio.create_task(self._execute_executor(executor, interaction, future=future))
+                return await future
 
-            asyncio.create_task(self._execute_executor(executor, interaction, future=future))
-            return await future
+            del self._executors[interaction.message.id]
 
-        # TODO: gonna need a way to mark as giving an error response on hikari without actually erroring
-        raise LookupError("Not found")
+        return (
+            interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
+            .set_content("This message has timed-out.")
+            .set_flags(hikari.MessageFlag.EPHEMERAL)
+        )
 
     def add_executor(
         self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
@@ -912,13 +919,13 @@ async def _pre_execution_error(
     if future:
         future.set_result(
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
-            .set_content("You cannot use this button")
+            .set_content(message)
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
     else:
         await interaction.create_initial_response(
-            hikari.ResponseType.MESSAGE_CREATE, flags=hikari.MessageFlag.EPHEMERAL
+            hikari.ResponseType.MESSAGE_CREATE, message, flags=hikari.MessageFlag.EPHEMERAL
         )
 
 
