@@ -108,6 +108,26 @@ class Repeater(Generic[RepeaterFuncT]):
 
 
 def with_ignored_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFuncT]], Repeater[RepeaterFuncT]]:
+    """
+    Sets the exceptions that a task will ignore. If any of these exceptions are encountered, there will be
+    nothing printed to console
+
+    Parameters
+    ---------
+    exceptions
+        List of exception types
+
+    Examples
+    --------
+    ```py
+    @yuyo.with_ignored_exceptions(ZeroDivisionError)
+    @yuyo.as_repeater(seconds=1)
+    async def repeater():
+        global run_count
+        run_count += 1
+        print(f"Run #{run_count}")
+    ```
+    """
     for exception in exceptions:
         if not issubclass(exception, Exception):
             raise TypeError(f"Ignored exception must derive from Exception, is {exception.__name__}")
@@ -120,6 +140,25 @@ def with_ignored_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFun
 
 
 def with_fatal_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFuncT]], Repeater[RepeaterFuncT]]:
+    """
+    Sets the exceptions that will stop a task. If any of these exceptions are encountered, the task will stop
+
+    Parameters
+    ---------
+    exceptions
+        List of exception types
+
+    Examples
+    --------
+    ```py
+    @yuyo.with_fatal_exceptions(ZeroDivisionError, RuntimeError)
+    @yuyo.as_repeater(seconds=1)
+    async def repeater():
+        global run_count
+        run_count += 1
+        print(f"Run #{run_count}")
+    ```
+    """
     for exception in exceptions:
         if not issubclass(exception, Exception):
             raise TypeError(f"Fatal exception must derive from Exception, is {exception.__name__}")
