@@ -74,6 +74,11 @@ __all__: typing.Sequence[str] = [
     "async_paginate_string",
     "sync_paginate_string",
     "paginate_string",
+    # /repeaters.py
+    "as_repeater",
+    "with_fatal_exceptions",
+    "with_ignored_exceptions",
+    "Repeater"
 ]
 
 import typing
@@ -82,6 +87,7 @@ from .backoff import *
 from .components import *
 from .pagination import *
 from .reactions import *
+from .repeaters import *
 
 __author__ = "Faster Speeding"
 __ci__ = "https://github.com/FasterSpeeding/Yuyo/actions"
