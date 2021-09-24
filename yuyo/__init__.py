@@ -78,7 +78,7 @@ __all__: typing.Sequence[str] = [
     "as_repeater",
     "with_fatal_exceptions",
     "with_ignored_exceptions",
-    "Repeater"
+    "Repeater",
 ]
 
 import typing

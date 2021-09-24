@@ -1,23 +1,45 @@
-"""
-Copyright 2021 crazygmr101
+# -*- coding: utf-8 -*-
+# cython: language_level=3
+# BSD 3-Clause License
+#
+# Copyright (c) 2020-2021, crazygmr101
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the 
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit 
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the 
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
 import asyncio
 import datetime
 import inspect
-from typing import Callable, Any, Awaitable, TypeVar, Generic, Optional, List
+from typing import Any
+from typing import Awaitable
+from typing import Callable
+from typing import Generic
+from typing import List
+from typing import Optional
+from typing import TypeVar
 
 _function = Callable[..., Awaitable[Any]]
 RepeaterFuncT = TypeVar("RepeaterFuncT", bound=_function)
@@ -25,14 +47,14 @@ RepeaterFuncT = TypeVar("RepeaterFuncT", bound=_function)
 
 class Repeater(Generic[RepeaterFuncT]):
     def __init__(
-            self,
-            coro: RepeaterFuncT,
-            *,
-            seconds: Optional[float] = None,
-            minutes: Optional[float] = None,
-            hours: Optional[float] = None,
-            run_count: Optional[int] = None,
-            loop: Optional[asyncio.AbstractEventLoop] = None
+        self,
+        coro: RepeaterFuncT,
+        *,
+        seconds: Optional[float] = None,
+        minutes: Optional[float] = None,
+        hours: Optional[float] = None,
+        run_count: Optional[int] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         if not (seconds or minutes or hours):
             raise  # TODO: What error should this raise?
@@ -71,17 +93,15 @@ class Repeater(Generic[RepeaterFuncT]):
 
     @property
     def iteration_count(self) -> int:
-        """
-        The iteration this repeater is on
-        """
+        """Return the iteration this repeater is on."""
         return self._iter
 
     def start(self) -> asyncio.Task:
         """
-        Start the repeater
+        Start the repeater.
 
         Returns
-        ------
+        -------
         :class:`asyncio.Task`
             The started task
         """
@@ -91,9 +111,7 @@ class Repeater(Generic[RepeaterFuncT]):
         return self._task
 
     def stop(self):
-        """
-        Cancel the repeater
-        """
+        """Cancel the repeater."""
         if self._task is None or self._task.done():
             raise RuntimeError("Repeater not running")
         self._task.cancel()
@@ -113,11 +131,12 @@ class Repeater(Generic[RepeaterFuncT]):
 
 def with_ignored_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFuncT]], Repeater[RepeaterFuncT]]:
     """
-    Sets the exceptions that a task will ignore. If any of these exceptions are encountered, there will be
-    nothing printed to console
+    Set the exceptions that a task will ignore.
+
+    If any of these exceptions are encountered, there will be nothing printed to console
 
     Parameters
-    ---------
+    ----------
     exceptions
         List of exception types
 
@@ -145,10 +164,12 @@ def with_ignored_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFun
 
 def with_fatal_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFuncT]], Repeater[RepeaterFuncT]]:
     """
-    Sets the exceptions that will stop a task. If any of these exceptions are encountered, the task will stop
+    Set the exceptions that will stop a task.
+
+    If any of these exceptions are encountered, the task will stop.
 
     Parameters
-    ---------
+    ----------
     exceptions
         List of exception types
 
@@ -175,15 +196,15 @@ def with_fatal_exceptions(*exceptions: type) -> Callable[[Repeater[RepeaterFuncT
 
 
 def as_repeater(
-        *,
-        seconds: Optional[float] = None,
-        minutes: Optional[float] = None,
-        hours: Optional[float] = None,
-        run_count: Optional[int] = None,
-        loop: Optional[asyncio.AbstractEventLoop] = None
+    *,
+    seconds: Optional[float] = None,
+    minutes: Optional[float] = None,
+    hours: Optional[float] = None,
+    run_count: Optional[int] = None,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
 ) -> Callable[[RepeaterFuncT], Repeater[RepeaterFuncT]]:
     """
-    Registers a :class:Repeater.
+    Register a :class:Repeater.
 
     Parameters
     ----------
@@ -201,12 +222,7 @@ def as_repeater(
 
     def decorator(function: RepeaterFuncT) -> Repeater[RepeaterFuncT]:
         return Repeater[RepeaterFuncT](
-            function,
-            seconds=seconds,
-            minutes=minutes,
-            hours=hours,
-            run_count=run_count,
-            loop=loop
+            function, seconds=seconds, minutes=minutes, hours=hours, run_count=run_count, loop=loop
         )
 
     return decorator
