@@ -59,13 +59,15 @@ class Repeater(Generic[RepeaterFuncT]):
                 raise
 
     async def _loop(self):
-        await self._before()
+        if self._before:
+            await self._before()
         while self._runs_left != 0:
             self._iter += 1
             self._runs_left -= 1
             self._event_loop.create_task(self._wrapped_coro())
             await asyncio.sleep(self._delay)
-        await self._after()
+        if self._after:
+            await self._after()
 
     @property
     def iteration_count(self) -> int:
@@ -95,6 +97,8 @@ class Repeater(Generic[RepeaterFuncT]):
         if self._task is None or self._task.done():
             raise RuntimeError("Repeater not running")
         self._task.cancel()
+        if self._after:
+            self._event_loop.create_task(self._after())
 
     def with_pre_callback(self, coro: RepeaterFuncT):
         if not inspect.iscoroutinefunction(coro):
