@@ -1162,7 +1162,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         Defaults to 30 seconds.
     """
 
-    __slots__ = ("_executors", "_last_triggered", "_lock", "_timeout")
+    __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
         self,

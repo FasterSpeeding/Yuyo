@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Handling of access errors in the component client.
+- MultiComponentExecutor slots.
 
 ## [1.0.1a1]
 ### Added
