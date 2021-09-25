@@ -147,7 +147,7 @@ def generate_docs(session: nox.Session) -> None:
         with file:
             file.write(code)
 
-        session.run("python", file.name, "tanjun", "-o", str(pathlib.Path(output_directory) / "search.json"))
+        session.run("python", file.name, "yuyo", "-o", str(pathlib.Path(output_directory) / "search.json"))
 
     finally:
         pathlib.Path(file.name).unlink(missing_ok=False)
