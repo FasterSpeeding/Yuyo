@@ -12,4 +12,4 @@ python -m pip install hikari-yuyo -U
 
 # Quick Usage.
 
-For usage see the the [documentation](https://fasterspeeding.github.io/Yuyo/) and soon to come examples.
+For usage see the the [documentation](https://yuyo.cursed.solutions/) and soon to come examples.
