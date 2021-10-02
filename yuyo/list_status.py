@@ -52,22 +52,14 @@ import time
 import typing
 
 import aiohttp
-from hikari import config
-from hikari import errors as hikari_errors
-from hikari import intents
-from hikari import snowflakes
-from hikari.events import guild_events
-from hikari.events import lifetime_events
-from hikari.events import shard_events
+import hikari
 
-from . import _utility
-from . import about
+from . import __version__
 from . import backoff
 
 if typing.TYPE_CHECKING:
     from hikari import traits
-    from hikari import users
-    from hikari.api import event_manager
+    from hikari.api import event_manager as event_manager_api
 
     _ServiceManagerT = typing.TypeVar("_ServiceManagerT", bound="ServiceManager")
     _ValueT = typing.TypeVar("_ValueT")
@@ -80,7 +72,7 @@ StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
 
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[CountStrategyProto]] = []
-_DEFAULT_USER_AGENT = f"Yuyo.last_status/{about.__version__}"
+_DEFAULT_USER_AGENT = f"Yuyo.last_status/{__version__}"
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
 
@@ -139,10 +131,10 @@ class CacheStrategy(CountStrategyProto):
         and the guild cache resource is enabled.
     """
 
-    __slots__: typing.Sequence[str] = ("_cache_service",)
+    __slots__: typing.Sequence[str] = ("_cache",)
 
-    def __init__(self, cache_service: traits.CacheAware) -> None:
-        self._cache_service = cache_service
+    def __init__(self, cache: hikari.api.Cache) -> None:
+        self._cache = cache
 
     async def close(self) -> None:
         return None
@@ -151,19 +143,19 @@ class CacheStrategy(CountStrategyProto):
         return None
 
     async def count(self) -> int:
-        return len(self._cache_service.cache.get_guilds_view())
+        return len(self._cache.get_guilds_view())
 
     @classmethod
     def spawn(cls, manager: ManagerProto, /) -> CacheStrategy:
-        if not manager.cache_service or not manager.shard_service:
+        if not manager.cache or not manager.shards:
             raise InvalidStrategyError
 
-        cache_enabled = manager.cache_service.cache.settings.components & config.CacheComponents.GUILDS
-        shard_enabled = manager.shard_service.intents & intents.Intents.GUILDS
+        cache_enabled = manager.cache.settings.components & hikari.CacheComponents.GUILDS
+        shard_enabled = manager.shards.intents & hikari.Intents.GUILDS
         if not cache_enabled or not shard_enabled:
             raise InvalidStrategyError
 
-        return cls(manager.cache_service)
+        return cls(manager.cache)
 
 
 @_as_strategy
@@ -174,38 +166,38 @@ class EventStrategy(CountStrategyProto):
         This will only function properly if GUILD intents are declared.
     """
 
-    __slots__: typing.Sequence[str] = ("_event_service", "_guild_ids", "_shard_service", "_started")
+    __slots__: typing.Sequence[str] = ("_event_manager", "_guild_ids", "_shards", "_started")
 
-    def __init__(self, events: traits.EventManagerAware, shards: traits.ShardAware) -> None:
-        self._event_service = events
-        self._guild_ids: typing.Set[snowflakes.Snowflake] = set()
-        self._shard_service = shards
+    def __init__(self, event_manager: hikari.api.EventManager, shards: traits.ShardAware) -> None:
+        self._event_manager = event_manager
+        self._guild_ids: typing.Set[hikari.Snowflake] = set()
+        self._shards = shards
         self._started = False
 
-    async def _on_shard_ready_event(self, event: shard_events.ShardReadyEvent, /) -> None:
+    async def _on_shard_ready_event(self, event: hikari.ShardReadyEvent, /) -> None:
         for guild_id in event.unavailable_guilds:
             self._guild_ids.add(guild_id)
 
-    async def _on_starting_event(self, _: lifetime_events.StartingEvent, /) -> None:
+    async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._guild_ids.clear()
 
-    async def _on_guild_visibility_event(self, event: guild_events.GuildVisibilityEvent, /) -> None:
-        if isinstance(event, guild_events.GuildAvailableEvent):
+    async def _on_guild_visibility_event(self, event: hikari.GuildVisibilityEvent, /) -> None:
+        if isinstance(event, hikari.GuildAvailableEvent):
             self._guild_ids.add(event.guild_id)
 
-        elif isinstance(event, guild_events.GuildLeaveEvent):
+        elif isinstance(event, hikari.GuildLeaveEvent):
             self._guild_ids.remove(event.guild_id)
 
-    async def _on_guild_update_event(self, event: guild_events.GuildUpdateEvent, /) -> None:
+    async def _on_guild_update_event(self, event: hikari.GuildUpdateEvent, /) -> None:
         self._guild_ids.add(event.guild_id)
 
     def _try_unsubscribe(
         self,
-        event_type: typing.Type[event_manager.EventT_co],
-        callback: event_manager.CallbackT[event_manager.EventT_co],
+        event_type: typing.Type[event_manager_api.EventT],
+        callback: event_manager_api.CallbackT[event_manager_api.EventT],
     ) -> None:
         try:
-            self._event_service.event_manager.unsubscribe(event_type, callback)
+            self._event_manager.unsubscribe(event_type, callback)
 
         except (ValueError, LookupError):
             pass
@@ -214,29 +206,29 @@ class EventStrategy(CountStrategyProto):
         if not self._started:
             return
 
-        self._try_unsubscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
-        self._try_unsubscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        self._try_unsubscribe(guild_events.GuildVisibilityEvent, self._on_guild_visibility_event)  # type: ignore[misc]
-        self._try_unsubscribe(guild_events.GuildUpdateEvent, self._on_guild_update_event)
+        self._try_unsubscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
+        self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
+        self._try_unsubscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)  # type: ignore[misc]
+        self._try_unsubscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
         self._guild_ids.clear()
 
     async def open(self) -> None:
         if self._started:
             return
 
-        self._event_service.event_manager.subscribe(shard_events.ShardReadyEvent, self._on_shard_ready_event)
-        self._event_service.event_manager.subscribe(lifetime_events.StartingEvent, self._on_starting_event)
-        self._event_service.event_manager.subscribe(guild_events.GuildVisibilityEvent, self._on_guild_visibility_event)
-        self._event_service.event_manager.subscribe(guild_events.GuildUpdateEvent, self._on_guild_update_event)
+        self._event_manager.subscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
+        self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
+        self._event_manager.subscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)
+        self._event_manager.subscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
 
     async def count(self) -> int:
         return len(self._guild_ids)
 
     @classmethod
     def spawn(cls, manager: ManagerProto, /) -> EventStrategy:
-        events = manager.event_service
-        shards = manager.shard_service
-        if not events or not shards or not (shards.intents & intents.Intents.GUILDS) == intents.Intents.GUILDS:
+        events = manager.event_manager
+        shards = manager.shards
+        if not events or not shards or not (shards.intents & hikari.Intents.GUILDS) == hikari.Intents.GUILDS:
             raise InvalidStrategyError
 
         return cls(events, shards)
@@ -295,14 +287,14 @@ class ManagerProto(typing.Protocol):
     __slots__: typing.Sequence[str] = ()
 
     @property
-    def cache_service(self) -> typing.Optional[traits.CacheAware]:
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
         """Return the cache service this manager is bound to.
 
         Returns
         -------
-        typing.Optional[hikari.traits.CacheAware]
-            The cache aware client this service was bound to if applicable
-            else `builtins.None`.
+        typing.Optional[hikari.api.Cache]
+            The cache this service was bound to if applicable
+            else `None`.
         """
         raise NotImplementedError
 
@@ -318,37 +310,37 @@ class ManagerProto(typing.Protocol):
         raise NotImplementedError
 
     @property
-    def event_service(self) -> typing.Optional[traits.EventManagerAware]:
-        """Return the event service this manager is bound to.
+    def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
+        """Return the event manager this manager is bound to.
 
         Returns
         -------
-        typing.Optional[hikari.traits.EventManagerAware]
-            The event service this manager was bound to if applicable
-            else `builtins.None`.
+        typing.Optional[hikari.api.EventManager]
+            The event manager this manager was bound to if applicable
+            else `None`.
         """
         raise NotImplementedError
 
     @property
-    def shard_service(self) -> typing.Optional[traits.ShardAware]:
-        """Return the shard service this manager is bound to.
+    def shards(self) -> typing.Optional[traits.ShardAware]:
+        """Return the shard aware client this manager is bound to.
 
         Returns
         -------
         typing.Optional[hikari.traits.ShardAware]
-            The shard service this manager was bound to if applicable
-            else `builtins.None`.
+            The shard aware client this manager was bound to if applicable
+            else `None`.
         """
         raise NotImplementedError
 
     @property
-    def rest_service(self) -> traits.RESTAware:
-        """Return the REST service this manager is bound to.
+    def rest(self) -> hikari.api.RESTClient:
+        """Return the REST client this manager is bound to.
 
         Returns
         -------
-        typing.Optional[hikari.traits.RESTAware]
-            The REST service this manager was bound to
+        hikari.api.RESTClient
+            The REST client this manager was bound to.
         """
         raise NotImplementedError
 
@@ -357,7 +349,7 @@ class ManagerProto(typing.Protocol):
         """User agent services within this manager should use for requests."""
         raise NotImplementedError
 
-    async def get_me(self) -> users.User:
+    async def get_me(self) -> hikari.User:
         """Get user object of the bot this manager is bound to.
 
         Returns
@@ -410,68 +402,67 @@ class ServiceManager(ManagerProto):
     rest : hikari.traits.RESTAware
         The RESTAware Hikari client to bind this manager to.
 
-        !!! note
-            If any of `cache`, `events` or `shards` aren't explicitly passed
-            separately then they will be inferred from this argument if it
-            also implements them.
-
     Other Parameters
     ----------------
     cache : typing.Optional[hikari.traits.CacheAware]
         The cache aware Hikari client this manager should use.
-    events : typing.Optional[hikari.traits.EventManagerAware]
+    event_manger : typing.Optional[hikari.traits.EventManagerAware]
         The event manager aware Hikari client this manager should use.
     shards : typing.Optional[hikari.traits.ShardAware]
         The shard aware Hikari client this manager should use.
+    event_managed : bool
+        Whether this client should be automatically opened and closed based
+        on `event_manger`'s lifetime events.
+        Defaults to `True` when `event_manager` is passed.
     strategy : typing.Optional[CountStrategyProto]
         The counter strategy this manager should expose to services.
 
-        If this is left as `builtins.None` then the manager will try to pick
+        If this is left as `None` then the manager will try to pick
         a suitable standard strategy based on the provided Hikari clients.
-    user_agent : typing.Optional[builtins.str]
+    user_agent : typing.Optional[str]
         Override the standard user agent used during requests to bot list services.
 
     Raises
     ------
     ValueError
         If the manager failed to find a suitable standard strategy to use
-        when `strategy` was left as `builtins.None`.
+        when `strategy` was left as `None`.
+
+        If `event_managed` is passed as `True` when `event_manager` is None.
     """
 
     __slots__: typing.Sequence[str] = (
-        "_cache_service",
-        "_event_service",
-        "_rest_service",
+        "_cache",
+        "_event_manager",
+        "_rest",
         "_services",
         "_session",
-        "_shard_service",
+        "_shards",
         "_task",
         "_user_agent",
     )
 
     def __init__(
         self,
-        rest: traits.RESTAware,
-        cache: typing.Optional[traits.CacheAware] = None,
-        events: typing.Optional[traits.EventManagerAware] = None,
-        shards: typing.Optional[traits.ShardAware] = None,
+        rest: hikari.api.RESTClient,
         /,
         *,
+        cache: typing.Optional[hikari.api.Cache] = None,
+        event_manager: typing.Optional[hikari.api.EventManager] = None,
+        shards: typing.Optional[traits.ShardAware] = None,
+        event_managed: typing.Optional[bool] = None,
         strategy: typing.Optional[CountStrategyProto] = None,
         user_agent: typing.Optional[str] = None,
     ) -> None:
-        cache = _utility.try_find_type(traits.CacheAware, cache, rest, events, shards)  # type: ignore[misc]
-        events = _utility.try_find_type(traits.EventManagerAware, events, rest, cache, shards)  # type: ignore[misc]
-        shards = _utility.try_find_type(traits.ShardAware, shards, rest, cache, events)  # type: ignore[misc]
 
-        self._cache_service = cache
-        self._event_service = events
-        self._rest_service = rest
+        self._cache = cache
+        self._event_manager = event_manager
+        self._rest = rest
         self._services: typing.List[_ServiceDescriptor] = []
         self._session: typing.Optional[aiohttp.ClientSession] = None
-        self._shard_service = shards
+        self._shards = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
-        self._me = (cache and cache.cache.get_me()) or None
+        self._me = (cache and cache.get_me()) or None
         self._me_lock: typing.Optional[asyncio.Lock] = None
         self._user_agent = user_agent
 
@@ -490,30 +481,127 @@ class ServiceManager(ManagerProto):
         else:
             raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
 
+        if event_managed or event_managed is None and event_manager:
+            if not event_manager:
+                raise ValueError("event_managed may only be passed when an event_manager is also passed")
+
+            event_manager.subscribe(hikari.StartingEvent, self._on_starting)
+            event_manager.subscribe(hikari.StoppingEvent, self._on_stopping)
+
+    @classmethod
+    def from_gateway_bot(
+        cls,
+        bot: traits.GatewayBotAware,
+        /,
+        *,
+        event_managed: bool = True,
+        strategy: typing.Optional[CountStrategyProto] = None,
+        user_agent: typing.Optional[str] = None,
+    ) -> ServiceManager:
+        """Build a service manager from a gateway bot.
+
+        Parameters
+        ----------
+        rest : hikari.traits.GatewayBotAware
+            The gateway bot to build a service manager from.
+
+        Other Parameters
+        ----------------
+        event_managed : bool
+            Whether this client should be automatically opened and closed based
+            on `bot`'s lifetime events.
+            Defaults to `True`.
+        strategy : typing.Optional[CountStrategyProto]
+            The counter strategy this manager should expose to services.
+
+            If this is left as `None` then the manager will try to pick
+            a suitable standard strategy based on the provided Hikari clients.
+        user_agent : typing.Optional[str]
+            Override the standard user agent used during requests to bot list services.
+
+        Returns
+        -------
+        ServiceManager
+            The build service manager.
+
+        Raises
+        ------
+        ValueError
+            If the manager failed to find a suitable standard strategy to use
+            when `strategy` was left as `None`.
+        """
+        return cls(
+            bot.rest,
+            cache=bot.cache,
+            event_manager=bot.event_manager,
+            event_managed=event_managed,
+            strategy=strategy,
+            user_agent=user_agent,
+        )
+
+    @classmethod
+    def from_rest_bot(
+        cls,
+        bot: traits.RESTBotAware,
+        /,
+        *,
+        strategy: typing.Optional[CountStrategyProto] = None,
+        user_agent: typing.Optional[str] = None,
+    ) -> ServiceManager:
+        """Build a service manager from a REST bot.
+
+        Parameters
+        ----------
+        bot : hikari.traits.RESTBotAware
+            The REST bot to build a service manager from.
+
+        Other Parameters
+        ----------------
+        strategy : typing.Optional[CountStrategyProto]
+            The counter strategy this manager should expose to services.
+
+            If this is left as `None` then the manager will try to pick
+            a suitable standard strategy based on the provided Hikari clients.
+        user_agent : typing.Optional[str]
+            Override the standard user agent used during requests to bot list services.
+
+        Returns
+        -------
+        ServiceManager
+            The build service manager.
+
+        Raises
+        ------
+        ValueError
+            If the manager failed to find a suitable standard strategy to use
+            when `strategy` was left as `None`.
+        """
+        return cls(bot.rest, strategy=strategy, user_agent=user_agent)
+
     @property
     def is_alive(self) -> bool:
         """Return whether this manager is active."""
         return self._task is not None
 
     @property
-    def cache_service(self) -> typing.Optional[traits.CacheAware]:
-        return self._cache_service
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        return self._cache
 
     @property
     def counter(self) -> CountStrategyProto:
         return self._counter
 
     @property
-    def event_service(self) -> typing.Optional[traits.EventManagerAware]:
-        return self._event_service
+    def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
+        return self._event_manager
 
     @property
-    def rest_service(self) -> traits.RESTAware:
-        return self._rest_service
+    def rest(self) -> hikari.api.RESTClient:
+        return self._rest
 
     @property
-    def shard_service(self) -> typing.Optional[traits.ShardAware]:
-        return self._shard_service
+    def shards(self) -> typing.Optional[traits.ShardAware]:
+        return self._shards
 
     @property
     def services(self) -> typing.Sequence[ServiceProto]:
@@ -522,6 +610,12 @@ class ServiceManager(ManagerProto):
     @property
     def user_agent(self) -> str:
         return self._user_agent or _DEFAULT_USER_AGENT
+
+    async def _on_starting(self, event: hikari.StartingEvent) -> None:
+        await self.open()
+
+    async def _on_stopping(self, event: hikari.StoppingEvent) -> None:
+        await self.close()
 
     def add_service(
         self: _ServiceManagerT, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
@@ -653,7 +747,7 @@ class ServiceManager(ManagerProto):
             await self._counter.open()
             self._task = asyncio.create_task(self._loop())
 
-    async def get_me(self) -> users.User:
+    async def get_me(self) -> hikari.User:
         if self._me:
             return self._me
 
@@ -665,17 +759,17 @@ class ServiceManager(ManagerProto):
 
             async for _ in retry:
                 try:
-                    self._me = await self._rest_service.rest.fetch_my_user()
+                    self._me = await self._rest.fetch_my_user()
                     break
 
-                except hikari_errors.InternalServerError:
+                except hikari.InternalServerError:
                     continue
 
-                except hikari_errors.RateLimitedError as exc:
+                except hikari.RateLimitedError as exc:
                     retry.set_next_backoff(exc.retry_after)
 
             else:
-                self._me = await self._rest_service.rest.fetch_my_user()
+                self._me = await self._rest.fetch_my_user()
 
         if not self._user_agent:
             self._user_agent = _USER_AGENT.format(self._me)
@@ -766,7 +860,7 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
 
 
 def make_top_gg_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://top.gg
+    """Make a service callback to update a bot's status on https://top.gg.
 
     Parameters
     ----------
@@ -776,7 +870,7 @@ def make_top_gg_service(token: str) -> ServiceProto:
     Returns
     -------
     ServiceProto
-        The service callback used to update a bot's status on https://top.gg
+        The service callback used to update a bot's status on https://top.gg.
     """
 
     async def update_top_gg(client: ManagerProto, /) -> None:
@@ -784,8 +878,8 @@ def make_top_gg_service(token: str) -> ServiceProto:
         headers = {"Authorization": token, "User-Agent": client.user_agent}
         json = {"server_count": await client.counter.count()}
 
-        if client.shard_service:
-            json["shard_count"] = client.shard_service.shard_count
+        if client.shards:
+            json["shard_count"] = client.shards.shard_count
 
         session = client.get_session()
 
@@ -796,7 +890,7 @@ def make_top_gg_service(token: str) -> ServiceProto:
 
 
 def make_bots_gg_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://discord.bots.gg
+    """Make a service callback to update a bot's status on https://discord.bots.gg.
 
     Parameters
     ----------
@@ -806,7 +900,7 @@ def make_bots_gg_service(token: str) -> ServiceProto:
     Returns
     -------
     ServiceProto
-        The service callback used to update a bot's status on https://discord.bots.gg
+        The service callback used to update a bot's status on https://discord.bots.gg.
     """
 
     async def update_bots_gg(client: ManagerProto, /) -> None:
@@ -814,8 +908,8 @@ def make_bots_gg_service(token: str) -> ServiceProto:
         headers = {"Authorization": token, "User-Agent": client.user_agent}
         json = {"guildCount": await client.counter.count()}
 
-        if client.shard_service:
-            json["shardCount"] = client.shard_service.shard_count
+        if client.shards:
+            json["shardCount"] = client.shards.shard_count
 
         session = client.get_session()
         async with session.post(
@@ -827,7 +921,7 @@ def make_bots_gg_service(token: str) -> ServiceProto:
 
 
 def make_d_boats_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://discord.boats
+    """Make a service callback to update a bot's status on https://discord.boats.
 
     Parameters
     ----------
@@ -837,7 +931,7 @@ def make_d_boats_service(token: str) -> ServiceProto:
     Returns
     -------
     ServiceProto
-        The service callback used to update a bot's status on https://discord.boats
+        The service callback used to update a bot's status on https://discord.boats.
     """
 
     async def update_d_boats(client: ManagerProto, /) -> None:
