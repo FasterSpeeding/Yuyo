@@ -2540,12 +2540,39 @@ allow for chained calls.</li>
 
 
 <span class="k">class</span> <span class="nc">ComponentClient</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Client used to handle component executors within a REST or gateway flow.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        For an easier way to initialise the client from a bot see</span>
+<span class="sd">        `ComponentClient.from_gateway_bot` and `ComponentClient.from_rest_bot`.</span>
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    event_manager : typing.Optional[hikari.api.EventManager]</span>
+<span class="sd">        The event manager this client should listen to dispatched component</span>
+<span class="sd">        interactions from if applicable.</span>
+<span class="sd">    event_managed : bool</span>
+<span class="sd">        Whether this client should be automatically opened and closed based on</span>
+<span class="sd">        the lifetime events dispatched by `event_manager`.</span>
+
+<span class="sd">        Defaults to `True` if an event manager is passed.</span>
+<span class="sd">    server : typing.Optional[hikari.api.InteractionServer]</span>
+<span class="sd">        The server this client should listen to component interactions</span>
+<span class="sd">        from if applicable.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">event_manager</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
@@ -2553,10 +2580,17 @@ allow for chained calls.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
 
+        <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">event_manager</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;event_managed may only be passed when an event_manager is also passed&quot;</span><span class="p">)</span>
+
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting</span><span class="p">)</span>
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">exc_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">]],</span>
         <span class="n">exc</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
@@ -2565,12 +2599,48 @@ allow for chained calls.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma Gateway Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.GatewayBotAware</span>
+<span class="sd">            The Gateway bot this component client should be bound to.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the component client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_rest_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">RESTBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma REST Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.RESTBotAware</span>
+<span class="sd">            The REST bot this component client should be bound to.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">interaction_server</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_starting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_stopping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_gc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -2585,6 +2655,10 @@ allow for chained calls.</li>
             <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># TODO: is this a good time?</span>
 
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2601,6 +2675,12 @@ allow for chained calls.</li>
         <span class="c1">#     executor.close()</span>
 
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Startup the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_rest_request</span><span class="p">)</span>
 
@@ -3174,6 +3254,9 @@ allow for chained calls.</li>
         <span class="n">load_from_attributes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">AsyncIterator</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid value passed for `iterator`, expected an iterator but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">iterator</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">ephemeral_default</span><span class="o">=</span><span class="n">ephemeral_default</span><span class="p">,</span> <span class="n">load_from_attributes</span><span class="o">=</span><span class="n">load_from_attributes</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span>
         <span class="p">)</span>
@@ -3923,12 +4006,39 @@ inheritance.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ComponentClient</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Client used to handle component executors within a REST or gateway flow.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        For an easier way to initialise the client from a bot see</span>
+<span class="sd">        `ComponentClient.from_gateway_bot` and `ComponentClient.from_rest_bot`.</span>
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    event_manager : typing.Optional[hikari.api.EventManager]</span>
+<span class="sd">        The event manager this client should listen to dispatched component</span>
+<span class="sd">        interactions from if applicable.</span>
+<span class="sd">    event_managed : bool</span>
+<span class="sd">        Whether this client should be automatically opened and closed based on</span>
+<span class="sd">        the lifetime events dispatched by `event_manager`.</span>
+
+<span class="sd">        Defaults to `True` if an event manager is passed.</span>
+<span class="sd">    server : typing.Optional[hikari.api.InteractionServer]</span>
+<span class="sd">        The server this client should listen to component interactions</span>
+<span class="sd">        from if applicable.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">event_manager</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
@@ -3936,10 +4046,17 @@ inheritance.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
 
+        <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">event_manager</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;event_managed may only be passed when an event_manager is also passed&quot;</span><span class="p">)</span>
+
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting</span><span class="p">)</span>
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">exc_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">]],</span>
         <span class="n">exc</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
@@ -3948,12 +4065,48 @@ inheritance.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma Gateway Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.GatewayBotAware</span>
+<span class="sd">            The Gateway bot this component client should be bound to.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the component client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_rest_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">RESTBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma REST Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.RESTBotAware</span>
+<span class="sd">            The REST bot this component client should be bound to.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">interaction_server</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_starting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_stopping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_gc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -3968,6 +4121,10 @@ inheritance.</p>
             <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># TODO: is this a good time?</span>
 
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3984,6 +4141,12 @@ inheritance.</p>
         <span class="c1">#     executor.close()</span>
 
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Startup the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_rest_request</span><span class="p">)</span>
 
@@ -4038,7 +4201,35 @@ inheritance.</p>
 
         </details>
 
-    
+            <div class="docstring"><p>Client used to handle component executors within a REST or gateway flow.</p>
+
+<p><em>Note:</em>
+For an easier way to initialise the client from a bot see
+<code><a href="#ComponentClient.from_gateway_bot">ComponentClient.from_gateway_bot</a></code> and <code><a href="#ComponentClient.from_rest_bot">ComponentClient.from_rest_bot</a></code>.</p>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><strong>event_manager</strong> (typing.Optional[hikari.api.EventManager]):
+The event manager this client should listen to dispatched component
+interactions from if applicable.</li>
+<li><p><strong>event_managed</strong> (bool):
+Whether this client should be automatically opened and closed based on
+the lifetime events dispatched by <code>event_manager</code>.</p>
+
+<p>Defaults to <code>True</code> if an event manager is passed.</p></li>
+<li><strong>server</strong> (typing.Optional[hikari.api.InteractionServer]):
+The server this client should listen to component interactions
+from if applicable.</li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>ValueError</strong>: If <code>event_managed</code> is passed as <code>True</code> when <code>event_manager</code> is None.</li>
+</ul>
+</div>
+
 
                             <div id="ComponentClient.__init__" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#ComponentClient.__init__">#&nbsp;&nbsp</a>
@@ -4047,6 +4238,7 @@ inheritance.</p>
             <span class="name">ComponentClient</span><span class="signature">(
     *,
     event_manager: Optional[hikari.api.event_manager.EventManager] = None,
+    event_managed: Optional[bool] = None,
     server: Optional[hikari.api.interaction_server.InteractionServer] = None
 )</span>
     </div>
@@ -4057,12 +4249,20 @@ inheritance.</p>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">event_manager</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
+
+        <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">event_manager</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;event_managed may only be passed when an event_manager is also passed&quot;</span><span class="p">)</span>
+
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting</span><span class="p">)</span>
+            <span class="n">event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -4079,20 +4279,63 @@ inheritance.</p>
             <span class="name">from_gateway_bot</span><span class="signature">(
     cls,
     bot: hikari.traits.GatewayBotAware,
-    /
+    /,
+    *,
+    event_managed: bool = True
 ) -&gt; <a href="yuyo/components.html#ComponentClient">yuyo.components.ComponentClient</a></span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma Gateway Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.GatewayBotAware</span>
+<span class="sd">            The Gateway bot this component client should be bound to.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the component client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-    
+            <div class="docstring"><p>Build a component client froma Gateway Bot.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>bot</strong> (hikari.traits.GatewayBotAware):
+The Gateway bot this component client should be bound to.</li>
+</ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><strong>event_managed</strong> (bool):
+Whether the component client should be automatically opened and
+closed based on the lifetime events dispatched by <code>bot</code>.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>ComponentClient</strong>: The initialised component client.</li>
+</ul>
+</div>
+
 
                             </div>
                             <div id="ComponentClient.from_rest_bot" class="classattr">
@@ -4112,12 +4355,39 @@ inheritance.</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_rest_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">RESTBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComponentClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build a component client froma REST Bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bot : hikari.traits.RESTBotAware</span>
+<span class="sd">            The REST bot this component client should be bound to.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ComponentClient</span>
+<span class="sd">            The initialised component client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">interaction_server</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-    
+            <div class="docstring"><p>Build a component client froma REST Bot.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>bot</strong> (hikari.traits.RESTBotAware):
+The REST bot this component client should be bound to.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>ComponentClient</strong>: The initialised component client.</li>
+</ul>
+</div>
+
 
                             </div>
                             <div id="ComponentClient.close" class="classattr">
@@ -4131,6 +4401,10 @@ inheritance.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
@@ -4149,7 +4423,9 @@ inheritance.</p>
 
         </details>
 
-    
+            <div class="docstring"><p>Close the component client.</p>
+</div>
+
 
                             </div>
                             <div id="ComponentClient.open" class="classattr">
@@ -4163,6 +4439,12 @@ inheritance.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Startup the component client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_rest_request</span><span class="p">)</span>
 
@@ -4172,7 +4454,9 @@ inheritance.</p>
 
         </details>
 
-    
+            <div class="docstring"><p>Startup the component client.</p>
+</div>
+
 
                             </div>
                             <div id="ComponentClient.on_gateway_event" class="classattr">
@@ -6079,6 +6363,9 @@ inheritance.</p>
         <span class="n">load_from_attributes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">AsyncIterator</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid value passed for `iterator`, expected an iterator but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">iterator</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">ephemeral_default</span><span class="o">=</span><span class="n">ephemeral_default</span><span class="p">,</span> <span class="n">load_from_attributes</span><span class="o">=</span><span class="n">load_from_attributes</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span>
         <span class="p">)</span>
@@ -6313,6 +6600,9 @@ until it times out.</p>
         <span class="n">load_from_attributes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">AsyncIterator</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid value passed for `iterator`, expected an iterator but got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">iterator</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">ephemeral_default</span><span class="o">=</span><span class="n">ephemeral_default</span><span class="p">,</span> <span class="n">load_from_attributes</span><span class="o">=</span><span class="n">load_from_attributes</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span>
         <span class="p">)</span>
@@ -7916,19 +8206,33 @@ The component executor to add.</li>
 <span class="sd">        The REST client to register this reaction client with.</span>
 <span class="sd">    event_manager : hikari.api.event_manager.EventManager</span>
 <span class="sd">        The event manager client to register this reaction client with.</span>
+
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    event_managed : bool</span>
+<span class="sd">        Whether the reaction client should be automatically opened and</span>
+<span class="sd">        closed based on the lifetime events dispatched by `event_managed`.</span>
+<span class="sd">        This defaults to `True`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;blacklist&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_handlers&quot;</span><span class="p">,</span> <span class="s2">&quot;_rest&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">AbstractReactionHandler</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">rest</span>
 
+        <span class="k">if</span> <span class="n">event_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
+
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Build a `ReactionClient` from a gateway bot.</span>
 
 <span class="sd">        Parameters</span>
@@ -7936,12 +8240,19 @@ The component executor to add.</li>
 <span class="sd">        bot : hikari.traits.GatewayBotAware</span>
 <span class="sd">            The bot to build a reaction client for.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the reaction client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+<span class="sd">            This defaults to `True`.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ReactionClient</span>
 <span class="sd">            The reaction client for the bot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_gc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -8052,8 +8363,6 @@ The component executor to add.</li>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
@@ -8066,8 +8375,6 @@ The component executor to add.</li>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">fetch_my_user</span><span class="p">())</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
 </pre></div>
@@ -9790,19 +10097,33 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
 <span class="sd">        The REST client to register this reaction client with.</span>
 <span class="sd">    event_manager : hikari.api.event_manager.EventManager</span>
 <span class="sd">        The event manager client to register this reaction client with.</span>
+
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    event_managed : bool</span>
+<span class="sd">        Whether the reaction client should be automatically opened and</span>
+<span class="sd">        closed based on the lifetime events dispatched by `event_managed`.</span>
+<span class="sd">        This defaults to `True`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;blacklist&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_handlers&quot;</span><span class="p">,</span> <span class="s2">&quot;_rest&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">AbstractReactionHandler</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">rest</span>
 
+        <span class="k">if</span> <span class="n">event_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
+
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Build a `ReactionClient` from a gateway bot.</span>
 
 <span class="sd">        Parameters</span>
@@ -9810,12 +10131,19 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
 <span class="sd">        bot : hikari.traits.GatewayBotAware</span>
 <span class="sd">            The bot to build a reaction client for.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the reaction client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+<span class="sd">            This defaults to `True`.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ReactionClient</span>
 <span class="sd">            The reaction client for the bot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_gc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -9926,8 +10254,6 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
@@ -9940,8 +10266,6 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">fetch_my_user</span><span class="p">())</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
 </pre></div>
@@ -9962,6 +10286,15 @@ The REST client to register this reaction client with.</li>
 <li><strong>event_manager</strong> (hikari.api.event_manager.EventManager):
 The event manager client to register this reaction client with.</li>
 </ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><strong>event_managed</strong> (bool):
+Whether the reaction client should be automatically opened and
+closed based on the lifetime events dispatched by <code>event_managed</code>.
+This defaults to <code>True</code>.</li>
+</ul>
 </div>
 
 
@@ -9972,18 +10305,25 @@ The event manager client to register this reaction client with.</li>
             <span class="name">ReactionClient</span><span class="signature">(
     *,
     rest: hikari.api.rest.RESTClient,
-    event_manager: hikari.api.event_manager.EventManager
+    event_manager: hikari.api.event_manager.EventManager,
+    event_managed: bool = True
 )</span>
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">,</span> <span class="n">event_manager</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EventManager</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">AbstractReactionHandler</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">rest</span>
+
+        <span class="k">if</span> <span class="n">event_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -10009,14 +10349,16 @@ The event manager client to register this reaction client with.</li>
             <span class="name">from_gateway_bot</span><span class="signature">(
     cls,
     bot: hikari.traits.GatewayBotAware,
-    /
+    /,
+    *,
+    event_managed: bool = True
 ) -&gt; <a href="yuyo/reactions.html#ReactionClient">yuyo.reactions.ReactionClient</a></span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_gateway_bot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">traits</span><span class="o">.</span><span class="n">GatewayBotAware</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReactionClient</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Build a `ReactionClient` from a gateway bot.</span>
 
 <span class="sd">        Parameters</span>
@@ -10024,12 +10366,19 @@ The event manager client to register this reaction client with.</li>
 <span class="sd">        bot : hikari.traits.GatewayBotAware</span>
 <span class="sd">            The bot to build a reaction client for.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        event_managed : bool</span>
+<span class="sd">            Whether the reaction client should be automatically opened and</span>
+<span class="sd">            closed based on the lifetime events dispatched by `bot`.</span>
+<span class="sd">            This defaults to `True`.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        ReactionClient</span>
 <span class="sd">            The reaction client for the bot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">rest</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span> <span class="n">event_manager</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="n">event_managed</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -10041,6 +10390,15 @@ The event manager client to register this reaction client with.</li>
 <ul>
 <li><strong>bot</strong> (hikari.traits.GatewayBotAware):
 The bot to build a reaction client for.</li>
+</ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><strong>event_managed</strong> (bool):
+Whether the reaction client should be automatically opened and
+closed based on the lifetime events dispatched by <code>bot</code>.
+This defaults to <code>True</code>.</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -10246,8 +10604,6 @@ The message ID to remove a paginator for.</li>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_try_unsubscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
@@ -10278,8 +10634,6 @@ The message ID to remove a paginator for.</li>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gc</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">fetch_my_user</span><span class="p">())</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StartingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_starting_event</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">StoppingEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_stopping_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_reaction_event</span><span class="p">)</span>
 </pre></div>
