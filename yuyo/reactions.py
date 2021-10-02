@@ -381,7 +381,7 @@ class ReactionPaginator(ReactionHandler):
 
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
         self._buffer: typing.List[pagination.EntryT] = []
-        self._index = 0
+        self._index = -1
         self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
 

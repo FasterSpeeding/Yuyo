@@ -809,7 +809,7 @@ class ComponentClient:
     async def _gc(self) -> None:
         while True:
             for message_id, executor in tuple(self._executors.items()):
-                if executor.has_expired or message_id not in self._executors:
+                if not executor.has_expired or message_id not in self._executors:
                     continue
 
                 del self._executors[message_id]
@@ -1428,7 +1428,7 @@ class ComponentPaginator(ActionRowExecutor):
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: typing.List[pagination.EntryT] = []
         self._ephemeral_default = ephemeral_default
-        self._index: int = 0
+        self._index: int = -1
         self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
 

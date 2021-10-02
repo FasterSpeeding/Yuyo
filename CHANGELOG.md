@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2a1.post1] - 2021-10-02
+### Fixed
+- ComponentClient erroneously garbage collecting unexpired executors.
+- ComponentPaginator and ReactionPaginator both starting on index 1 instead of 0.
+
+
 ## [1.0.2a1] - 2021-10-02
 ### Added
 - Option to have the ComponentClient be event managed when linked to an event manager.
