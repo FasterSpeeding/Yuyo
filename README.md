@@ -23,4 +23,4 @@ Hikari's support guild has a dedicated Yuyo help channel which can accessed usin
 
 Before contributing you should read through the
 [contributing guidelines](https://github.com/FasterSpeeding/Yuyo/blob/master/CONTRIBUTING.md) and
-the [code of conduct](https://github.com/FasterSpeeding/Yuyo/blob/master/CONTRIBUTING.md)
+the [code of conduct](https://github.com/FasterSpeeding/Yuyo/blob/master/CODE_OF_CONDUCT.md)
