@@ -5,10 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Option to have the ComponentClient be event managed when linked to an event manager.
+  This is True by default.
+
 ### Changed
 - The client now gives a ephemeral timed out response when an unknown message is received.
 
 ### Fixed
+- ComponentClient's gc task not being started when its opened.
 - Handling of access errors in the component client.
 - MultiComponentExecutor slots.
 

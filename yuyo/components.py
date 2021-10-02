@@ -704,12 +704,39 @@ class ExecutorClosed(Exception):
 
 
 class ComponentClient:
+    """Client used to handle component executors within a REST or gateway flow.
+
+    .. note::
+        For an easier way to initialise the client from a bot see
+        `ComponentClient.from_gateway_bot` and `ComponentClient.from_rest_bot`.
+
+    Other Parameters
+    ----------------
+    event_manager : typing.Optional[hikari.api.EventManager]
+        The event manager this client should listen to dispatched component
+        interactions from if applicable.
+    event_managed : bool
+        Whether this client should be automatically opened and closed based on
+        the lifetime events dispatched by `event_manager`.
+
+        Defaults to `True` if an event manager is passed.
+    server : typing.Optional[hikari.api.InteractionServer]
+        The server this client should listen to component interactions
+        from if applicable.
+
+    Raises
+    ------
+    ValueError
+        If `event_managed` is passed as `True` when `event_manager` is None.
+    """
+
     __slots__ = ("_event_manager", "_executors", "_gc_task", "_server")
 
     def __init__(
         self,
         *,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
+        event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
         self._event_manager = event_manager
@@ -717,10 +744,17 @@ class ComponentClient:
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._server = server
 
+        if event_managed or event_managed is None and event_manager:
+            if not event_manager:
+                raise ValueError("event_managed may only be passed when an event_manager is also passed")
+
+            event_manager.subscribe(hikari.StartingEvent, self._on_starting)
+            event_manager.subscribe(hikari.StoppingEvent, self._on_stopping)
+
     def __enter__(self) -> None:
         self.open()
 
-    async def __exit__(
+    def __exit__(
         self,
         exc_type: typing.Optional[type[BaseException]],
         exc: typing.Optional[BaseException],
@@ -729,12 +763,48 @@ class ComponentClient:
         self.close()
 
     @classmethod
-    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /) -> ComponentClient:
-        return cls(event_manager=bot.event_manager)
+    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
+        """Build a component client froma Gateway Bot.
+
+        Parameters
+        ----------
+        bot : hikari.traits.GatewayBotAware
+            The Gateway bot this component client should be bound to.
+
+        Other Parameters
+        ----------------
+        event_managed : bool
+            Whether the component client should be automatically opened and
+            closed based on the lifetime events dispatched by `bot`.
+
+        Returns
+        -------
+        ComponentClient
+            The initialised component client.
+        """
+        return cls(event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
     def from_rest_bot(cls, bot: traits.RESTBotAware, /) -> ComponentClient:
+        """Build a component client froma REST Bot.
+
+        Parameters
+        ----------
+        bot : hikari.traits.RESTBotAware
+            The REST bot this component client should be bound to.
+
+        Returns
+        -------
+        ComponentClient
+            The initialised component client.
+        """
         return cls(server=bot.interaction_server)
+
+    async def _on_starting(self, event: hikari.StartingEvent) -> None:
+        self.open()
+
+    async def _on_stopping(self, event: hikari.StoppingEvent) -> None:
+        self.close()
 
     async def _gc(self) -> None:
         while True:
@@ -749,6 +819,10 @@ class ComponentClient:
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
+        """Close the component client."""
+        if not self._gc_task:
+            return
+
         if self._gc_task:
             self._gc_task.cancel()
             self._gc_task = None
@@ -765,6 +839,12 @@ class ComponentClient:
         #     executor.close()
 
     def open(self) -> None:
+        """Startup the component client."""
+        if self._gc_task:
+            return
+
+        self._gc_task = asyncio.get_running_loop().create_task(self._gc())
+
         if self._server:
             self._server.set_listener(hikari.ComponentInteraction, self.on_rest_request)
 
@@ -1338,6 +1418,9 @@ class ComponentPaginator(ActionRowExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        if not isinstance(iterator, (typing.Iterator, typing.AsyncIterator)):
+            raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+
         super().__init__(
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
         )

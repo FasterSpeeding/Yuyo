@@ -666,19 +666,33 @@ class ReactionClient:
         The REST client to register this reaction client with.
     event_manager : hikari.api.event_manager.EventManager
         The event manager client to register this reaction client with.
+
+
+    Other Parameters
+    ----------------
+    event_managed : bool
+        Whether the reaction client should be automatically opened and
+        closed based on the lifetime events dispatched by `event_managed`.
+        This defaults to `True`.
     """
 
     __slots__ = ("blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
 
-    def __init__(self, *, rest: hikari.api.RESTClient, event_manager: hikari.api.EventManager) -> None:
+    def __init__(
+        self, *, rest: hikari.api.RESTClient, event_manager: hikari.api.EventManager, event_managed: bool = True
+    ) -> None:
         self.blacklist: typing.List[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._handlers: typing.Dict[hikari.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
 
+        if event_managed:
+            self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
+            self._event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
+
     @classmethod
-    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /) -> ReactionClient:
+    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters
@@ -686,12 +700,19 @@ class ReactionClient:
         bot : hikari.traits.GatewayBotAware
             The bot to build a reaction client for.
 
+        Other Parameters
+        ----------------
+        event_managed : bool
+            Whether the reaction client should be automatically opened and
+            closed based on the lifetime events dispatched by `bot`.
+            This defaults to `True`.
+
         Returns
         -------
         ReactionClient
             The reaction client for the bot.
         """
-        return cls(rest=bot.rest, event_manager=bot.event_manager)
+        return cls(rest=bot.rest, event_manager=bot.event_manager, event_managed=event_managed)
 
     async def _gc(self) -> None:
         while True:
@@ -802,8 +823,6 @@ class ReactionClient:
     async def close(self) -> None:
         """Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`."""
         if self._gc_task is not None:
-            self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
-            self._try_unsubscribe(hikari.StoppingEvent, self._on_stopping_event)
             self._try_unsubscribe(hikari.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
             self._try_unsubscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
             self._gc_task.cancel()
@@ -816,7 +835,5 @@ class ReactionClient:
         if self._gc_task is None:
             self._gc_task = asyncio.create_task(self._gc())
             self.blacklist.append((await self._rest.fetch_my_user()).id)
-            self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
-            self._event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
             self._event_manager.subscribe(hikari.ReactionAddEvent, self._on_reaction_event)
             self._event_manager.subscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)
