@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.2a1]
+## [1.0.2a1] - 2021-10-02
 ### Added
 - Option to have the ComponentClient be event managed when linked to an event manager.
   This is True by default.
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handling of access errors in the component client.
 - MultiComponentExecutor slots.
 
-## [1.0.1a1]
+## [1.0.1a1] - 2021-09-21
 ### Added
 - Higher level component execution client and a pagination specific implementation of its
   executor.
