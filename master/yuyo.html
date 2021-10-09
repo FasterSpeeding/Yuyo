@@ -5276,7 +5276,7 @@ marked as failed.</p>
             <span class="def">async def</span>
             <span class="name">defer</span><span class="signature">(
     self,
-    defer_type: Union[Literal[&lt;ResponseType.DEFERRED_MESSAGE_CREATE: 5&gt;], Literal[5], Literal[&lt;ResponseType.DEFERRED_MESSAGE_UPDATE: 6&gt;], Literal[6]],
+    defer_type: Literal[&lt;ResponseType.DEFERRED_MESSAGE_CREATE: 5&gt;, 5, &lt;ResponseType.DEFERRED_MESSAGE_UPDATE: 6&gt;, 6],
     flags: Union[hikari.undefined.UndefinedType, int, hikari.messages.MessageFlag] = UNDEFINED
 ) -&gt; None</span>:
     </div>
@@ -5677,7 +5677,7 @@ nature, and will trigger this exception if they occur.</li>
             <span class="def">async def</span>
             <span class="name">create_initial_response</span><span class="signature">(
     self,
-    response_type: Union[Literal[&lt;ResponseType.MESSAGE_CREATE: 4&gt;], Literal[4], Literal[&lt;ResponseType.MESSAGE_UPDATE: 7&gt;], Literal[7], Literal[&lt;ResponseType.DEFERRED_MESSAGE_CREATE: 5&gt;], Literal[5], Literal[&lt;ResponseType.DEFERRED_MESSAGE_UPDATE: 6&gt;], Literal[6]],
+    response_type: Union[Literal[&lt;ResponseType.MESSAGE_CREATE: 4&gt;, 4, &lt;ResponseType.MESSAGE_UPDATE: 7&gt;, 7], Literal[&lt;ResponseType.DEFERRED_MESSAGE_CREATE: 5&gt;, 5, &lt;ResponseType.DEFERRED_MESSAGE_UPDATE: 6&gt;, 6]],
     /,
     content: Union[Any, hikari.undefined.UndefinedType] = UNDEFINED,
     *,
