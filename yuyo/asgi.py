@@ -60,7 +60,7 @@ async def _error_response(send: asgiref.ASGISendCallable, body: bytes) -> None:
             type="http.response.start",
             status=_BAD_REQUEST_STATUS,
             headers=[
-                (b"content-type", _TEXT_CONTENT_TYPE),
+                (_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE),
             ],
         )
     )
