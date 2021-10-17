@@ -750,7 +750,7 @@
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">create_initial_response</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentResponseTypesT</span><span class="p">,</span>
+        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">MessageResponseTypesT</span><span class="p">,</span>
         <span class="o">/</span><span class="p">,</span>
         <span class="n">content</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -1833,7 +1833,7 @@
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_disable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ComponentContext</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">DEFERRED_MESSAGE_UPDATE</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">DEFERRED_MESSAGE_UPDATE</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">delete_initial_response</span><span class="p">()</span>
         <span class="k">raise</span> <span class="n">ExecutorClosed</span>
 
@@ -3378,7 +3378,7 @@ The REST bot this component client should be bound to.</li>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">create_initial_response</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentResponseTypesT</span><span class="p">,</span>
+        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">MessageResponseTypesT</span><span class="p">,</span>
         <span class="o">/</span><span class="p">,</span>
         <span class="n">content</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -4133,7 +4133,7 @@ nature, and will trigger this exception if they occur.</li>
             <span class="def">async def</span>
             <span class="name">create_initial_response</span><span class="signature">(
     self,
-    response_type: Union[Literal[&lt;ResponseType.MESSAGE_CREATE: 4&gt;, 4, &lt;ResponseType.MESSAGE_UPDATE: 7&gt;, 7], Literal[&lt;ResponseType.DEFERRED_MESSAGE_CREATE: 5&gt;, 5, &lt;ResponseType.DEFERRED_MESSAGE_UPDATE: 6&gt;, 6]],
+    response_type: Literal[&lt;ResponseType.MESSAGE_CREATE: 4&gt;, 4, &lt;ResponseType.MESSAGE_UPDATE: 7&gt;, 7],
     /,
     content: Union[Any, hikari.undefined.UndefinedType] = UNDEFINED,
     *,
@@ -4153,7 +4153,7 @@ nature, and will trigger this exception if they occur.</li>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">create_initial_response</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentResponseTypesT</span><span class="p">,</span>
+        <span class="n">response_type</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">MessageResponseTypesT</span><span class="p">,</span>
         <span class="o">/</span><span class="p">,</span>
         <span class="n">content</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -4938,7 +4938,7 @@ inheritance.</p>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_on_disable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ComponentContext</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">DEFERRED_MESSAGE_UPDATE</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">defer</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">DEFERRED_MESSAGE_UPDATE</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">delete_initial_response</span><span class="p">()</span>
         <span class="k">raise</span> <span class="n">ExecutorClosed</span>
 
