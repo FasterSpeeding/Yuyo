@@ -188,7 +188,7 @@ class AsgiAdapter:
         response = await self.server.on_interaction(body, signature, timestamp)
         headers: typing.List[typing.Tuple[bytes, bytes]] = []
         if response.headers:
-            headers.extend([(key.encode(), value.encode()) for key, value in response.headers.items()])
+            headers.extend((key.encode(), value.encode()) for key, value in response.headers.items())
 
         response_dict = asgiref.HTTPResponseStartEvent(
             type="http.response.start", status=response.status_code, headers=headers
