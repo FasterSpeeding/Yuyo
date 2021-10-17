@@ -49,8 +49,8 @@ _LOGGER = logging.getLogger("hikari.yuyo.asgi")
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
-_X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"X-Signature-Ed25519".lower()
-_X_SIGNATURE_TIMESTAMP_HEADER: typing.Final[bytes] = b"X-Signature-Timestamp".lower()
+_X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"x-signature-ed25519"
+_X_SIGNATURE_TIMESTAMP_HEADER: typing.Final[bytes] = b"x-signature-timestamp"
 _TEXT_CONTENT_TYPE: typing.Final[bytes] = b"text/plain; charset=UTF-8"
 
 
@@ -161,7 +161,8 @@ class AsgiAdapter:
 
                 # Yes UnicodeDecodeError means failed ascii decode.
                 except (ValueError, UnicodeDecodeError):
-                    break
+                    await _error_response(send, b"Invalid ED25519 signature header found")
+                    return
 
                 if timestamp and content_type:
                     break
@@ -192,7 +193,6 @@ class AsgiAdapter:
         response_dict = asgiref.HTTPResponseStartEvent(
             type="http.response.start", status=response.status_code, headers=headers
         )
-
         await send(response_dict)
         await send(
             asgiref.HTTPResponseBodyEvent(type="http.response.body", body=response.payload or b"", more_body=False)
