@@ -54,17 +54,13 @@ _X_SIGNATURE_TIMESTAMP_HEADER: typing.Final[bytes] = b"x-signature-timestamp"
 _TEXT_CONTENT_TYPE: typing.Final[bytes] = b"text/plain; charset=UTF-8"
 
 
-async def _error_response(send: asgiref.ASGISendCallable, body: bytes) -> None:
+async def _error_response(
+    send: asgiref.ASGISendCallable, body: bytes, *, status_code: int = _BAD_REQUEST_STATUS
+) -> None:
     await send(
-        asgiref.HTTPResponseStartEvent(
-            type="http.response.start",
-            status=_BAD_REQUEST_STATUS,
-            headers=[
-                (_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE),
-            ],
-        )
+        {"type": "http.response.start", "status": status_code, "headers": [(_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE)]}
     )
-    await send(asgiref.HTTPResponseBodyEvent(type="http.response.body", body=body, more_body=False))
+    await send({"type": "http.response.body", "body": body, "more_body": False})
 
 
 class AsgiAdapter:
@@ -190,10 +186,5 @@ class AsgiAdapter:
         if response.headers:
             headers.extend((key.encode(), value.encode()) for key, value in response.headers.items())
 
-        response_dict = asgiref.HTTPResponseStartEvent(
-            type="http.response.start", status=response.status_code, headers=headers
-        )
-        await send(response_dict)
-        await send(
-            asgiref.HTTPResponseBodyEvent(type="http.response.body", body=response.payload or b"", more_body=False)
-        )
+        await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
+        await send({"type": "http.response.body", "body": response.payload or b"", "more_body": False})
