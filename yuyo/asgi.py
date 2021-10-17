@@ -35,17 +35,19 @@ from __future__ import annotations
 
 __all__: typing.Sequence[str] = ["AsgiAdapter"]
 
+import asyncio
 import logging
+import traceback
 import typing
 
 import asgiref.typing as asgiref
+import hikari
 
-if typing.TYPE_CHECKING:
-    from hikari.api import interaction_server
+_AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 
 
 _LOGGER = logging.getLogger("hikari.yuyo.asgi")
-_CONTENT_TYPE_KEY: typing.Final[bytes] = b"Content-Type"
+_CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
 _X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"X-Signature-Ed25519".lower()
@@ -67,20 +69,73 @@ async def _error_response(send: asgiref.ASGISendCallable, body: bytes) -> None:
 
 
 class AsgiAdapter:
-    __slots__ = ("server",)
+    __slots__ = ("_on_shutdown", "_on_startup", "_server")
 
-    def __init__(self, server: interaction_server.InteractionServer, /) -> None:
-        self.server = server
+    def __init__(self, server: hikari.api.InteractionServer, /) -> None:
+        self._on_shutdown: typing.List[typing.Callable[[], typing.Awaitable[None]]] = []
+        self._on_startup: typing.List[typing.Callable[[], typing.Awaitable[None]]] = []
+        self._server = server
+
+    @property
+    def server(self) -> hikari.api.InteractionServer:
+        return self._server
 
     async def __call__(
-        self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
     ) -> None:
-        await self.receive(scope, receive, send)
+        if scope["type"] == "http":
+            await self.process_request(scope, receive, send)
 
-    async def receive(
-        self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+        elif scope["type"] == "lifespan":
+            await self.process_lifespan_event(receive, send)
+
+        else:
+            raise ValueError("Websocket operations are not supported")
+
+    def add_shutdown_callback(
+        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Awaitable[None]], /
+    ) -> _AsgiAdapterT:
+        self._on_shutdown.append(callback)
+        return self
+
+    def add_startup_callback(
+        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Awaitable[None]], /
+    ) -> _AsgiAdapterT:
+        self._on_startup.append(callback)
+        return self
+
+    async def process_lifespan_event(
+        self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
     ) -> None:
-        assert scope["type"] == "http"
+        message = await receive()
+        message_type = message["type"]
+
+        if message_type == "lifespan.startup":
+            try:
+                await asyncio.gather(*(callback() for callback in self._on_startup))
+
+            except BaseException:
+                await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
+
+            else:
+                await send({"type": "lifespan.startup.complete"})
+
+        elif message_type == "lifespan.shutdown":
+            try:
+                await asyncio.gather(*(callback() for callback in self._on_shutdown))
+
+            except BaseException:
+                await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
+
+            else:
+                await send({"type": "lifespan.shutdown.complete"})
+
+        else:
+            raise ValueError(f"Unknown lifespan event {message_type}")
+
+    async def process_request(
+        self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
+    ) -> None:
         more_body = True
         body = bytearray()
         while more_body:
@@ -131,12 +186,9 @@ class AsgiAdapter:
             return
 
         response = await self.server.on_interaction(body, signature, timestamp)
-        headers: typing.Iterable[typing.Tuple[bytes, bytes]]
+        headers: typing.List[typing.Tuple[bytes, bytes]] = []
         if response.headers:
-            headers = ((key.encode(), value.encode()) for key, value in response.headers.items())
-
-        else:
-            headers = ()
+            headers.extend([(key.encode(), value.encode()) for key, value in response.headers.items()])
 
         response_dict = asgiref.HTTPResponseStartEvent(
             type="http.response.start", status=response.status_code, headers=headers
