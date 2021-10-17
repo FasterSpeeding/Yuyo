@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- `Context.defer` is now used in the ComponentPaginator instead of
+  `Context.create_initial_response` to defer the initial response since before deleting it
+  as `Context.create_initial_response` errors in the REST flow when a defer type is passed.
+- `Context.create_initial_response` is no longer typed as taking deferred types.
 
 ## [1.0.2a1.post1] - 2021-10-02
 ### Fixed
