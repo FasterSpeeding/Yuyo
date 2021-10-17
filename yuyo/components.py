@@ -454,7 +454,7 @@ class ComponentContext:
 
     async def create_initial_response(
         self,
-        response_type: hikari.ComponentResponseTypesT,
+        response_type: hikari.MessageResponseTypesT,
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
@@ -1537,7 +1537,7 @@ class ComponentPaginator(ActionRowExecutor):
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
         self._iterator = None
-        await ctx.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
+        await ctx.defer(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
         await ctx.delete_initial_response()
         raise ExecutorClosed
 
