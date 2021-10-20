@@ -63,12 +63,18 @@ async def _error_response(
     await send({"type": "http.response.body", "body": body, "more_body": False})
 
 
+async def _maybe_await(callback: typing.Callable[[], typing.Union[typing.Awaitable[None], None]]) -> None:
+    result = callback()
+    if isinstance(result, typing.Awaitable):
+        await result
+
+
 class AsgiAdapter:
     __slots__ = ("_on_shutdown", "_on_startup", "_server")
 
     def __init__(self, server: hikari.api.InteractionServer, /) -> None:
-        self._on_shutdown: typing.List[typing.Callable[[], typing.Awaitable[None]]] = []
-        self._on_startup: typing.List[typing.Callable[[], typing.Awaitable[None]]] = []
+        self._on_shutdown: typing.List[typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]] = []
+        self._on_startup: typing.List[typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]] = []
         self._server = server
 
     @property
@@ -88,13 +94,13 @@ class AsgiAdapter:
             raise ValueError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Awaitable[None]], /
+        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[None, typing.Awaitable[None]]], /
     ) -> _AsgiAdapterT:
         self._on_shutdown.append(callback)
         return self
 
     def add_startup_callback(
-        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Awaitable[None]], /
+        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[typing.Awaitable[None]]], /
     ) -> _AsgiAdapterT:
         self._on_startup.append(callback)
         return self
@@ -107,7 +113,7 @@ class AsgiAdapter:
 
         if message_type == "lifespan.startup":
             try:
-                await asyncio.gather(*(callback() for callback in self._on_startup))
+                await asyncio.gather(*map(_maybe_await, self._on_startup))
 
             except BaseException:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
@@ -117,7 +123,7 @@ class AsgiAdapter:
 
         elif message_type == "lifespan.shutdown":
             try:
-                await asyncio.gather(*(callback() for callback in self._on_shutdown))
+                await asyncio.gather(*map(_maybe_await, self._on_shutdown))
 
             except BaseException:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
