@@ -45,6 +45,7 @@ __all__: typing.Sequence[str] = [
     "InteractiveButtonBuilder",
     "MultiComponentExecutor",
     "SelectMenuBuilder",
+    "WaitFor",
 ]
 
 import abc
