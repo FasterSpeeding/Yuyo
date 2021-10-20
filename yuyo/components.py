@@ -731,7 +731,7 @@ class ComponentClient:
         If `event_managed` is passed as `True` when `event_manager` is None.
     """
 
-    __slots__ = ("_event_manager", "_executors", "_gc_task", "_server")
+    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_server")
 
     def __init__(
         self,
@@ -740,6 +740,7 @@ class ComponentClient:
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
+        self._constant_ids: typing.Dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
@@ -868,7 +869,10 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        if executor := self._executors.get(event.interaction.message.id):
+        if constant_callback := self._constant_ids.get(event.interaction.custom_id):
+            await constant_callback(ComponentContext(ephemeral_default=False, interaction=event.interaction))
+
+        elif executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
 
         else:
@@ -877,6 +881,15 @@ class ComponentClient:
             )
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
+        if constant_callback := self._constant_ids.get(interaction.custom_id):
+            future: asyncio.Future[ResponseT] = asyncio.Future()
+            asyncio.create_task(
+                constant_callback(
+                    ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
+                )
+            )
+            return await future
+
         if executor := self._executors.get(interaction.message.id):
             if not executor.has_expired:
                 future: asyncio.Future[ResponseT] = asyncio.Future()
@@ -891,10 +904,126 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
+    def add_constant_id(self: _ComponentClientT, custom_id: str, callback: CallbackSig, /) -> _ComponentClientT:
+        """Add a constant "custom_id" callback.
+
+        These are callbacks which'll always be called for a specific custom_id
+        while taking priority over executors.
+
+        Parameters
+        ----------
+        custom_id : str
+            The custom_id to register the callback for.
+        callback : CallbackSig
+            The callback to register.
+
+            This should take a single argument of type `ComponentContext`,
+            be asynchronous and return `None`.
+
+        Returns
+        -------
+        SelfT
+            The component client to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If the custom_id is already registered.
+        """
+        if custom_id in self._constant_ids:
+            raise KeyError(f"Custom ID {custom_id} already in use.")
+
+        self._constant_ids[custom_id] = callback
+        return self
+
+    def remove_constant_id(self: _ComponentClientT, custom_id: str, /) -> _ComponentClientT:
+        """Remove a constant "custom_id" callback.
+
+        Parameters
+        ----------
+        custom_id : str
+            The custom_id to remove the callback for.
+
+        Returns
+        -------
+        SelfT
+            The component client to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If the custom_id is not registered.
+        """
+        del self._constant_ids[custom_id]
+        return self
+
+    def with_constant_id(self, custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+        """Add a constant "custom_id" callback through a decorator call.
+
+        These are callbacks which'll always be called for a specific custom_id
+        while taking priority over executors.
+
+        Parameters
+        ----------
+        custom_id : str
+            The custom_id to register the callback for.
+
+        Returns
+        -------
+        Callable[[CallbackSigT], CallbackSigT]
+            A decorator to register the callback.
+
+        Raises
+        ------
+        KeyError
+            If the custom_id is already registered.
+        """
+
+        def decorator(callback: CallbackSigT, /) -> CallbackSigT:
+            self.add_constant_id(custom_id, callback)
+            return callback
+
+        return decorator
+
     def add_executor(
         self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> _ComponentClientT:
+        """Set the component executor for a message.
+
+        Parameters
+        ----------
+        message : hikari.SnowflakeishOr[hikari.Message]
+            The message to set the executor for.
+        executor : AbstractComponentExecutor
+            The executor to set.
+
+            This will be called for every component interaction for the message
+            unless the component's custom_id is registered as a constant id callback.
+
+        Returns
+        -------
+        SelfT
+            The component client to allow chaining.
+        """
         self._executors[int(message)] = executor
+        return self
+
+    def remove_executor(
+        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], /
+    ) -> _ComponentClientT:
+        """Remove the component executor for a message.
+
+        Parameters
+        ----------
+        message : hikari.SnowflakeishOr[hikari.Message]
+            The message to remove the executor for.
+
+        Returns
+        -------
+        SelfT
+            The component client to allow chaining.
+        """
+        self._executors.pop(int(message))
         return self
 
 
