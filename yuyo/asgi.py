@@ -63,7 +63,7 @@ async def _error_response(
     await send({"type": "http.response.body", "body": body, "more_body": False})
 
 
-async def _maybe_await(callback: typing.Callable[[], typing.Union[typing.Awaitable[None], None]]) -> None:
+async def _maybe_await(callback: typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]) -> None:
     result = callback()
     if isinstance(result, typing.Awaitable):
         await result
@@ -100,7 +100,7 @@ class AsgiAdapter:
         return self
 
     def add_startup_callback(
-        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[typing.Awaitable[None]]], /
+        self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[None, typing.Awaitable[None]]], /
     ) -> _AsgiAdapterT:
         self._on_startup.append(callback)
         return self
