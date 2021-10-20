@@ -100,7 +100,7 @@ class AsgiAdapter:
         return self
 
     async def process_lifespan_event(
-        self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+        self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
         message = await receive()
         message_type = message["type"]
