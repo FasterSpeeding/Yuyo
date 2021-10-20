@@ -45,7 +45,7 @@ __all__: typing.Sequence[str] = [
     "InteractiveButtonBuilder",
     "MultiComponentExecutor",
     "SelectMenuBuilder",
-    "WaitFor",
+    "WaitForComponent",
 ]
 
 import abc
@@ -1010,7 +1010,7 @@ async def _pre_execution_error(
         )
 
 
-class WaitFor(AbstractComponentExecutor):
+class WaitForComponent(AbstractComponentExecutor):
     __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_timeout")
 
     def __init__(

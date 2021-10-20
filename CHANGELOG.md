@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Ranamed `components.WaitFor` to `WaitForComponent` and add it to `components.__all__` and
+  `yuyo.__all__`
+
 ### Fixed
 - `Context.defer` is now used in the ComponentPaginator instead of
   `Context.create_initial_response` to defer the initial response since before deleting it
