@@ -524,14 +524,19 @@ class TestAsgiAdapter:
         mock_receive.assert_awaited_once_with()
         stub_server.on_interaction.assert_not_called()
 
+    @pytest.mark.parametrize("header_value", ["🇯🇵".encode(), b"trans"])
     @pytest.mark.asyncio()
     async def test_process_request_when_ed_25519_header_not_valid(
-        self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
+        self,
+        adapter: yuyo.AsgiAdapter,
+        stub_server: hikari.api.InteractionServer,
+        http_scope: asgiref.typing.HTTPScope,
+        header_value: bytes,
     ):
         http_scope["headers"] = [
             (b"Content-Type", b"application/json"),
             (b"x-signature-timestamp", b"87"),
-            (b"x-signature-ed25519", "🇯🇵".encode()),
+            (b"x-signature-ed25519", header_value),
         ]
         mock_receive = mock.AsyncMock(return_value={"body": b"gay", "more_body": False})
         mock_send = mock.AsyncMock()
