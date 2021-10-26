@@ -2696,6 +2696,101 @@ WaitFor = WaitForExecutor
 """Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
 
 
+class ComponentStream(AbstractComponentExecutor):
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_max_backlog", "_timeout")
+
+    def __init__(
+        self,
+        *,
+        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        timeout: datetime.timedelta,
+        ephemeral_default: bool = False,
+        max_backlog: int = 5,
+    ) -> None:
+        self._authors = (hikari.Snowflake(user) for user in authors)
+        self._ephemeral_default = ephemeral_default
+        self._finished = False
+        self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
+        self._made_at: typing.Optional[datetime.datetime] = None
+        self._max_backlog = max_backlog
+        self._queue: typing.Optional[asyncio.Queue[ComponentContext]] = None
+        self._timeout = timeout
+
+    @property
+    def custom_ids(self) -> typing.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return []
+
+    @property
+    def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return bool(
+            self._finished
+            or self._made_at
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
+        )
+
+    def __enter__(self: _ComponentStreamT) -> _ComponentStreamT:
+        self.open()
+
+    def __exit__(
+        self,
+        exc_type: typing.Optional[typing.Type[BaseException]],
+        exc: typing.Optional[BaseException],
+        exc_traceback: typing.Optional[types.TracebackType],
+    ) -> None:
+        self.close()
+
+    def open(self) -> None:
+        if self._queue is not None:
+            raise RuntimeError("Stream is already active")
+
+        # Assert that this is called in a running event loop
+        asyncio.get_running_loop()
+        self._queue = asyncio.Queue(maxsize=self._max_backlog)
+        return self
+
+    def close(self) -> None:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        self._queue = None
+
+    def __aiter__(self) -> typing.AsyncIterator[ComponentContext]:
+        return self
+
+    async def __anext__(self) -> ComponentContext:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        try:
+            return await self._queue.get()
+
+        except asyncio.TimeoutError:
+            raise StopAsyncIteration from None
+
+    async def execute(
+        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
+    ) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        if not self._queue:
+            await _pre_execution_error(interaction, future, "This bot isn't ready for that yet")
+            return
+
+        if self._authors and interaction.user.id not in self._authors:
+            await _pre_execution_error(interaction, future, "You are not allowed to use this component")
+            return
+
+        try:
+            self._queue.put_nowait(
+                ComponentContext(
+                    interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default
+                )
+            )
+        except asyncio.QueueFull:
+            await _pre_execution_error(interaction, future, "This bot isn't ready for that yet")
+
+
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
     __slots__ = ()
 
