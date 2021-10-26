@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- An ASGI/3 adapter for Hikari's interaction server.
+
 ### Changed
 - Renamed `components.WaitFor` to `WaitForComponent` and added it to `components.__all__` and
   `yuyo.__all__`
