@@ -2702,12 +2702,12 @@ class ComponentStream(AbstractComponentExecutor):
     def __init__(
         self,
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         timeout: datetime.timedelta,
         ephemeral_default: bool = False,
         max_backlog: int = 5,
     ) -> None:
-        self._authors = (hikari.Snowflake(user) for user in authors)
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
