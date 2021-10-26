@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - An ASGI/3 adapter for Hikari's interaction server.
+- Ability to register a callback for a constant custom_id in the component client.
+  This takes precedence over any registered component executors.
 
 ### Changed
 - Renamed `components.WaitFor` to `WaitForComponent` and added it to `components.__all__` and
-  `yuyo.__all__`
+  `yuyo.__all__`.
 
 ### Fixed
 - `Context.defer` is now used in the ComponentPaginator instead of
@@ -18,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as `Context.create_initial_response` errors in the REST flow when a defer type is passed.
 - `Context.create_initial_response` is no longer typed as taking deferred types.
 - Handling of authors in WaitForComponent.
-- Added timeout to the future returned by WaitForComponent.wait_for
+- Added timeout handling to the future returned by WaitForComponent.wait_for.
 
 
 ## [1.0.2a1.post1] - 2021-10-02
