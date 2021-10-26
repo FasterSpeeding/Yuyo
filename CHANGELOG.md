@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Ranamed `components.WaitFor` to `WaitForComponent` and add it to `components.__all__` and
+- Renamed `components.WaitFor` to `WaitForComponent` and added it to `components.__all__` and
   `yuyo.__all__`
 
 ### Fixed
@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Context.create_initial_response` to defer the initial response since before deleting it
   as `Context.create_initial_response` errors in the REST flow when a defer type is passed.
 - `Context.create_initial_response` is no longer typed as taking deferred types.
+- Handling of authors in WaitForComponent.
+- Added timeout to the future returned by WaitForComponent.wait_for
+
 
 ## [1.0.2a1.post1] - 2021-10-02
 ### Fixed

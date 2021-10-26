@@ -1011,16 +1011,53 @@ async def _pre_execution_error(
 
 
 class WaitForComponent(AbstractComponentExecutor):
+    """Component executor used to wait for a single component interaction.
+
+    Parameters
+    ----------
+    authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]
+        The authors of the entries.
+
+        If None is passed here then the paginator will be public (meaning that
+        anybody can use it).
+
+    Other Parameters
+    ----------------
+    ephemeral_default: bool
+        Whether or not the responses made on contexts spawned from this paginator
+        should default to ephemeral (meaning only the author can see them) unless
+        `flags` is specified on the response method.
+    timeout : datetime.timedelta
+        How long this should wait for a matching component interaction until it times-out.
+
+    Examples
+    --------
+    ```py
+    responses: dict[str, str]
+    message = await ctx.respond("hi, pick an option", components=[...])
+    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))
+    component_client.add_executor(message.id, executor)
+
+    try:
+        result = await executor.wait_for()
+    except asyncio.TimeoutError:
+        await ctx.respond("timed out")
+
+    else:
+        await result.respond(responses[result.interaction.custom_id])
+    ```
+    """
+
     __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_timeout")
 
     def __init__(
         self,
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
-        timeout: datetime.timedelta,
+        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
+        timeout: datetime.timedelta,
     ) -> None:
-        self._authors = (hikari.Snowflake(user) for user in authors)
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
@@ -1042,12 +1079,26 @@ class WaitForComponent(AbstractComponentExecutor):
         )
 
     def wait_for(self) -> asyncio.Future[ComponentContext]:
+        """Wait for the next matching interaction.
+
+        Returns
+        -------
+        asyncio.Future[ComponentContext]
+            A future that will be resolved with the next matching interaction.
+
+            This will raise `asyncio.TimeoutError` if the timeout is reached.
+
+        Raises
+        ------
+        RuntimeError
+            If the executor is already being waited for.
+        """
         if self._future:
             raise RuntimeError("This executor is already being waited for")
 
         self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._future = asyncio.get_running_loop().create_future()
-        return self._future
+        return asyncio.wait_for(self._future, self._timeout.total_seconds())
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
@@ -1064,6 +1115,9 @@ class WaitForComponent(AbstractComponentExecutor):
         self._future.set_result(
             ComponentContext(interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default)
         )
+
+
+WaitFor = WaitForComponent
 
 
 class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):
