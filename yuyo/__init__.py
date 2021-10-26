@@ -44,6 +44,9 @@ __all__: typing.Sequence[str] = [
     "__license__",
     "__url__",
     "__version__",
+    # /asgi.py
+    "asgi",
+    "AsgiAdapter",
     # /backoff.py
     "backoff",
     "Backoff",
@@ -79,6 +82,7 @@ __all__: typing.Sequence[str] = [
 
 import typing
 
+from .asgi import *
 from .backoff import *
 from .components import *
 from .pagination import *

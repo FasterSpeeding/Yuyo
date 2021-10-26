@@ -280,7 +280,7 @@ class AsgiAdapter:
             return
 
         if not signature or not timestamp:
-            await _error_response(send, b"Missing or invalid required request signature header(s)")
+            await _error_response(send, b"Missing required request signature header(s)")
             return
 
         try:
