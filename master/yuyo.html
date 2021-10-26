@@ -221,7 +221,28 @@
                                 <a class="function" href="#ComponentClient.on_rest_request">on_rest_request</a>
                         </li>
                         <li>
+                                <a class="function" href="#ComponentClient.set_constant_id">set_constant_id</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.get_constant_id">get_constant_id</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.remove_constant_id">remove_constant_id</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.with_constant_id">with_constant_id</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#ComponentClient.add_executor">add_executor</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.set_executor">set_executor</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.get_executor">get_executor</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#ComponentClient.remove_executor">remove_executor</a>
                         </li>
                 </ul>
 
@@ -2883,6 +2904,7 @@ allow for chained calls.</li>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">hikari</span>
 
@@ -3559,7 +3581,7 @@ allow for chained calls.</li>
 <span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3568,6 +3590,7 @@ allow for chained calls.</li>
         <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3652,10 +3675,8 @@ allow for chained calls.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -3696,7 +3717,10 @@ allow for chained calls.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -3705,6 +3729,15 @@ allow for chained calls.</li>
             <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
+                <span class="n">constant_callback</span><span class="p">(</span>
+                    <span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">interaction</span><span class="p">,</span> <span class="n">response_future</span><span class="o">=</span><span class="n">future</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
                 <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
@@ -3719,10 +3752,165 @@ allow for chained calls.</li>
             <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
         <span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+<span class="sd">        callback : CallbackSig</span>
+<span class="sd">            The callback to register.</span>
+
+<span class="sd">            This should take a single argument of type `ComponentContext`,</span>
+<span class="sd">            be asynchronous and return `None`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">get_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">CallbackSig</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get a set constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to get the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[CallbackSig]</span>
+<span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">remove_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to remove the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is not registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Callable[[CallbackSigT], CallbackSigT]</span>
+<span class="sd">            A decorator to register the callback.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">callback</span>
+
+        <span class="k">return</span> <span class="n">decorator</span>
+
     <span class="k">def</span> <span class="nf">add_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated alias of `ComponentClient.add_executor`.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;add_executor is deprecated, use set_executor instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to set the executor for.</span>
+<span class="sd">        executor : AbstractComponentExecutor</span>
+<span class="sd">            The executor to set.</span>
+
+<span class="sd">            This will be called for every component interaction for the message</span>
+<span class="sd">            unless the component&#39;s custom_id is registered as a constant id callback.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">)]</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">get_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractComponentExecutor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the component executor set for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to get the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[AbstractComponentExecutor]</span>
+<span class="sd">            The executor set for the message or `None` if none is set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">remove_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to remove the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span>
 
 
@@ -5079,7 +5267,7 @@ inheritance.</p>
 <span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -5088,6 +5276,7 @@ inheritance.</p>
         <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -5172,10 +5361,8 @@ inheritance.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -5216,7 +5403,10 @@ inheritance.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -5225,6 +5415,15 @@ inheritance.</p>
             <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
+                <span class="n">constant_callback</span><span class="p">(</span>
+                    <span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">interaction</span><span class="p">,</span> <span class="n">response_future</span><span class="o">=</span><span class="n">future</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
                 <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
@@ -5239,10 +5438,165 @@ inheritance.</p>
             <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
         <span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+<span class="sd">        callback : CallbackSig</span>
+<span class="sd">            The callback to register.</span>
+
+<span class="sd">            This should take a single argument of type `ComponentContext`,</span>
+<span class="sd">            be asynchronous and return `None`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">get_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">CallbackSig</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get a set constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to get the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[CallbackSig]</span>
+<span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">remove_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to remove the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is not registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Callable[[CallbackSigT], CallbackSigT]</span>
+<span class="sd">            A decorator to register the callback.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">callback</span>
+
+        <span class="k">return</span> <span class="n">decorator</span>
+
     <span class="k">def</span> <span class="nf">add_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated alias of `ComponentClient.add_executor`.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;add_executor is deprecated, use set_executor instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to set the executor for.</span>
+<span class="sd">        executor : AbstractComponentExecutor</span>
+<span class="sd">            The executor to set.</span>
+
+<span class="sd">            This will be called for every component interaction for the message</span>
+<span class="sd">            unless the component&#39;s custom_id is registered as a constant id callback.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">)]</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">get_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractComponentExecutor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the component executor set for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to get the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[AbstractComponentExecutor]</span>
+<span class="sd">            The executor set for the message or `None` if none is set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">remove_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to remove the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 
@@ -5299,6 +5653,7 @@ from if applicable.</li>
         <span class="n">event_managed</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">server</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -5452,10 +5807,8 @@ The REST bot this component client should be bound to.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">set_listener</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -5524,7 +5877,10 @@ The REST bot this component client should be bound to.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -5553,6 +5909,15 @@ The REST bot this component client should be bound to.</li>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+            <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
+                <span class="n">constant_callback</span><span class="p">(</span>
+                    <span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">interaction</span><span class="p">,</span> <span class="n">response_future</span><span class="o">=</span><span class="n">future</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">future</span>
+
         <span class="k">if</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">executor</span><span class="o">.</span><span class="n">has_expired</span><span class="p">:</span>
                 <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
@@ -5573,6 +5938,264 @@ The REST bot this component client should be bound to.</li>
     
 
                             </div>
+                            <div id="ComponentClient.set_constant_id" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.set_constant_id">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">set_constant_id</span><span class="signature">(
+    self: ~_ComponentClientT,
+    custom_id: str,
+    callback: Callable[[<a href="yuyo/components.html#ComponentContext">yuyo.components.ComponentContext</a>], Awaitable[NoneType]],
+    /
+) -&gt; ~_ComponentClientT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+<span class="sd">        callback : CallbackSig</span>
+<span class="sd">            The callback to register.</span>
+
+<span class="sd">            This should take a single argument of type `ComponentContext`,</span>
+<span class="sd">            be asynchronous and return `None`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Add a constant "custom_id" callback.</p>
+
+<p>These are callbacks which'll always be called for a specific custom_id
+while taking priority over executors.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>custom_id</strong> (str):
+The custom_id to register the callback for.</li>
+<li><p><strong>callback</strong> (CallbackSig):
+The callback to register.</p>
+
+<p>This should take a single argument of type <code><a href="#ComponentContext">ComponentContext</a></code>,
+be asynchronous and return <code>None</code>.</p></li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: The component client to allow chaining.</li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>KeyError</strong>: If the custom_id is already registered.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.get_constant_id" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.get_constant_id">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_constant_id</span><span class="signature">(
+    self,
+    custom_id: str,
+    /
+) -&gt; Optional[Callable[[<a href="yuyo/components.html#ComponentContext">yuyo.components.ComponentContext</a>], Awaitable[NoneType]]]</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">CallbackSig</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get a set constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to get the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[CallbackSig]</span>
+<span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Get a set constant "custom_id" callback.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>custom_id</strong> (str):
+The custom_id to get the callback for.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>typing.Optional[CallbackSig]</strong>: The callback for the custom_id, or <code>None</code> if it doesn't exist.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.remove_constant_id" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.remove_constant_id">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">remove_constant_id</span><span class="signature">(self: ~_ComponentClientT, custom_id: str, /) -&gt; ~_ComponentClientT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">remove_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove a constant &quot;custom_id&quot; callback.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to remove the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is not registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Remove a constant "custom_id" callback.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>custom_id</strong> (str):
+The custom_id to remove the callback for.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: The component client to allow chaining.</li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>KeyError</strong>: If the custom_id is not registered.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.with_constant_id" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.with_constant_id">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">with_constant_id</span><span class="signature">(self, custom_id: str, /) -&gt; Callable[[~CallbackSigT], ~CallbackSigT]</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
+
+<span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
+<span class="sd">        while taking priority over executors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        custom_id : str</span>
+<span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Callable[[CallbackSigT], CallbackSigT]</span>
+<span class="sd">            A decorator to register the callback.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If the custom_id is already registered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">callback</span>
+
+        <span class="k">return</span> <span class="n">decorator</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Add a constant "custom_id" callback through a decorator call.</p>
+
+<p>These are callbacks which'll always be called for a specific custom_id
+while taking priority over executors.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>custom_id</strong> (str):
+The custom_id to register the callback for.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>Callable[[CallbackSigT], CallbackSigT]</strong>: A decorator to register the callback.</li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>KeyError</strong>: If the custom_id is already registered.</li>
+</ul>
+</div>
+
+
+                            </div>
                             <div id="ComponentClient.add_executor" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#ComponentClient.add_executor">#&nbsp;&nbsp</a>
 
@@ -5591,13 +6214,185 @@ The REST bot this component client should be bound to.</li>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">add_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated alias of `ComponentClient.add_executor`.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;add_executor is deprecated, use set_executor instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Deprecated alias of <code><a href="#ComponentClient.add_executor">ComponentClient.add_executor</a></code>.</p>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.set_executor" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.set_executor">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">set_executor</span><span class="signature">(
+    self: ~_ComponentClientT,
+    message: Union[hikari.messages.Message, hikari.snowflakes.Snowflake, int],
+    executor: <a href="yuyo/components.html#AbstractComponentExecutor">yuyo.components.AbstractComponentExecutor</a>,
+    /
+) -&gt; ~_ComponentClientT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to set the executor for.</span>
+<span class="sd">        executor : AbstractComponentExecutor</span>
+<span class="sd">            The executor to set.</span>
+
+<span class="sd">            This will be called for every component interaction for the message</span>
+<span class="sd">            unless the component&#39;s custom_id is registered as a constant id callback.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">)]</span> <span class="o">=</span> <span class="n">executor</span>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 
         </details>
 
-    
+            <div class="docstring"><p>Set the component executor for a message.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>message</strong> (hikari.SnowflakeishOr[hikari.Message]):
+The message to set the executor for.</li>
+<li><p><strong>executor</strong> (AbstractComponentExecutor):
+The executor to set.</p>
+
+<p>This will be called for every component interaction for the message
+unless the component's custom_id is registered as a constant id callback.</p></li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: The component client to allow chaining.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.get_executor" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.get_executor">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_executor</span><span class="signature">(
+    self,
+    message: Union[hikari.messages.Message, hikari.snowflakes.Snowflake, int],
+    /
+) -&gt; Optional[<a href="yuyo/components.html#AbstractComponentExecutor">yuyo.components.AbstractComponentExecutor</a>]</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractComponentExecutor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the component executor set for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to get the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        typing.Optional[AbstractComponentExecutor]</span>
+<span class="sd">            The executor set for the message or `None` if none is set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Get the component executor set for a message.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>message</strong> (hikari.SnowflakeishOr[hikari.Message]):
+The message to get the executor for.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>typing.Optional[AbstractComponentExecutor]</strong>: The executor set for the message or <code>None</code> if none is set.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="ComponentClient.remove_executor" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#ComponentClient.remove_executor">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">remove_executor</span><span class="signature">(
+    self: ~_ComponentClientT,
+    message: Union[hikari.messages.Message, hikari.snowflakes.Snowflake, int],
+    /
+) -&gt; ~_ComponentClientT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">remove_executor</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Remove the component executor for a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        message : hikari.SnowflakeishOr[hikari.Message]</span>
+<span class="sd">            The message to remove the executor for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            The component client to allow chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Remove the component executor for a message.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>message</strong> (hikari.SnowflakeishOr[hikari.Message]):
+The message to remove the executor for.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: The component client to allow chaining.</li>
+</ul>
+</div>
+
 
                             </div>
                 </section>
