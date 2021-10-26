@@ -35,7 +35,6 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["AsgiAdapter"]
 
 import asyncio
-import logging
 import traceback
 import typing
 
@@ -45,7 +44,6 @@ import hikari
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 
 
-_LOGGER = logging.getLogger("hikari.yuyo.asgi")
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
@@ -130,7 +128,7 @@ class AsgiAdapter:
         """Add a callback to be called when the ASGI server shuts down.
 
         .. warning::
-            These callbacks will block the ASGI server from shuting down until
+            These callbacks will block the ASGI server from shutting down until
             they complete and any raised errors will lead to a failed shutdown.
 
         Parameters
