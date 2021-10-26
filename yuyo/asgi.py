@@ -70,20 +70,51 @@ async def _maybe_await(callback: typing.Callable[[], typing.Union[None, typing.A
 
 
 class AsgiAdapter:
+    """Asgi/3 adapter for Hikari's interaction server interface."""
+
     __slots__ = ("_on_shutdown", "_on_startup", "_server")
 
     def __init__(self, server: hikari.api.InteractionServer, /) -> None:
+        """Initialise the adapter.
+
+        Parameters
+        ----------
+        server : hikari.api.InteractionServer
+            The interaction server to use.
+        """
         self._on_shutdown: typing.List[typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]] = []
         self._on_startup: typing.List[typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]] = []
         self._server = server
 
     @property
     def server(self) -> hikari.api.InteractionServer:
+        """The interaction server this adapter is bound to."""
         return self._server
 
     async def __call__(
         self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
     ) -> None:
+        """Call the adapter.
+
+        .. note::
+            This method is called by the ASGI server.
+
+        Parameters
+        ----------
+        scope : asgiref.Scope
+            The scope of the request.
+        receive : asgiref.ASGIReceiveCallable
+            The receive function to use.
+        send : asgiref.ASGISendCallable
+            The send function to use.
+
+        Raises
+        ------
+        NotImplementedError
+            If this is called with a websocket scope.
+        RuntimeError
+            If an invalid scope event is passed.
+        """
         if scope["type"] == "http":
             await self.process_request(scope, receive, send)
 
@@ -91,23 +122,72 @@ class AsgiAdapter:
             await self.process_lifespan_event(receive, send)
 
         else:
-            raise ValueError("Websocket operations are not supported")
+            raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
         self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[None, typing.Awaitable[None]]], /
     ) -> _AsgiAdapterT:
+        """Add a callback to be called when the ASGI server shuts down.
+
+        .. warning::
+            These callbacks will block the ASGI server from shuting down until
+            they complete and any raised errors will lead to a failed shutdown.
+
+        Parameters
+        ----------
+        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]
+            The shutdown callback to add.
+
+        Returns
+        -------
+        SelfT
+            This adapter to enable call chaining.
+        """
         self._on_shutdown.append(callback)
         return self
 
     def add_startup_callback(
         self: _AsgiAdapterT, callback: typing.Callable[[], typing.Union[None, typing.Awaitable[None]]], /
     ) -> _AsgiAdapterT:
+        """Add a callback to be called when the ASGI server starts up.
+
+        .. warning::
+            These callbacks will block the ASGI server from starting until
+            they complete and any raised errors will lead to a failed startup.
+
+        Parameters
+        ----------
+        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]
+            The startup callback to add.
+
+        Returns
+        -------
+        SelfT
+            This adapter to enable call chaining.
+        """
         self._on_startup.append(callback)
         return self
 
     async def process_lifespan_event(
         self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
+        """Process a lifespan ASGI event.
+
+        .. note::
+            This function is used internally by the adapter.
+
+        Parameters
+        ----------
+        receive : asgiref.ASGIReceiveCallable
+            The receive function to use.
+        send : asgiref.ASGISendCallable
+            The send function to use.
+
+        Raises
+        ------
+        RuntimeError
+            If an invalid lifespan event is passed.
+        """
         message = await receive()
         message_type = message["type"]
 
@@ -132,11 +212,29 @@ class AsgiAdapter:
                 await send({"type": "lifespan.shutdown.complete"})
 
         else:
-            raise ValueError(f"Unknown lifespan event {message_type}")
+            raise RuntimeError(f"Unknown lifespan event {message_type}")
 
     async def process_request(
         self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
+        """Process an HTTP request.
+
+        .. note::
+            This function is used internally by the adapter.
+
+        Parameters
+        ----------
+        scope : asgiref.HTTPScope
+            The scope of the request.
+        receive : asgiref.ASGIReceiveCallable
+            The receive function to use.
+        send : asgiref.ASGISendCallable
+            The send function to use.
+        """
+        if scope["method"] != "POST" or scope["path"] != "/":
+            await _error_response(send, b"Not found", status_code=404)
+            return
+
         more_body = True
         body = bytearray()
         while more_body:
@@ -187,7 +285,12 @@ class AsgiAdapter:
             await _error_response(send, b"Missing or invalid required request signature header(s)")
             return
 
-        response = await self.server.on_interaction(body, signature, timestamp)
+        try:
+            response = await self.server.on_interaction(body, signature, timestamp)
+        except Exception:
+            await _error_response(send, b"Internal Server Error", status_code=500)
+            raise
+
         headers: typing.List[typing.Tuple[bytes, bytes]] = []
         if response.headers:
             headers.extend((key.encode(), value.encode()) for key, value in response.headers.items())
