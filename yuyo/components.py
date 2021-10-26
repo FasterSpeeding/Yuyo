@@ -2732,14 +2732,16 @@ class ComponentStream(AbstractComponentExecutor):
 
     def __enter__(self: _ComponentStreamT) -> _ComponentStreamT:
         self.open()
+        return self
 
     def __exit__(
-        self,
+        self: _ComponentStreamT,
         exc_type: typing.Optional[typing.Type[BaseException]],
         exc: typing.Optional[BaseException],
         exc_traceback: typing.Optional[types.TracebackType],
-    ) -> None:
+    ) -> _ComponentStreamT:
         self.close()
+        return self
 
     def open(self) -> None:
         if self._queue is not None:
@@ -2748,7 +2750,6 @@ class ComponentStream(AbstractComponentExecutor):
         # Assert that this is called in a running event loop
         asyncio.get_running_loop()
         self._queue = asyncio.Queue(maxsize=self._max_backlog)
-        return self
 
     def close(self) -> None:
         if self._queue is None:
