@@ -275,7 +275,7 @@ class TestAsgiAdapter:
             "Content-Type": "jazz hands",
             "kill": "me baby",
             "I am the milk man": "my milk is delicious",
-            "and the seal shall run white": "with his rage",
+            "and the sea shall run white": "with his rage",
         }
 
         await adapter.process_request(http_scope, mock_receive, mock_send)
@@ -290,7 +290,7 @@ class TestAsgiAdapter:
                             (b"Content-Type", b"jazz hands"),
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
-                            (b"and the seal shall run white", b"with his rage"),
+                            (b"and the sea shall run white", b"with his rage"),
                         ],
                     }
                 ),
@@ -609,7 +609,7 @@ class TestAsgiAdapter:
             side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
         )
         mock_send = mock.AsyncMock()
-        stub_server.on_interaction.return_value.body = None
+        stub_server.on_interaction.return_value.payload = None
         stub_server.on_interaction.return_value.headers = None
 
         await adapter.process_request(http_scope, mock_receive, mock_send)
