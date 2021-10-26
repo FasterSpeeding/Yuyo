@@ -31,6 +31,7 @@
 
                     <h2>Submodules</h2>
                     <ul>
+                            <li><a href="yuyo/asgi.html">yuyo.asgi</a></li>
                             <li><a href="yuyo/backoff.html">yuyo.backoff</a></li>
                             <li><a href="yuyo/components.html">yuyo.components</a></li>
                             <li><a href="yuyo/reactions.html">yuyo.reactions</a></li>
@@ -65,6 +66,33 @@
             </li>
             <li>
                     <a class="variable" href="#__version__">__version__</a>
+            </li>
+            <li>
+                    <a class="module" href="#asgi">asgi</a>
+            </li>
+            <li>
+                    <a class="class" href="#AsgiAdapter">AsgiAdapter</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#AsgiAdapter.__init__">AsgiAdapter</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiAdapter.server">server</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiAdapter.add_shutdown_callback">add_shutdown_callback</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiAdapter.add_startup_callback">add_startup_callback</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiAdapter.process_lifespan_event">process_lifespan_event</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiAdapter.process_request">process_request</a>
+                        </li>
+                </ul>
+
             </li>
             <li>
                     <a class="module" href="#backoff">backoff</a>
@@ -580,6 +608,9 @@ yuyo    </h1>
     <span class="s2">&quot;__license__&quot;</span><span class="p">,</span>
     <span class="s2">&quot;__url__&quot;</span><span class="p">,</span>
     <span class="s2">&quot;__version__&quot;</span><span class="p">,</span>
+    <span class="c1"># /asgi.py</span>
+    <span class="s2">&quot;asgi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">,</span>
     <span class="c1"># /backoff.py</span>
     <span class="s2">&quot;backoff&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Backoff&quot;</span><span class="p">,</span>
@@ -615,6 +646,7 @@ yuyo    </h1>
 
 <span class="kn">import</span> <span class="nn">typing</span>
 
+<span class="kn">from</span> <span class="nn">.asgi</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.backoff</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.components</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.pagination</span> <span class="kn">import</span> <span class="o">*</span>
@@ -715,6 +747,944 @@ yuyo    </h1>
 
     
 
+                </section>
+                <section id="asgi">
+                                <div class="attr module"><a class="headerlink" href="#asgi">#&nbsp;&nbsp</a>
+<span class="name"><a href="yuyo/asgi.html">yuyo.asgi</a></span></div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># cython: language_level=3</span>
+<span class="c1"># BSD 3-Clause License</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2020-2021, Faster Speeding</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c1"># modification, are permitted provided that the following conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># * Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#   list of conditions and the following disclaimer.</span>
+<span class="c1">#</span>
+<span class="c1"># * Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#   this list of conditions and the following disclaimer in the documentation</span>
+<span class="c1">#   and/or other materials provided with the distribution.</span>
+<span class="c1">#</span>
+<span class="c1"># * Neither the name of the copyright holder nor the names of its</span>
+<span class="c1">#   contributors may be used to endorse or promote products derived from</span>
+<span class="c1">#   this software without specific prior written permission.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;</span>
+<span class="c1"># AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE</span>
+<span class="c1"># IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span>
+<span class="c1"># DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE</span>
+<span class="c1"># FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL</span>
+<span class="c1"># DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR</span>
+<span class="c1"># SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER</span>
+<span class="c1"># CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,</span>
+<span class="c1"># OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE</span>
+<span class="c1"># OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="sd">&quot;&quot;&quot;ASGI/3 adapter for Hikari&#39;s interaction server.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">__all__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">import</span> <span class="nn">asgiref.typing</span> <span class="k">as</span> <span class="nn">asgiref</span>
+<span class="kn">import</span> <span class="nn">hikari</span>
+
+<span class="n">_AsgiAdapterT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_AsgiAdapterT&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">)</span>
+
+
+<span class="n">_CONTENT_TYPE_KEY</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;content-type&quot;</span>
+<span class="n">_JSON_CONTENT_TYPE</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;application/json&quot;</span>
+<span class="n">_BAD_REQUEST_STATUS</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">400</span>
+<span class="n">_X_SIGNATURE_ED25519_HEADER</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;x-signature-ed25519&quot;</span>
+<span class="n">_X_SIGNATURE_TIMESTAMP_HEADER</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;x-signature-timestamp&quot;</span>
+<span class="n">_TEXT_CONTENT_TYPE</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Final</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;text/plain; charset=UTF-8&quot;</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">_error_response</span><span class="p">(</span>
+    <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_BAD_REQUEST_STATUS</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">send</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status_code</span><span class="p">,</span> <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="n">_CONTENT_TYPE_KEY</span><span class="p">,</span> <span class="n">_TEXT_CONTENT_TYPE</span><span class="p">)]}</span>
+    <span class="p">)</span>
+    <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">_maybe_await</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">callback</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">result</span>
+
+
+<span class="k">class</span> <span class="nc">AsgiAdapter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Asgi/3 adapter for Hikari&#39;s interaction server interface.&quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_on_shutdown&quot;</span><span class="p">,</span> <span class="s2">&quot;_on_startup&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        server : hikari.api.InteractionServer</span>
+<span class="sd">            The interaction server to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The interaction server this adapter is bound to.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call the adapter.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is called by the ASGI server.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scope : asgiref.Scope</span>
+<span class="sd">            The scope of the request.</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            If this is called with a websocket scope.</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If an invalid scope event is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;http&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_lifespan_event</span><span class="p">(</span><span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Websocket operations are not supported&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_shutdown_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server shuts down.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from shutting down until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed shutdown.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The shutdown callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">add_startup_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server starts up.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from starting until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed startup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The startup callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_lifespan_event</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process a lifespan ASGI event.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If an invalid lifespan event is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+        <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">elif</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown lifespan event </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">HTTPScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process an HTTP request.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scope : asgiref.HTTPScope</span>
+<span class="sd">            The scope of the request.</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;POST&quot;</span> <span class="ow">or</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Not found&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">more_body</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">more_body</span><span class="p">:</span>
+            <span class="n">received</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">next_body</span> <span class="o">:=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;body&quot;</span><span class="p">):</span>
+                <span class="n">body</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_body</span><span class="p">)</span>
+
+            <span class="n">more_body</span> <span class="o">=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;more_body&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">body</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;POST request must have a body&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">content_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">signature</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">timestamp</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">]:</span>
+            <span class="c1"># As per-spec these should be matched case-insensitively.</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_ED25519_HEADER</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">signature</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                <span class="c1"># Yes UnicodeDecodeError means failed ascii decode.</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">):</span>
+                    <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Invalid ED25519 signature header found&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+                <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_TIMESTAMP_HEADER</span><span class="p">:</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_CONTENT_TYPE_KEY</span><span class="p">:</span>
+                <span class="n">content_type</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">timestamp</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">content_type</span> <span class="ow">or</span> <span class="n">content_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_JSON_CONTENT_TYPE</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Content-Type must be application/json&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">signature</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timestamp</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Missing required request signature header(s)&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">on_interaction</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Internal Server Error&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="n">headers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="n">headers</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">payload</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>ASGI/3 adapter for Hikari's interaction server.</p>
+</div>
+
+
+                </section>
+                <section id="AsgiAdapter">
+                                <div class="attr class">
+        <a class="headerlink" href="#AsgiAdapter">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">AsgiAdapter</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">AsgiAdapter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Asgi/3 adapter for Hikari&#39;s interaction server interface.&quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_on_shutdown&quot;</span><span class="p">,</span> <span class="s2">&quot;_on_startup&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        server : hikari.api.InteractionServer</span>
+<span class="sd">            The interaction server to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The interaction server this adapter is bound to.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_server</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call the adapter.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is called by the ASGI server.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scope : asgiref.Scope</span>
+<span class="sd">            The scope of the request.</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            If this is called with a websocket scope.</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If an invalid scope event is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;http&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_lifespan_event</span><span class="p">(</span><span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Websocket operations are not supported&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_shutdown_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server shuts down.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from shutting down until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed shutdown.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The shutdown callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">add_startup_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server starts up.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from starting until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed startup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The startup callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_lifespan_event</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process a lifespan ASGI event.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If an invalid lifespan event is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+        <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">elif</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown lifespan event </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">HTTPScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process an HTTP request.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scope : asgiref.HTTPScope</span>
+<span class="sd">            The scope of the request.</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;POST&quot;</span> <span class="ow">or</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Not found&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">more_body</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">more_body</span><span class="p">:</span>
+            <span class="n">received</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">next_body</span> <span class="o">:=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;body&quot;</span><span class="p">):</span>
+                <span class="n">body</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_body</span><span class="p">)</span>
+
+            <span class="n">more_body</span> <span class="o">=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;more_body&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">body</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;POST request must have a body&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">content_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">signature</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">timestamp</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">]:</span>
+            <span class="c1"># As per-spec these should be matched case-insensitively.</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_ED25519_HEADER</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">signature</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                <span class="c1"># Yes UnicodeDecodeError means failed ascii decode.</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">):</span>
+                    <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Invalid ED25519 signature header found&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+                <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_TIMESTAMP_HEADER</span><span class="p">:</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_CONTENT_TYPE_KEY</span><span class="p">:</span>
+                <span class="n">content_type</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">timestamp</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">content_type</span> <span class="ow">or</span> <span class="n">content_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_JSON_CONTENT_TYPE</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Content-Type must be application/json&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">signature</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timestamp</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Missing required request signature header(s)&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">on_interaction</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Internal Server Error&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="n">headers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="n">headers</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">payload</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Asgi/3 adapter for Hikari's interaction server interface.</p>
+</div>
+
+
+                            <div id="AsgiAdapter.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiAdapter.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">AsgiAdapter</span><span class="signature">(server: hikari.api.interaction_server.InteractionServer, /)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        server : hikari.api.InteractionServer</span>
+<span class="sd">            The interaction server to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Initialise the adapter.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>server</strong> (hikari.api.InteractionServer):
+The interaction server to use.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiAdapter.server" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiAdapter.server">#&nbsp;&nbsp</a>
+
+        <span class="name">server</span><span class="annotation">: hikari.api.interaction_server.InteractionServer</span>
+    </div>
+
+            <div class="docstring"><p>The interaction server this adapter is bound to.</p>
+</div>
+
+
+                            </div>
+                            <div id="AsgiAdapter.add_shutdown_callback" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiAdapter.add_shutdown_callback">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_shutdown_callback</span><span class="signature">(
+    self: ~_AsgiAdapterT,
+    callback: Callable[[], Optional[Awaitable[NoneType]]],
+    /
+) -&gt; ~_AsgiAdapterT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">add_shutdown_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server shuts down.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from shutting down until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed shutdown.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The shutdown callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Add a callback to be called when the ASGI server shuts down.</p>
+
+<p><em>Warning:</em>
+These callbacks will block the ASGI server from shutting down until
+they complete and any raised errors will lead to a failed shutdown.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>callback</strong> (typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]):
+The shutdown callback to add.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: This adapter to enable call chaining.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiAdapter.add_startup_callback" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiAdapter.add_startup_callback">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_startup_callback</span><span class="signature">(
+    self: ~_AsgiAdapterT,
+    callback: Callable[[], Optional[Awaitable[NoneType]]],
+    /
+) -&gt; ~_AsgiAdapterT</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">add_startup_callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_AsgiAdapterT</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]]],</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsgiAdapterT</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a callback to be called when the ASGI server starts up.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            These callbacks will block the ASGI server from starting until</span>
+<span class="sd">            they complete and any raised errors will lead to a failed startup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback : typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]</span>
+<span class="sd">            The startup callback to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SelfT</span>
+<span class="sd">            This adapter to enable call chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Add a callback to be called when the ASGI server starts up.</p>
+
+<p><em>Warning:</em>
+These callbacks will block the ASGI server from starting until
+they complete and any raised errors will lead to a failed startup.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>callback</strong> (typing.Callable[[], typing.Union[None, typing.Awaitable[None]]]):
+The startup callback to add.</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>SelfT</strong>: This adapter to enable call chaining.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiAdapter.process_lifespan_event" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiAdapter.process_lifespan_event">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">process_lifespan_event</span><span class="signature">(
+    self,
+    receive: Callable[[], Awaitable[Union[asgiref.HTTPRequestEvent, asgiref.HTTPDisconnectEvent, asgiref.WebSocketConnectEvent, asgiref.WebSocketReceiveEvent, asgiref.WebSocketDisconnectEvent, asgiref.LifespanStartupEvent, asgiref.LifespanShutdownEvent]]],
+    send: Callable[[Union[asgiref.HTTPResponseStartEvent, asgiref.HTTPResponseBodyEvent, asgiref.HTTPServerPushEvent, asgiref.HTTPDisconnectEvent, asgiref.WebSocketAcceptEvent, asgiref.WebSocketSendEvent, asgiref.WebSocketResponseStartEvent, asgiref.WebSocketResponseBodyEvent, asgiref.WebSocketCloseEvent, asgiref.LifespanStartupCompleteEvent, asgiref.LifespanStartupFailedEvent, asgiref.LifespanShutdownCompleteEvent, asgiref.LifespanShutdownFailedEvent]], Awaitable[NoneType]],
+    /
+) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_lifespan_event</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process a lifespan ASGI event.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If an invalid lifespan event is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+        <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_startup</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">elif</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">_maybe_await</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_shutdown</span><span class="p">))</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.failed&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()})</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown.complete&quot;</span><span class="p">})</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown lifespan event </span><span class="si">{</span><span class="n">message_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Process a lifespan ASGI event.</p>
+
+<p><em>Note:</em>
+This function is used internally by the adapter.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>receive</strong> (asgiref.ASGIReceiveCallable):
+The receive function to use.</li>
+<li><strong>send</strong> (asgiref.ASGISendCallable):
+The send function to use.</li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>RuntimeError</strong>: If an invalid lifespan event is passed.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiAdapter.process_request" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiAdapter.process_request">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">process_request</span><span class="signature">(
+    self,
+    scope: asgiref.typing.HTTPScope,
+    receive: Callable[[], Awaitable[Union[asgiref.HTTPRequestEvent, asgiref.HTTPDisconnectEvent, asgiref.WebSocketConnectEvent, asgiref.WebSocketReceiveEvent, asgiref.WebSocketDisconnectEvent, asgiref.LifespanStartupEvent, asgiref.LifespanShutdownEvent]]],
+    send: Callable[[Union[asgiref.HTTPResponseStartEvent, asgiref.HTTPResponseBodyEvent, asgiref.HTTPServerPushEvent, asgiref.HTTPDisconnectEvent, asgiref.WebSocketAcceptEvent, asgiref.WebSocketSendEvent, asgiref.WebSocketResponseStartEvent, asgiref.WebSocketResponseBodyEvent, asgiref.WebSocketCloseEvent, asgiref.LifespanStartupCompleteEvent, asgiref.LifespanStartupFailedEvent, asgiref.LifespanShutdownCompleteEvent, asgiref.LifespanShutdownFailedEvent]], Awaitable[NoneType]],
+    /
+) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">HTTPScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGIReceiveCallable</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">asgiref</span><span class="o">.</span><span class="n">ASGISendCallable</span><span class="p">,</span> <span class="o">/</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Process an HTTP request.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This function is used internally by the adapter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scope : asgiref.HTTPScope</span>
+<span class="sd">            The scope of the request.</span>
+<span class="sd">        receive : asgiref.ASGIReceiveCallable</span>
+<span class="sd">            The receive function to use.</span>
+<span class="sd">        send : asgiref.ASGISendCallable</span>
+<span class="sd">            The send function to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;POST&quot;</span> <span class="ow">or</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Not found&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">more_body</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">more_body</span><span class="p">:</span>
+            <span class="n">received</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">next_body</span> <span class="o">:=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;body&quot;</span><span class="p">):</span>
+                <span class="n">body</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_body</span><span class="p">)</span>
+
+            <span class="n">more_body</span> <span class="o">=</span> <span class="n">received</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;more_body&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">body</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;POST request must have a body&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">content_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">signature</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">timestamp</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;headers&quot;</span><span class="p">]:</span>
+            <span class="c1"># As per-spec these should be matched case-insensitively.</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_ED25519_HEADER</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">signature</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                <span class="c1"># Yes UnicodeDecodeError means failed ascii decode.</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">UnicodeDecodeError</span><span class="p">):</span>
+                    <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Invalid ED25519 signature header found&quot;</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+                <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_X_SIGNATURE_TIMESTAMP_HEADER</span><span class="p">:</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">content_type</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">_CONTENT_TYPE_KEY</span><span class="p">:</span>
+                <span class="n">content_type</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">signature</span> <span class="ow">and</span> <span class="n">timestamp</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">content_type</span> <span class="ow">or</span> <span class="n">content_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_JSON_CONTENT_TYPE</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Content-Type must be application/json&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">signature</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timestamp</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Missing required request signature header(s)&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">on_interaction</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">signature</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_error_response</span><span class="p">(</span><span class="n">send</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;Internal Server Error&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="n">headers</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="n">headers</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">payload</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Process an HTTP request.</p>
+
+<p><em>Note:</em>
+This function is used internally by the adapter.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>scope</strong> (asgiref.HTTPScope):
+The scope of the request.</li>
+<li><strong>receive</strong> (asgiref.ASGIReceiveCallable):
+The receive function to use.</li>
+<li><strong>send</strong> (asgiref.ASGISendCallable):
+The send function to use.</li>
+</ul>
+</div>
+
+
+                            </div>
                 </section>
                 <section id="backoff">
                                 <div class="attr module"><a class="headerlink" href="#backoff">#&nbsp;&nbsp</a>
