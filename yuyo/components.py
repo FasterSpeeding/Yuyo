@@ -55,6 +55,7 @@ import inspect
 import itertools
 import typing
 import uuid
+import warnings
 
 import hikari
 
@@ -825,10 +826,8 @@ class ComponentClient:
         if not self._gc_task:
             return
 
-        if self._gc_task:
-            self._gc_task.cancel()
-            self._gc_task = None
-
+        self._gc_task.cancel()
+        self._gc_task = None
         if self._server:
             self._server.set_listener(hikari.ComponentInteraction, None)
 
@@ -904,7 +903,7 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    def add_constant_id(self: _ComponentClientT, custom_id: str, callback: CallbackSig, /) -> _ComponentClientT:
+    def set_constant_id(self: _ComponentClientT, custom_id: str, callback: CallbackSig, /) -> _ComponentClientT:
         """Add a constant "custom_id" callback.
 
         These are callbacks which'll always be called for a specific custom_id
@@ -935,6 +934,21 @@ class ComponentClient:
 
         self._constant_ids[custom_id] = callback
         return self
+
+    def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
+        """Get a set constant "custom_id" callback.
+
+        Parameters
+        ----------
+        custom_id : str
+            The custom_id to get the callback for.
+
+        Returns
+        -------
+        typing.Optional[CallbackSig]
+            The callback for the custom_id, or `None` if it doesn't exist.
+        """
+        return self._constant_ids.get(custom_id)
 
     def remove_constant_id(self: _ComponentClientT, custom_id: str, /) -> _ComponentClientT:
         """Remove a constant "custom_id" callback.
@@ -980,12 +994,19 @@ class ComponentClient:
         """
 
         def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-            self.add_constant_id(custom_id, callback)
+            self.set_constant_id(custom_id, callback)
             return callback
 
         return decorator
 
     def add_executor(
+        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
+    ) -> _ComponentClientT:
+        """Deprecated alias of `ComponentClient.add_executor`."""
+        warnings.warn("add_executor is deprecated, use set_executor instead.", DeprecationWarning, stacklevel=2)
+        return self.set_executor(message, executor)
+
+    def set_executor(
         self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> _ComponentClientT:
         """Set the component executor for a message.
@@ -1007,6 +1028,23 @@ class ComponentClient:
         """
         self._executors[int(message)] = executor
         return self
+
+    def get_executor(
+        self, message: hikari.SnowflakeishOr[hikari.Message], /
+    ) -> typing.Optional[AbstractComponentExecutor]:
+        """Get the component executor set for a message.
+
+        Parameters
+        ----------
+        message : hikari.SnowflakeishOr[hikari.Message]
+            The message to get the executor for.
+
+        Returns
+        -------
+        typing.Optional[AbstractComponentExecutor]
+            The executor set for the message or `None` if none is set.
+        """
+        return self._executors.get(int(message))
 
     def remove_executor(
         self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], /
