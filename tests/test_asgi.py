@@ -265,7 +265,9 @@ class TestAsgiAdapter:
         http_scope["headers"] = [
             (b"Content-Type", b"application/json"),
             (b"x-signature-timestamp", b"321123"),
+            (b"random-header2", b"random value"),
             (b"x-signature-ed25519", b"6e796161"),
+            (b"random-header", b"random value"),
         ]
         mock_receive = mock.AsyncMock(
             side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
