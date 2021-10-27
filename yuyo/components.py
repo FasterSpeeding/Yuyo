@@ -1203,7 +1203,7 @@ class WaitForComponent(AbstractComponentExecutor):
     responses: dict[str, str]
     message = await ctx.respond("hi, pick an option", components=[...])
     executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))
-    component_client.add_executor(message.id, executor)
+    component_client.set_executor(message.id, executor)
 
     try:
         result = await executor.wait_for()
@@ -1716,7 +1716,7 @@ class ComponentPaginator(ActionRowExecutor):
         assert first_response
         content, embed = first_response
         message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)
-        component_client.add_executor(message, response_paginator)
+        component_client.set_executor(message, response_paginator)
         ```
 
         Returns
