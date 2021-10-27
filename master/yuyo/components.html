@@ -1541,7 +1541,7 @@
 <span class="sd">    responses: dict[str, str]</span>
 <span class="sd">    message = await ctx.respond(&quot;hi, pick an option&quot;, components=[...])</span>
 <span class="sd">    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))</span>
-<span class="sd">    component_client.add_executor(message.id, executor)</span>
+<span class="sd">    component_client.set_executor(message.id, executor)</span>
 
 <span class="sd">    try:</span>
 <span class="sd">        result = await executor.wait_for()</span>
@@ -2054,7 +2054,7 @@
 <span class="sd">        assert first_response</span>
 <span class="sd">        content, embed = first_response</span>
 <span class="sd">        message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)</span>
-<span class="sd">        component_client.add_executor(message, response_paginator)</span>
+<span class="sd">        component_client.set_executor(message, response_paginator)</span>
 <span class="sd">        ```</span>
 
 <span class="sd">        Returns</span>
@@ -5766,7 +5766,7 @@ inheritance.</p>
 <span class="sd">        assert first_response</span>
 <span class="sd">        content, embed = first_response</span>
 <span class="sd">        message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)</span>
-<span class="sd">        component_client.add_executor(message, response_paginator)</span>
+<span class="sd">        component_client.set_executor(message, response_paginator)</span>
 <span class="sd">        ```</span>
 
 <span class="sd">        Returns</span>
@@ -6068,7 +6068,7 @@ until it times out.</p>
 <span class="sd">        assert first_response</span>
 <span class="sd">        content, embed = first_response</span>
 <span class="sd">        message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)</span>
-<span class="sd">        component_client.add_executor(message, response_paginator)</span>
+<span class="sd">        component_client.set_executor(message, response_paginator)</span>
 <span class="sd">        ```</span>
 
 <span class="sd">        Returns</span>
@@ -6105,7 +6105,7 @@ and will still internally store the entry and increment the position of the pagi
 <span class="k">assert</span> <span class="n">first_response</span>
 <span class="n">content</span><span class="p">,</span> <span class="n">embed</span> <span class="o">=</span> <span class="n">first_response</span>
 <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">embed</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">component_client</span><span class="o">.</span><span class="n">add_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">response_paginator</span><span class="p">)</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">response_paginator</span><span class="p">)</span>
 </code></pre></div>
 
 <h6 id="returns">Returns</h6>
@@ -6896,7 +6896,7 @@ The component executor to add.</li>
 <span class="sd">    responses: dict[str, str]</span>
 <span class="sd">    message = await ctx.respond(&quot;hi, pick an option&quot;, components=[...])</span>
 <span class="sd">    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))</span>
-<span class="sd">    component_client.add_executor(message.id, executor)</span>
+<span class="sd">    component_client.set_executor(message.id, executor)</span>
 
 <span class="sd">    try:</span>
 <span class="sd">        result = await executor.wait_for()</span>
@@ -7007,7 +7007,7 @@ How long this should wait for a matching component interaction until it times-ou
 <div class="codehilite"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
 <span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">,),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
-<span class="n">component_client</span><span class="o">.</span><span class="n">add_executor</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">executor</span><span class="o">.</span><span class="n">wait_for</span><span class="p">()</span>
