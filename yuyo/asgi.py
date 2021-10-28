@@ -38,8 +38,9 @@ import asyncio
 import traceback
 import typing
 
-import asgiref.typing as asgiref
-import hikari
+if typing.TYPE_CHECKING:
+    import asgiref.typing as asgiref
+    import hikari
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 
