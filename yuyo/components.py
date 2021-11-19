@@ -732,7 +732,7 @@ class ComponentClient:
         If `event_managed` is passed as `True` when `event_manager` is None.
     """
 
-    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_server")
+    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server")
 
     def __init__(
         self,
@@ -745,6 +745,7 @@ class ComponentClient:
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._prefix_ids: typing.Dict[str, CallbackSig] = {}
         self._server = server
 
         if event_managed or event_managed is None and event_manager:
@@ -852,6 +853,11 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
+    def _match_constant_id(self, custom_id: str) -> typing.Optional[CallbackSig]:
+        return self._constant_ids.get(custom_id) or self._prefix_ids.get(
+            next(filter(custom_id.startswith, self._prefix_ids.keys()), "")
+        )
+
     async def _execute_executor(
         self,
         executor: AbstractComponentExecutor,
@@ -868,7 +874,7 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        if constant_callback := self._constant_ids.get(event.interaction.custom_id):
+        if constant_callback := self._match_constant_id(event.interaction.custom_id):
             await constant_callback(ComponentContext(ephemeral_default=False, interaction=event.interaction))
 
         elif executor := self._executors.get(event.interaction.message.id):
@@ -880,7 +886,7 @@ class ComponentClient:
             )
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
-        if constant_callback := self._constant_ids.get(interaction.custom_id):
+        if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ResponseT] = asyncio.Future()
             asyncio.create_task(
                 constant_callback(
@@ -903,7 +909,9 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    def set_constant_id(self: _ComponentClientT, custom_id: str, callback: CallbackSig, /) -> _ComponentClientT:
+    def set_constant_id(
+        self: _ComponentClientT, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False
+    ) -> _ComponentClientT:
         """Add a constant "custom_id" callback.
 
         These are callbacks which'll always be called for a specific custom_id
@@ -919,6 +927,15 @@ class ComponentClient:
             This should take a single argument of type `ComponentContext`,
             be asynchronous and return `None`.
 
+        Other Parameters
+        ----------------
+        prefix_match : bool
+            Whether the custom_id should be treated as a prefix match.
+
+            This allows for further state to be held in the custom id after the
+            prefix, defaults to `False` and is lower priority than normal
+            custom id match.
+
         Returns
         -------
         SelfT
@@ -926,11 +943,18 @@ class ComponentClient:
 
         Raises
         ------
-        KeyError
+        ValueError
             If the custom_id is already registered.
         """
+        if custom_id in self._prefix_ids:
+            raise ValueError(f"{custom_id!r} is already registered as a prefix match")
+
         if custom_id in self._constant_ids:
-            raise KeyError(f"Custom ID {custom_id} already in use.")
+            raise ValueError(f"{custom_id!r} is already registered as a constant id")
+
+        if prefix_match:
+            self._prefix_ids[custom_id] = callback
+            return self
 
         self._constant_ids[custom_id] = callback
         return self
@@ -948,7 +972,7 @@ class ComponentClient:
         typing.Optional[CallbackSig]
             The callback for the custom_id, or `None` if it doesn't exist.
         """
-        return self._constant_ids.get(custom_id)
+        return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
 
     def remove_constant_id(self: _ComponentClientT, custom_id: str, /) -> _ComponentClientT:
         """Remove a constant "custom_id" callback.
@@ -968,10 +992,19 @@ class ComponentClient:
         KeyError
             If the custom_id is not registered.
         """
-        del self._constant_ids[custom_id]
+        try:
+            del self._constant_ids[custom_id]
+        except KeyError:
+            pass
+        else:
+            return self
+
+        del self._prefix_ids[custom_id]
         return self
 
-    def with_constant_id(self, custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+    def with_constant_id(
+        self, custom_id: str, /, *, prefix_match: bool = False
+    ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
         """Add a constant "custom_id" callback through a decorator call.
 
         These are callbacks which'll always be called for a specific custom_id
@@ -981,6 +1014,15 @@ class ComponentClient:
         ----------
         custom_id : str
             The custom_id to register the callback for.
+
+        Other Parameters
+        ----------------
+        prefix_match : bool
+            Whether the custom_id should be treated as a prefix match.
+
+            This allows for further state to be held in the custom id after the
+            prefix, defaults to `False` and is lower priority than normal
+            custom id match.
 
         Returns
         -------
@@ -994,7 +1036,7 @@ class ComponentClient:
         """
 
         def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-            self.set_constant_id(custom_id, callback)
+            self.set_constant_id(custom_id, callback, prefix_match=prefix_match)
             return callback
 
         return decorator
