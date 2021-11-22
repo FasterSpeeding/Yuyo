@@ -3582,7 +3582,7 @@ allow for chained calls.</li>
 <span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_prefix_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3595,6 +3595,7 @@ allow for chained calls.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
 
         <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
@@ -3702,6 +3703,11 @@ allow for chained calls.</li>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">InteractionCreateEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_gateway_event</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_match_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">CallbackSig</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="nb">next</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">custom_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_execute_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span>
@@ -3718,7 +3724,7 @@ allow for chained calls.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
 
         <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
@@ -3730,7 +3736,7 @@ allow for chained calls.</li>
             <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
                 <span class="n">constant_callback</span><span class="p">(</span>
@@ -3753,7 +3759,9 @@ allow for chained calls.</li>
             <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -3769,6 +3777,15 @@ allow for chained calls.</li>
 <span class="sd">            This should take a single argument of type `ComponentContext`,</span>
 <span class="sd">            be asynchronous and return `None`.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SelfT</span>
@@ -3776,11 +3793,18 @@ allow for chained calls.</li>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        KeyError</span>
+<span class="sd">        ValueError</span>
 <span class="sd">            If the custom_id is already registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a prefix match&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a constant id&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prefix_match</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+            <span class="k">return</span> <span class="bp">self</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
         <span class="k">return</span> <span class="bp">self</span>
@@ -3798,7 +3822,7 @@ allow for chained calls.</li>
 <span class="sd">        typing.Optional[CallbackSig]</span>
 <span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove a constant &quot;custom_id&quot; callback.</span>
@@ -3818,10 +3842,19 @@ allow for chained calls.</li>
 <span class="sd">        KeyError</span>
 <span class="sd">            If the custom_id is not registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -3831,6 +3864,15 @@ allow for chained calls.</li>
 <span class="sd">        ----------</span>
 <span class="sd">        custom_id : str</span>
 <span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3844,7 +3886,7 @@ allow for chained calls.</li>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="n">prefix_match</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">callback</span>
 
         <span class="k">return</span> <span class="n">decorator</span>
@@ -5268,7 +5310,7 @@ inheritance.</p>
 <span class="sd">        If `event_managed` is passed as `True` when `event_manager` is None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_constant_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_event_manager&quot;</span><span class="p">,</span> <span class="s2">&quot;_executors&quot;</span><span class="p">,</span> <span class="s2">&quot;_gc_task&quot;</span><span class="p">,</span> <span class="s2">&quot;_prefix_ids&quot;</span><span class="p">,</span> <span class="s2">&quot;_server&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -5281,6 +5323,7 @@ inheritance.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
 
         <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
@@ -5388,6 +5431,11 @@ inheritance.</p>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">InteractionCreateEvent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_gateway_event</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_match_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">CallbackSig</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="nb">next</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">custom_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_execute_executor</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">AbstractComponentExecutor</span><span class="p">,</span>
@@ -5404,7 +5452,7 @@ inheritance.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
 
         <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
@@ -5416,7 +5464,7 @@ inheritance.</p>
             <span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
                 <span class="n">constant_callback</span><span class="p">(</span>
@@ -5439,7 +5487,9 @@ inheritance.</p>
             <span class="o">.</span><span class="n">set_flags</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="o">.</span><span class="n">EPHEMERAL</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -5455,6 +5505,15 @@ inheritance.</p>
 <span class="sd">            This should take a single argument of type `ComponentContext`,</span>
 <span class="sd">            be asynchronous and return `None`.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SelfT</span>
@@ -5462,11 +5521,18 @@ inheritance.</p>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        KeyError</span>
+<span class="sd">        ValueError</span>
 <span class="sd">            If the custom_id is already registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a prefix match&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a constant id&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prefix_match</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+            <span class="k">return</span> <span class="bp">self</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
         <span class="k">return</span> <span class="bp">self</span>
@@ -5484,7 +5550,7 @@ inheritance.</p>
 <span class="sd">        typing.Optional[CallbackSig]</span>
 <span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove a constant &quot;custom_id&quot; callback.</span>
@@ -5504,10 +5570,19 @@ inheritance.</p>
 <span class="sd">        KeyError</span>
 <span class="sd">            If the custom_id is not registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -5517,6 +5592,15 @@ inheritance.</p>
 <span class="sd">        ----------</span>
 <span class="sd">        custom_id : str</span>
 <span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -5530,7 +5614,7 @@ inheritance.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="n">prefix_match</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">callback</span>
 
         <span class="k">return</span> <span class="n">decorator</span>
@@ -5658,6 +5742,7 @@ from if applicable.</li>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_manager</span> <span class="o">=</span> <span class="n">event_manager</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">AbstractComponentExecutor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gc_task</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">[</span><span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CallbackSig</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span> <span class="o">=</span> <span class="n">server</span>
 
         <span class="k">if</span> <span class="n">event_managed</span> <span class="ow">or</span> <span class="n">event_managed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">event_manager</span><span class="p">:</span>
@@ -5878,7 +5963,7 @@ The REST bot this component client should be bound to.</li>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="k">await</span> <span class="n">constant_callback</span><span class="p">(</span><span class="n">ComponentContext</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interaction</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="p">))</span>
 
         <span class="k">elif</span> <span class="n">executor</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
@@ -5910,7 +5995,7 @@ The REST bot this component client should be bound to.</li>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_rest_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">constant_callback</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_constant_id</span><span class="p">(</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">):</span>
             <span class="n">future</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">()</span>
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
                 <span class="n">constant_callback</span><span class="p">(</span>
@@ -5948,13 +6033,17 @@ The REST bot this component client should be bound to.</li>
     self: ~_ComponentClientT,
     custom_id: str,
     callback: Callable[[<a href="yuyo/components.html#ComponentContext">yuyo.components.ComponentContext</a>], Awaitable[NoneType]],
-    /
+    /,
+    *,
+    prefix_match: bool = False
 ) -&gt; ~_ComponentClientT</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_ComponentClientT</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSig</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ComponentClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -5970,6 +6059,15 @@ The REST bot this component client should be bound to.</li>
 <span class="sd">            This should take a single argument of type `ComponentContext`,</span>
 <span class="sd">            be asynchronous and return `None`.</span>
 
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        SelfT</span>
@@ -5977,11 +6075,18 @@ The REST bot this component client should be bound to.</li>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        KeyError</span>
+<span class="sd">        ValueError</span>
 <span class="sd">            If the custom_id is already registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a prefix match&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">custom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Custom ID </span><span class="si">{</span><span class="n">custom_id</span><span class="si">}</span><span class="s2"> already in use.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">custom_id</span><span class="si">!r}</span><span class="s2"> is already registered as a constant id&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prefix_match</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+            <span class="k">return</span> <span class="bp">self</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
         <span class="k">return</span> <span class="bp">self</span>
@@ -6006,6 +6111,17 @@ The callback to register.</p>
 be asynchronous and return <code>None</code>.</p></li>
 </ul>
 
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><p><strong>prefix_match</strong> (bool):
+Whether the custom_id should be treated as a prefix match.</p>
+
+<p>This allows for further state to be held in the custom id after the
+prefix, defaults to <code>False</code> and is lower priority than normal
+custom id match.</p></li>
+</ul>
+
 <h6 id="returns">Returns</h6>
 
 <ul>
@@ -6015,7 +6131,7 @@ be asynchronous and return <code>None</code>.</p></li>
 <h6 id="raises">Raises</h6>
 
 <ul>
-<li><strong>KeyError</strong>: If the custom_id is already registered.</li>
+<li><strong>ValueError</strong>: If the custom_id is already registered.</li>
 </ul>
 </div>
 
@@ -6048,7 +6164,7 @@ be asynchronous and return <code>None</code>.</p></li>
 <span class="sd">        typing.Optional[CallbackSig]</span>
 <span class="sd">            The callback for the custom_id, or `None` if it doesn&#39;t exist.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -6099,7 +6215,14 @@ The custom_id to get the callback for.</li>
 <span class="sd">        KeyError</span>
 <span class="sd">            If the custom_id is not registered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 
@@ -6134,12 +6257,20 @@ The custom_id to remove the callback for.</li>
 
         
             <span class="def">def</span>
-            <span class="name">with_constant_id</span><span class="signature">(self, custom_id: str, /) -&gt; Callable[[~CallbackSigT], ~CallbackSigT]</span>:
+            <span class="name">with_constant_id</span><span class="signature">(
+    self,
+    custom_id: str,
+    /,
+    *,
+    prefix_match: bool = False
+) -&gt; Callable[[~CallbackSigT], ~CallbackSigT]</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">CallbackSigT</span><span class="p">],</span> <span class="n">CallbackSigT</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Add a constant &quot;custom_id&quot; callback through a decorator call.</span>
 
 <span class="sd">        These are callbacks which&#39;ll always be called for a specific custom_id</span>
@@ -6149,6 +6280,15 @@ The custom_id to remove the callback for.</li>
 <span class="sd">        ----------</span>
 <span class="sd">        custom_id : str</span>
 <span class="sd">            The custom_id to register the callback for.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        prefix_match : bool</span>
+<span class="sd">            Whether the custom_id should be treated as a prefix match.</span>
+
+<span class="sd">            This allows for further state to be held in the custom id after the</span>
+<span class="sd">            prefix, defaults to `False` and is lower priority than normal</span>
+<span class="sd">            custom id match.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -6162,7 +6302,7 @@ The custom_id to remove the callback for.</li>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackSigT</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CallbackSigT</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="n">prefix_match</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">callback</span>
 
         <span class="k">return</span> <span class="n">decorator</span>
@@ -6180,6 +6320,17 @@ while taking priority over executors.</p>
 <ul>
 <li><strong>custom_id</strong> (str):
 The custom_id to register the callback for.</li>
+</ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><p><strong>prefix_match</strong> (bool):
+Whether the custom_id should be treated as a prefix match.</p>
+
+<p>This allows for further state to be held in the custom id after the
+prefix, defaults to <code>False</code> and is lower priority than normal
+custom id match.</p></li>
 </ul>
 
 <h6 id="returns">Returns</h6>
