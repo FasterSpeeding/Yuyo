@@ -45,7 +45,8 @@ __all__: typing.Sequence[str] = [
     "InteractiveButtonBuilder",
     "MultiComponentExecutor",
     "SelectMenuBuilder",
-    "WaitForComponent",
+    "WaitForExecutor",
+    "WaitFor",
 ]
 
 import abc
@@ -1219,7 +1220,7 @@ async def _pre_execution_error(
         )
 
 
-class WaitForComponent(AbstractComponentExecutor):
+class WaitForExecutor(AbstractComponentExecutor):
     """Component executor used to wait for a single component interaction.
 
     Parameters
@@ -1326,7 +1327,8 @@ class WaitForComponent(AbstractComponentExecutor):
         )
 
 
-WaitFor = WaitForComponent
+WaitFor = WaitForExecutor
+"""Alias for `WaitForExecutor`."""
 
 
 class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):

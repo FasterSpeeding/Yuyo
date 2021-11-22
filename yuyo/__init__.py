@@ -65,7 +65,7 @@ __all__: typing.Sequence[str] = [
     "InteractiveButtonBuilder",
     "MultiComponentExecutor",
     "SelectMenuBuilder",
-    "WaitForComponent",
+    "WaitForExecutor",
     # /reactions.py
     "reactions",
     "as_reaction_callback",
