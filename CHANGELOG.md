@@ -5,8 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `prefix_match` option to ComponentClient custom ids to make storing metadata in custom ids
+  possible.
 
-## [1.0.3a1]
+### Fixed
+- custom id methods now raise ValueError on conflict rather than KeyError.
+
+## [1.0.3a1] - 2021-10-27
 ### Added
 - An ASGI/3 adapter for Hikari's interaction server.
 - Ability to register a callback for a constant custom_id in the component client.
