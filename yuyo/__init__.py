@@ -99,3 +99,6 @@ __issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
 __license__ = "BSD"
 __url__ = "https://github.com/FasterSpeeding/Yuyo"
 __version__ = "1.0.5a1"
+
+
+WaitForComponent = WaitForExecutor

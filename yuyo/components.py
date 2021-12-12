@@ -1327,6 +1327,8 @@ class WaitForExecutor(AbstractComponentExecutor):
         )
 
 
+WaitForComponent = WaitForExecutor
+
 WaitFor = WaitForExecutor
 """Alias for `WaitForExecutor`."""
 
