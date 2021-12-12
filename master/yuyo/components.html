@@ -295,22 +295,43 @@
 
             </li>
             <li>
-                    <a class="class" href="#WaitForComponent">WaitForComponent</a>
+                    <a class="class" href="#WaitForExecutor">WaitForExecutor</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#WaitForComponent.__init__">WaitForComponent</a>
+                                <a class="function" href="#WaitForExecutor.__init__">WaitForExecutor</a>
                         </li>
                         <li>
-                                <a class="variable" href="#WaitForComponent.custom_ids">custom_ids</a>
+                                <a class="variable" href="#WaitForExecutor.custom_ids">custom_ids</a>
                         </li>
                         <li>
-                                <a class="variable" href="#WaitForComponent.has_expired">has_expired</a>
+                                <a class="variable" href="#WaitForExecutor.has_expired">has_expired</a>
                         </li>
                         <li>
-                                <a class="function" href="#WaitForComponent.wait_for">wait_for</a>
+                                <a class="function" href="#WaitForExecutor.wait_for">wait_for</a>
                         </li>
                         <li>
-                                <a class="function" href="#WaitForComponent.execute">execute</a>
+                                <a class="function" href="#WaitForExecutor.execute">execute</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#WaitFor">WaitFor</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#WaitFor.__init__">WaitFor</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#WaitFor.custom_ids">custom_ids</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#WaitFor.has_expired">has_expired</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#WaitFor.wait_for">wait_for</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#WaitFor.execute">execute</a>
                         </li>
                 </ul>
 
@@ -383,7 +404,8 @@
     <span class="s2">&quot;InteractiveButtonBuilder&quot;</span><span class="p">,</span>
     <span class="s2">&quot;MultiComponentExecutor&quot;</span><span class="p">,</span>
     <span class="s2">&quot;SelectMenuBuilder&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;WaitForComponent&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WaitForExecutor&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WaitFor&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">abc</span>
@@ -1557,7 +1579,7 @@
         <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">WaitForComponent</span><span class="p">(</span><span class="n">AbstractComponentExecutor</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">WaitForExecutor</span><span class="p">(</span><span class="n">AbstractComponentExecutor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Component executor used to wait for a single component interaction.</span>
 
 <span class="sd">    Parameters</span>
@@ -1664,7 +1686,10 @@
         <span class="p">)</span>
 
 
-<span class="n">WaitFor</span> <span class="o">=</span> <span class="n">WaitForComponent</span>
+<span class="n">WaitForComponent</span> <span class="o">=</span> <span class="n">WaitForExecutor</span>
+
+<span class="n">WaitFor</span> <span class="o">=</span> <span class="n">WaitForExecutor</span>
+<span class="sd">&quot;&quot;&quot;Alias for `WaitForExecutor`.&quot;&quot;&quot;</span>
 
 
 <span class="k">class</span> <span class="nc">InteractiveButtonBuilder</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">InteractiveButtonBuilder</span><span class="p">[</span><span class="n">ContainerProtoT</span><span class="p">]):</span>
@@ -7010,18 +7035,18 @@ The component executor to add.</li>
                                 </dl>
                             </div>
                 </section>
-                <section id="WaitForComponent">
+                <section id="WaitForExecutor">
                                 <div class="attr class">
-        <a class="headerlink" href="#WaitForComponent">#&nbsp;&nbsp</a>
+        <a class="headerlink" href="#WaitForExecutor">#&nbsp;&nbsp</a>
 
         
         <span class="def">class</span>
-        <span class="name">WaitForComponent</span><wbr>(<span class="base"><a href="#AbstractComponentExecutor">AbstractComponentExecutor</a></span>):
+        <span class="name">WaitForExecutor</span><wbr>(<span class="base"><a href="#AbstractComponentExecutor">AbstractComponentExecutor</a></span>):
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">WaitForComponent</span><span class="p">(</span><span class="n">AbstractComponentExecutor</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">WaitForExecutor</span><span class="p">(</span><span class="n">AbstractComponentExecutor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Component executor used to wait for a single component interaction.</span>
 
 <span class="sd">    Parameters</span>
@@ -7171,11 +7196,11 @@ How long this should wait for a matching component interaction until it times-ou
 </div>
 
 
-                            <div id="WaitForComponent.__init__" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#WaitForComponent.__init__">#&nbsp;&nbsp</a>
+                            <div id="WaitForExecutor.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitForExecutor.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">WaitForComponent</span><span class="signature">(
+            <span class="name">WaitForExecutor</span><span class="signature">(
     *,
     authors: Optional[Iterable[Union[hikari.users.User, hikari.snowflakes.Snowflake, int]]],
     ephemeral_default: bool = False,
@@ -7205,8 +7230,8 @@ How long this should wait for a matching component interaction until it times-ou
     
 
                             </div>
-                            <div id="WaitForComponent.custom_ids" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#WaitForComponent.custom_ids">#&nbsp;&nbsp</a>
+                            <div id="WaitForExecutor.custom_ids" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#WaitForExecutor.custom_ids">#&nbsp;&nbsp</a>
 
         <span class="name">custom_ids</span><span class="annotation">: Collection[str]</span>
     </div>
@@ -7214,8 +7239,8 @@ How long this should wait for a matching component interaction until it times-ou
     
 
                             </div>
-                            <div id="WaitForComponent.has_expired" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#WaitForComponent.has_expired">#&nbsp;&nbsp</a>
+                            <div id="WaitForExecutor.has_expired" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#WaitForExecutor.has_expired">#&nbsp;&nbsp</a>
 
         <span class="name">has_expired</span><span class="annotation">: bool</span>
     </div>
@@ -7231,8 +7256,8 @@ How long this should wait for a matching component interaction until it times-ou
 
 
                             </div>
-                            <div id="WaitForComponent.wait_for" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#WaitForComponent.wait_for">#&nbsp;&nbsp</a>
+                            <div id="WaitForExecutor.wait_for" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitForExecutor.wait_for">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
@@ -7285,8 +7310,322 @@ How long this should wait for a matching component interaction until it times-ou
 
 
                             </div>
-                            <div id="WaitForComponent.execute" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#WaitForComponent.execute">#&nbsp;&nbsp</a>
+                            <div id="WaitForExecutor.execute" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitForExecutor.execute">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">execute</span><span class="signature">(
+    self,
+    interaction: hikari.interactions.component_interactions.ComponentInteraction,
+    /,
+    *,
+    future: Optional[_asyncio.Future] = None
+) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">future</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># &lt;&lt;inherited docstring from AbstractComponentExecutor&gt;&gt;.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span> <span class="ow">and</span> <span class="n">interaction</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_pre_execution_error</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="p">,</span> <span class="s2">&quot;You are not allowed to use this button&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span>
+            <span class="n">ComponentContext</span><span class="p">(</span><span class="n">interaction</span><span class="o">=</span><span class="n">interaction</span><span class="p">,</span> <span class="n">response_future</span><span class="o">=</span><span class="n">future</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ephemeral_default</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                </section>
+                <section id="WaitFor">
+                                <div class="attr class">
+        <a class="headerlink" href="#WaitFor">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">WaitFor</span><wbr>(<span class="base"><a href="#AbstractComponentExecutor">AbstractComponentExecutor</a></span>):
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">WaitForExecutor</span><span class="p">(</span><span class="n">AbstractComponentExecutor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Component executor used to wait for a single component interaction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]</span>
+<span class="sd">        The authors of the entries.</span>
+
+<span class="sd">        If None is passed here then the paginator will be public (meaning that</span>
+<span class="sd">        anybody can use it).</span>
+
+<span class="sd">    Other Parameters</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    ephemeral_default: bool</span>
+<span class="sd">        Whether or not the responses made on contexts spawned from this paginator</span>
+<span class="sd">        should default to ephemeral (meaning only the author can see them) unless</span>
+<span class="sd">        `flags` is specified on the response method.</span>
+<span class="sd">    timeout : datetime.timedelta</span>
+<span class="sd">        How long this should wait for a matching component interaction until it times-out.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    ```py</span>
+<span class="sd">    responses: dict[str, str]</span>
+<span class="sd">    message = await ctx.respond(&quot;hi, pick an option&quot;, components=[...])</span>
+<span class="sd">    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))</span>
+<span class="sd">    component_client.set_executor(message.id, executor)</span>
+
+<span class="sd">    try:</span>
+<span class="sd">        result = await executor.wait_for()</span>
+<span class="sd">    except asyncio.TimeoutError:</span>
+<span class="sd">        await ctx.respond(&quot;timed out&quot;)</span>
+
+<span class="sd">    else:</span>
+<span class="sd">        await result.respond(responses[result.interaction.custom_id])</span>
+<span class="sd">    ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_authors&quot;</span><span class="p">,</span> <span class="s2">&quot;_ephemeral_default&quot;</span><span class="p">,</span> <span class="s2">&quot;_finished&quot;</span><span class="p">,</span> <span class="s2">&quot;_future&quot;</span><span class="p">,</span> <span class="s2">&quot;_made_at&quot;</span><span class="p">,</span> <span class="s2">&quot;_timeout&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">authors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]]],</span>
+        <span class="n">ephemeral_default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">authors</span><span class="p">))</span> <span class="k">if</span> <span class="n">authors</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ephemeral_default</span> <span class="o">=</span> <span class="n">ephemeral_default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ComponentContext</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">custom_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="c1"># &lt;&lt;inherited docstring from AbstractComponentExecutor&gt;&gt;.</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># &lt;&lt;inherited docstring from AbstractComponentExecutor&gt;&gt;.</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ComponentContext</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Wait for the next matching interaction.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        asyncio.Future[ComponentContext]</span>
+<span class="sd">            A future that will be resolved with the next matching interaction.</span>
+
+<span class="sd">            This will raise `asyncio.TimeoutError` if the timeout is reached.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the executor is already being waited for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;This executor is already being waited for&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">interaction</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">future</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># &lt;&lt;inherited docstring from AbstractComponentExecutor&gt;&gt;.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span> <span class="ow">and</span> <span class="n">interaction</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">_pre_execution_error</span><span class="p">(</span><span class="n">interaction</span><span class="p">,</span> <span class="n">future</span><span class="p">,</span> <span class="s2">&quot;You are not allowed to use this button&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span>
+            <span class="n">ComponentContext</span><span class="p">(</span><span class="n">interaction</span><span class="o">=</span><span class="n">interaction</span><span class="p">,</span> <span class="n">response_future</span><span class="o">=</span><span class="n">future</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ephemeral_default</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Component executor used to wait for a single component interaction.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><p><strong>authors</strong> (typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]):
+The authors of the entries.</p>
+
+<p>If None is passed here then the paginator will be public (meaning that
+anybody can use it).</p></li>
+</ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><strong>ephemeral_default</strong> (bool):
+Whether or not the responses made on contexts spawned from this paginator
+should default to ephemeral (meaning only the author can see them) unless
+<code>flags</code> is specified on the response method.</li>
+<li><strong>timeout</strong> (datetime.timedelta):
+How long this should wait for a matching component interaction until it times-out.</li>
+</ul>
+
+<h6 id="examples">Examples</h6>
+
+<div class="codehilite"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">,),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">executor</span><span class="o">.</span><span class="n">wait_for</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;timed out&quot;</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">responses</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">])</span>
+</code></pre></div>
+</div>
+
+
+                            <div id="WaitFor.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitFor.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">WaitFor</span><span class="signature">(
+    *,
+    authors: Optional[Iterable[Union[hikari.users.User, hikari.snowflakes.Snowflake, int]]],
+    ephemeral_default: bool = False,
+    timeout: datetime.timedelta
+)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">authors</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]]],</span>
+        <span class="n">ephemeral_default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">authors</span><span class="p">))</span> <span class="k">if</span> <span class="n">authors</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ephemeral_default</span> <span class="o">=</span> <span class="n">ephemeral_default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ComponentContext</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="WaitFor.custom_ids" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#WaitFor.custom_ids">#&nbsp;&nbsp</a>
+
+        <span class="name">custom_ids</span><span class="annotation">: Collection[str]</span>
+    </div>
+
+    
+
+                            </div>
+                            <div id="WaitFor.has_expired" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#WaitFor.has_expired">#&nbsp;&nbsp</a>
+
+        <span class="name">has_expired</span><span class="annotation">: bool</span>
+    </div>
+
+            <div class="docstring"><p>Whether this executor has ended.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>bool</strong>: Whether this executor has ended.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="WaitFor.wait_for" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitFor.wait_for">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">wait_for</span><span class="signature">(self) -&gt; _asyncio.Future</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">[</span><span class="n">ComponentContext</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Wait for the next matching interaction.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        asyncio.Future[ComponentContext]</span>
+<span class="sd">            A future that will be resolved with the next matching interaction.</span>
+
+<span class="sd">            This will raise `asyncio.TimeoutError` if the timeout is reached.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the executor is already being waited for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;This executor is already being waited for&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_made_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span><span class="o">.</span><span class="n">create_future</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_future</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">())</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Wait for the next matching interaction.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>asyncio.Future[ComponentContext]</strong>: A future that will be resolved with the next matching interaction.</li>
+</ul>
+
+<p>This will raise <code>asyncio.TimeoutError</code> if the timeout is reached.</p>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>RuntimeError</strong>: If the executor is already being waited for.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="WaitFor.execute" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#WaitFor.execute">#&nbsp;&nbsp</a>
 
         
             <span class="def">async def</span>
