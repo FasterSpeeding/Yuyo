@@ -29,6 +29,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import asyncio
+import contextlib
 import traceback
 from unittest import mock
 
@@ -645,3 +647,249 @@ class TestAsgiAdapter:
         )
         mock_receive.assert_has_awaits([mock.call(), mock.call()])
         stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
+
+
+class TestAsgiBot:
+    def test_entity_factory_property(self):
+        with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            assert bot.entity_factory is mock_entity_factory_impl.return_value
+            mock_entity_factory_impl.assert_called_once_with(bot)
+
+    def test_executor_property(self):
+        mock_executor = mock.Mock()
+
+        with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
+            bot = yuyo.AsgiBot("token", "Bot", executor=mock_executor)
+
+            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+                cache=None,
+                entity_factory=bot.entity_factory,
+                executor=mock_executor,
+                http_settings=bot.http_settings,
+                max_rate_limit=300.0,
+                proxy_settings=bot.proxy_settings,
+                rest_url=None,
+                token="token",
+                token_type="Bot",
+                max_retries=3,
+            )
+
+        assert bot.executor is mock_executor
+
+    def test_executor_property_when_no_executor(self):
+        bot = yuyo.AsgiBot("token", "Bot")
+
+        assert bot.executor is None
+
+    def test_http_settings_property(self):
+        with mock.patch.object(hikari, "HTTPSettings") as mock_http_settings:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            assert bot.http_settings is mock_http_settings.return_value
+            mock_http_settings.assert_called_once_with()
+
+    def test_http_settings_property_when_passed_through(self):
+        mock_settings = mock.Mock()
+
+        with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
+            bot = yuyo.AsgiBot("token", "Bot", http_settings=mock_settings)
+
+            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+                cache=None,
+                entity_factory=bot.entity_factory,
+                executor=None,
+                http_settings=mock_settings,
+                max_rate_limit=300.0,
+                proxy_settings=bot.proxy_settings,
+                rest_url=None,
+                token="token",
+                token_type="Bot",
+                max_retries=3,
+            )
+
+        assert bot.http_settings is mock_settings
+
+    def test_interaction_server_property(self):
+        with mock.patch.object(hikari.impl, "InteractionServer") as mock_interaction_server:
+            bot = yuyo.AsgiBot("token", "Bot", public_key=b"osososo")
+
+            assert bot.interaction_server is mock_interaction_server.return_value
+            mock_interaction_server.assert_called_once_with(
+                entity_factory=bot.entity_factory, rest_client=bot.rest, public_key=b"osososo"
+            )
+
+    def test_proxy_settings_property(self):
+        with mock.patch.object(hikari, "ProxySettings") as mock_proxy_settings:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            assert bot.proxy_settings is mock_proxy_settings.return_value
+            mock_proxy_settings.assert_called_once_with()
+
+    def test_proxy_settings_property_when_passed_through(self):
+        mock_settings = mock.Mock()
+
+        with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
+            bot = yuyo.AsgiBot("token", "Bot", proxy_settings=mock_settings)
+
+            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+                cache=None,
+                entity_factory=bot.entity_factory,
+                executor=None,
+                http_settings=bot.http_settings,
+                max_rate_limit=300.0,
+                proxy_settings=mock_settings,
+                rest_url=None,
+                token="token",
+                token_type="Bot",
+                max_retries=3,
+            )
+
+        assert bot.proxy_settings is mock_settings
+
+    def test_rest_property(self):
+        with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+                cache=None,
+                entity_factory=bot.entity_factory,
+                executor=None,
+                http_settings=bot.http_settings,
+                max_rate_limit=300.0,
+                proxy_settings=bot.proxy_settings,
+                rest_url=None,
+                token="token",
+                token_type="Bot",
+                max_retries=3,
+            )
+            assert bot.rest is mock_rest_client_impl.return_value
+
+    def test_run(self):
+        stack = contextlib.ExitStack()
+        mock_get_running_loop = stack.enter_context(mock.patch.object(asyncio, "get_running_loop"))
+        mock_make_event_loop = stack.enter_context(mock.patch.object(asyncio, "new_event_loop"))
+        mock_set_event_loop = stack.enter_context(mock.patch.object(asyncio, "set_event_loop"))
+        mock_loop = mock_get_running_loop.return_value
+        mock_start = mock.Mock()
+        mock_join = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            start = mock_start
+            join = mock_join
+
+        bot = StubBot("token", "Bot")
+
+        bot.run()
+
+        mock_get_running_loop.assert_called_once_with()
+        mock_make_event_loop.assert_not_called()
+        mock_set_event_loop.assert_not_called()
+        mock_start.assert_called_once_with()
+        mock_join.assert_called_once_with()
+        mock_loop.run_until_complete.assert_has_calls(
+            [mock.call(mock_start.return_value), mock.call(mock_join.return_value)]
+        )
+
+    def test_run_makes_new_event_loop(self):
+        stack = contextlib.ExitStack()
+        mock_get_running_loop = stack.enter_context(
+            mock.patch.object(asyncio, "get_running_loop", side_effect=RuntimeError)
+        )
+        mock_make_event_loop = stack.enter_context(mock.patch.object(asyncio, "new_event_loop"))
+        mock_set_event_loop = stack.enter_context(mock.patch.object(asyncio, "set_event_loop"))
+        mock_loop = mock_make_event_loop.return_value
+        mock_start = mock.Mock()
+        mock_join = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            start = mock_start
+            join = mock_join
+
+        bot = StubBot("token", "Bot")
+
+        bot.run()
+
+        mock_get_running_loop.assert_called_once_with()
+        mock_make_event_loop.assert_called_once_with()
+        mock_set_event_loop.assert_called_once_with(mock_loop)
+        mock_start.assert_called_once_with()
+        mock_join.assert_called_once_with()
+        mock_loop.run_until_complete.assert_has_calls(
+            [mock.call(mock_start.return_value), mock.call(mock_join.return_value)]
+        )
+
+    @pytest.mark.asyncio()
+    async def test_start(self):
+        stack = contextlib.ExitStack()
+        mock_rest_client_impl = stack.enter_context(mock.patch.object(hikari.impl, "RESTClientImpl"))
+        mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
+        with stack:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            await bot.start()
+
+        assert bot.is_alive is True
+        assert bot._join_event is mock_event.return_value
+        mock_rest_client_impl.return_value.start.assert_called_once_with()
+        mock_event.assert_called_once_with()
+
+    @pytest.mark.asyncio()
+    async def test_start_when_already_alive(self):
+        with mock.patch.object(hikari.impl, "RESTClientImpl"):
+            bot = yuyo.AsgiBot("token", "Bot")
+
+        await bot.start()
+
+        with pytest.raises(RuntimeError, match="The client is already running"):
+            await bot.start()
+
+    @pytest.mark.asyncio()
+    async def test_close(self):
+        stack = contextlib.ExitStack()
+        mock_rest_client_impl = stack.enter_context(mock.patch.object(hikari.impl, "RESTClientImpl"))
+        mock_rest_client_impl.return_value.close = mock.AsyncMock()
+        mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
+        with stack:
+            bot = yuyo.AsgiBot("token", "Bot")
+
+            await bot.start()
+
+        mock_rest_client_impl.return_value.close.assert_not_called()
+        mock_event.return_value.set.assert_not_called()
+
+        await bot.close()
+
+        assert bot.is_alive is False
+        assert bot._join_event is None
+        mock_rest_client_impl.return_value.close.assert_awaited_once_with()
+        mock_event.return_value.set.assert_called_once_with()
+
+    @pytest.mark.asyncio()
+    async def test_close_when_not_alive(self):
+        bot = yuyo.AsgiBot("token", "Bot")
+
+        with pytest.raises(RuntimeError, match="The client is not running"):
+            await bot.close()
+
+    @pytest.mark.asyncio()
+    async def test_join(self):
+        with mock.patch.object(hikari.impl, "RESTClientImpl"):
+            bot = yuyo.AsgiBot("token", "Bot")
+
+        with mock.patch.object(asyncio, "Event", return_value=mock.AsyncMock()) as join_event:
+            await bot.start()
+
+        join_event.assert_called_once_with()
+        join_event.return_value.wait.assert_not_called()
+
+        await bot.join()
+        join_event.return_value.wait.assert_awaited_once_with()
+
+    @pytest.mark.asyncio()
+    async def test_join_when_not_alive(self):
+        bot = yuyo.AsgiBot("token", "Bot")
+
+        with pytest.raises(RuntimeError, match="The client is not running"):
+            await bot.join()

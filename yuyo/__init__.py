@@ -47,6 +47,7 @@ __all__: typing.Sequence[str] = [
     # /asgi.py
     "asgi",
     "AsgiAdapter",
+    "AsgiBot",
     # /backoff.py
     "backoff",
     "Backoff",

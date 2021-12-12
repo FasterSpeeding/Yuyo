@@ -32,15 +32,18 @@
 """ASGI/3 adapter for Hikari's interaction server."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["AsgiAdapter"]
+__all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
+import concurrent.futures
 import traceback
 import typing
 
+import hikari
+from hikari import traits
+
 if typing.TYPE_CHECKING:
     import asgiref.typing as asgiref
-    import hikari
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 
@@ -296,3 +299,230 @@ class AsgiAdapter:
 
         await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
         await send({"type": "http.response.body", "body": response.payload or b"", "more_body": False})
+
+
+class AsgiBot(AsgiAdapter, traits.RESTBotAware):
+    """Bot implementation which acts as an ASGI adapter.
+
+    This bot doesn't initiate a server internally but instead
+    relies on being called as an ASGI app.
+    """
+
+    __slots__: typing.Sequence[str] = (
+        "_entity_factory",
+        "_executor",
+        "_http_settings",
+        "_is_alive",
+        "_join_event",
+        "_proxy_settings",
+        "_rest",
+    )
+
+    @typing.overload
+    def __init__(
+        self,
+        token: hikari.api.TokenStrategy,
+        *,
+        public_key: typing.Union[bytes, str, None] = None,
+        executor: typing.Optional[concurrent.futures.Executor] = None,
+        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        max_rate_limit: float = 300.0,
+        max_retries: int = 3,
+        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        rest_url: typing.Optional[str] = None,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        token: str,
+        token_type: typing.Union[str, hikari.TokenType],
+        public_key: typing.Union[bytes, str, None] = None,
+        *,
+        executor: typing.Optional[concurrent.futures.Executor] = None,
+        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        max_rate_limit: float = 300.0,
+        max_retries: int = 3,
+        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        rest_url: typing.Optional[str] = None,
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        token: typing.Union[str, hikari.api.TokenStrategy],
+        token_type: typing.Union[hikari.TokenType, str, None] = None,
+        public_key: typing.Union[bytes, str, None] = None,
+        *,
+        executor: typing.Optional[concurrent.futures.Executor] = None,
+        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        max_rate_limit: float = 300.0,
+        max_retries: int = 3,
+        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        rest_url: typing.Optional[str] = None,
+    ) -> None:
+        """Initialise a new ASGI bot.
+
+        Parameters
+        ----------
+        token : typing.Union[str, None, hikari.api.rest.TokenStrategy]
+            The bot or bearer token. If no token is to be used,
+            this can be undefined.
+        token_type : typing.Union[str, hikari.applications.TokenType, None]
+            The type of token in use. This should only be passed when `str`
+            is passed for `token`, can be `"Bot"` or `"Bearer"` and will be
+            defaulted to `"Bearer"` in this situation.
+
+            This should be left as `None` when either
+            `hikari.api.rest.TokenStrategy` or `None` is passed for
+            `token`.
+
+        Other Parameters
+        ----------------
+        executor : typing.Optional[concurrent.futures.Executor]
+            Defaults to `builns.None`. If non-`None`, then this executor
+            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached
+            to the `asyncio.AbstractEventLoop` that the bot will run on. This
+            executor is used primarily for file-IO.
+
+            While mainly supporting the `concurrent.futures.ThreadPoolExecutor`
+            implementation in the standard lib, Hikari's file handling systems
+            should also work with `concurrent.futures.ProcessPoolExecutor`, which
+            relies on all objects used in IPC to be `pickle`able. Many third-party
+            libraries will not support this fully though, so your mileage may vary
+            on using ProcessPoolExecutor implementations with this parameter.
+        http_settings : typing.Optional[hikari.config.HTTPSettings]
+            Optional custom HTTP configuration settings to use. Allows you to
+            customise functionality such as whether SSL-verification is enabled,
+            what timeouts `aiohttp` should expect to use for requests, and behavior
+            regarding HTTP-redirects.
+        max_rate_limit : float
+            The max number of seconds to backoff for when rate limited. Anything
+            greater than this will instead raise an error.
+
+            This defaults to five minutes if left to the default value. This is to
+            stop potentially indefinitely waiting on an endpoint, which is almost
+            never what you want to do if giving a response to a user.
+
+            You can set this to `float("inf")` to disable this check entirely.
+            Note that this only applies to the REST API component that communicates
+            with Discord, and will not affect sharding or third party HTTP endpoints
+            that may be in use.
+        max_retries : typing.Optional[int]
+            Maximum number of times a request will be retried if
+
+            it fails with a `5xx` status. Defaults to 3 if set to `None`.
+        proxy_settings : typing.Optional[hikari.config.ProxySettings]
+            Custom proxy settings to use with network-layer logic
+            in your application to get through an HTTP-proxy.
+        public_key : typing.Union[str, bytes, None]
+            The public key to use to verify received interaction requests.
+
+            This may be a hex encoded `str` or the raw `bytes`.
+            If left as `None` then the client will try to work this value
+            out based on `token`.
+        rest_url : typing.Optional[str]
+            Defaults to the Discord REST API URL if `None`. Can be
+            overridden if you are attempting to point to an unofficial endpoint, or
+            if you are attempting to mock/stub the Discord API for any reason.
+
+            Generally you do not want to change this.
+
+        Raises
+        ------
+        builtins.ValueError
+            * If `token_type` is provided when a token strategy is passed for `token`.
+            * if `token_type` is left as `builtins.None` when a string is passed for `token`.
+        """
+        if isinstance(public_key, str):
+            public_key = bytes.fromhex(public_key)
+
+        self._entity_factory = hikari.impl.EntityFactoryImpl(self)
+        self._executor = executor
+        self._http_settings = http_settings or hikari.HTTPSettings()
+        self._is_alive = False
+        self._join_event: typing.Optional[asyncio.Event] = None
+        self._proxy_settings = proxy_settings or hikari.ProxySettings()
+        self._rest = hikari.impl.RESTClientImpl(
+            cache=None,
+            entity_factory=self._entity_factory,
+            executor=executor,
+            http_settings=self._http_settings,
+            max_rate_limit=max_rate_limit,
+            proxy_settings=self._proxy_settings,
+            rest_url=rest_url,
+            token=token,
+            token_type=token_type,
+            max_retries=max_retries,
+        )
+        super().__init__(
+            hikari.impl.InteractionServer(
+                entity_factory=self._entity_factory, rest_client=self._rest, public_key=public_key
+            )
+        )
+
+    @property
+    def entity_factory(self) -> hikari.api.EntityFactory:
+        return self._entity_factory
+
+    @property
+    def executor(self) -> typing.Optional[concurrent.futures.Executor]:
+        return self._executor
+
+    @property
+    def http_settings(self) -> hikari.HTTPSettings:
+        return self._http_settings
+
+    @property
+    def interaction_server(self) -> hikari.api.InteractionServer:
+        return self.server
+
+    @property
+    def is_alive(self) -> bool:
+        return self._is_alive
+
+    @property
+    def proxy_settings(self) -> hikari.ProxySettings:
+        return self._proxy_settings
+
+    @property
+    def rest(self) -> hikari.api.RESTClient:
+        return self._rest
+
+    def run(self) -> None:
+        if self._is_alive:
+            raise RuntimeError("The client is already running")
+
+        try:
+            loop = asyncio.get_running_loop()
+
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(self.start())
+        loop.run_until_complete(self.join())
+
+    async def start(self) -> None:
+        if self._is_alive:
+            raise RuntimeError("The client is already running")
+
+        self._join_event = asyncio.Event()
+        self._is_alive = True
+        self._rest.start()
+
+    async def close(self) -> None:
+        if not self._is_alive or not self._join_event:
+            raise RuntimeError("The client is not running")
+
+        self._is_alive = False
+        await self._rest.close()
+        self._join_event.set()
+        self._join_event = None
+
+    async def join(self) -> None:
+        if self._join_event is None:
+            raise RuntimeError("The client is not running")
+
+        await self._join_event.wait()
