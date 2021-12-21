@@ -725,7 +725,7 @@ yuyo    </h1>
 <span class="n">__issue_tracker__</span> <span class="o">=</span> <span class="s2">&quot;https://github.com/FasterSpeeding/Yuyo/issues&quot;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;BSD&quot;</span>
 <span class="n">__url__</span> <span class="o">=</span> <span class="s2">&quot;https://github.com/FasterSpeeding/Yuyo&quot;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.0.5a1&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.0.5a1.post1&quot;</span>
 
 
 <span class="n">WaitForComponent</span> <span class="o">=</span> <span class="n">WaitForExecutor</span>
@@ -809,7 +809,7 @@ yuyo    </h1>
                 <section id="__version__">
                                 <div class="attr variable"><a class="headerlink" href="#__version__">#&nbsp;&nbsp</a>
 
-        <span class="name">__version__</span><span class="default_value"> = &#39;1.0.5a1&#39;</span>
+        <span class="name">__version__</span><span class="default_value"> = &#39;1.0.5a1.post1&#39;</span>
     </div>
 
     
@@ -858,7 +858,6 @@ yuyo    </h1>
 <span class="n">__all__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">,</span> <span class="s2">&quot;AsgiBot&quot;</span><span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 
@@ -866,6 +865,8 @@ yuyo    </h1>
 <span class="kn">from</span> <span class="nn">hikari</span> <span class="kn">import</span> <span class="n">traits</span>
 
 <span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">concurrent.futures</span>
+
     <span class="kn">import</span> <span class="nn">asgiref.typing</span> <span class="k">as</span> <span class="nn">asgiref</span>
 
 <span class="n">_AsgiAdapterT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_AsgiAdapterT&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">)</span>
@@ -1136,6 +1137,7 @@ yuyo    </h1>
         <span class="s2">&quot;_executor&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_http_settings&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_is_alive&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_is_asgi_managed&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_join_event&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_proxy_settings&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_rest&quot;</span><span class="p">,</span>
@@ -1147,6 +1149,7 @@ yuyo    </h1>
         <span class="n">token</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -1163,6 +1166,7 @@ yuyo    </h1>
         <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">],</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -1178,6 +1182,7 @@ yuyo    </h1>
         <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -1203,6 +1208,11 @@ yuyo    </h1>
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
+<span class="sd">        asgi_managed: bool</span>
+<span class="sd">            Whether this bot&#39;s internal components should be automatically</span>
+<span class="sd">            started and stopped based on the Asgi lifespan events.</span>
+
+<span class="sd">            Defaults to `True`.</span>
 <span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
 <span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
 <span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
@@ -1285,6 +1295,11 @@ yuyo    </h1>
             <span class="p">)</span>
         <span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span> <span class="o">=</span> <span class="n">asgi_managed</span>
+        <span class="k">if</span> <span class="n">asgi_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_startup_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_shutdown_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">entity_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EntityFactory</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span>
@@ -1314,6 +1329,23 @@ yuyo    </h1>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client and wait until the bot&#39;s closed.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started and closed based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
 
@@ -1327,22 +1359,63 @@ yuyo    </h1>
         <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
         <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">())</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
-
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client.</span>
 
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will</span>
+<span class="sd">            raise a `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the bot&#39;s REST client.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically closed based on the ASGI lifespan</span>
+<span class="sd">            events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client isn&#39;t alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2007,6 +2080,7 @@ The send function to use.</li>
         <span class="s2">&quot;_executor&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_http_settings&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_is_alive&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_is_asgi_managed&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_join_event&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_proxy_settings&quot;</span><span class="p">,</span>
         <span class="s2">&quot;_rest&quot;</span><span class="p">,</span>
@@ -2018,6 +2092,7 @@ The send function to use.</li>
         <span class="n">token</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -2034,6 +2109,7 @@ The send function to use.</li>
         <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">],</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -2049,6 +2125,7 @@ The send function to use.</li>
         <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -2074,6 +2151,11 @@ The send function to use.</li>
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
+<span class="sd">        asgi_managed: bool</span>
+<span class="sd">            Whether this bot&#39;s internal components should be automatically</span>
+<span class="sd">            started and stopped based on the Asgi lifespan events.</span>
+
+<span class="sd">            Defaults to `True`.</span>
 <span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
 <span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
 <span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
@@ -2155,6 +2237,11 @@ The send function to use.</li>
                 <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span> <span class="n">rest_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span>
             <span class="p">)</span>
         <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span> <span class="o">=</span> <span class="n">asgi_managed</span>
+        <span class="k">if</span> <span class="n">asgi_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_startup_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_shutdown_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">entity_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EntityFactory</span><span class="p">:</span>
@@ -2185,6 +2272,23 @@ The send function to use.</li>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client and wait until the bot&#39;s closed.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started and closed based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
 
@@ -2198,22 +2302,63 @@ The send function to use.</li>
         <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
         <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">())</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
-
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client.</span>
 
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will</span>
+<span class="sd">            raise a `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the bot&#39;s REST client.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically closed based on the ASGI lifespan</span>
+<span class="sd">            events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client isn&#39;t alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">()</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2240,6 +2385,7 @@ relies on being called as an ASGI app.</p>
     token_type: Union[hikari.applications.TokenType, str, NoneType] = None,
     public_key: Union[bytes, str, NoneType] = None,
     *,
+    asgi_managed: bool = True,
     executor: Optional[concurrent.futures._base.Executor] = None,
     http_settings: Optional[hikari.config.HTTPSettings] = None,
     max_rate_limit: float = 300.0,
@@ -2257,6 +2403,7 @@ relies on being called as an ASGI app.</p>
         <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">asgi_managed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
@@ -2282,6 +2429,11 @@ relies on being called as an ASGI app.</p>
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
+<span class="sd">        asgi_managed: bool</span>
+<span class="sd">            Whether this bot&#39;s internal components should be automatically</span>
+<span class="sd">            started and stopped based on the Asgi lifespan events.</span>
+
+<span class="sd">            Defaults to `True`.</span>
 <span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
 <span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
 <span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
@@ -2363,6 +2515,11 @@ relies on being called as an ASGI app.</p>
                 <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span> <span class="n">rest_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span>
             <span class="p">)</span>
         <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span> <span class="o">=</span> <span class="n">asgi_managed</span>
+        <span class="k">if</span> <span class="n">asgi_managed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_startup_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_shutdown_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -2388,6 +2545,11 @@ defaulted to <code>"Bearer"</code> in this situation.</p>
 <h6 id="other-parameters">Other Parameters</h6>
 
 <ul>
+<li><p><strong>asgi_managed</strong> (bool):
+Whether this bot's internal components should be automatically
+started and stopped based on the Asgi lifespan events.</p>
+
+<p>Defaults to <code>True</code>.</p></li>
 <li><p><strong>executor</strong> (typing.Optional[concurrent.futures.Executor]):
 Defaults to <code>builns.None</code>. If non-<code>None</code>, then this executor
 is used instead of the <code>concurrent.futures.ThreadPoolExecutor</code> attached
@@ -2588,6 +2750,23 @@ instead.</li>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client and wait until the bot&#39;s closed.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started and closed based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
 
@@ -2604,7 +2783,20 @@ instead.</li>
 
         </details>
 
-            <div class="docstring"><p>Start the application and block until it's finished running.</p>
+            <div class="docstring"><p>Start the bot's REST client and wait until the bot's closed.</p>
+
+<p><em>Warning:</em>
+Unless <code>asgi_managed=False</code> is passed to <code><a href="#AsgiBot.__init__">AsgiBot.__init__</a></code>,
+the bot will be automatically started and closed based on the ASGI
+lifespan events and any other calls to this function will raise a
+<code>RuntimeError</code>.</p>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>RuntimeError</strong>: If the client is already alive.
+If the client is ASGI managed.</li>
+</ul>
 </div>
 
 
@@ -2620,17 +2812,45 @@ instead.</li>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Start the bot&#39;s REST client.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically started based on the ASGI</span>
+<span class="sd">            lifespan events and any other calls to this function will</span>
+<span class="sd">            raise a `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client is already alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">()</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Start the application and then return.</p>
+            <div class="docstring"><p>Start the bot's REST client.</p>
+
+<p><em>Warning:</em>
+Unless <code>asgi_managed=False</code> is passed to <code><a href="#AsgiBot.__init__">AsgiBot.__init__</a></code>,
+the bot will be automatically started based on the ASGI
+lifespan events and any other calls to this function will
+raise a <code>RuntimeError</code>.</p>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>RuntimeError</strong>: If the client is already alive.
+If the client is ASGI managed.</li>
+</ul>
 </div>
 
 
@@ -2646,18 +2866,45 @@ instead.</li>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Close the bot&#39;s REST client.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,</span>
+<span class="sd">            the bot will be automatically closed based on the ASGI lifespan</span>
+<span class="sd">            events and any other calls to this function will raise a</span>
+<span class="sd">            `RuntimeError`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If the client isn&#39;t alive.</span>
+<span class="sd">            If the client is ASGI managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_asgi_managed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is being managed by ASGI lifespan events&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close</span><span class="p">()</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Kill the application by shutting all components down.</p>
+            <div class="docstring"><p>Close the bot's REST client.</p>
+
+<p><em>Warning:</em>
+Unless <code>asgi_managed=False</code> is passed to <code><a href="#AsgiBot.__init__">AsgiBot.__init__</a></code>,
+the bot will be automatically closed based on the ASGI lifespan
+events and any other calls to this function will raise a
+<code>RuntimeError</code>.</p>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>RuntimeError</strong>: If the client isn't alive.
+If the client is ASGI managed.</li>
+</ul>
 </div>
 
 
