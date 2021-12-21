@@ -35,7 +35,6 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
-import concurrent.futures
 import traceback
 import typing
 
@@ -43,6 +42,8 @@ import hikari
 from hikari import traits
 
 if typing.TYPE_CHECKING:
+    import concurrent.futures
+
     import asgiref.typing as asgiref
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
@@ -313,6 +314,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         "_executor",
         "_http_settings",
         "_is_alive",
+        "_is_asgi_managed",
         "_join_event",
         "_proxy_settings",
         "_rest",
@@ -324,6 +326,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         token: hikari.api.TokenStrategy,
         *,
         public_key: typing.Union[bytes, str, None] = None,
+        asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
@@ -340,6 +343,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         token_type: typing.Union[str, hikari.TokenType],
         public_key: typing.Union[bytes, str, None] = None,
         *,
+        asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
@@ -355,6 +359,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         token_type: typing.Union[hikari.TokenType, str, None] = None,
         public_key: typing.Union[bytes, str, None] = None,
         *,
+        asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
@@ -380,6 +385,11 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
 
         Other Parameters
         ----------------
+        asgi_managed: bool
+            Whether this bot's internal components should be automatically
+            started and stopped based on the Asgi lifespan events.
+
+            Defaults to `True`.
         executor : typing.Optional[concurrent.futures.Executor]
             Defaults to `builns.None`. If non-`None`, then this executor
             is used instead of the `concurrent.futures.ThreadPoolExecutor` attached
@@ -462,6 +472,11 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
             )
         )
 
+        self._is_asgi_managed = asgi_managed
+        if asgi_managed:
+            self.add_startup_callback(self._start)
+            self.add_shutdown_callback(self._close)
+
     @property
     def entity_factory(self) -> hikari.api.EntityFactory:
         return self._entity_factory
@@ -491,6 +506,23 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         return self._rest
 
     def run(self) -> None:
+        """Start the bot's REST client and wait until the bot's closed.
+
+        .. warning::
+            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,
+            the bot will be automatically started and closed based on the ASGI
+            lifespan events and any other calls to this function will raise a
+            `RuntimeError`.
+
+        Raises
+        ------
+        RuntimeError
+            If the client is already alive.
+            If the client is ASGI managed.
+        """
+        if self._is_asgi_managed:
+            raise RuntimeError("The client is being managed by ASGI lifespan events")
+
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
@@ -504,22 +536,63 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         loop.run_until_complete(self.start())
         loop.run_until_complete(self.join())
 
-    async def start(self) -> None:
-        if self._is_alive:
-            raise RuntimeError("The client is already running")
-
+    async def _start(self) -> None:
         self._join_event = asyncio.Event()
         self._is_alive = True
         self._rest.start()
 
-    async def close(self) -> None:
-        if not self._is_alive or not self._join_event:
-            raise RuntimeError("The client is not running")
+    async def start(self) -> None:
+        """Start the bot's REST client.
 
+        .. warning::
+            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,
+            the bot will be automatically started based on the ASGI
+            lifespan events and any other calls to this function will
+            raise a `RuntimeError`.
+
+        Raises
+        ------
+        RuntimeError
+            If the client is already alive.
+            If the client is ASGI managed.
+        """
+        if self._is_asgi_managed:
+            raise RuntimeError("The client is being managed by ASGI lifespan events")
+
+        if self._is_alive:
+            raise RuntimeError("The client is already running")
+
+        await self._start()
+
+    async def _close(self) -> None:
+        assert self._join_event is not None
         self._is_alive = False
         await self._rest.close()
         self._join_event.set()
         self._join_event = None
+
+    async def close(self) -> None:
+        """Close the bot's REST client.
+
+        .. warning::
+            Unless `asgi_managed=False` is passed to `AsgiBot.__init__`,
+            the bot will be automatically closed based on the ASGI lifespan
+            events and any other calls to this function will raise a
+            `RuntimeError`.
+
+        Raises
+        ------
+        RuntimeError
+            If the client isn't alive.
+            If the client is ASGI managed.
+        """
+        if self._is_asgi_managed:
+            raise RuntimeError("The client is being managed by ASGI lifespan events")
+
+        if not self._is_alive or not self._join_event:
+            raise RuntimeError("The client is not running")
+
+        await self._close()
 
     async def join(self) -> None:
         if self._join_event is None:

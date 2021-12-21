@@ -650,6 +650,40 @@ class TestAsgiAdapter:
 
 
 class TestAsgiBot:
+    def test___init___when_asgi_managed(self) -> None:
+        mock_add_startup_callback = mock.Mock()
+        mock_add_shutdown_callback = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            add_startup_callback = mock_add_startup_callback
+            add_shutdown_callback = mock_add_shutdown_callback
+
+        with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
+            bot = StubBot("token", "Bot")
+
+            assert bot.entity_factory is mock_entity_factory_impl.return_value
+            mock_entity_factory_impl.assert_called_once_with(bot)
+
+            mock_add_startup_callback.assert_called_once_with(bot._start)
+            mock_add_shutdown_callback.assert_called_once_with(bot._close)
+
+    def test___init___when_not_asgi_managed(self) -> None:
+        mock_add_startup_callback = mock.Mock()
+        mock_add_shutdown_callback = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            add_startup_callback = mock_add_startup_callback
+            add_shutdown_callback = mock_add_shutdown_callback
+
+        with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
+            bot = StubBot("token", "Bot", asgi_managed=False)
+
+            assert bot.entity_factory is mock_entity_factory_impl.return_value
+            mock_entity_factory_impl.assert_called_once_with(bot)
+
+            mock_add_startup_callback.assert_not_called()
+            mock_add_shutdown_callback.assert_not_called()
+
     def test_entity_factory_property(self):
         with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
             bot = yuyo.AsgiBot("token", "Bot")
@@ -779,7 +813,7 @@ class TestAsgiBot:
             start = mock_start
             join = mock_join
 
-        bot = StubBot("token", "Bot")
+        bot = StubBot("token", "Bot", asgi_managed=False)
 
         bot.run()
 
@@ -807,7 +841,7 @@ class TestAsgiBot:
             start = mock_start
             join = mock_join
 
-        bot = StubBot("token", "Bot")
+        bot = StubBot("token", "Bot", asgi_managed=False)
 
         bot.run()
 
@@ -821,12 +855,45 @@ class TestAsgiBot:
         )
 
     @pytest.mark.asyncio()
+    async def test_run_when_already_alive(self):
+        mock_join = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            join = mock_join
+
+        with mock.patch.object(hikari.impl, "RESTClientImpl"):
+            bot = StubBot("token", "Bot", asgi_managed=False)
+
+        await bot.start()
+
+        with pytest.raises(RuntimeError, match="The client is already running"):
+            bot.run()
+
+        mock_join.assert_not_called()
+
+    def test_run_when_asgi_managed(self):
+        mock_start = mock.Mock()
+        mock_join = mock.Mock()
+
+        class StubBot(yuyo.AsgiBot):
+            start = mock_start
+            join = mock_join
+
+        bot = StubBot("token", "Bot")
+
+        with pytest.raises(RuntimeError, match="The client is being managed by ASGI lifespan events"):
+            bot.run()
+
+        mock_start.assert_not_called()
+        mock_join.assert_not_called()
+
+    @pytest.mark.asyncio()
     async def test_start(self):
         stack = contextlib.ExitStack()
         mock_rest_client_impl = stack.enter_context(mock.patch.object(hikari.impl, "RESTClientImpl"))
         mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
         with stack:
-            bot = yuyo.AsgiBot("token", "Bot")
+            bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
             await bot.start()
 
@@ -836,14 +903,29 @@ class TestAsgiBot:
         mock_event.assert_called_once_with()
 
     @pytest.mark.asyncio()
-    async def test_start_when_already_alive(self):
+    async def test_start_when_asgi_managed(self):
         with mock.patch.object(hikari.impl, "RESTClientImpl"):
             bot = yuyo.AsgiBot("token", "Bot")
+
+        with pytest.raises(RuntimeError, match="The client is being managed by ASGI lifespan events"):
+            await bot.start()
+
+    @pytest.mark.asyncio()
+    async def test_start_when_already_alive(self):
+        with mock.patch.object(hikari.impl, "RESTClientImpl"):
+            bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
         await bot.start()
 
         with pytest.raises(RuntimeError, match="The client is already running"):
             await bot.start()
+
+    @pytest.mark.asyncio()
+    async def test_close_when_asgi_managed(self):
+        bot = yuyo.AsgiBot("token", "Bot")
+
+        with pytest.raises(RuntimeError, match="The client is being managed by ASGI lifespan events"):
+            await bot.close()
 
     @pytest.mark.asyncio()
     async def test_close(self):
@@ -852,7 +934,7 @@ class TestAsgiBot:
         mock_rest_client_impl.return_value.close = mock.AsyncMock()
         mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
         with stack:
-            bot = yuyo.AsgiBot("token", "Bot")
+            bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
             await bot.start()
 
@@ -868,7 +950,7 @@ class TestAsgiBot:
 
     @pytest.mark.asyncio()
     async def test_close_when_not_alive(self):
-        bot = yuyo.AsgiBot("token", "Bot")
+        bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
         with pytest.raises(RuntimeError, match="The client is not running"):
             await bot.close()
@@ -876,7 +958,7 @@ class TestAsgiBot:
     @pytest.mark.asyncio()
     async def test_join(self):
         with mock.patch.object(hikari.impl, "RESTClientImpl"):
-            bot = yuyo.AsgiBot("token", "Bot")
+            bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
         with mock.patch.object(asyncio, "Event", return_value=mock.AsyncMock()) as join_event:
             await bot.start()

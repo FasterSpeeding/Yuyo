@@ -68,10 +68,10 @@ tests = ["pytest==6.2.5", "pytest-asyncio==0.16", "pytest-cov==3"]
 type_checking = ["pyright==0.0.13"]
 
 [project.urls]
-    homepage = "https://github.com/FasterSpeeding/Yuyo"
-    repository = "https://github.com/FasterSpeeding/Yuyo"
-    documentation = "https://yuyo.cursed.solutions/"
-    changelog = "https://github.com/FasterSpeeding/Yuyo/blob/master/CHANGELOG.md"
+homepage = "https://github.com/FasterSpeeding/Yuyo"
+repository = "https://github.com/FasterSpeeding/Yuyo"
+documentation = "https://yuyo.cursed.solutions/"
+changelog = "https://github.com/FasterSpeeding/Yuyo/blob/master/CHANGELOG.md"
 
 [tool.flit.module]
 name = "yuyo"
