@@ -98,7 +98,7 @@ __email__ = "lucina@lmbyrne.dev"
 __issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
 __license__ = "BSD"
 __url__ = "https://github.com/FasterSpeeding/Yuyo"
-__version__ = "1.0.5a1.post1"
+__version__ = "1.0.6a1"
 
 
 WaitForComponent = WaitForExecutor
