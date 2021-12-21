@@ -54,6 +54,48 @@
                 </ul>
 
             </li>
+            <li>
+                    <a class="class" href="#AsgiBot">AsgiBot</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#AsgiBot.__init__">AsgiBot</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.entity_factory">entity_factory</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.executor">executor</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.http_settings">http_settings</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.interaction_server">interaction_server</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.is_alive">is_alive</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.proxy_settings">proxy_settings</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#AsgiBot.rest">rest</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiBot.run">run</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiBot.start">start</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiBot.close">close</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#AsgiBot.join">join</a>
+                        </li>
+                </ul>
+
+            </li>
     </ul>
 
 
@@ -109,15 +151,18 @@
 <span class="sd">&quot;&quot;&quot;ASGI/3 adapter for Hikari&#39;s interaction server.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">]</span>
+<span class="n">__all__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">,</span> <span class="s2">&quot;AsgiBot&quot;</span><span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 
+<span class="kn">import</span> <span class="nn">hikari</span>
+<span class="kn">from</span> <span class="nn">hikari</span> <span class="kn">import</span> <span class="n">traits</span>
+
 <span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">asgiref.typing</span> <span class="k">as</span> <span class="nn">asgiref</span>
-    <span class="kn">import</span> <span class="nn">hikari</span>
 
 <span class="n">_AsgiAdapterT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_AsgiAdapterT&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;AsgiAdapter&quot;</span><span class="p">)</span>
 
@@ -373,6 +418,233 @@
 
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="n">headers</span><span class="p">})</span>
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">payload</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+
+<span class="k">class</span> <span class="nc">AsgiBot</span><span class="p">(</span><span class="n">AsgiAdapter</span><span class="p">,</span> <span class="n">traits</span><span class="o">.</span><span class="n">RESTBotAware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bot implementation which acts as an ASGI adapter.</span>
+
+<span class="sd">    This bot doesn&#39;t initiate a server internally but instead</span>
+<span class="sd">    relies on being called as an ASGI app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;_entity_factory&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_executor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_http_settings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_is_alive&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_join_event&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_proxy_settings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_rest&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">],</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">],</span>
+        <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise a new ASGI bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        token : typing.Union[str, None, hikari.api.rest.TokenStrategy]</span>
+<span class="sd">            The bot or bearer token. If no token is to be used,</span>
+<span class="sd">            this can be undefined.</span>
+<span class="sd">        token_type : typing.Union[str, hikari.applications.TokenType, None]</span>
+<span class="sd">            The type of token in use. This should only be passed when `str`</span>
+<span class="sd">            is passed for `token`, can be `&quot;Bot&quot;` or `&quot;Bearer&quot;` and will be</span>
+<span class="sd">            defaulted to `&quot;Bearer&quot;` in this situation.</span>
+
+<span class="sd">            This should be left as `None` when either</span>
+<span class="sd">            `hikari.api.rest.TokenStrategy` or `None` is passed for</span>
+<span class="sd">            `token`.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
+<span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
+<span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
+<span class="sd">            to the `asyncio.AbstractEventLoop` that the bot will run on. This</span>
+<span class="sd">            executor is used primarily for file-IO.</span>
+
+<span class="sd">            While mainly supporting the `concurrent.futures.ThreadPoolExecutor`</span>
+<span class="sd">            implementation in the standard lib, Hikari&#39;s file handling systems</span>
+<span class="sd">            should also work with `concurrent.futures.ProcessPoolExecutor`, which</span>
+<span class="sd">            relies on all objects used in IPC to be `pickle`able. Many third-party</span>
+<span class="sd">            libraries will not support this fully though, so your mileage may vary</span>
+<span class="sd">            on using ProcessPoolExecutor implementations with this parameter.</span>
+<span class="sd">        http_settings : typing.Optional[hikari.config.HTTPSettings]</span>
+<span class="sd">            Optional custom HTTP configuration settings to use. Allows you to</span>
+<span class="sd">            customise functionality such as whether SSL-verification is enabled,</span>
+<span class="sd">            what timeouts `aiohttp` should expect to use for requests, and behavior</span>
+<span class="sd">            regarding HTTP-redirects.</span>
+<span class="sd">        max_rate_limit : float</span>
+<span class="sd">            The max number of seconds to backoff for when rate limited. Anything</span>
+<span class="sd">            greater than this will instead raise an error.</span>
+
+<span class="sd">            This defaults to five minutes if left to the default value. This is to</span>
+<span class="sd">            stop potentially indefinitely waiting on an endpoint, which is almost</span>
+<span class="sd">            never what you want to do if giving a response to a user.</span>
+
+<span class="sd">            You can set this to `float(&quot;inf&quot;)` to disable this check entirely.</span>
+<span class="sd">            Note that this only applies to the REST API component that communicates</span>
+<span class="sd">            with Discord, and will not affect sharding or third party HTTP endpoints</span>
+<span class="sd">            that may be in use.</span>
+<span class="sd">        max_retries : typing.Optional[int]</span>
+<span class="sd">            Maximum number of times a request will be retried if</span>
+
+<span class="sd">            it fails with a `5xx` status. Defaults to 3 if set to `None`.</span>
+<span class="sd">        proxy_settings : typing.Optional[hikari.config.ProxySettings]</span>
+<span class="sd">            Custom proxy settings to use with network-layer logic</span>
+<span class="sd">            in your application to get through an HTTP-proxy.</span>
+<span class="sd">        public_key : typing.Union[str, bytes, None]</span>
+<span class="sd">            The public key to use to verify received interaction requests.</span>
+
+<span class="sd">            This may be a hex encoded `str` or the raw `bytes`.</span>
+<span class="sd">            If left as `None` then the client will try to work this value</span>
+<span class="sd">            out based on `token`.</span>
+<span class="sd">        rest_url : typing.Optional[str]</span>
+<span class="sd">            Defaults to the Discord REST API URL if `None`. Can be</span>
+<span class="sd">            overridden if you are attempting to point to an unofficial endpoint, or</span>
+<span class="sd">            if you are attempting to mock/stub the Discord API for any reason.</span>
+
+<span class="sd">            Generally you do not want to change this.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        builtins.ValueError</span>
+<span class="sd">            * If `token_type` is provided when a token strategy is passed for `token`.</span>
+<span class="sd">            * if `token_type` is left as `builtins.None` when a string is passed for `token`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">public_key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">public_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">public_key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">EntityFactoryImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span> <span class="o">=</span> <span class="n">http_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span> <span class="o">=</span> <span class="n">proxy_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">RESTClientImpl</span><span class="p">(</span>
+            <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span>
+            <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">,</span>
+            <span class="n">http_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span><span class="p">,</span>
+            <span class="n">max_rate_limit</span><span class="o">=</span><span class="n">max_rate_limit</span><span class="p">,</span>
+            <span class="n">proxy_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span><span class="p">,</span>
+            <span class="n">rest_url</span><span class="o">=</span><span class="n">rest_url</span><span class="p">,</span>
+            <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span>
+            <span class="n">token_type</span><span class="o">=</span><span class="n">token_type</span><span class="p">,</span>
+            <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">(</span>
+                <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span> <span class="n">rest_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">entity_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EntityFactory</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">http_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interaction_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">proxy_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rest</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">())</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -1002,6 +1274,726 @@ The send function to use.</li>
 </div>
 
 
+                            </div>
+                </section>
+                <section id="AsgiBot">
+                                <div class="attr class">
+        <a class="headerlink" href="#AsgiBot">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">AsgiBot</span><wbr>(<span class="base"><a href="#AsgiAdapter">AsgiAdapter</a></span>, <span class="base">hikari.traits.RESTBotAware</span>):
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">AsgiBot</span><span class="p">(</span><span class="n">AsgiAdapter</span><span class="p">,</span> <span class="n">traits</span><span class="o">.</span><span class="n">RESTBotAware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bot implementation which acts as an ASGI adapter.</span>
+
+<span class="sd">    This bot doesn&#39;t initiate a server internally but instead</span>
+<span class="sd">    relies on being called as an ASGI app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;_entity_factory&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_executor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_http_settings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_is_alive&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_join_event&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_proxy_settings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_rest&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@typing</span><span class="o">.</span><span class="n">overload</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">],</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">],</span>
+        <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise a new ASGI bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        token : typing.Union[str, None, hikari.api.rest.TokenStrategy]</span>
+<span class="sd">            The bot or bearer token. If no token is to be used,</span>
+<span class="sd">            this can be undefined.</span>
+<span class="sd">        token_type : typing.Union[str, hikari.applications.TokenType, None]</span>
+<span class="sd">            The type of token in use. This should only be passed when `str`</span>
+<span class="sd">            is passed for `token`, can be `&quot;Bot&quot;` or `&quot;Bearer&quot;` and will be</span>
+<span class="sd">            defaulted to `&quot;Bearer&quot;` in this situation.</span>
+
+<span class="sd">            This should be left as `None` when either</span>
+<span class="sd">            `hikari.api.rest.TokenStrategy` or `None` is passed for</span>
+<span class="sd">            `token`.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
+<span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
+<span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
+<span class="sd">            to the `asyncio.AbstractEventLoop` that the bot will run on. This</span>
+<span class="sd">            executor is used primarily for file-IO.</span>
+
+<span class="sd">            While mainly supporting the `concurrent.futures.ThreadPoolExecutor`</span>
+<span class="sd">            implementation in the standard lib, Hikari&#39;s file handling systems</span>
+<span class="sd">            should also work with `concurrent.futures.ProcessPoolExecutor`, which</span>
+<span class="sd">            relies on all objects used in IPC to be `pickle`able. Many third-party</span>
+<span class="sd">            libraries will not support this fully though, so your mileage may vary</span>
+<span class="sd">            on using ProcessPoolExecutor implementations with this parameter.</span>
+<span class="sd">        http_settings : typing.Optional[hikari.config.HTTPSettings]</span>
+<span class="sd">            Optional custom HTTP configuration settings to use. Allows you to</span>
+<span class="sd">            customise functionality such as whether SSL-verification is enabled,</span>
+<span class="sd">            what timeouts `aiohttp` should expect to use for requests, and behavior</span>
+<span class="sd">            regarding HTTP-redirects.</span>
+<span class="sd">        max_rate_limit : float</span>
+<span class="sd">            The max number of seconds to backoff for when rate limited. Anything</span>
+<span class="sd">            greater than this will instead raise an error.</span>
+
+<span class="sd">            This defaults to five minutes if left to the default value. This is to</span>
+<span class="sd">            stop potentially indefinitely waiting on an endpoint, which is almost</span>
+<span class="sd">            never what you want to do if giving a response to a user.</span>
+
+<span class="sd">            You can set this to `float(&quot;inf&quot;)` to disable this check entirely.</span>
+<span class="sd">            Note that this only applies to the REST API component that communicates</span>
+<span class="sd">            with Discord, and will not affect sharding or third party HTTP endpoints</span>
+<span class="sd">            that may be in use.</span>
+<span class="sd">        max_retries : typing.Optional[int]</span>
+<span class="sd">            Maximum number of times a request will be retried if</span>
+
+<span class="sd">            it fails with a `5xx` status. Defaults to 3 if set to `None`.</span>
+<span class="sd">        proxy_settings : typing.Optional[hikari.config.ProxySettings]</span>
+<span class="sd">            Custom proxy settings to use with network-layer logic</span>
+<span class="sd">            in your application to get through an HTTP-proxy.</span>
+<span class="sd">        public_key : typing.Union[str, bytes, None]</span>
+<span class="sd">            The public key to use to verify received interaction requests.</span>
+
+<span class="sd">            This may be a hex encoded `str` or the raw `bytes`.</span>
+<span class="sd">            If left as `None` then the client will try to work this value</span>
+<span class="sd">            out based on `token`.</span>
+<span class="sd">        rest_url : typing.Optional[str]</span>
+<span class="sd">            Defaults to the Discord REST API URL if `None`. Can be</span>
+<span class="sd">            overridden if you are attempting to point to an unofficial endpoint, or</span>
+<span class="sd">            if you are attempting to mock/stub the Discord API for any reason.</span>
+
+<span class="sd">            Generally you do not want to change this.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        builtins.ValueError</span>
+<span class="sd">            * If `token_type` is provided when a token strategy is passed for `token`.</span>
+<span class="sd">            * if `token_type` is left as `builtins.None` when a string is passed for `token`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">public_key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">public_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">public_key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">EntityFactoryImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span> <span class="o">=</span> <span class="n">http_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span> <span class="o">=</span> <span class="n">proxy_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">RESTClientImpl</span><span class="p">(</span>
+            <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span>
+            <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">,</span>
+            <span class="n">http_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span><span class="p">,</span>
+            <span class="n">max_rate_limit</span><span class="o">=</span><span class="n">max_rate_limit</span><span class="p">,</span>
+            <span class="n">proxy_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span><span class="p">,</span>
+            <span class="n">rest_url</span><span class="o">=</span><span class="n">rest_url</span><span class="p">,</span>
+            <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span>
+            <span class="n">token_type</span><span class="o">=</span><span class="n">token_type</span><span class="p">,</span>
+            <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">(</span>
+                <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span> <span class="n">rest_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">entity_factory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">EntityFactory</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">http_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interaction_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_alive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">proxy_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rest</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">RESTClient</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">())</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Bot implementation which acts as an ASGI adapter.</p>
+
+<p>This bot doesn't initiate a server internally but instead
+relies on being called as an ASGI app.</p>
+</div>
+
+
+                            <div id="AsgiBot.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiBot.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">AsgiBot</span><span class="signature">(
+    token: Union[str, hikari.api.rest.TokenStrategy],
+    token_type: Union[hikari.applications.TokenType, str, NoneType] = None,
+    public_key: Union[bytes, str, NoneType] = None,
+    *,
+    executor: Optional[concurrent.futures._base.Executor] = None,
+    http_settings: Optional[hikari.config.HTTPSettings] = None,
+    max_rate_limit: float = 300.0,
+    max_retries: int = 3,
+    proxy_settings: Optional[hikari.config.ProxySettings] = None,
+    rest_url: Optional[str] = None
+)</span>
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">TokenStrategy</span><span class="p">],</span>
+        <span class="n">token_type</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TokenType</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">public_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">executor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">Executor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">http_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_rate_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">proxy_settings</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_url</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialise a new ASGI bot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        token : typing.Union[str, None, hikari.api.rest.TokenStrategy]</span>
+<span class="sd">            The bot or bearer token. If no token is to be used,</span>
+<span class="sd">            this can be undefined.</span>
+<span class="sd">        token_type : typing.Union[str, hikari.applications.TokenType, None]</span>
+<span class="sd">            The type of token in use. This should only be passed when `str`</span>
+<span class="sd">            is passed for `token`, can be `&quot;Bot&quot;` or `&quot;Bearer&quot;` and will be</span>
+<span class="sd">            defaulted to `&quot;Bearer&quot;` in this situation.</span>
+
+<span class="sd">            This should be left as `None` when either</span>
+<span class="sd">            `hikari.api.rest.TokenStrategy` or `None` is passed for</span>
+<span class="sd">            `token`.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        executor : typing.Optional[concurrent.futures.Executor]</span>
+<span class="sd">            Defaults to `builns.None`. If non-`None`, then this executor</span>
+<span class="sd">            is used instead of the `concurrent.futures.ThreadPoolExecutor` attached</span>
+<span class="sd">            to the `asyncio.AbstractEventLoop` that the bot will run on. This</span>
+<span class="sd">            executor is used primarily for file-IO.</span>
+
+<span class="sd">            While mainly supporting the `concurrent.futures.ThreadPoolExecutor`</span>
+<span class="sd">            implementation in the standard lib, Hikari&#39;s file handling systems</span>
+<span class="sd">            should also work with `concurrent.futures.ProcessPoolExecutor`, which</span>
+<span class="sd">            relies on all objects used in IPC to be `pickle`able. Many third-party</span>
+<span class="sd">            libraries will not support this fully though, so your mileage may vary</span>
+<span class="sd">            on using ProcessPoolExecutor implementations with this parameter.</span>
+<span class="sd">        http_settings : typing.Optional[hikari.config.HTTPSettings]</span>
+<span class="sd">            Optional custom HTTP configuration settings to use. Allows you to</span>
+<span class="sd">            customise functionality such as whether SSL-verification is enabled,</span>
+<span class="sd">            what timeouts `aiohttp` should expect to use for requests, and behavior</span>
+<span class="sd">            regarding HTTP-redirects.</span>
+<span class="sd">        max_rate_limit : float</span>
+<span class="sd">            The max number of seconds to backoff for when rate limited. Anything</span>
+<span class="sd">            greater than this will instead raise an error.</span>
+
+<span class="sd">            This defaults to five minutes if left to the default value. This is to</span>
+<span class="sd">            stop potentially indefinitely waiting on an endpoint, which is almost</span>
+<span class="sd">            never what you want to do if giving a response to a user.</span>
+
+<span class="sd">            You can set this to `float(&quot;inf&quot;)` to disable this check entirely.</span>
+<span class="sd">            Note that this only applies to the REST API component that communicates</span>
+<span class="sd">            with Discord, and will not affect sharding or third party HTTP endpoints</span>
+<span class="sd">            that may be in use.</span>
+<span class="sd">        max_retries : typing.Optional[int]</span>
+<span class="sd">            Maximum number of times a request will be retried if</span>
+
+<span class="sd">            it fails with a `5xx` status. Defaults to 3 if set to `None`.</span>
+<span class="sd">        proxy_settings : typing.Optional[hikari.config.ProxySettings]</span>
+<span class="sd">            Custom proxy settings to use with network-layer logic</span>
+<span class="sd">            in your application to get through an HTTP-proxy.</span>
+<span class="sd">        public_key : typing.Union[str, bytes, None]</span>
+<span class="sd">            The public key to use to verify received interaction requests.</span>
+
+<span class="sd">            This may be a hex encoded `str` or the raw `bytes`.</span>
+<span class="sd">            If left as `None` then the client will try to work this value</span>
+<span class="sd">            out based on `token`.</span>
+<span class="sd">        rest_url : typing.Optional[str]</span>
+<span class="sd">            Defaults to the Discord REST API URL if `None`. Can be</span>
+<span class="sd">            overridden if you are attempting to point to an unofficial endpoint, or</span>
+<span class="sd">            if you are attempting to mock/stub the Discord API for any reason.</span>
+
+<span class="sd">            Generally you do not want to change this.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        builtins.ValueError</span>
+<span class="sd">            * If `token_type` is provided when a token strategy is passed for `token`.</span>
+<span class="sd">            * if `token_type` is left as `builtins.None` when a string is passed for `token`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">public_key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">public_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">public_key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">EntityFactoryImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span> <span class="o">=</span> <span class="n">http_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">HTTPSettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span> <span class="o">=</span> <span class="n">proxy_settings</span> <span class="ow">or</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ProxySettings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">RESTClientImpl</span><span class="p">(</span>
+            <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span>
+            <span class="n">executor</span><span class="o">=</span><span class="n">executor</span><span class="p">,</span>
+            <span class="n">http_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_http_settings</span><span class="p">,</span>
+            <span class="n">max_rate_limit</span><span class="o">=</span><span class="n">max_rate_limit</span><span class="p">,</span>
+            <span class="n">proxy_settings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_proxy_settings</span><span class="p">,</span>
+            <span class="n">rest_url</span><span class="o">=</span><span class="n">rest_url</span><span class="p">,</span>
+            <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span>
+            <span class="n">token_type</span><span class="o">=</span><span class="n">token_type</span><span class="p">,</span>
+            <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">InteractionServer</span><span class="p">(</span>
+                <span class="n">entity_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_factory</span><span class="p">,</span> <span class="n">rest_client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="n">public_key</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Initialise a new ASGI bot.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>token</strong> (typing.Union[str, None, hikari.api.rest.TokenStrategy]):
+The bot or bearer token. If no token is to be used,
+this can be undefined.</li>
+<li><p><strong>token_type</strong> (typing.Union[str, hikari.applications.TokenType, None]):
+The type of token in use. This should only be passed when <code>str</code>
+is passed for <code>token</code>, can be <code>"Bot"</code> or <code>"Bearer"</code> and will be
+defaulted to <code>"Bearer"</code> in this situation.</p>
+
+<p>This should be left as <code>None</code> when either
+<code>hikari.api.rest.TokenStrategy</code> or <code>None</code> is passed for
+<code>token</code>.</p></li>
+</ul>
+
+<h6 id="other-parameters">Other Parameters</h6>
+
+<ul>
+<li><p><strong>executor</strong> (typing.Optional[concurrent.futures.Executor]):
+Defaults to <code>builns.None</code>. If non-<code>None</code>, then this executor
+is used instead of the <code>concurrent.futures.ThreadPoolExecutor</code> attached
+to the <code>asyncio.AbstractEventLoop</code> that the bot will run on. This
+executor is used primarily for file-IO.</p>
+
+<p>While mainly supporting the <code>concurrent.futures.ThreadPoolExecutor</code>
+implementation in the standard lib, Hikari's file handling systems
+should also work with <code>concurrent.futures.ProcessPoolExecutor</code>, which
+relies on all objects used in IPC to be <code>pickle</code>able. Many third-party
+libraries will not support this fully though, so your mileage may vary
+on using ProcessPoolExecutor implementations with this parameter.</p></li>
+<li><strong>http_settings</strong> (typing.Optional[hikari.config.HTTPSettings]):
+Optional custom HTTP configuration settings to use. Allows you to
+customise functionality such as whether SSL-verification is enabled,
+what timeouts <code>aiohttp</code> should expect to use for requests, and behavior
+regarding HTTP-redirects.</li>
+<li><p><strong>max_rate_limit</strong> (float):
+The max number of seconds to backoff for when rate limited. Anything
+greater than this will instead raise an error.</p>
+
+<p>This defaults to five minutes if left to the default value. This is to
+stop potentially indefinitely waiting on an endpoint, which is almost
+never what you want to do if giving a response to a user.</p>
+
+<p>You can set this to <code>float("inf")</code> to disable this check entirely.
+Note that this only applies to the REST API component that communicates
+with Discord, and will not affect sharding or third party HTTP endpoints
+that may be in use.</p></li>
+<li><p><strong>max_retries</strong> (typing.Optional[int]):
+Maximum number of times a request will be retried if</p>
+
+<p>it fails with a <code>5xx</code> status. Defaults to 3 if set to <code>None</code>.</p></li>
+<li><strong>proxy_settings</strong> (typing.Optional[hikari.config.ProxySettings]):
+Custom proxy settings to use with network-layer logic
+in your application to get through an HTTP-proxy.</li>
+<li><p><strong>public_key</strong> (typing.Union[str, bytes, None]):
+The public key to use to verify received interaction requests.</p>
+
+<p>This may be a hex encoded <code>str</code> or the raw <code>bytes</code>.
+If left as <code>None</code> then the client will try to work this value
+out based on <code>token</code>.</p></li>
+<li><p><strong>rest_url</strong> (typing.Optional[str]):
+Defaults to the Discord REST API URL if <code>None</code>. Can be
+overridden if you are attempting to point to an unofficial endpoint, or
+if you are attempting to mock/stub the Discord API for any reason.</p>
+
+<p>Generally you do not want to change this.</p></li>
+</ul>
+
+<h6 id="raises">Raises</h6>
+
+<ul>
+<li><strong>builtins.ValueError</strong>: * If <code>token_type</code> is provided when a token strategy is passed for <code>token</code>.
+<ul>
+<li>if <code>token_type</code> is left as <code>builtins.None</code> when a string is passed for <code>token</code>.</li>
+</ul></li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.entity_factory" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.entity_factory">#&nbsp;&nbsp</a>
+
+        <span class="name">entity_factory</span><span class="annotation">: hikari.api.entity_factory.EntityFactory</span>
+    </div>
+
+            <div class="docstring"><p>Return the entity factory implementation for this object.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>hikari.api.entity_factory.EntityFactory</strong>: The entity factory component.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.executor" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.executor">#&nbsp;&nbsp</a>
+
+        <span class="name">executor</span><span class="annotation">: Optional[concurrent.futures._base.Executor]</span>
+    </div>
+
+            <div class="docstring"><p>Return the executor to use for blocking operations.</p>
+
+<p>This may return <code>builtins.None</code> if the default <code>asyncio</code> thread pool
+should be used instead.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>typing.Optional[concurrent.futures.Executor]</strong>: The executor to use, or <code>builtins.None</code> to use the <code>asyncio</code> default
+instead.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.http_settings" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.http_settings">#&nbsp;&nbsp</a>
+
+        <span class="name">http_settings</span><span class="annotation">: hikari.config.HTTPSettings</span>
+    </div>
+
+            <div class="docstring"><p>Return the HTTP settings in use by this component.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>hikari.config.HTTPSettings</strong>: The HTTP settings in use.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.interaction_server" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.interaction_server">#&nbsp;&nbsp</a>
+
+        <span class="name">interaction_server</span><span class="annotation">: hikari.api.interaction_server.InteractionServer</span>
+    </div>
+
+            <div class="docstring"><p>Interaction server this app is bound to.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>hikari.api.interaction_server.InteractionServer</strong>: The interaction server this app is bound to.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.is_alive" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.is_alive">#&nbsp;&nbsp</a>
+
+        <span class="name">is_alive</span><span class="annotation">: bool</span>
+    </div>
+
+            <div class="docstring"><p>Check whether the application is running or not.</p>
+
+<p>This is useful as some functions might raise
+<code>hikari.errors.ComponentStateConflictError</code> if this is
+<code>builtins.False</code>.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>builtins.bool</strong>: Whether the bot is running or not.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.proxy_settings" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.proxy_settings">#&nbsp;&nbsp</a>
+
+        <span class="name">proxy_settings</span><span class="annotation">: hikari.config.ProxySettings</span>
+    </div>
+
+            <div class="docstring"><p>Return the proxy settings in use by this component.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>hikari.config.ProxySettings</strong>: The proxy settings in use.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.rest" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#AsgiBot.rest">#&nbsp;&nbsp</a>
+
+        <span class="name">rest</span><span class="annotation">: hikari.api.rest.RESTClient</span>
+    </div>
+
+            <div class="docstring"><p>Return the REST client to use for HTTP requests.</p>
+
+<h6 id="returns">Returns</h6>
+
+<ul>
+<li><strong>hikari.api.rest.RESTClient</strong>: The REST client to use.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.run" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiBot.run">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">run</span><span class="signature">(self) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="n">loop</span><span class="p">)</span>
+
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">())</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Start the application and block until it's finished running.</p>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.start" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiBot.start">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">start</span><span class="signature">(self) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is already running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Start the application and then return.</p>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.close" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiBot.close">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">close</span><span class="signature">(self) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Kill the application by shutting all components down.</p>
+</div>
+
+
+                            </div>
+                            <div id="AsgiBot.join" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AsgiBot.join">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">async def</span>
+            <span class="name">join</span><span class="signature">(self) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">async</span> <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The client is not running&quot;</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_join_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Wait indefinitely until the application closes.</p>
+
+<p>This can be placed in a task and cancelled without affecting the
+application runtime itself. Any exceptions raised by shards will be
+propagated to here.</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#AsgiAdapter">AsgiAdapter</a></dt>
+                                <dd id="AsgiBot.server" class="variable"><a href="#AsgiAdapter.server">server</a></dd>
+                <dd id="AsgiBot.add_shutdown_callback" class="function"><a href="#AsgiAdapter.add_shutdown_callback">add_shutdown_callback</a></dd>
+                <dd id="AsgiBot.add_startup_callback" class="function"><a href="#AsgiAdapter.add_startup_callback">add_startup_callback</a></dd>
+                <dd id="AsgiBot.process_lifespan_event" class="function"><a href="#AsgiAdapter.process_lifespan_event">process_lifespan_event</a></dd>
+                <dd id="AsgiBot.process_request" class="function"><a href="#AsgiAdapter.process_request">process_request</a></dd>
+
+            </div>
+                                </dl>
                             </div>
                 </section>
     </main>
