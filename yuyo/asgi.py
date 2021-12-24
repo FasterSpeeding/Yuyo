@@ -441,9 +441,9 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
 
         Raises
         ------
-        builtins.ValueError
+        ValueError
             * If `token_type` is provided when a token strategy is passed for `token`.
-            * if `token_type` is left as `builtins.None` when a string is passed for `token`.
+            * if `token_type` is left as `None` when a string is passed for `token`.
         """
         if isinstance(public_key, str):
             public_key = bytes.fromhex(public_key)
