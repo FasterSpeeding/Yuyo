@@ -89,16 +89,16 @@ from .components import *
 from .pagination import *
 from .reactions import *
 
-__author__ = "Faster Speeding"
-__ci__ = "https://github.com/FasterSpeeding/Yuyo/actions"
-__copyright__ = "© 2020 Faster Speeding"
-__coverage__ = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
-__docs__ = "https://yuyo.cursed.solutions/"
-__email__ = "lucina@lmbyrne.dev"
-__issue_tracker__ = "https://github.com/FasterSpeeding/Yuyo/issues"
-__license__ = "BSD"
-__url__ = "https://github.com/FasterSpeeding/Yuyo"
-__version__ = "1.0.6a1"
+__author__: typing.Final[str] = "Faster Speeding"
+__ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo/actions"
+__copyright__: typing.Final[str] = "© 2020 Faster Speeding"
+__coverage__: typing.Final[str] = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
+__docs__: typing.Final[str] = "https://yuyo.cursed.solutions/"
+__email__: typing.Final[str] = "lucina@lmbyrne.dev"
+__issue_tracker__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo/issues"
+__license__: typing.Final[str] = "BSD"
+__url__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo"
+__version__: typing.Final[str] = "1.0.6a1"
 
 
 WaitForComponent = WaitForExecutor
