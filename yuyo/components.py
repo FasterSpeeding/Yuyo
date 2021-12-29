@@ -132,12 +132,7 @@ class ComponentContext:
     def has_been_deferred(self) -> bool:
         """Whether this context's initial response has been deferred.
 
-        Returns
-        -------
-        bool
-            Whether this context's initial response has been deferred.
-
-            This will be true if `ComponentContext.defer` has been called.
+        This will be true if `ComponentContext.defer` has been called.
         """
         return self._has_been_deferred
 
@@ -149,26 +144,15 @@ class ComponentContext:
         deferred within 3 seconds from it being received otherwise it'll be
         marked as failed.
 
-        Returns
-        -------
-        bool
-            Whether an initial response has been made to this context yet.
-
-            This will be true if either `CompontentContext.respond`,
-            `ComponentContext.create_initial_response` or
-            `ComponentContext.edit_initial_response` (after a deferral) has been called.
+        This will be true if either `CompontentContext.respond`,
+        `ComponentContext.create_initial_response` or
+        `ComponentContext.edit_initial_response` (after a deferral) has been called.
         """
         return self._has_responded
 
     @property
     def interaction(self) -> hikari.ComponentInteraction:
-        """Object of the interaction this context is for.
-
-        Returns
-        -------
-        hikari.ComponentInteraction
-            The interaction this context is for.
-        """
+        """Object of the interaction this context is for."""
         return self._interaction
 
     def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]) -> int:
@@ -1127,13 +1111,7 @@ class AbstractComponentExecutor(abc.ABC):
     @property
     @abc.abstractmethod
     def has_expired(self) -> bool:
-        """Whether this executor has ended.
-
-        Returns
-        -------
-        bool
-            Whether this executor has ended.
-        """
+        """Whether this executor has ended."""
 
     @abc.abstractmethod
     async def execute(
@@ -1534,13 +1512,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     @property
     def builders(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
-        """Component builders within this executor.
-
-        Returns
-        -------
-        typing.Sequence[hikari.api.ComponentBuilder]
-            Seqeuence of the component builders within this executor.
-        """
+        """Sequence of the component builders within this executor."""
         return self._builders
 
     @property
@@ -1550,13 +1522,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     @property
     def executors(self) -> typing.Sequence[AbstractComponentExecutor]:
-        """Child executors within this multi-executor.
-
-        Returns
-        -------
-        typing.Sequence[AbstractComponentExecutor]
-            A sequence of the child executors within this multi-executor.
-        """
+        """Sequence of the child executors within this multi-executor."""
         return self._executors.copy()
 
     @property

@@ -177,11 +177,6 @@ class Backoff:
 
         This can be used to workout whether the loop was explicitly broken out
         of using `Backoff.finish`/`break` or if it hit "max_retries".
-
-        Returns
-        -------
-        bool
-            If "max_retries" has been hit.
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
@@ -224,7 +219,7 @@ class Backoff:
 
         If this is called then the exponent won't be increased for this iteration.
 
-        !!! note
+        .. note::
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
         """

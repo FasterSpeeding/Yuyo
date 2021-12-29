@@ -73,13 +73,7 @@ class AbstractReactionHandler(abc.ABC):
     @property
     @abc.abstractmethod
     def has_expired(self) -> bool:
-        """Whether this handler has ended.
-
-        Returns
-        -------
-        bool
-            Whether this handler has ended.
-        """
+        """Whether this handler has ended."""
         raise NotImplementedError
 
     @property
@@ -87,13 +81,8 @@ class AbstractReactionHandler(abc.ABC):
     def last_triggered(self) -> datetime.datetime:
         """When this handler was last triggered.
 
-        !!! note
+        .. note::
             If it hasn't ever been triggered then this will be when it was created.
-
-        Returns
-        -------
-        datetime.datetime
-            When this handler was last triggered.
         """
         raise NotImplementedError
 
@@ -179,16 +168,11 @@ class ReactionHandler(AbstractReactionHandler):
 
     @property
     def authors(self) -> typing.AbstractSet[hikari.Snowflake]:
-        """Authors/owner of a enabled handler.
+        """Set of the authors/owner of a enabled handler.
 
-        !!! note
+        .. note::
             If this is empty then the handler is considered public and
             any user will be able to trigger it.
-
-        Returns
-        -------
-        typing.AbstractSet[hikari.snowflakes.Snowflake]
-            A set of the owner user IDs.
         """
         return frozenset(self._authors)
 
@@ -204,13 +188,7 @@ class ReactionHandler(AbstractReactionHandler):
 
     @property
     def timeout(self) -> datetime.timedelta:
-        """How long this handler will wait since the last event before timing out.
-
-        Returns
-        -------
-        datetime.timedelta
-            How long this handler will wait since the last event before timing out.
-        """
+        """How long this handler will wait since the last event before timing out."""
         return self._timeout
 
     async def open(self, message: hikari.Message, /) -> None:
@@ -230,7 +208,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
             Identifier of the emoji this callback is for.
 
             This should be a snowfake if this is for a custom emoji or a string
@@ -254,7 +232,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
             Identifier of the emoji the callback to remove is for.
 
             This should be a snowfake if this is for a custom emoji or a string
@@ -272,7 +250,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
             Identifier of the emoji this callback is for.
 
             This should be a snowfake if this is for a custom emoji or a string
@@ -485,14 +463,14 @@ class ReactionPaginator(ReactionHandler):
     def remove_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> None:
         """Remove a author/owner from this handler.
 
-        !!! note
+        .. note::
             If the provided user isn't already a registered owner of this paginator
             then this should pass silently without raising.
 
         Parameters
         ----------
         user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
-            The user to remove from this handler's owners..
+            The user to remove from this handler's owners.
         """
         try:
             self._authors.remove(hikari.Snowflake(user))
@@ -595,6 +573,9 @@ class ReactionPaginator(ReactionHandler):
     ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
+        .. note::
+            Calling this multiple times will replace the previously registered message.
+
         Other Parameters
         ----------------
         message : typing.Optional[hikari.messages.Message]
@@ -605,9 +586,6 @@ class ReactionPaginator(ReactionHandler):
             Whether this should also add reactions that'll be used to paginate
             over this resource.
             This defaults to `builtins.True`.
-
-        !!! note
-            Calling this multiple times will replace the previously registered message.
 
         Returns
         -------
@@ -756,7 +734,7 @@ class ReactionClient:
     ) -> _ReactionClientT:
         """Add a reaction handler to this reaction client.
 
-        !!! note
+        .. note::
             This does not call `AbstractReactionHandler.open`.
 
         Parameters
@@ -774,7 +752,7 @@ class ReactionClient:
     ) -> typing.Optional[AbstractReactionHandler]:
         """Get a reference to a paginator registered in this reaction client.
 
-        !!! note
+        .. note::
             This does not call `AbstractReactionHandler.close`.
 
         Parameters
@@ -794,7 +772,7 @@ class ReactionClient:
     ) -> typing.Optional[AbstractReactionHandler]:
         """Remove a paginator from this reaction client.
 
-        !!! note
+        .. note::
             This does not call `AbstractReactionHandler.close`.
 
         Parameters
