@@ -271,11 +271,6 @@
 
 <span class="sd">        This can be used to workout whether the loop was explicitly broken out</span>
 <span class="sd">        of using `Backoff.finish`/`break` or if it hit &quot;max_retries&quot;.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            If &quot;max_retries&quot; has been hit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retries</span>
 
@@ -318,7 +313,7 @@
 
 <span class="sd">        If this is called then the exponent won&#39;t be increased for this iteration.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            Calling this multiple times in a single iteration will overwrite any</span>
 <span class="sd">            previously set next backoff.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -583,11 +578,6 @@
 
 <span class="sd">        This can be used to workout whether the loop was explicitly broken out</span>
 <span class="sd">        of using `Backoff.finish`/`break` or if it hit &quot;max_retries&quot;.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            If &quot;max_retries&quot; has been hit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retries</span>
 
@@ -630,7 +620,7 @@
 
 <span class="sd">        If this is called then the exponent won&#39;t be increased for this iteration.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            Calling this multiple times in a single iteration will overwrite any</span>
 <span class="sd">            previously set next backoff.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -769,12 +759,6 @@ look like the following</p>
 
 <p>This can be used to workout whether the loop was explicitly broken out
 of using <code><a href="#Backoff.finish">Backoff.finish</a></code>/<code>break</code> or if it hit "max_retries".</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: If "max_retries" has been hit.</li>
-</ul>
 </div>
 
 
@@ -893,7 +877,7 @@ this will back off for the last time provided with
 
 <span class="sd">        If this is called then the exponent won&#39;t be increased for this iteration.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            Calling this multiple times in a single iteration will overwrite any</span>
 <span class="sd">            previously set next backoff.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -907,9 +891,9 @@ this will back off for the last time provided with
 
 <p>If this is called then the exponent won't be increased for this iteration.</p>
 
-<p>!!! note
-    Calling this multiple times in a single iteration will overwrite any
-    previously set next backoff.</p>
+<p><em>Note:</em>
+Calling this multiple times in a single iteration will overwrite any
+previously set next backoff.</p>
 </div>
 
 

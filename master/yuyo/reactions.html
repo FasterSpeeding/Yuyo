@@ -249,13 +249,7 @@
     <span class="nd">@property</span>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">has_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Whether this handler has ended.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this handler has ended.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Whether this handler has ended.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
@@ -263,13 +257,8 @@
     <span class="k">def</span> <span class="nf">last_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;When this handler was last triggered.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If it hasn&#39;t ever been triggered then this will be when it was created.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        datetime.datetime</span>
-<span class="sd">            When this handler was last triggered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
@@ -355,16 +344,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">authors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Authors/owner of a enabled handler.</span>
+        <span class="sd">&quot;&quot;&quot;Set of the authors/owner of a enabled handler.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If this is empty then the handler is considered public and</span>
 <span class="sd">            any user will be able to trigger it.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.AbstractSet[hikari.snowflakes.Snowflake]</span>
-<span class="sd">            A set of the owner user IDs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="p">)</span>
 
@@ -380,13 +364,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;How long this handler will wait since the last event before timing out.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        datetime.timedelta</span>
-<span class="sd">            How long this handler will wait since the last event before timing out.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;How long this handler will wait since the last event before timing out.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -406,7 +384,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -430,7 +408,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji the callback to remove is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -448,7 +426,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -661,14 +639,14 @@
     <span class="k">def</span> <span class="nf">remove_author</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">],</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove a author/owner from this handler.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If the provided user isn&#39;t already a registered owner of this paginator</span>
 <span class="sd">            then this should pass silently without raising.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]</span>
-<span class="sd">            The user to remove from this handler&#39;s owners..</span>
+<span class="sd">            The user to remove from this handler&#39;s owners.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
@@ -771,6 +749,9 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Start this handler and link it to a bot message.</span>
 
+<span class="sd">        .. note::</span>
+<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
+
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
 <span class="sd">        message : typing.Optional[hikari.messages.Message]</span>
@@ -781,9 +762,6 @@
 <span class="sd">            Whether this should also add reactions that&#39;ll be used to paginate</span>
 <span class="sd">            over this resource.</span>
 <span class="sd">            This defaults to `builtins.True`.</span>
-
-<span class="sd">        !!! note</span>
-<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -932,7 +910,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ReactionClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a reaction handler to this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.open`.</span>
 
 <span class="sd">        Parameters</span>
@@ -950,7 +928,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get a reference to a paginator registered in this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -970,7 +948,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Remove a paginator from this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -1069,13 +1047,7 @@
     <span class="nd">@property</span>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">has_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Whether this handler has ended.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this handler has ended.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Whether this handler has ended.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
@@ -1083,13 +1055,8 @@
     <span class="k">def</span> <span class="nf">last_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;When this handler was last triggered.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If it hasn&#39;t ever been triggered then this will be when it was created.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        datetime.datetime</span>
-<span class="sd">            When this handler was last triggered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
@@ -1139,12 +1106,6 @@
     </div>
 
             <div class="docstring"><p>Whether this handler has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this handler has ended.</li>
-</ul>
 </div>
 
 
@@ -1157,14 +1118,8 @@
 
             <div class="docstring"><p>When this handler was last triggered.</p>
 
-<p>!!! note
-    If it hasn't ever been triggered then this will be when it was created.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>datetime.datetime</strong>: When this handler was last triggered.</li>
-</ul>
+<p><em>Note:</em>
+If it hasn't ever been triggered then this will be when it was created.</p>
 </div>
 
 
@@ -1324,16 +1279,11 @@ The event to handle.</li>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">authors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Authors/owner of a enabled handler.</span>
+        <span class="sd">&quot;&quot;&quot;Set of the authors/owner of a enabled handler.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If this is empty then the handler is considered public and</span>
 <span class="sd">            any user will be able to trigger it.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.AbstractSet[hikari.snowflakes.Snowflake]</span>
-<span class="sd">            A set of the owner user IDs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="p">)</span>
 
@@ -1349,13 +1299,7 @@ The event to handle.</li>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;How long this handler will wait since the last event before timing out.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        datetime.timedelta</span>
-<span class="sd">            How long this handler will wait since the last event before timing out.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;How long this handler will wait since the last event before timing out.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1375,7 +1319,7 @@ The event to handle.</li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1399,7 +1343,7 @@ The event to handle.</li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji the callback to remove is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1417,7 +1361,7 @@ The event to handle.</li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1520,17 +1464,11 @@ The event to handle.</li>
         <span class="name">authors</span><span class="annotation">: AbstractSet[hikari.snowflakes.Snowflake]</span>
     </div>
 
-            <div class="docstring"><p>Authors/owner of a enabled handler.</p>
+            <div class="docstring"><p>Set of the authors/owner of a enabled handler.</p>
 
-<p>!!! note
-    If this is empty then the handler is considered public and
-    any user will be able to trigger it.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>typing.AbstractSet[hikari.snowflakes.Snowflake]</strong>: A set of the owner user IDs.</li>
-</ul>
+<p><em>Note:</em>
+If this is empty then the handler is considered public and
+any user will be able to trigger it.</p>
 </div>
 
 
@@ -1542,12 +1480,6 @@ The event to handle.</li>
     </div>
 
             <div class="docstring"><p>Whether this handler has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this handler has ended.</li>
-</ul>
 </div>
 
 
@@ -1560,14 +1492,8 @@ The event to handle.</li>
 
             <div class="docstring"><p>When this handler was last triggered.</p>
 
-<p>!!! note
-    If it hasn't ever been triggered then this will be when it was created.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>datetime.datetime</strong>: When this handler was last triggered.</li>
-</ul>
+<p><em>Note:</em>
+If it hasn't ever been triggered then this will be when it was created.</p>
 </div>
 
 
@@ -1579,12 +1505,6 @@ The event to handle.</li>
     </div>
 
             <div class="docstring"><p>How long this handler will wait since the last event before timing out.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>datetime.timedelta</strong>: How long this handler will wait since the last event before timing out.</li>
-</ul>
 </div>
 
 
@@ -1664,7 +1584,7 @@ The message to bind this handler to.</li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1689,7 +1609,7 @@ The message to bind this handler to.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]):
+<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]):
 Identifier of the emoji this callback is for.</p>
 
 <p>This should be a snowfake if this is for a custom emoji or a string
@@ -1725,7 +1645,7 @@ which is the event that triggered this reaction.</p></li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji the callback to remove is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1744,7 +1664,7 @@ which is the event that triggered this reaction.</p></li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]):
+<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]):
 Identifier of the emoji the callback to remove is for.</p>
 
 <p>This should be a snowfake if this is for a custom emoji or a string
@@ -1775,7 +1695,7 @@ if this is for a unicode emoji.</p></li>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
+<span class="sd">        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]</span>
 <span class="sd">            Identifier of the emoji this callback is for.</span>
 
 <span class="sd">            This should be a snowfake if this is for a custom emoji or a string</span>
@@ -1805,7 +1725,7 @@ if this is for a unicode emoji.</p></li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes..SnowflakeishOr[hikari.emojis.CustomEmoji]]):
+<li><p><strong>emoji_identifier</strong> (typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]):
 Identifier of the emoji this callback is for.</p>
 
 <p>This should be a snowfake if this is for a custom emoji or a string
@@ -2038,14 +1958,14 @@ The event to handle.</li>
     <span class="k">def</span> <span class="nf">remove_author</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">],</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove a author/owner from this handler.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If the provided user isn&#39;t already a registered owner of this paginator</span>
 <span class="sd">            then this should pass silently without raising.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]</span>
-<span class="sd">            The user to remove from this handler&#39;s owners..</span>
+<span class="sd">            The user to remove from this handler&#39;s owners.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
@@ -2148,6 +2068,9 @@ The event to handle.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Start this handler and link it to a bot message.</span>
 
+<span class="sd">        .. note::</span>
+<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
+
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
 <span class="sd">        message : typing.Optional[hikari.messages.Message]</span>
@@ -2158,9 +2081,6 @@ The event to handle.</li>
 <span class="sd">            Whether this should also add reactions that&#39;ll be used to paginate</span>
 <span class="sd">            over this resource.</span>
 <span class="sd">            This defaults to `builtins.True`.</span>
-
-<span class="sd">        !!! note</span>
-<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2381,14 +2301,14 @@ The user to add as an owner for this handler.</li>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">remove_author</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">hikari</span><span class="o">.</span><span class="n">SnowflakeishOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">],</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Remove a author/owner from this handler.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            If the provided user isn&#39;t already a registered owner of this paginator</span>
 <span class="sd">            then this should pass silently without raising.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]</span>
-<span class="sd">            The user to remove from this handler&#39;s owners..</span>
+<span class="sd">            The user to remove from this handler&#39;s owners.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_authors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
@@ -2400,15 +2320,15 @@ The user to add as an owner for this handler.</li>
 
             <div class="docstring"><p>Remove a author/owner from this handler.</p>
 
-<p>!!! note
-    If the provided user isn't already a registered owner of this paginator
-    then this should pass silently without raising.</p>
+<p><em>Note:</em>
+If the provided user isn't already a registered owner of this paginator
+then this should pass silently without raising.</p>
 
 <h6 id="parameters">Parameters</h6>
 
 <ul>
 <li><strong>user</strong> (hikari.snowflakes.SnowflakeishOr[hikari.users.User]):
-The user to remove from this handler's owners..</li>
+The user to remove from this handler's owners.</li>
 </ul>
 </div>
 
@@ -2595,6 +2515,9 @@ The message to bind this handler to.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Message</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Start this handler and link it to a bot message.</span>
 
+<span class="sd">        .. note::</span>
+<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
+
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
 <span class="sd">        message : typing.Optional[hikari.messages.Message]</span>
@@ -2605,9 +2528,6 @@ The message to bind this handler to.</li>
 <span class="sd">            Whether this should also add reactions that&#39;ll be used to paginate</span>
 <span class="sd">            over this resource.</span>
 <span class="sd">            This defaults to `builtins.True`.</span>
-
-<span class="sd">        !!! note</span>
-<span class="sd">            Calling this multiple times will replace the previously registered message.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2657,6 +2577,9 @@ The message to bind this handler to.</li>
 
             <div class="docstring"><p>Start this handler and link it to a bot message.</p>
 
+<p><em>Note:</em>
+Calling this multiple times will replace the previously registered message.</p>
+
 <h6 id="other-parameters">Other Parameters</h6>
 
 <ul>
@@ -2668,7 +2591,6 @@ in the channel provided when initiating the handler.</li>
 Whether this should also add reactions that'll be used to paginate
 over this resource.
 This defaults to <code>builtins.True</code>.</li>
-<li><strong>!!! note</strong>: Calling this multiple times will replace the previously registered message.</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -2819,7 +2741,7 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ReactionClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a reaction handler to this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.open`.</span>
 
 <span class="sd">        Parameters</span>
@@ -2837,7 +2759,7 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get a reference to a paginator registered in this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -2857,7 +2779,7 @@ message, otherwise this will be what was supplied as <code>message</code>.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Remove a paginator from this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -3074,7 +2996,7 @@ This defaults to <code>True</code>.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_ReactionClientT</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a reaction handler to this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.open`.</span>
 
 <span class="sd">        Parameters</span>
@@ -3092,8 +3014,8 @@ This defaults to <code>True</code>.</li>
 
             <div class="docstring"><p>Add a reaction handler to this reaction client.</p>
 
-<p>!!! note
-    This does not call <code><a href="#AbstractReactionHandler.open">AbstractReactionHandler.open</a></code>.</p>
+<p><em>Note:</em>
+This does not call <code><a href="#AbstractReactionHandler.open">AbstractReactionHandler.open</a></code>.</p>
 
 <h6 id="parameters">Parameters</h6>
 
@@ -3126,7 +3048,7 @@ The object of the opened paginator to register in this reaction client.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get a reference to a paginator registered in this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -3146,8 +3068,8 @@ The object of the opened paginator to register in this reaction client.</li>
 
             <div class="docstring"><p>Get a reference to a paginator registered in this reaction client.</p>
 
-<p>!!! note
-    This does not call <code><a href="#AbstractReactionHandler.close">AbstractReactionHandler.close</a></code>.</p>
+<p><em>Note:</em>
+This does not call <code><a href="#AbstractReactionHandler.close">AbstractReactionHandler.close</a></code>.</p>
 
 <h6 id="parameters">Parameters</h6>
 
@@ -3184,7 +3106,7 @@ The message ID to remove a paginator for.</li>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AbstractReactionHandler</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Remove a paginator from this reaction client.</span>
 
-<span class="sd">        !!! note</span>
+<span class="sd">        .. note::</span>
 <span class="sd">            This does not call `AbstractReactionHandler.close`.</span>
 
 <span class="sd">        Parameters</span>
@@ -3204,8 +3126,8 @@ The message ID to remove a paginator for.</li>
 
             <div class="docstring"><p>Remove a paginator from this reaction client.</p>
 
-<p>!!! note
-    This does not call <code><a href="#AbstractReactionHandler.close">AbstractReactionHandler.close</a></code>.</p>
+<p><em>Note:</em>
+This does not call <code><a href="#AbstractReactionHandler.close">AbstractReactionHandler.close</a></code>.</p>
 
 <h6 id="parameters">Parameters</h6>
 

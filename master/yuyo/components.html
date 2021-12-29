@@ -491,12 +491,7 @@
     <span class="k">def</span> <span class="nf">has_been_deferred</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Whether this context&#39;s initial response has been deferred.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this context&#39;s initial response has been deferred.</span>
-
-<span class="sd">            This will be true if `ComponentContext.defer` has been called.</span>
+<span class="sd">        This will be true if `ComponentContext.defer` has been called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_been_deferred</span>
 
@@ -508,26 +503,15 @@
 <span class="sd">        deferred within 3 seconds from it being received otherwise it&#39;ll be</span>
 <span class="sd">        marked as failed.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether an initial response has been made to this context yet.</span>
-
-<span class="sd">            This will be true if either `CompontentContext.respond`,</span>
-<span class="sd">            `ComponentContext.create_initial_response` or</span>
-<span class="sd">            `ComponentContext.edit_initial_response` (after a deferral) has been called.</span>
+<span class="sd">        This will be true if either `CompontentContext.respond`,</span>
+<span class="sd">        `ComponentContext.create_initial_response` or</span>
+<span class="sd">        `ComponentContext.edit_initial_response` (after a deferral) has been called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_responded</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Object of the interaction this context is for.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        hikari.ComponentInteraction</span>
-<span class="sd">            The interaction this context is for.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Object of the interaction this context is for.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interaction</span>
 
     <span class="k">def</span> <span class="nf">_get_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedType</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1486,13 +1470,7 @@
     <span class="nd">@property</span>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">has_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Whether this executor has ended.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this executor has ended.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Whether this executor has ended.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
@@ -1893,13 +1871,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">builders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">ComponentBuilder</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Component builders within this executor.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.Sequence[hikari.api.ComponentBuilder]</span>
-<span class="sd">            Seqeuence of the component builders within this executor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Sequence of the component builders within this executor.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_builders</span>
 
     <span class="nd">@property</span>
@@ -1909,13 +1881,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">executors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractComponentExecutor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Child executors within this multi-executor.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.Sequence[AbstractComponentExecutor]</span>
-<span class="sd">            A sequence of the child executors within this multi-executor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Sequence of the child executors within this multi-executor.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -2233,13 +2199,7 @@
     <span class="nd">@property</span>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">has_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Whether this executor has ended.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this executor has ended.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Whether this executor has ended.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
@@ -2271,12 +2231,6 @@ inheritance.</p>
     </div>
 
             <div class="docstring"><p>Whether this executor has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this executor has ended.</li>
-</ul>
 </div>
 
 
@@ -4100,12 +4054,7 @@ The message to remove the executor for.</li>
     <span class="k">def</span> <span class="nf">has_been_deferred</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Whether this context&#39;s initial response has been deferred.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether this context&#39;s initial response has been deferred.</span>
-
-<span class="sd">            This will be true if `ComponentContext.defer` has been called.</span>
+<span class="sd">        This will be true if `ComponentContext.defer` has been called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_been_deferred</span>
 
@@ -4117,26 +4066,15 @@ The message to remove the executor for.</li>
 <span class="sd">        deferred within 3 seconds from it being received otherwise it&#39;ll be</span>
 <span class="sd">        marked as failed.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            Whether an initial response has been made to this context yet.</span>
-
-<span class="sd">            This will be true if either `CompontentContext.respond`,</span>
-<span class="sd">            `ComponentContext.create_initial_response` or</span>
-<span class="sd">            `ComponentContext.edit_initial_response` (after a deferral) has been called.</span>
+<span class="sd">        This will be true if either `CompontentContext.respond`,</span>
+<span class="sd">        `ComponentContext.create_initial_response` or</span>
+<span class="sd">        `ComponentContext.edit_initial_response` (after a deferral) has been called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_responded</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">interaction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentInteraction</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Object of the interaction this context is for.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        hikari.ComponentInteraction</span>
-<span class="sd">            The interaction this context is for.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Object of the interaction this context is for.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interaction</span>
 
     <span class="k">def</span> <span class="nf">_get_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedType</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">MessageFlag</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -4719,12 +4657,6 @@ The message to remove the executor for.</li>
 
             <div class="docstring"><p>Whether this context's initial response has been deferred.</p>
 
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this context's initial response has been deferred.</li>
-</ul>
-
 <p>This will be true if <code><a href="#ComponentContext.defer">ComponentContext.defer</a></code> has been called.</p>
 </div>
 
@@ -4742,12 +4674,6 @@ The message to remove the executor for.</li>
 deferred within 3 seconds from it being received otherwise it'll be
 marked as failed.</p>
 
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether an initial response has been made to this context yet.</li>
-</ul>
-
 <p>This will be true if either <code>CompontentContext.respond</code>,
 <code><a href="#ComponentContext.create_initial_response">ComponentContext.create_initial_response</a></code> or
 <code><a href="#ComponentContext.edit_initial_response">ComponentContext.edit_initial_response</a></code> (after a deferral) has been called.</p>
@@ -4762,12 +4688,6 @@ marked as failed.</p>
     </div>
 
             <div class="docstring"><p>Object of the interaction this context is for.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>hikari.ComponentInteraction</strong>: The interaction this context is for.</li>
-</ul>
 </div>
 
 
@@ -5711,12 +5631,6 @@ inheritance.</p>
     </div>
 
             <div class="docstring"><p>Whether this executor has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this executor has ended.</li>
-</ul>
 </div>
 
 
@@ -6495,13 +6409,7 @@ and will still internally store the entry and increment the position of the pagi
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">builders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">ComponentBuilder</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Component builders within this executor.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.Sequence[hikari.api.ComponentBuilder]</span>
-<span class="sd">            Seqeuence of the component builders within this executor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Sequence of the component builders within this executor.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_builders</span>
 
     <span class="nd">@property</span>
@@ -6511,13 +6419,7 @@ and will still internally store the entry and increment the position of the pagi
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">executors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractComponentExecutor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Child executors within this multi-executor.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        typing.Sequence[AbstractComponentExecutor]</span>
-<span class="sd">            A sequence of the child executors within this multi-executor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Sequence of the child executors within this multi-executor.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_executors</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -6663,13 +6565,7 @@ until it times out.</p>
         <span class="name">builders</span><span class="annotation">: Sequence[hikari.api.special_endpoints.ComponentBuilder]</span>
     </div>
 
-            <div class="docstring"><p>Component builders within this executor.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>typing.Sequence[hikari.api.ComponentBuilder]</strong>: Seqeuence of the component builders within this executor.</li>
-</ul>
+            <div class="docstring"><p>Sequence of the component builders within this executor.</p>
 </div>
 
 
@@ -6689,13 +6585,7 @@ until it times out.</p>
         <span class="name">executors</span><span class="annotation">: Sequence[<a href="#AbstractComponentExecutor">yuyo.components.AbstractComponentExecutor</a>]</span>
     </div>
 
-            <div class="docstring"><p>Child executors within this multi-executor.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>typing.Sequence[AbstractComponentExecutor]</strong>: A sequence of the child executors within this multi-executor.</li>
-</ul>
+            <div class="docstring"><p>Sequence of the child executors within this multi-executor.</p>
 </div>
 
 
@@ -6707,12 +6597,6 @@ until it times out.</p>
     </div>
 
             <div class="docstring"><p>Whether this executor has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this executor has ended.</li>
-</ul>
 </div>
 
 
@@ -7246,12 +7130,6 @@ How long this should wait for a matching component interaction until it times-ou
     </div>
 
             <div class="docstring"><p>Whether this executor has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this executor has ended.</li>
-</ul>
 </div>
 
 
@@ -7560,12 +7438,6 @@ How long this should wait for a matching component interaction until it times-ou
     </div>
 
             <div class="docstring"><p>Whether this executor has ended.</p>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>bool</strong>: Whether this executor has ended.</li>
-</ul>
 </div>
 
 
