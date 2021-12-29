@@ -30,7 +30,7 @@ classifiers = [
 dependencies = ["asgiref~=3.0", "hikari~=2.0.0.dev102"]
 
 [project.optional-dependencies]
-docs = ["pdoc==8.0.1"]
+docs = ["pdoc==8.1.0"]
 flake8 = [
     "flake8==4.0.1",
 
@@ -62,7 +62,7 @@ flake8 = [
     # "flake8-use-fstring==1.1"        # format string checking
 ]
 lint = ["codespell==2.1"]
-publish = ["flit==3.5.1"]
+publish = ["flit==3.6.0"]
 reformat = ["black==21.12b0", "isort==5.10.1"]
 tests = ["pytest==6.2.5", "pytest-asyncio==0.16", "pytest-cov==3"]
 type_checking = ["pyright==0.0.13"]
