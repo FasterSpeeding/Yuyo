@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Sync REST adapter to enable using a Hikari REST client in a thread synchronous environment.
 
 ## [1.0.5a1.post1] - 2021-12-21
 ### Changed
