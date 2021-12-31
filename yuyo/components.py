@@ -1391,7 +1391,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     @typing.overload
     def add_button(
         self: _ActionRowExecutorT,
-        style: typing.Union[typing.Literal[hikari.ButtonStyle.LINK], typing.Literal[5]],
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
         /,
     ) -> hikari.impl.LinkButtonBuilder[_ActionRowExecutorT]:
