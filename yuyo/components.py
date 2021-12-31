@@ -980,11 +980,8 @@ class ComponentClient:
         try:
             del self._constant_ids[custom_id]
         except KeyError:
-            pass
-        else:
-            return self
+            del self._prefix_ids[custom_id]
 
-        del self._prefix_ids[custom_id]
         return self
 
     def with_constant_id(
