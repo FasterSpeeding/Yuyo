@@ -1339,11 +1339,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
 
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span>
@@ -3036,11 +3033,8 @@ inheritance.</p>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
 
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">with_constant_id</span><span class="p">(</span>
@@ -3681,11 +3675,8 @@ The custom_id to get the callback for.</li>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constant_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
 
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix_ids</span><span class="p">[</span><span class="n">custom_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 
