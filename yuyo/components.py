@@ -1263,34 +1263,42 @@ class WaitForExecutor(AbstractComponentExecutor):
             and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
         )
 
-    def wait_for(self) -> asyncio.Future[ComponentContext]:
+    async def wait_for(self) -> ComponentContext:
         """Wait for the next matching interaction.
 
         Returns
         -------
-        asyncio.Future[ComponentContext]
-            A future that will be resolved with the next matching interaction.
-
-            This will raise `asyncio.TimeoutError` if the timeout is reached.
+        ComponentContext
+            The next matching interaction.
 
         Raises
         ------
         RuntimeError
             If the executor is already being waited for.
+        asyncio.TimeoutError
+            If the timeout is reached.
         """
         if self._future:
             raise RuntimeError("This executor is already being waited for")
 
         self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._future = asyncio.get_running_loop().create_future()
-        return asyncio.wait_for(self._future, self._timeout.total_seconds())
+        try:
+            return await asyncio.wait_for(self._future, self._timeout.total_seconds())
+
+        finally:
+            self._finished = True
 
     async def execute(
         self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         if not self._future:
+            await _pre_execution_error(interaction, future, "This button isn't active")
             return
+
+        if self._finished:
+            raise ExecutorClosed
 
         if self._authors and interaction.user.id not in self._authors:
             await _pre_execution_error(interaction, future, "You are not allowed to use this button")
