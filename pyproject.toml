@@ -64,7 +64,7 @@ flake8 = [
 lint = ["codespell==2.1"]
 publish = ["flit==3.6.0"]
 reformat = ["black==21.12b0", "isort==5.10.1"]
-tests = ["pytest==6.2.5", "pytest-asyncio==0.17", "pytest-cov==3"]
+tests = ["pytest==6.2.5", "pytest-asyncio==0.17.2", "pytest-cov==3"]
 type_checking = ["pyright==0.0.13"]
 
 [project.urls]
@@ -106,22 +106,19 @@ force_single_line = true
 include = ["examples", "noxfile.py", "tests", "yuyo"]
 
 pythonVersion = "3.8"
-reportCallInDefaultInitializer = "none"
-reportImplicitStringConcatenation = "none"
-reportMissingImports = "error"
+typeCheckingMode = "strict"
 reportMissingModuleSource = "error"
 reportMissingTypeStubs = "error"
-reportUnusedCallResult = "none"
 
-reportUninitializedInstanceVariable = "warning" # Seems to lead to false-posities when inheriance and
-                                                # _ properties are involved
 reportIncompatibleMethodOverride = "warning"    # This relies on ordering for key-word only arguments 
                                                 # which is more annoying than it's worth
 reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
 reportUnknownArgumentType = "warning"           # Pretty much the same as reportUnknownMemberType
+reportUnknownLambdaType = "warning"
 reportImportCycles = "warning"                  # This isn't necessarily an issue if it's type checking only.
+reportUnknownVariableType = "warning"           # Lotta false-positives, might fix/change later.
 
 [tool.pytest.ini_options]
-# import-mode = "???"
+asyncio_mode = "strict"
 testpaths = ["tests"]
 required_plugins = ["pytest-asyncio"]
