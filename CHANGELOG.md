@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Removed
-- The project metadata dunder attributes from [yuyo][].
-  [importlib.metadata][] should be used to get this metadata instead.
+### Added
+- `ephemeral` keyword-argument to `ComponentContext`'s `create_initial_response`, `create_follow_up`
+  and `defer` methods as a shorthand for including `1 << 6` in the passed flags.
+- `delete_after` option to `ComponentContext` response methods.
+- `expires_at` property to `ComponentContext`.
+
+### Fixed
+- `ComponentContext.respond` trying to edit in the initial response instead of create a follow up if a deferred initial response was deleted.
 
 ## [1.1.1a1] - 2022-08-28
 ### Added

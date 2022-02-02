@@ -30,6 +30,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# pyright: reportPrivateUsage=none
 # pyright: reportUnknownMemberType=none
 # pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
