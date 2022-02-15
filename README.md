@@ -2,7 +2,7 @@
 
 A collection of utility classes and functions designed to expand Hikari.
 
-# Instillation
+# Installation
 
 You can install yuyo from PyPI using the following command.
 
