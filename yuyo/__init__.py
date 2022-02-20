@@ -91,7 +91,7 @@ from .reactions import *
 
 __author__: typing.Final[str] = "Faster Speeding"
 __ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo/actions"
-__copyright__: typing.Final[str] = "© 2020 Faster Speeding"
+__copyright__: typing.Final[str] = "© 2020-2022 Faster Speeding"
 __coverage__: typing.Final[str] = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
 __docs__: typing.Final[str] = "https://yuyo.cursed.solutions/"
 __email__: typing.Final[str] = "lucina@lmbyrne.dev"
