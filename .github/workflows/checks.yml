@@ -36,7 +36,7 @@ jobs:
           python -m nox -s generate-docs -- -o ./docs
 
       - name: Archive docs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: docs
           path: ./docs
@@ -117,7 +117,7 @@ jobs:
           coverageLocations: .coverage.xml:coverage.py
 
       - name: Archive coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage
           path: ./coverage_html
