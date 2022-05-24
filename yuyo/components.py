@@ -1089,7 +1089,7 @@ class ComponentClient:
 
 def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-        callback.__custom_id__ = custom_id  #  type: ignore
+        callback.__custom_id__ = custom_id  # type: ignore
         return callback
 
     return decorator
