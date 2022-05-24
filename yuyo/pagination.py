@@ -100,10 +100,7 @@ async def collect_iterator(iterator: IteratorT[T], /) -> typing.List[T]:
     if isinstance(iterator, collections.AsyncIterator):
         return [value async for value in iterator]
 
-    if isinstance(iterator, collections.Iterator):
-        return list(iterator)
-
-    raise ValueError(f"{type(iterator)!r} is not a valid iterator")
+    return list(iterator)
 
 
 async def seek_iterator(iterator: IteratorT[T], /, default: DefaultT) -> typing.Union[T, DefaultT]:
@@ -111,10 +108,7 @@ async def seek_iterator(iterator: IteratorT[T], /, default: DefaultT) -> typing.
     if isinstance(iterator, collections.AsyncIterator):
         return await seek_async_iterator(iterator, default=default)
 
-    if isinstance(iterator, collections.Iterator):
-        return seek_sync_iterator(iterator, default=default)
-
-    raise ValueError(f"{type(iterator)!r} is not a valid iterator")
+    return seek_sync_iterator(iterator, default=default)
 
 
 async def seek_async_iterator(iterator: typing.AsyncIterator[T], /, default: DefaultT) -> typing.Union[T, DefaultT]:

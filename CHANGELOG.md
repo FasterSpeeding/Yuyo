@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Bumped the minimum hikari version to dev108.
+
 ### Fixed
 - `WaitForExecutor` now has better semantics/behaviour around being called when it's inactive.
   Timeouts are now handled better meaning that a wait for executor timeout will mark it to be

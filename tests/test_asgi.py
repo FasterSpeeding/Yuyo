@@ -40,6 +40,10 @@ import pytest
 
 import yuyo
 
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# This leads to too many false-positives around mocks.
+
 
 class TestAsgiAdapter:
     @pytest.fixture()
@@ -275,6 +279,7 @@ class TestAsgiAdapter:
             side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
         )
         mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.return_value.headers = {
             "Content-Type": "jazz hands",
             "kill": "me baby",
@@ -334,6 +339,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_not_called()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -360,6 +366,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_not_called()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -384,6 +391,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -408,6 +416,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -435,6 +444,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -462,6 +472,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -493,6 +504,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -524,6 +536,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.parametrize("header_value", ["🇯🇵".encode(), b"trans"])
@@ -564,6 +577,7 @@ class TestAsgiAdapter:
             ]
         )
         mock_receive.assert_awaited_once_with()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
@@ -580,6 +594,7 @@ class TestAsgiAdapter:
         mock_receive = mock.AsyncMock(return_value={"body": b"transive", "more_body": False})
         mock_send = mock.AsyncMock()
         stub_error = Exception("💩")
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.side_effect = stub_error
 
         with pytest.raises(Exception, match=".*") as exc_info:
@@ -622,6 +637,7 @@ class TestAsgiAdapter:
             side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
         )
         mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.return_value.payload = None
         stub_server.on_interaction.return_value.headers = None
 
@@ -718,7 +734,7 @@ class TestAsgiBot:
         assert bot.executor is None
 
     def test_http_settings_property(self):
-        with mock.patch.object(hikari, "HTTPSettings") as mock_http_settings:
+        with mock.patch.object(hikari.impl, "HTTPSettings") as mock_http_settings:
             bot = yuyo.AsgiBot("token", "Bot")
 
             assert bot.http_settings is mock_http_settings.return_value
@@ -755,7 +771,7 @@ class TestAsgiBot:
             )
 
     def test_proxy_settings_property(self):
-        with mock.patch.object(hikari, "ProxySettings") as mock_proxy_settings:
+        with mock.patch.object(hikari.impl, "ProxySettings") as mock_proxy_settings:
             bot = yuyo.AsgiBot("token", "Bot")
 
             assert bot.proxy_settings is mock_proxy_settings.return_value
@@ -897,8 +913,9 @@ class TestAsgiBot:
 
             await bot.start()
 
-        assert bot.is_alive is True
-        assert bot._join_event is mock_event.return_value
+            assert bot.is_alive is True
+            assert bot._join_event is mock_event.return_value
+
         mock_rest_client_impl.return_value.start.assert_called_once_with()
         mock_event.assert_called_once_with()
 
@@ -938,13 +955,14 @@ class TestAsgiBot:
 
             await bot.start()
 
-        mock_rest_client_impl.return_value.close.assert_not_called()
-        mock_event.return_value.set.assert_not_called()
+            mock_rest_client_impl.return_value.close.assert_not_called()
+            mock_event.return_value.set.assert_not_called()
 
-        await bot.close()
+            await bot.close()
 
-        assert bot.is_alive is False
-        assert bot._join_event is None
+            assert bot.is_alive is False
+            assert bot._join_event is None
+
         mock_rest_client_impl.return_value.close.assert_awaited_once_with()
         mock_event.return_value.set.assert_called_once_with()
 

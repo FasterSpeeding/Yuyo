@@ -65,8 +65,6 @@ from . import pagination
 if typing.TYPE_CHECKING:
     import types
 
-    from hikari import traits
-
     _T = typing.TypeVar("_T")
     _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
     _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
@@ -752,7 +750,7 @@ class ComponentClient:
         self.close()
 
     @classmethod
-    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
+    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
         """Build a component client froma Gateway Bot.
 
         Parameters
@@ -774,7 +772,7 @@ class ComponentClient:
         return cls(event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
-    def from_rest_bot(cls, bot: traits.RESTBotAware, /) -> ComponentClient:
+    def from_rest_bot(cls, bot: hikari.RESTBotAware, /) -> ComponentClient:
         """Build a component client froma REST Bot.
 
         Parameters
@@ -1091,7 +1089,7 @@ class ComponentClient:
 
 def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-        callback.__custom_id__ = custom_id
+        callback.__custom_id__ = custom_id  #  type: ignore
         return callback
 
     return decorator
@@ -1707,7 +1705,7 @@ class ComponentPaginator(ActionRowExecutor):
         return [self]
 
     async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: asyncio.Future[ResponseT] = None
+        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
     ) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         if self._authors and interaction.user.id not in self._authors:

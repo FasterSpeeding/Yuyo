@@ -132,7 +132,7 @@ def as_reaction_callback(
         if isinstance(emoji_identifier, hikari.CustomEmoji):
             emoji_identifier = emoji_identifier.id
 
-        callback.__emoji_identifier__ = emoji_identifier
+        callback.__emoji_identifier__ = emoji_identifier  # type: ignore
         return callback
 
     return decorator

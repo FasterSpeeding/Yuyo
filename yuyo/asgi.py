@@ -39,12 +39,12 @@ import traceback
 import typing
 
 import hikari
-from hikari import traits
 
 if typing.TYPE_CHECKING:
     import concurrent.futures
 
     import asgiref.typing as asgiref
+    from hikari.api import config as hikari_config
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 
@@ -302,7 +302,7 @@ class AsgiAdapter:
         await send({"type": "http.response.body", "body": response.payload or b"", "more_body": False})
 
 
-class AsgiBot(AsgiAdapter, traits.RESTBotAware):
+class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
     """Bot implementation which acts as an ASGI adapter.
 
     This bot doesn't initiate a server internally but instead
@@ -328,10 +328,10 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         public_key: typing.Union[bytes, str, None] = None,
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
     ) -> None:
         ...
@@ -345,10 +345,10 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         *,
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
     ) -> None:
         ...
@@ -361,10 +361,10 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         *,
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.HTTPSettings] = None,
+        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.ProxySettings] = None,
+        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
     ) -> None:
         """Initialise a new ASGI bot.
@@ -450,10 +450,10 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
 
         self._entity_factory = hikari.impl.EntityFactoryImpl(self)
         self._executor = executor
-        self._http_settings = http_settings or hikari.HTTPSettings()
+        self._http_settings = http_settings or hikari.impl.HTTPSettings()
         self._is_alive = False
         self._join_event: typing.Optional[asyncio.Event] = None
-        self._proxy_settings = proxy_settings or hikari.ProxySettings()
+        self._proxy_settings = proxy_settings or hikari.impl.ProxySettings()
         self._rest = hikari.impl.RESTClientImpl(
             cache=None,
             entity_factory=self._entity_factory,
@@ -486,7 +486,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         return self._executor
 
     @property
-    def http_settings(self) -> hikari.HTTPSettings:
+    def http_settings(self) -> hikari_config.HTTPSettings:
         return self._http_settings
 
     @property
@@ -498,7 +498,7 @@ class AsgiBot(AsgiAdapter, traits.RESTBotAware):
         return self._is_alive
 
     @property
-    def proxy_settings(self) -> hikari.ProxySettings:
+    def proxy_settings(self) -> hikari_config.ProxySettings:
         return self._proxy_settings
 
     @property

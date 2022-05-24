@@ -234,7 +234,7 @@ def reformat(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    install_requirements(session, ".[tests]", "--use-feature=in-tree-build")
+    install_requirements(session, ".[tests]", "hikari[server]", "--use-feature=in-tree-build")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "--import-mode", "importlib")
 
