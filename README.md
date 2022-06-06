@@ -16,7 +16,7 @@ For usage see the the [documentation](https://yuyo.cursed.solutions/) and soon t
 
 # Support
 
-[Hikari's support guild](https://discord.gg/hikari) provides for support for Yuyo. 
+[Hikari's support guild](https://discord.gg/hikari) provides for support for Yuyo.
 
 # Contributing
 
