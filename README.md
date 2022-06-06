@@ -14,6 +14,10 @@ python -m pip install -U hikari-yuyo
 
 For usage see the the [documentation](https://yuyo.cursed.solutions/) and soon to come examples.
 
+# Support
+
+[Hikari's support guild](https://discord.gg/hikari) provides for support for Yuyo. 
+
 # Contributing
 
 Before contributing you should read through the
