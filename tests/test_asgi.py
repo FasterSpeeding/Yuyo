@@ -297,10 +297,10 @@ class TestAsgiAdapter:
                         "type": "http.response.start",
                         "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
-                            (b"Content-Type", b"jazz hands"),
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
+                            (b"content-type", b"jazz hands"),
                         ],
                     }
                 ),
