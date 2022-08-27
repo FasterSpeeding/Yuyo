@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Async functions must be typed as returning `typing.Coroutine`/`collections.abc.Coroutine`
   rather than `typing.Awaitable` now.
 
+### Fixed
+- Several bug fixes on handling context response tracking have been copied over from Tanjun
+  to `ComponentContext`.
+
 ## [1.0.6a1] - 2022-05-24
 ### Changed
 - Bumped the minimum hikari version to dev108.
