@@ -290,7 +290,7 @@ class ErrorManager:
 
             The callback function will be called with the raised exception when it
             matches one of the passed exceptions for the relevant rule and may
-            raise, return [True][[]] to indicate that the current error should
+            raise, return [True][] to indicate that the current error should
             be raised outside of the context manager or
             [False][]/[None][] to suppress the current error.
         """

@@ -176,11 +176,15 @@ class ComponentContext:
         defer_type
             The type of deferral this should be.
 
-            This may either be [hikari.ResponseType.DEFERRED_MESSAGE_CREATE][] to
-            indicate that the following up call to [yuyo.components.ComponentContext.edit_initial_response][]
-            or [yuyo.components.ComponentContext.respond][] should create a new message or
-            [hikari.ResponseType.DEFERRED_MESSAGE_UPDATE][] to indicate that the following
-            call to the aforementioned methods should update the existing message.
+            This may any of the following
+            * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
+                to indicate that the following up call to
+                [yuyo.components.ComponentContext.edit_initial_response][]
+                or [yuyo.components.ComponentContext.respond][] should create
+                a new message.
+            * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
+                to indicate that the following call to the aforementioned
+                methods should update the existing message.
         flags
             The flags to set for this deferral.
 
@@ -385,17 +389,17 @@ class ComponentContext:
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
             # pre-fix in init.
             result = hikari.impl.InteractionMessageBuilder(
-                type=hikari.ResponseType.MESSAGE_CREATE,  # type: ignore
-                content=content,  # type: ignore
-                attachments=attachments,  # type: ignore
-                components=components,  # type: ignore
-                embeds=embeds,  # type: ignore
-                flags=flags,  # type: ignore
-                is_tts=tts,  # type: ignore
-                mentions_everyone=mentions_everyone,  # type: ignore
-                user_mentions=user_mentions,  # type: ignore
-                role_mentions=role_mentions,  # type: ignore
-            )  # type: ignore
+                type=hikari.ResponseType.MESSAGE_CREATE,  # pyright: ignore reportGeneralTypeIssues
+                content=content,  # pyright: ignore reportGeneralTypeIssues
+                attachments=attachments,  # pyright: ignore reportGeneralTypeIssues
+                components=components,  # pyright: ignore reportGeneralTypeIssues
+                embeds=embeds,  # pyright: ignore reportGeneralTypeIssues
+                flags=flags,  # pyright: ignore reportGeneralTypeIssues
+                is_tts=tts,  # pyright: ignore reportGeneralTypeIssues
+                mentions_everyone=mentions_everyone,  # pyright: ignore reportGeneralTypeIssues
+                user_mentions=user_mentions,  # pyright: ignore reportGeneralTypeIssues
+                role_mentions=role_mentions,  # pyright: ignore reportGeneralTypeIssues
+            )
 
             self._response_future.set_result(result)
 
@@ -697,32 +701,7 @@ class ExecutorClosed(Exception):
 
 
 class ComponentClient:
-    """Client used to handle component executors within a REST or gateway flow.
-
-    !!! note
-        For an easier way to initialise the client from a bot see
-        [yuyo.components.ComponentClient.from_gateway_bot][] and
-        [yuyo.components.ComponentClient.from_rest_bot][].
-
-    Parameters
-    ----------
-    event_manager
-        The event manager this client should listen to dispatched component
-        interactions from if applicable.
-    event_managed
-        Whether this client should be automatically opened and closed based on
-        the lifetime events dispatched by `event_manager`.
-
-        Defaults to [True][] if an event manager is passed.
-    server
-        The server this client should listen to component interactions
-        from if applicable.
-
-    Raises
-    ------
-    ValueError
-        If `event_managed` is passed as [True][] when `event_manager` is [None][].
-    """
+    """Client used to handle component executors within a REST or gateway flow."""
 
     __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server")
 
@@ -733,6 +712,32 @@ class ComponentClient:
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
+        """Initialise a component client.
+
+        !!! note
+            For an easier way to initialise the client from a bot see
+            [yuyo.components.ComponentClient.from_gateway_bot][] and
+            [yuyo.components.ComponentClient.from_rest_bot][].
+
+        Parameters
+        ----------
+        event_manager
+            The event manager this client should listen to dispatched component
+            interactions from if applicable.
+        event_managed
+            Whether this client should be automatically opened and closed based on
+            the lifetime events dispatched by `event_manager`.
+
+            Defaults to [True][] if an event manager is passed.
+        server
+            The server this client should listen to component interactions
+            from if applicable.
+
+        Raises
+        ------
+        ValueError
+            If `event_managed` is passed as [True][] when `event_manager` is [None][].
+        """
         self._constant_ids: typing.Dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
@@ -1085,7 +1090,7 @@ class ComponentClient:
         return self
 
 
-def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:  # noqa: D103
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         callback.__custom_id__ = custom_id  # type: ignore
         return callback
@@ -1094,11 +1099,14 @@ def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], 
 
 
 class AbstractComponentExecutor(abc.ABC):
+    """Abstract interface of an object which handles the execution of a message component."""
+
     __slots__ = ()
 
     @property
     @abc.abstractmethod
     def custom_ids(self) -> typing.Collection[str]:
+        """Collection of the custom IDs this executor is listening for."""
         raise NotImplementedError
 
     @property
@@ -1114,6 +1122,8 @@ class AbstractComponentExecutor(abc.ABC):
 
 
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
+    """Basic implementation of a class used for handling the execution of a message component."""
+
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_timeout")
 
     def __init__(
@@ -1123,6 +1133,15 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         load_from_attributes: bool = True,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a component executor.
+
+        Parameters
+        ----------
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        timeout
+            How long this component should last until its marked as timed out.
+        """
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -1193,20 +1212,6 @@ async def _pre_execution_error(
 class WaitForExecutor(AbstractComponentExecutor):
     """Component executor used to wait for a single component interaction.
 
-    Parameters
-    ----------
-    authors
-        The authors of the entries.
-
-        If [None][] is passed here then the paginator will be public (meaning that
-        anybody can use it).
-    ephemeral_default
-        Whether or not the responses made on contexts spawned from this paginator
-        should default to ephemeral (meaning only the author can see them) unless
-        `flags` is specified on the response method.
-    timeout
-        How long this should wait for a matching component interaction until it times-out.
-
     Examples
     --------
     ```py
@@ -1234,6 +1239,22 @@ class WaitForExecutor(AbstractComponentExecutor):
         ephemeral_default: bool = False,
         timeout: datetime.timedelta,
     ) -> None:
+        """Initialise a wait for executor.
+
+        Parameters
+        ----------
+        authors
+            The authors of the entries.
+
+            If [None][] is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        timeout
+            How long this should wait for a matching component interaction until it times-out.
+        """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
@@ -1308,7 +1329,7 @@ WaitFor = WaitForExecutor
 """Alias for [yoyo.components.WaitForExecutor][]."""
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
     def __init__(
@@ -1316,7 +1337,9 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerPro
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id, style=style)  # type: ignore
+        super().__init__(
+            container=container, custom_id=custom_id, style=style  # pyright: ignore reportGeneralTypeIssues
+        )
 
     @property
     def callback(self) -> CallbackSig:
@@ -1327,13 +1350,13 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerPro
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):
+class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
     def __init__(self, callback: CallbackSig, container: ContainerProtoT, custom_id: str) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id)  # type: ignore
+        super().__init__(container=container, custom_id=custom_id)  # pyright: ignore reportGeneralTypeIssues
 
     @property
     def callback(self) -> CallbackSig:
@@ -1345,6 +1368,8 @@ class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):
 
 
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
+    """Class used for handling the execution of an action row."""
+
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
@@ -1354,6 +1379,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise an action row executor.
+
+        Parameters
+        ----------
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        timeout
+            How long this component should last until its marked as timed out.
+        """
         super().__init__(
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
         )
@@ -1409,18 +1443,20 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             if custom_id is None:
                 custom_id = _random_id()
 
-            if not isinstance(callback_or_url, typing.Callable):
+            if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
             return InteractiveButtonBuilder(
-                callback=callback_or_url, container=self, style=style, custom_id=custom_id  # type: ignore
+                callback=callback_or_url, container=self, style=hikari.ButtonStyle(style), custom_id=custom_id
             )
 
         # Pyright doesn't properly support _ attrs kwargs
         if not isinstance(callback_or_url, str):
             raise ValueError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)  # type: ignore
+        return hikari.impl.LinkButtonBuilder(
+            container=self, style=style, url=callback_or_url  # pyright: ignore reportGeneralTypeIssues
+        )
 
     def add_select_menu(
         self: _ActionRowExecutorT, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
@@ -1460,7 +1496,9 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorPro
         return self._parent.add_executor(self).add_builder(self)
 
 
-def as_child_executor(executor: typing.Type[AbstractComponentExecutorT], /) -> typing.Type[AbstractComponentExecutorT]:
+def as_child_executor(  # noqa: D103
+    executor: typing.Type[AbstractComponentExecutorT], /
+) -> typing.Type[AbstractComponentExecutorT]:
     executor.__is_child_executor__ = True  # type: ignore
     return executor
 
@@ -1470,17 +1508,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     This implementation allows for multiple components to be executed as a single
     view.
-
-    Parameters
-    ----------
-    load_from_attributes
-        Whether this should load sub-components from its attributes.
-
-        This is helpful when inheritance and [yuyo.components.as_child_executor][]
-        are being used to declare child executors within this executor.
-    timeout
-        The amount of time to wait after the component's last execution or creation
-        until it times out.
     """
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
@@ -1491,6 +1518,19 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a multi-component executor.
+
+        Parameters
+        ----------
+        load_from_attributes
+            Whether this should load sub-components from its attributes.
+
+            This is helpful when inheritance and [yuyo.components.as_child_executor][]
+            are being used to declare child executors within this executor.
+        timeout
+            The amount of time to wait after the component's last execution or creation
+            until it times out.
+        """
         self._builders: typing.List[hikari.api.ComponentBuilder] = []
         self._executors: typing.List[AbstractComponentExecutor] = []
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -1600,32 +1640,6 @@ class ComponentPaginator(ActionRowExecutor):
     """Standard implementation of an action row executor used for pagination.
 
     This is a convenience class that allows you to easily implement a paginator.
-
-    Parameters
-    ----------
-    iterator
-        The iterator to paginate.
-
-        This should be an iterator of tuples of `(hikari.UndefinedOr[str],
-        hikari.UndefinedOr[hikari.Embed])`.
-    authors
-        The authors of the entries.
-
-        If None is passed here then the paginator will be public (meaning that
-        anybody can use it).
-    ephemeral_default
-        Whether or not the responses made on contexts spawned from this paginator
-        should default to ephemeral (meaning only the author can see them) unless
-        `flags` is specified on the response method.
-    triggers
-        Collection of the unicode emojis that should trigger this paginator.
-
-        As of current the only usable emojis are [yuyo.pagination.LEFT_TRIANGLE][],
-        [yuyo.pagination.RIGHT_TRIANGLE][], [yuyo.pagination.STOP_SQUARE][],
-        [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_RIGHT_TRIANGLE][].
-    timeout
-        The amount of time to wait after the component's last execution or creation
-        until it times out.
     """
 
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
@@ -1644,6 +1658,34 @@ class ComponentPaginator(ActionRowExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a component paginator.
+
+        Parameters
+        ----------
+        iterator
+            The iterator to paginate.
+
+            This should be an iterator of tuples of `(hikari.UndefinedOr[str],
+            hikari.UndefinedOr[hikari.Embed])`.
+        authors
+            The authors of the entries.
+
+            If None is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        triggers
+            Collection of the unicode emojis that should trigger this paginator.
+
+            As of current the only usable emojis are [yuyo.pagination.LEFT_TRIANGLE][],
+            [yuyo.pagination.RIGHT_TRIANGLE][], [yuyo.pagination.STOP_SQUARE][],
+            [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_TRIANGLE][].
+        timeout
+            The amount of time to wait after the component's last execution or creation
+            until it times out.
+        """
         if not isinstance(
             iterator, (typing.Iterator, typing.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance

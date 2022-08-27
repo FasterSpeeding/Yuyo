@@ -68,7 +68,7 @@ CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 
 class HandlerClosed(Exception):
-    ...
+    """Error raised when a reaction handler has been closed."""
 
 
 class AbstractReactionHandler(abc.ABC):
@@ -125,7 +125,7 @@ class AbstractReactionHandler(abc.ABC):
         raise NotImplementedError
 
 
-def as_reaction_callback(
+def as_reaction_callback(  # noqa: D103
     emoji_identifier: typing.Union[hikari.SnowflakeishOr[hikari.CustomEmoji], str], /
 ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
@@ -140,6 +140,8 @@ def as_reaction_callback(
 
 
 class ReactionHandler(AbstractReactionHandler):
+    """Standard basic implementation of a reaction handler."""
+
     __slots__ = ("_authors", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
 
     def __init__(
@@ -149,6 +151,17 @@ class ReactionHandler(AbstractReactionHandler):
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
         load_from_attributes: bool = True,
     ) -> None:
+        """Initialise a reaction handler.
+
+        Parameters
+        ----------
+        authors
+            An iterable of IDs of the users who can call this paginator.
+            If left empty then all users will be able to call this
+            paginator.
+        timeout
+            How long it should take for this paginator to timeout.
+        """
         self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: typing.Dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -318,24 +331,7 @@ async def _delete_message(message: hikari.Message, /) -> None:
 
 
 class ReactionPaginator(ReactionHandler):
-    """The standard implementation of [yuyo.reactions.AbstractReactionHandler][].
-
-    Parameters
-    ----------
-    iterator
-        Either an asynchronous or synchronous iterator of the entries this
-        should paginate through.
-        `entry[0]` represents the message's possible content and can either be
-        [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
-        the message's possible embed and can either be [hikari.embeds.Embed][]
-        or [hikari.undefined.UNDEFINED][].
-    authors
-        An iterable of IDs of the users who can call this paginator.
-        If left empty then all users will be able to call this
-        paginator.
-    timeout
-        How long it should take for this paginator to timeout.
-    """
+    """Standard implementation of a reaction handler for pagination."""
 
     __slots__ = ("_buffer", "_index", "_iterator", "_triggers")
 
@@ -351,6 +347,24 @@ class ReactionPaginator(ReactionHandler):
         ),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a reaction paginator.
+
+        Parameters
+        ----------
+        iterator
+            Either an asynchronous or synchronous iterator of the entries this
+            should paginate through.
+            `entry[0]` represents the message's possible content and can either be
+            [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
+            the message's possible embed and can either be [hikari.embeds.Embed][]
+            or [hikari.undefined.UNDEFINED][].
+        authors
+            An iterable of IDs of the users who can call this paginator.
+            If left empty then all users will be able to call this
+            paginator.
+        timeout
+            How long it should take for this paginator to timeout.
+        """
         if not isinstance(
             iterator, (typing.Iterator, typing.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance
@@ -714,6 +728,7 @@ class ReactionClient:
 
     @property
     def is_closed(self) -> bool:
+        """Whether this client is closed."""
         return self._gc_task is None
 
     def add_handler(

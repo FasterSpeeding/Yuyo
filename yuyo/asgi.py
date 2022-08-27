@@ -521,7 +521,7 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         """Start the bot's REST client and wait until the bot's closed.
 
         !!! warning
-            Unless `asgi_managed=False` is passed to [tanjun.asgi.AsgiBot.__init__][],
+            Unless `asgi_managed=False` is passed to [yuyo.asgi.AsgiBot.__init__][],
             the bot will be automatically started and closed based on the ASGI
             lifespan events and any other calls to this function will raise a
             [RuntimeError][].
