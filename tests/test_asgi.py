@@ -280,8 +280,9 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = "jazz hands"
+        stub_server.on_interaction.return_value.files = ()
         stub_server.on_interaction.return_value.headers = {
-            "Content-Type": "jazz hands",
             "kill": "me baby",
             "I am the milk man": "my milk is delicious",
             "and the sea shall run white": "with his rage",
@@ -638,6 +639,8 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = None
+        stub_server.on_interaction.return_value.files = ()
         stub_server.on_interaction.return_value.payload = None
         stub_server.on_interaction.return_value.headers = None
 
