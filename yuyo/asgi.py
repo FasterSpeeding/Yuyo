@@ -75,7 +75,11 @@ async def _maybe_await(
 
 
 class AsgiAdapter:
-    """Asgi/3 adapter for Hikari's interaction server interface."""
+    """Asgi/3 adapter for Hikari's interaction server interface.
+
+    For this to work, hikari has to be installed with the optional "server"
+    feature (e.g `python -m pip install hikari[server]`).
+    """
 
     __slots__ = ("_on_shutdown", "_on_startup", "_server")
 
@@ -317,6 +321,9 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
 
     This bot doesn't initiate a server internally but instead
     relies on being called as an ASGI app.
+
+    For this to work, hikari has to be installed with the optional "server"
+    feature (e.g `python -m pip install hikari[server]`).
     """
 
     __slots__: typing.Sequence[str] = (
