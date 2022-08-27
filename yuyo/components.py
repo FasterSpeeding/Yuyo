@@ -35,8 +35,6 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = [
     "AbstractComponentExecutor",
     "ActionRowExecutor",
-    "as_child_executor",
-    "as_component_callback",
     "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
@@ -45,8 +43,10 @@ __all__: typing.Sequence[str] = [
     "InteractiveButtonBuilder",
     "MultiComponentExecutor",
     "SelectMenuBuilder",
-    "WaitForExecutor",
     "WaitFor",
+    "WaitForExecutor",
+    "as_child_executor",
+    "as_component_callback",
 ]
 
 import abc
@@ -54,6 +54,7 @@ import asyncio
 import datetime
 import inspect
 import itertools
+import os
 import typing
 import uuid
 import warnings
@@ -91,7 +92,7 @@ def _random_id() -> str:
 
 
 AbstractComponentExecutorT = typing.TypeVar("AbstractComponentExecutorT", bound="AbstractComponentExecutor")
-CallbackSig = typing.Callable[["ComponentContext"], typing.Awaitable[None]]
+CallbackSig = typing.Callable[["ComponentContext"], typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
 ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
@@ -130,7 +131,7 @@ class ComponentContext:
     def has_been_deferred(self) -> bool:
         """Whether this context's initial response has been deferred.
 
-        This will be true if `ComponentContext.defer` has been called.
+        This will be true if [yuyo.components.ComponentContext.defer][] has been called.
         """
         return self._has_been_deferred
 
@@ -142,9 +143,10 @@ class ComponentContext:
         deferred within 3 seconds from it being received otherwise it'll be
         marked as failed.
 
-        This will be true if either `CompontentContext.respond`,
-        `ComponentContext.create_initial_response` or
-        `ComponentContext.edit_initial_response` (after a deferral) has been called.
+        This will be true if either [yuyo.components.ComponentContext.respond][],
+        [yuyo.components.ComponentContext.create_initial_response][] or
+        [yuyo.components.ComponentContext.edit_initial_response][]
+        (after a deferral) has been called.
         """
         return self._has_responded
 
@@ -163,25 +165,31 @@ class ComponentContext:
     async def defer(
         self,
         defer_type: hikari.DeferredResponseTypesT,
+        /,
+        *,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
         """Mark this context as deferred.
 
         Parameters
         ----------
-        defer_type : hikari.DeferredResponseTypesT
+        defer_type
             The type of deferral this should be.
 
-            This may either be `hikari.ResponseType.DEFERRED_MESSAGE_CREATE` to
-            indicate that the following up call to `ComponentContext.edit_initial_response`
-            or `ComponentContext.respond` should create a new message or
-            `hikari.ResponseType.DEFERRED_MESSAGE_UPDATE` to indicate that the following
-            call to the aforementioned methods should update the existing message.
-        flags : typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]
+            This may any of the following
+            * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
+                to indicate that the following up call to
+                [yuyo.components.ComponentContext.edit_initial_response][]
+                or [yuyo.components.ComponentContext.respond][] should create
+                a new message.
+            * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
+                to indicate that the following call to the aforementioned
+                methods should update the existing message.
+        flags
             The flags to set for this deferral.
 
             As of writing, the only message flag which can be set here is
-            `hikari.MessageFlag.EPHEMERAL` which indicates that the deferred
+            [hikari.messages.MessageFlag.EPHEMERAL][] which indicates that the deferred
             message create should be only visible by the interaction's author.
         """
         flags = self._get_flags(flags)
@@ -207,142 +215,99 @@ class ComponentContext:
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> hikari.Message:
-        """Respond to this context with a followup message.
+        """Create a followup response for this context.
+
+        !!! warning
+            Calling this on a context which hasn't had an initial response yet
+            will lead to a [hikari.errors.NotFoundError][] being raised.
 
         Parameters
         ----------
-        content : hikari.UndefinedOr[typing.Any]
-            The content to respond with.
-
+        content
             If provided, the message contents. If
-            `hikari.undefined.UNDEFINED`, then nothing will be sent
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
             in the content. Any other value here will be cast to a
-            `str`.
+            [str][].
 
-            If this is a `hikari.embeds.Embed` and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
+            If this is a [hikari.embeds.Embed][] and no `embed` kwarg is
+            provided, then this will instead update the embed. This allows for
+            simpler syntax when sending an embed alone.
 
-            Likewise, if this is a `hikari.files.Resource`, then the
+            Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
-
-        Other Parameters
-        ----------------
-        ensure_result : bool
-            This parameter does nothing but necessary to keep the signature with `Context`.
-        tts : hikari.UndefinedOr[bool]
-            Whether to respond with tts/text to speech or no.
-        reply : hikari.Undefinedor[hikari.SnowflakeishOr[hikari.PartialMessage]]
-            Whether to reply instead of sending the content to the context.
-        nonce : hikari.UndefinedOr[str]
-            The nonce that validates that the message was sent.
-        attachment : hikari.UndefinedOr[hikari.Resourceish]
-            A singular attachment to respond with.
-        attachments : hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
-            A sequence of attachments to respond with.
-        component : hikari.undefined.UndefinedOr[hikari.api.special_endpoints.ComponentBuilder]
+        attachment
+            If provided, the message attachment. This can be a resource,
+            or string of a path on your computer or a URL.
+        attachments
+            If provided, the message attachments. These can be resources, or
+            strings consisting of paths on your computer or URLs.
+        component
             If provided, builder object of the component to include in this message.
-        components : hikari.undefined.UndefinedOr[typing.Sequence[hikari.api.special_endpoints.ComponentBuilder]]
+        components
             If provided, a sequence of the component builder objects to include
             in this message.
-        embed : hikari.UndefinedOr[hikari.Embed]
-            An embed to respond with.
-        embeds : hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
-            A sequence of embeds to respond with.
-        mentions_everyone : hikari.undefined.UndefinedOr[bool]
+        embed
+            If provided, the message embed.
+        embeds
+            If provided, the message embeds.
+        mentions_everyone
             If provided, whether the message should parse @everyone/@here
             mentions.
-        user_mentions : hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.users.PartialUser], bool]]
-            If provided, and `True`, all mentions will be parsed.
-            If provided, and `False`, no mentions will be parsed.
-            Alternatively this may be a collection of
-            `hikari.snowflakes.Snowflake`, or `hikari.users.PartialUser`
-            derivatives to enforce mentioning specific users.
-        role_mentions : hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.guilds.PartialRole], bool]]
-            If provided, and `True`, all mentions will be parsed.
-            If provided, and `False`, no mentions will be parsed.
-            Alternatively this may be a collection of
-            `hikari.snowflakes.Snowflake`, or
-            `hikari.guilds.PartialRole` derivatives to enforce mentioning
-            specific roles.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
-        Notes
-        -----
-        Attachments can be passed as many different things, to aid in
-        convenience.
-        * If a `pathlib.PurePath` or `str` to a valid URL, the
-            resource at the given URL will be streamed to Discord when
-            sending the message. Subclasses of
-            `hikari.files.WebResource` such as
-            `hikari.files.URL`,
-            `hikari.messages.Attachment`,
-            `hikari.emojis.Emoji`,
-            `EmbedResource`, etc will also be uploaded this way.
-            This will use bit-inception, so only a small percentage of the
-            resource will remain in memory at any one time, thus aiding in
-            scalability.
-        * If a `hikari.files.Bytes` is passed, or a `str`
-            that contains a valid data URI is passed, then this is uploaded
-            with a randomized file name if not provided.
-        * If a `hikari.files.File`, `pathlib.PurePath` or
-            `str` that is an absolute or relative path to a file
-            on your file system is passed, then this resource is uploaded
-            as an attachment using non-blocking code internally and streamed
-            using bit-inception where possible. This depends on the
-            type of `concurrent.futures.Executor` that is being used for
-            the application (default is a thread pool which supports this
-            behaviour).
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+        tts
+            If provided, whether the message will be sent as a TTS message.
+        flags
+            The flags to set for this response.
+
+            As of writing this can only flag which can be provided is EPHEMERAL,
+            other flags are just ignored.
 
         Returns
         -------
-        hikari.messages.Message
-            The message that has been created.
+        hikari.Message
+            The created message object.
 
         Raises
         ------
+        hikari.NotFoundError
+            If the current interaction is not found or it hasn't had an initial
+            response yet.
+        hikari.BadRequestError
+            This can be raised if the file is too large; if the embed exceeds
+            the defined limits; if the message content is specified only and
+            empty or greater than `2000` characters; if neither content, file
+            or embeds are specified.
+            If any invalid snowflake IDs are passed; a snowflake may be invalid
+            due to it being outside of the range of a 64 bit integer.
         ValueError
             If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions`.
-        TypeError
-            If both `attachment` and `attachments` are specified.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no attachments or embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; too many attachments; attachments that are too large;
-            invalid image URLs in embeds; if `reply` is not found or not in the
-            same channel as `channel`; too many components.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.ForbiddenError
-            If you are missing the `SEND_MESSAGES` in the channel or the
-            person you are trying to message has the DM's disabled.
-        hikari.errors.NotFoundError
-            If the channel is not found.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """  # noqa: E501 - Line too long
+            `role_mentions` or `user_mentions.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        """
         async with self._response_lock:
             message = await self._interaction.execute(
                 content=content,
@@ -367,16 +332,18 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -390,11 +357,12 @@ class ComponentContext:
                 "edit_initial_response must be used to set the initial response after a context has been deferred"
             )
 
-        self._has_responded = True
         if not self._response_future:
             await self._interaction.create_initial_response(
                 response_type=response_type,
                 content=content,
+                attachment=attachment,
+                attachments=attachments,
                 component=component,
                 components=components,
                 embed=embed,
@@ -407,35 +375,29 @@ class ComponentContext:
             )
 
         else:
-            if component and components:
-                raise ValueError("Only one of component or components may be passed")
+            attachments = _to_list(attachment, attachments, content, _ATTACHMENT_TYPES, "attachment")
+            components = _to_list(component, components, content, hikari.api.ComponentBuilder, "component")
+            embeds = _to_list(embed, embeds, content, hikari.Embed, "embed")
 
-            if embed and embeds:
-                raise ValueError("Only one of embed or embeds may be passed")
-
-            if component:
-                assert not isinstance(component, hikari.UndefinedType)
-                components = (component,)
-
-            if embed:
-                assert not isinstance(embed, hikari.UndefinedType)
-                embeds = (embed,)
-
+            content = str(content) if content is not hikari.UNDEFINED else hikari.UNDEFINED
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
             # pre-fix in init.
             result = hikari.impl.InteractionMessageBuilder(
-                type=response_type,  # type: ignore
-                content=content,  # type: ignore
-                components=components,  # type: ignore
-                embeds=embeds,  # type: ignore
-                flags=flags,  # type: ignore
-                is_tts=tts,  # type: ignore
-                mentions_everyone=mentions_everyone,  # type: ignore
-                user_mentions=user_mentions,  # type: ignore
-                role_mentions=role_mentions,  # type: ignore
-            )  # type: ignore
+                type=hikari.ResponseType.MESSAGE_CREATE,  # pyright: ignore reportGeneralTypeIssues
+                content=content,  # pyright: ignore reportGeneralTypeIssues
+                attachments=attachments,  # pyright: ignore reportGeneralTypeIssues
+                components=components,  # pyright: ignore reportGeneralTypeIssues
+                embeds=embeds,  # pyright: ignore reportGeneralTypeIssues
+                flags=flags,  # pyright: ignore reportGeneralTypeIssues
+                is_tts=tts,  # pyright: ignore reportGeneralTypeIssues
+                mentions_everyone=mentions_everyone,  # pyright: ignore reportGeneralTypeIssues
+                user_mentions=user_mentions,  # pyright: ignore reportGeneralTypeIssues
+                role_mentions=role_mentions,  # pyright: ignore reportGeneralTypeIssues
+            )
 
             self._response_future.set_result(result)
+
+        self._has_responded = True
 
     async def create_initial_response(
         self,
@@ -443,6 +405,8 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -457,10 +421,127 @@ class ComponentContext:
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
+        """Create the initial response for this context.
+
+        !!! warning
+            Calling this on a context which already has an initial response
+            will result in this raising a [hikari.errors.NotFoundError][].
+            This includes if the REST interaction server has already responded
+            to the request and deferrals.
+
+        Parameters
+        ----------
+        content
+            The content to edit the last response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+
+        ephemeral
+            Whether the deferred response should be ephemeral.
+
+            Passing [True][] here is a shorthand for including `1 << 64` in the
+            passed flags.
+        content
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            `str`.
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+        attachment
+            If provided, the message attachment. This can be a resource,
+            or string of a path on your computer or a URL.
+        attachments
+            If provided, the message attachments. These can be resources, or
+            strings consisting of paths on your computer or URLs.
+        component
+            If provided, builder object of the component to include in this message.
+        components
+            If provided, a sequence of the component builder objects to include
+            in this message.
+        embed
+            If provided, the message embed.
+        embeds
+            If provided, the message embeds.
+        flags
+            If provided, the message flags this response should have.
+
+            As of writing the only message flag which can be set here is
+            [hikari.messages.MessageFlag.EPHEMERAL][].
+        tts
+            If provided, whether the message will be read out by a screen
+            reader using Discord's TTS (text-to-speech) system.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all user mentions will be detected.
+            If provided, and [False][], all user mentions will be ignored
+            if appearing in the message body.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all role mentions will be detected.
+            If provided, and [False][], all role mentions will be ignored
+            if appearing in the message body.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; invalid image URLs in embeds.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.NotFoundError
+            If the interaction is not found or if the interaction's initial
+            response has already been created.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         async with self._response_lock:
             await self._create_initial_response(
                 response_type,
                 content=content,
+                attachment=attachment,
+                attachments=attachments,
                 component=component,
                 components=components,
                 embed=embed,
@@ -473,12 +554,32 @@ class ComponentContext:
             )
 
     async def delete_initial_response(self) -> None:
+        """Delete the initial response after invoking this context.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The last context has no initial response.
+        """
         await self._interaction.delete_initial_response()
+        # If they defer then delete the initial response, this should be treated as having
+        # an initial response to allow for followup responses.
+        self._has_responded = True
 
     async def delete_last_response(self) -> None:
+        """Delete the last response after invoking this context.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The last context has no responses.
+        """
         if self._last_response_id is None:
-            if self._has_responded:
+            if self._has_responded or self._has_been_deferred:
                 await self._interaction.delete_initial_response()
+                # If they defer then delete the initial response then this should be treated as having
+                # an initial response to allow for followup responses.
+                self._has_responded = True
                 return
 
             raise LookupError("Context has no last response")
@@ -504,6 +605,100 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
+        """Edit the initial response for this context.
+
+        Parameters
+        ----------
+        content
+            The content to edit the initial response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        attachment
+            A singular attachment to edit the initial response with.
+        attachments
+            A sequence of attachments to edit the initial response with.
+        component
+            If provided, builder object of the component to set for this message.
+            This component will replace any previously set components and passing
+            [None][] will remove all components.
+        components
+            If provided, a sequence of the component builder objects set for
+            this message. These components will replace any previously set
+            components and passing [None][] or an empty sequence will
+            remove all components.
+        embed
+            An embed to replace the initial response with.
+        embeds
+            A sequence of embeds to replace the initial response with.
+        replace_attachments
+            Whether to replace the attachments of the response or not.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message
+            The message that has been edited.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         result = await self._interaction.edit_initial_response(
             content=content,
             attachment=attachment,
@@ -517,6 +712,7 @@ class ComponentContext:
             user_mentions=user_mentions,
             role_mentions=role_mentions,
         )
+        # This will be False if the initial response was deferred with this finishing the referral.
         self._has_responded = True
         return result
 
@@ -539,6 +735,102 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
+        """Edit the last response for this context.
+
+        Parameters
+        ----------
+        content
+            The content to edit the last response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        attachment
+            A singular attachment to edit the last response with.
+        attachments
+            A sequence of attachments to edit the last response with.
+        component
+            If provided, builder object of the component to set for this message.
+            This component will replace any previously set components and passing
+            [None][] will remove all components.
+        components
+            If provided, a sequence of the component builder objects set for
+            this message. These components will replace any previously set
+            components and passing [None][] or an empty sequence will
+            remove all components.
+        embed
+            An embed to replace the last response with.
+        embeds
+            A sequence of embeds to replace the last response with.
+        replace_attachments
+            Whether to replace the attachments of the response or not.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message
+            The message that has been edited.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         if self._last_response_id:
             return await self._interaction.edit_message(
                 self._last_response_id,
@@ -590,6 +882,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: typing.Literal[False] = False,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -610,6 +904,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: typing.Literal[True],
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -629,6 +925,8 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: bool = False,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -641,10 +939,113 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> typing.Optional[hikari.Message]:
+        """Respond to this context.
+
+        Parameters
+        ----------
+        content
+            The content to respond with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        ensure_result
+            Ensure that this call will always return a message object.
+
+            If [True][] then this will always return [hikari.messages.Message][],
+            otherwise this will return `hikari.Message | None`.
+
+            It's worth noting that, under certain scenarios within the slash
+            command flow, this may lead to an extre request being made.
+        attachment
+            If provided, the message attachment. This can be a resource,
+            or string of a path on your computer or a URL.
+        attachments
+            If provided, the message attachments. These can be resources, or
+            strings consisting of paths on your computer or URLs.
+        component
+            If provided, builder object of the component to include in this response.
+        components
+            If provided, a sequence of the component builder objects to include
+            in this response.
+        embed
+            An embed to respond with.
+        embeds
+            A sequence of embeds to respond with.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message | None
+            The message that has been created if it was immedieatly available or
+            `ensure_result` was set to [True][], else [None][].
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         async with self._response_lock:
             if self._has_responded:
                 message = await self._interaction.execute(
                     content,
+                    attachment=attachment,
+                    attachments=attachments,
                     component=component,
                     components=components,
                     embed=embed,
@@ -658,6 +1059,8 @@ class ComponentContext:
 
             if self._has_been_deferred:
                 return await self.edit_initial_response(
+                    attachment=attachment,
+                    attachments=attachments,
                     content=content,
                     component=component,
                     components=components,
@@ -670,6 +1073,8 @@ class ComponentContext:
 
             await self._create_initial_response(
                 hikari.ResponseType.MESSAGE_CREATE,
+                attachment=attachment,
+                attachments=attachments,
                 content=content,
                 component=component,
                 components=components,
@@ -684,36 +1089,37 @@ class ComponentContext:
             return await self._interaction.fetch_initial_response()
 
 
+_ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikari.files.RAWISH_TYPES, os.PathLike)
+
+
+def _to_list(
+    singular: hikari.UndefinedOr[_T],
+    plural: hikari.UndefinedOr[typing.Sequence[_T]],
+    other: typing.Any,
+    type_: typing.Union[type[typing.Any], tuple[type[typing.Any], ...]],
+    name: str,
+) -> list[_T]:
+    if singular is not hikari.UNDEFINED and plural is not hikari.UNDEFINED:
+        raise ValueError(f"Only one of {name} or {name}s may be passed")
+
+    if singular:
+        return [singular]
+
+    if plural:
+        return list(plural)
+
+    if other and isinstance(other, type_):
+        return [other]
+
+    return []
+
+
 class ExecutorClosed(Exception):
     """Error used to indicate that an executor is now closed during execution."""
 
 
 class ComponentClient:
-    """Client used to handle component executors within a REST or gateway flow.
-
-    .. note::
-        For an easier way to initialise the client from a bot see
-        `ComponentClient.from_gateway_bot` and `ComponentClient.from_rest_bot`.
-
-    Other Parameters
-    ----------------
-    event_manager : typing.Optional[hikari.api.EventManager]
-        The event manager this client should listen to dispatched component
-        interactions from if applicable.
-    event_managed : bool
-        Whether this client should be automatically opened and closed based on
-        the lifetime events dispatched by `event_manager`.
-
-        Defaults to `True` if an event manager is passed.
-    server : typing.Optional[hikari.api.InteractionServer]
-        The server this client should listen to component interactions
-        from if applicable.
-
-    Raises
-    ------
-    ValueError
-        If `event_managed` is passed as `True` when `event_manager` is None.
-    """
+    """Client used to handle component executors within a REST or gateway flow."""
 
     __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server")
 
@@ -724,6 +1130,32 @@ class ComponentClient:
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
     ) -> None:
+        """Initialise a component client.
+
+        !!! note
+            For an easier way to initialise the client from a bot see
+            [yuyo.components.ComponentClient.from_gateway_bot][] and
+            [yuyo.components.ComponentClient.from_rest_bot][].
+
+        Parameters
+        ----------
+        event_manager
+            The event manager this client should listen to dispatched component
+            interactions from if applicable.
+        event_managed
+            Whether this client should be automatically opened and closed based on
+            the lifetime events dispatched by `event_manager`.
+
+            Defaults to [True][] if an event manager is passed.
+        server
+            The server this client should listen to component interactions
+            from if applicable.
+
+        Raises
+        ------
+        ValueError
+            If `event_managed` is passed as [True][] when `event_manager` is [None][].
+        """
         self._constant_ids: typing.Dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
@@ -755,12 +1187,9 @@ class ComponentClient:
 
         Parameters
         ----------
-        bot : hikari.traits.GatewayBotAware
+        bot
             The Gateway bot this component client should be bound to.
-
-        Other Parameters
-        ----------------
-        event_managed : bool
+        event_managed
             Whether the component client should be automatically opened and
             closed based on the lifetime events dispatched by `bot`.
 
@@ -777,7 +1206,7 @@ class ComponentClient:
 
         Parameters
         ----------
-        bot : hikari.traits.RESTBotAware
+        bot
             The REST bot this component client should be bound to.
 
         Returns
@@ -880,7 +1309,7 @@ class ComponentClient:
 
         if executor := self._executors.get(interaction.message.id):
             if not executor.has_expired:
-                future: asyncio.Future[ResponseT] = asyncio.Future()
+                future = asyncio.Future()
                 asyncio.create_task(self._execute_executor(executor, interaction, future=future))
                 return await future
 
@@ -902,26 +1331,22 @@ class ComponentClient:
 
         Parameters
         ----------
-        custom_id : str
+        custom_id
             The custom_id to register the callback for.
-        callback : CallbackSig
+        callback
             The callback to register.
 
-            This should take a single argument of type `ComponentContext`,
-            be asynchronous and return `None`.
-
-        Other Parameters
-        ----------------
-        prefix_match : bool
+            This should take a single argument of type [yuyo.components.ComponentContext][],
+            be asynchronous and return [None][].
+        prefix_match
             Whether the custom_id should be treated as a prefix match.
 
             This allows for further state to be held in the custom id after the
-            prefix, defaults to `False` and is lower priority than normal
-            custom id match.
+            prefix and is lower priority than normal custom id match.
 
         Returns
         -------
-        SelfT
+        Self
             The component client to allow chaining.
 
         Raises
@@ -947,13 +1372,13 @@ class ComponentClient:
 
         Parameters
         ----------
-        custom_id : str
+        custom_id
             The custom_id to get the callback for.
 
         Returns
         -------
-        typing.Optional[CallbackSig]
-            The callback for the custom_id, or `None` if it doesn't exist.
+        CallbackSig | None
+            The callback for the custom_id, or [None][] if it doesn't exist.
         """
         return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
 
@@ -962,12 +1387,12 @@ class ComponentClient:
 
         Parameters
         ----------
-        custom_id : str
+        custom_id
             The custom_id to remove the callback for.
 
         Returns
         -------
-        SelfT
+        Self
             The component client to allow chaining.
 
         Raises
@@ -992,17 +1417,13 @@ class ComponentClient:
 
         Parameters
         ----------
-        custom_id : str
+        custom_id
             The custom_id to register the callback for.
-
-        Other Parameters
-        ----------------
-        prefix_match : bool
+        prefix_match
             Whether the custom_id should be treated as a prefix match.
 
             This allows for further state to be held in the custom id after the
-            prefix, defaults to `False` and is lower priority than normal
-            custom id match.
+            prefix and is lower priority than normal custom id match.
 
         Returns
         -------
@@ -1024,7 +1445,7 @@ class ComponentClient:
     def add_executor(
         self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> _ComponentClientT:
-        """Deprecated alias of `ComponentClient.add_executor`."""
+        """Deprecated alias of [yuyo.components.ComponentClient.add_executor][]."""
         warnings.warn("add_executor is deprecated, use set_executor instead.", DeprecationWarning, stacklevel=2)
         return self.set_executor(message, executor)
 
@@ -1035,9 +1456,9 @@ class ComponentClient:
 
         Parameters
         ----------
-        message : hikari.SnowflakeishOr[hikari.Message]
+        message
             The message to set the executor for.
-        executor : AbstractComponentExecutor
+        executor
             The executor to set.
 
             This will be called for every component interaction for the message
@@ -1045,7 +1466,7 @@ class ComponentClient:
 
         Returns
         -------
-        SelfT
+        Self
             The component client to allow chaining.
         """
         self._executors[int(message)] = executor
@@ -1058,13 +1479,13 @@ class ComponentClient:
 
         Parameters
         ----------
-        message : hikari.SnowflakeishOr[hikari.Message]
+        message
             The message to get the executor for.
 
         Returns
         -------
-        typing.Optional[AbstractComponentExecutor]
-            The executor set for the message or `None` if none is set.
+        yuyo.components.AbstractComponentExecutor | None
+            The executor set for the message or [None][] if none is set.
         """
         return self._executors.get(int(message))
 
@@ -1075,19 +1496,19 @@ class ComponentClient:
 
         Parameters
         ----------
-        message : hikari.SnowflakeishOr[hikari.Message]
+        message
             The message to remove the executor for.
 
         Returns
         -------
-        SelfT
+        Self
             The component client to allow chaining.
         """
         self._executors.pop(int(message))
         return self
 
 
-def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:  # noqa: D103
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         callback.__custom_id__ = custom_id  # type: ignore
         return callback
@@ -1096,11 +1517,14 @@ def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], 
 
 
 class AbstractComponentExecutor(abc.ABC):
+    """Abstract interface of an object which handles the execution of a message component."""
+
     __slots__ = ()
 
     @property
     @abc.abstractmethod
     def custom_ids(self) -> typing.Collection[str]:
+        """Collection of the custom IDs this executor is listening for."""
         raise NotImplementedError
 
     @property
@@ -1116,7 +1540,9 @@ class AbstractComponentExecutor(abc.ABC):
 
 
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
-    __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_lock", "_timeout")
+    """Basic implementation of a class used for handling the execution of a message component."""
+
+    __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_timeout")
 
     def __init__(
         self,
@@ -1125,10 +1551,18 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         load_from_attributes: bool = True,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a component executor.
+
+        Parameters
+        ----------
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        timeout
+            How long this component should last until its marked as timed out.
+        """
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._lock = asyncio.Lock()
         self._timeout = timeout
         if load_from_attributes and type(self) is not ComponentExecutor:
             for _, value in inspect.getmembers(self):  # TODO: might be a tad bit slow
@@ -1196,23 +1630,6 @@ async def _pre_execution_error(
 class WaitForExecutor(AbstractComponentExecutor):
     """Component executor used to wait for a single component interaction.
 
-    Parameters
-    ----------
-    authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]
-        The authors of the entries.
-
-        If None is passed here then the paginator will be public (meaning that
-        anybody can use it).
-
-    Other Parameters
-    ----------------
-    ephemeral_default: bool
-        Whether or not the responses made on contexts spawned from this paginator
-        should default to ephemeral (meaning only the author can see them) unless
-        `flags` is specified on the response method.
-    timeout : datetime.timedelta
-        How long this should wait for a matching component interaction until it times-out.
-
     Examples
     --------
     ```py
@@ -1240,6 +1657,22 @@ class WaitForExecutor(AbstractComponentExecutor):
         ephemeral_default: bool = False,
         timeout: datetime.timedelta,
     ) -> None:
+        """Initialise a wait for executor.
+
+        Parameters
+        ----------
+        authors
+            The authors of the entries.
+
+            If [None][] is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        timeout
+            How long this should wait for a matching component interaction until it times-out.
+        """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
@@ -1311,10 +1744,10 @@ class WaitForExecutor(AbstractComponentExecutor):
 WaitForComponent = WaitForExecutor
 
 WaitFor = WaitForExecutor
-"""Alias for `WaitForExecutor`."""
+"""Alias of [yuyo.components.WaitForExecutor][]."""
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
     def __init__(
@@ -1322,7 +1755,9 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerPro
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id, style=style)  # type: ignore
+        super().__init__(
+            container=container, custom_id=custom_id, style=style  # pyright: ignore reportGeneralTypeIssues
+        )
 
     @property
     def callback(self) -> CallbackSig:
@@ -1333,13 +1768,13 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerPro
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):
+class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
     def __init__(self, callback: CallbackSig, container: ContainerProtoT, custom_id: str) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id)  # type: ignore
+        super().__init__(container=container, custom_id=custom_id)  # pyright: ignore reportGeneralTypeIssues
 
     @property
     def callback(self) -> CallbackSig:
@@ -1351,6 +1786,8 @@ class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):
 
 
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
+    """Class used for handling the execution of an action row."""
+
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
@@ -1360,6 +1797,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise an action row executor.
+
+        Parameters
+        ----------
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        timeout
+            How long this component should last until its marked as timed out.
+        """
         super().__init__(
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
         )
@@ -1415,18 +1861,20 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             if custom_id is None:
                 custom_id = _random_id()
 
-            if not isinstance(callback_or_url, typing.Callable):
+            if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
             return InteractiveButtonBuilder(
-                callback=callback_or_url, container=self, style=style, custom_id=custom_id  # type: ignore
+                callback=callback_or_url, container=self, style=hikari.ButtonStyle(style), custom_id=custom_id
             )
 
         # Pyright doesn't properly support _ attrs kwargs
         if not isinstance(callback_or_url, str):
             raise ValueError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)  # type: ignore
+        return hikari.impl.LinkButtonBuilder(
+            container=self, style=style, url=callback_or_url  # pyright: ignore reportGeneralTypeIssues
+        )
 
     def add_select_menu(
         self: _ActionRowExecutorT, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
@@ -1445,7 +1893,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
 
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorProtoT]):
-    """Extended implementation of `ActionRowExecutor` which can be tied to a `MultiComponentExecutor`."""
+    """Extended action row implementation which can be tied to a multi-component executor."""
 
     __slots__ = ("_parent",)
 
@@ -1466,7 +1914,9 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorPro
         return self._parent.add_executor(self).add_builder(self)
 
 
-def as_child_executor(executor: typing.Type[AbstractComponentExecutorT], /) -> typing.Type[AbstractComponentExecutorT]:
+def as_child_executor(  # noqa: D103
+    executor: typing.Type[AbstractComponentExecutorT], /
+) -> typing.Type[AbstractComponentExecutorT]:
     executor.__is_child_executor__ = True  # type: ignore
     return executor
 
@@ -1476,19 +1926,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     This implementation allows for multiple components to be executed as a single
     view.
-
-    Parameters
-    ----------
-    load_from_attributes: bool
-        Whether this should load sub-components from its attributes.
-
-        This is helpful when inheritance and `as_child_executor` are being
-        used to declare child executors within this executor.
-    timeout : datetime.timedelta
-        The amount of time to wait after the component's last execution or creation
-        until it times out.
-
-        Defaults to 30 seconds.
     """
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
@@ -1499,6 +1936,14 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
+        """Initialise a multi-component executor.
+
+        Parameters
+        ----------
+        timeout
+            The amount of time to wait after the component's last execution or creation
+            until it times out.
+        """
         self._builders: typing.List[hikari.api.ComponentBuilder] = []
         self._executors: typing.List[AbstractComponentExecutor] = []
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -1543,7 +1988,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
-        builder : hikari.api.ComponentBuilder
+        builder
             The component builder to add.
 
         Returns
@@ -1556,17 +2001,19 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     def add_action_row(self: _MultiComponentExecutorT) -> ChildActionRowExecutor[_MultiComponentExecutorT]:
         """Create a builder class to add an action row to this executor.
 
-        For the most part this follows the same implementation as `ActionRowExecutor`
-        except with the added detail that `ChildActionRowExecutor.add_to_parent`
-        must be called to add the action row to the parent executor.
+        For the most part this follows the same implementation as
+        [yuyo.components.ActionRowExecutor][] except with the added detail that
+        [yuyo.components.ChildActionRowExecutor.add_to_parent][] must be called
+        to add the action row to the parent executor.
 
         Returns
         -------
         ChildActionRowExecutor[_MultiComponentExecutorT]
             A builder class to add an action row to this executor.
 
-            `ChildActionRowExecutor.add_to_parent` should be called to finalise
-            the action row and will return the parent executor for chained calls.
+            [yuyo.components.ChildActionRowExecutor.add_to_parent][] should be
+            called to finalise the action row and will return the parent executor
+            for chained calls.
         """
         return ChildActionRowExecutor(self)
 
@@ -1579,7 +2026,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
-        executor : AbstractComponentExecutor
+        executor
             The component executor to add.
 
         Returns
@@ -1606,37 +2053,6 @@ class ComponentPaginator(ActionRowExecutor):
     """Standard implementation of an action row executor used for pagination.
 
     This is a convenience class that allows you to easily implement a paginator.
-
-    Parameters
-    ----------
-    iterator: yuyo.pagination.IteratorT[pagination.EntryT]
-        The iterator to paginate.
-
-        This should be an iterator of tuples of `(content: hikari.UndefinedOr[str],
-        embed: hikari.UndefinedOr[hikari.Embed])`.
-    authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]]
-        The authors of the entries.
-
-        If None is passed here then the paginator will be public (meaning that
-        anybody can use it).
-
-    Other Parameters
-    ----------------
-    ephemeral_default: bool
-        Whether or not the responses made on contexts spawned from this paginator
-        should default to ephemeral (meaning only the author can see them) unless
-        `flags` is specified on the response method.
-    triggers: typing.Collection[str]
-        Collection of the unicode emojis that should trigger this paginator.
-
-        As of current the only usable emojis are `pagination.LEFT_TRIANGLE`,
-        `pagination.RIGHT_TRIANGLE`, `pagination.STOP_SQUARE`,
-        `pagination.LEFT_DOUBLE_TRIANGLE` and `pagination.LEFT_RIGHT_TRIANGLE`.
-    timeout : datetime.timedelta
-        The amount of time to wait after the component's last execution or creation
-        until it times out.
-
-        This defaults to 30 seconds.
     """
 
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
@@ -1655,7 +2071,37 @@ class ComponentPaginator(ActionRowExecutor):
         load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        if not isinstance(iterator, (typing.Iterator, typing.AsyncIterator)):
+        """Initialise a component paginator.
+
+        Parameters
+        ----------
+        iterator
+            The iterator to paginate.
+
+            This should be an iterator of tuples of `(hikari.UndefinedOr[str],
+            hikari.UndefinedOr[hikari.Embed])`.
+        authors
+            The authors of the entries.
+
+            If None is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        triggers
+            Collection of the unicode emojis that should trigger this paginator.
+
+            As of current the only usable emojis are [yuyo.pagination.LEFT_TRIANGLE][],
+            [yuyo.pagination.RIGHT_TRIANGLE][], [yuyo.pagination.STOP_SQUARE][],
+            [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_TRIANGLE][].
+        timeout
+            The amount of time to wait after the component's last execution or creation
+            until it times out.
+        """
+        if not isinstance(
+            iterator, (typing.Iterator, typing.AsyncIterator)
+        ):  # pyright: ignore reportUnnecessaryIsInstance
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(
@@ -1736,8 +2182,8 @@ class ComponentPaginator(ActionRowExecutor):
 
         Returns
         -------
-        typing.Optional[pagination.EntryT]
-            The next entry in this paginator, or `None` if there are no more entries.
+        yuyo.pagination.EntryT | None
+            The next entry in this paginator, or [None][] if there are no more entries.
         """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
@@ -1751,7 +2197,7 @@ class ComponentPaginator(ActionRowExecutor):
             return entry
 
     @staticmethod
-    def _noop(ctx: ComponentContext) -> typing.Awaitable[None]:
+    def _noop(ctx: ComponentContext) -> typing.Coroutine[typing.Any, typing.Any, None]:
         return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_first(self, ctx: ComponentContext, /) -> None:

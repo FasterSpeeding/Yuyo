@@ -1,0 +1,3 @@
+# yuyo.pagination
+
+::: yuyo.pagination

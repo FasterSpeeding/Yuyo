@@ -34,11 +34,11 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
-    "as_reaction_callback",
     "AbstractReactionHandler",
+    "ReactionClient",
     "ReactionHandler",
     "ReactionPaginator",
-    "ReactionClient",
+    "as_reaction_callback",
 ]
 
 import abc
@@ -61,12 +61,18 @@ if typing.TYPE_CHECKING:
     _ReactionClientT = typing.TypeVar("_ReactionClientT", bound="ReactionClient")
 
 
+_EventT = typing.TypeVar("_EventT", bound=hikari.Event)
+EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
+CallbackSig = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
+
+
 class HandlerClosed(Exception):
-    ...
+    """Error raised when a reaction handler has been closed."""
 
 
 class AbstractReactionHandler(abc.ABC):
-    """The interface for a reaction handler used with `ReactionClient`."""
+    """The interface for a reaction handler used with [yuyo.reactions.ReactionClient][]."""
 
     __slots__ = ()
 
@@ -81,7 +87,7 @@ class AbstractReactionHandler(abc.ABC):
     def last_triggered(self) -> datetime.datetime:
         """When this handler was last triggered.
 
-        .. note::
+        !!! note
             If it hasn't ever been triggered then this will be when it was created.
         """
         raise NotImplementedError
@@ -97,7 +103,7 @@ class AbstractReactionHandler(abc.ABC):
 
         Parameters
         ----------
-        message : hikari.messages.Message
+        message
             The message to bind this handler to.
         """
         raise NotImplementedError
@@ -108,7 +114,7 @@ class AbstractReactionHandler(abc.ABC):
 
         Parameters
         ----------
-        event : EventT
+        event
             The event to handle.
 
         Raises
@@ -119,12 +125,7 @@ class AbstractReactionHandler(abc.ABC):
         raise NotImplementedError
 
 
-EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
-CallbackSig = typing.Callable[[EventT], typing.Awaitable[None]]
-CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
-
-
-def as_reaction_callback(
+def as_reaction_callback(  # noqa: D103
     emoji_identifier: typing.Union[hikari.SnowflakeishOr[hikari.CustomEmoji], str], /
 ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
@@ -139,6 +140,8 @@ def as_reaction_callback(
 
 
 class ReactionHandler(AbstractReactionHandler):
+    """Standard basic implementation of a reaction handler."""
+
     __slots__ = ("_authors", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
 
     def __init__(
@@ -148,6 +151,17 @@ class ReactionHandler(AbstractReactionHandler):
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
         load_from_attributes: bool = True,
     ) -> None:
+        """Initialise a reaction handler.
+
+        Parameters
+        ----------
+        authors
+            An iterable of IDs of the users who can call this paginator.
+            If left empty then all users will be able to call this
+            paginator.
+        timeout
+            How long it should take for this paginator to timeout.
+        """
         self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: typing.Dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -170,7 +184,7 @@ class ReactionHandler(AbstractReactionHandler):
     def authors(self) -> typing.AbstractSet[hikari.Snowflake]:
         """Set of the authors/owner of a enabled handler.
 
-        .. note::
+        !!! note
             If this is empty then the handler is considered public and
             any user will be able to trigger it.
         """
@@ -208,12 +222,12 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier
             Identifier of the emoji this callback is for.
 
             This should be a snowfake if this is for a custom emoji or a string
             if this is for a unicode emoji.
-        callback : typing.Callable[[hikari.reaction_events.ReactionAddEvent], typing.Awaitable[None]]
+        callback
             The callback to add.
 
             This should be a function that accepts a single parameter,
@@ -232,7 +246,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier
             Identifier of the emoji the callback to remove is for.
 
             This should be a snowfake if this is for a custom emoji or a string
@@ -250,7 +264,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Parameters
         ----------
-        emoji_identifier: typing.Union[str, hikari.snowflakes.SnowflakeishOr[hikari.emojis.CustomEmoji]]
+        emoji_identifier
             Identifier of the emoji this callback is for.
 
             This should be a snowfake if this is for a custom emoji or a string
@@ -317,28 +331,7 @@ async def _delete_message(message: hikari.Message, /) -> None:
 
 
 class ReactionPaginator(ReactionHandler):
-    """The standard implementation of `AbstractReactionHandler`.
-
-    Parameters
-    ----------
-    iterator : Iterator[typing.Tuple[undefined.UndefinedOr[str], undefined.UndefinedOr[embeds.Embed]]]
-        Either an asynchronous or synchronous iterator of the entries this
-        should paginate through.
-        Entry[0] represents the message's possible content and can either be
-        `builtins.str` or `hikari.undefined.UNDEFINED` and Entry[1] represents
-        the message's possible embed and can either be `hikari.embeds.Embed`
-        or `hikari.undefined.UNDEFINED`.
-    authors : typing.Iterable[hikari.snowflakes.SnowflakeishOr[hikari.users.User]]
-        An iterable of IDs of the users who can call this paginator.
-        If left empty then all users will be able to call this
-        paginator.
-
-    Other Parameters
-    ----------------
-    timeout : datetime.timedelta
-        How long it should take for this paginator to timeout.
-        This defaults to a timdelta of 30 seconds.
-    """
+    """Standard implementation of a reaction handler for pagination."""
 
     __slots__ = ("_buffer", "_index", "_iterator", "_triggers")
 
@@ -354,7 +347,27 @@ class ReactionPaginator(ReactionHandler):
         ),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
-        if not isinstance(iterator, (typing.Iterator, typing.AsyncIterator)):
+        """Initialise a reaction paginator.
+
+        Parameters
+        ----------
+        iterator
+            Either an asynchronous or synchronous iterator of the entries this
+            should paginate through.
+            `entry[0]` represents the message's possible content and can either be
+            [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
+            the message's possible embed and can either be [hikari.embeds.Embed][]
+            or [hikari.undefined.UNDEFINED][].
+        authors
+            An iterable of IDs of the users who can call this paginator.
+            If left empty then all users will be able to call this
+            paginator.
+        timeout
+            How long it should take for this paginator to timeout.
+        """
+        if not isinstance(
+            iterator, (typing.Iterator, typing.AsyncIterator)
+        ):  # pyright: ignore reportUnnecessaryIsInstance
             raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
@@ -454,7 +467,7 @@ class ReactionPaginator(ReactionHandler):
 
         Parameters
         ----------
-        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
+        user
             The user to add as an owner for this handler.
         """
         self._authors.add(hikari.Snowflake(user))
@@ -463,13 +476,13 @@ class ReactionPaginator(ReactionHandler):
     def remove_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> None:
         """Remove a author/owner from this handler.
 
-        .. note::
+        !!! note
             If the provided user isn't already a registered owner of this paginator
             then this should pass silently without raising.
 
         Parameters
         ----------
-        user : hikari.snowflakes.SnowflakeishOr[hikari.users.User]
+        user
             The user to remove from this handler's owners.
         """
         try:
@@ -486,12 +499,11 @@ class ReactionPaginator(ReactionHandler):
     ) -> None:
         """Close this handler and deregister any previously registered message.
 
-        Other Parameters
-        ----------------
-        remove_reactions : builtins.bool
+        Parameters
+        ----------
+        remove_reactions
             Whether this should remove the reactions that were being used to
             paginate through this from the previously registered message.
-            This defaults to `builtins.False`.
         """
         if message := self._message:
             self._message = None
@@ -573,19 +585,24 @@ class ReactionPaginator(ReactionHandler):
     ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
-        .. note::
+        !!! note
             Calling this multiple times will replace the previously registered message.
 
-        Other Parameters
-        ----------------
-        message : typing.Optional[hikari.messages.Message]
-            If already created, the message this handler should target.
-            If left as `builtins.None` then this call will create a message
-            in the channel provided when initiating the handler.
-        add_reactions : bool
-            Whether this should also add reactions that'll be used to paginate
-            over this resource.
-            This defaults to `builtins.True`.
+        Parameters
+        ----------
+        rest
+            Rest client to use to make the response.
+        channel_id
+            ID of the channel to respond in.
+        add_reactions
+            Whether this should add the paginator's reactions to the message
+            after responding.
+        max_retries
+            How many times this should retry to respond if Hikari raises
+            any ratelimit errors.
+        max_backoff
+            The maximum time this should backoff for before trying if Hikari
+            raises any ratelimit errors.
 
         Returns
         -------
@@ -634,24 +651,9 @@ class ReactionPaginator(ReactionHandler):
 class ReactionClient:
     """A class which handles the events for multiple registered reaction handlers.
 
-    .. note::
+    !!! note
         For a quicker way to initialise this client from a bot, see
-        `ReactionClient.from_gateway_bot`.
-
-    Parameters
-    ----------
-    rest : hikari.api.rest.RESTClient
-        The REST client to register this reaction client with.
-    event_manager : hikari.api.event_manager.EventManager
-        The event manager client to register this reaction client with.
-
-
-    Other Parameters
-    ----------------
-    event_managed : bool
-        Whether the reaction client should be automatically opened and
-        closed based on the lifetime events dispatched by `event_managed`.
-        This defaults to `True`.
+        [yuyo.reactions.ReactionClient.from_gateway_bot][].
     """
 
     __slots__ = ("blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
@@ -659,6 +661,18 @@ class ReactionClient:
     def __init__(
         self, *, rest: hikari.api.RESTClient, event_manager: hikari.api.EventManager, event_managed: bool = True
     ) -> None:
+        """Initialise a reaction client.
+
+        Parameters
+        ----------
+        rest
+            The REST client to register this reaction client with.
+        event_manager
+            The event manager client to register this reaction client with.
+        event_managed
+            Whether the reaction client should be automatically opened and
+            closed based on the lifetime events dispatched by `event_managed`.
+        """
         self.blacklist: typing.List[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
@@ -675,15 +689,11 @@ class ReactionClient:
 
         Parameters
         ----------
-        bot : hikari.traits.GatewayBotAware
+        bot
             The bot to build a reaction client for.
-
-        Other Parameters
-        ----------------
-        event_managed : bool
+        event_managed
             Whether the reaction client should be automatically opened and
             closed based on the lifetime events dispatched by `bot`.
-            This defaults to `True`.
 
         Returns
         -------
@@ -724,6 +734,7 @@ class ReactionClient:
 
     @property
     def is_closed(self) -> bool:
+        """Whether this client is closed."""
         return self._gc_task is None
 
     def add_handler(
@@ -734,14 +745,14 @@ class ReactionClient:
     ) -> _ReactionClientT:
         """Add a reaction handler to this reaction client.
 
-        .. note::
-            This does not call `AbstractReactionHandler.open`.
+        !!! note
+            This does not call [yuyo.reactions.AbstractReactionHandler.open][].
 
         Parameters
         ----------
-        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+        message
             The message ID to add register a reaction handler with.
-        paginator : AbstractReactionHandler
+        paginator
             The object of the opened paginator to register in this reaction client.
         """
         self._handlers[hikari.Snowflake(message)] = paginator
@@ -752,18 +763,18 @@ class ReactionClient:
     ) -> typing.Optional[AbstractReactionHandler]:
         """Get a reference to a paginator registered in this reaction client.
 
-        .. note::
-            This does not call `AbstractReactionHandler.close`.
+        !!! note
+            This does not call [yuyo.reactions.AbstractReactionHandler.close][].
 
         Parameters
         ----------
-        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+        message
             The message ID to remove a paginator for.
 
         Returns
         -------
-        AbstractReactionHandler
-            The object of the registered paginator if found else `builtins.None`.
+        AbstractReactionHandler | None
+            The object of the registered paginator if found else [None][].
         """
         return self._handlers.get(hikari.Snowflake(message))
 
@@ -772,25 +783,25 @@ class ReactionClient:
     ) -> typing.Optional[AbstractReactionHandler]:
         """Remove a paginator from this reaction client.
 
-        .. note::
-            This does not call `AbstractReactionHandler.close`.
+        !!! note
+            This does not call [yuyo.reactions.AbstractReactionHandler.close][].
 
         Parameters
         ----------
-        message : hikari.snowflakes.SnowflakeishOr[hikari.messages.Message]
+        message
             The message ID to remove a paginator for.
 
         Returns
         -------
-        AbstractReactionHandler
-            The object of the registered paginator if found else `builtins.None`.
+        AbstractReactionHandler | None
+            The object of the registered paginator if found else [None][].
         """
         return self._handlers.pop(hikari.Snowflake(message))
 
     def _try_unsubscribe(
         self,
-        event_type: typing.Type[event_manager_api.EventT],
-        callback: event_manager_api.CallbackT[event_manager_api.EventT],
+        event_type: typing.Type[_EventT],
+        callback: event_manager_api.CallbackT[_EventT],
     ) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
@@ -799,10 +810,10 @@ class ReactionClient:
             pass
 
     async def close(self) -> None:
-        """Close this client by unregistering any tasks and event listeners registered by `ReactionClient.open`."""
+        """Close this client by unregistering any registered tasks and event listeners."""
         if self._gc_task is not None:
-            self._try_unsubscribe(hikari.ReactionAddEvent, self._on_reaction_event)  # type: ignore[misc]
-            self._try_unsubscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)  # type: ignore[misc]
+            self._try_unsubscribe(hikari.ReactionAddEvent, self._on_reaction_event)
+            self._try_unsubscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)
             self._gc_task.cancel()
             listeners = self._handlers
             self._handlers = {}

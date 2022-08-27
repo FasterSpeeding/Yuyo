@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for sending attachments on initial response to the `ComponentContext`.
+
+### Changed
+- Bumped the minimum hikari version to dev109.
+- Async functions must be typed as returning `typing.Coroutine`/`collections.abc.Coroutine`
+  rather than `typing.Awaitable` now.
+
+### Fixed
+- Several bug fixes on handling context response tracking have been copied over from Tanjun
+  to `ComponentContext`.
+
 ## [1.0.6a1] - 2022-05-24
 ### Changed
 - Bumped the minimum hikari version to dev108.
