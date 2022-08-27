@@ -35,6 +35,7 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
+import sys
 import traceback
 import typing
 import uuid
@@ -48,11 +49,12 @@ if typing.TYPE_CHECKING:
     from hikari.api import config as hikari_config
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
+_T = typing.TypeVar("_T")
 
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
-_OCTET_STREAM_CONTENT_TYPE: typing.Final[str] = "application/octet-stream"
+_OCTET_STREAM_CONTENT_TYPE: typing.Final[bytes] = b"application/octet-stream"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
 _X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"x-signature-ed25519"
 _X_SIGNATURE_TIMESTAMP_HEADER: typing.Final[bytes] = b"x-signature-timestamp"
@@ -330,31 +332,47 @@ class AsgiAdapter:
         self, send: asgiref.ASGISendCallable, response: hikari.api.Response, boundary: bytes, /
     ) -> None:
         if response.payload:
+            content_type = response.content_type.encode() if response.content_type else _JSON_CONTENT_TYPE
             body = (
-                b'--%b\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
-                b"\nContent-Type: application/json\n\n%b\n" % (boundary, response.payload)  # noqa: MOD001
+                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
+                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b\r\n"  # noqa: MOD001
+                % (boundary, content_type, len(response.payload), response.payload)
             )
             await send({"type": "http.response.body", "body": body, "more_body": True})
 
         for index, attachment in enumerate(response.files):
-            started = False
             async with attachment.stream(executor=self._executor) as reader:
-                async for chunk in reader:
-                    if started:
-                        body = chunk
+                iterator = _aiter(reader)
+                try:
+                    data = await _anext(iterator)
+                except StopAsyncIteration:
+                    data = b""
 
-                    else:
-                        mimetype = reader.mimetype or _OCTET_STREAM_CONTENT_TYPE
-                        body = (
-                            b"--%b\nContent-Disposition: form-data; name=files[%b];"  # noqa: MOD001
-                            b"filename=%b\nContent-Type: %b\n\n %b\n"  # noqa: MOD001
-                            % (boundary, index, reader.filename, mimetype, chunk)
-                        )
-                        started = True
+                mimetype = reader.mimetype.encode() if reader.mimetype else _OCTET_STREAM_CONTENT_TYPE
+                body = (
+                    b"--%b\r\nContent-Disposition: form-data; name=files[%i];"  # noqa: MOD001
+                    b"filename=%b\r\nContent-Type: %b\r\n\r\n%b\r\n"  # noqa: MOD001
+                    % (boundary, index, reader.filename.encode(), mimetype, data)
+                )
+                await send({"type": "http.response.body", "body": body, "more_body": True})
 
-                    await send({"type": "http.response.body", "body": body, "more_body": True})
+                async for chunk in iterator:
+                    await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
         await send({"type": "http.response.body", "body": b"--%b--" % boundary, "more_body": False})  # noqa: MOD001
+
+
+if sys.version_info >= (3, 10):
+    _aiter = aiter
+    _anext = anext
+
+else:
+
+    def _aiter(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+        return iterable.__aiter__()
+
+    async def _anext(iterator: typing.AsyncIterator[_T], /) -> _T:
+        return await iterator.__anext__()
 
 
 def _find_headers(
