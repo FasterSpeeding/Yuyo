@@ -590,13 +590,19 @@ class ReactionPaginator(ReactionHandler):
 
         Parameters
         ----------
-        message
-            If already created, the message this handler should target.
-            If left as [None][] then this call will create a message
-            in the channel provided when initiating the handler.
+        rest
+            Rest client to use to make the response.
+        channel_id
+            ID of the channel to respond in.
         add_reactions
-            Whether this should also add reactions that'll be used to paginate
-            over this resource.
+            Whether this should add the paginator's reactions to the message
+            after responding.
+        max_retries
+            How many times this should retry to respond if Hikari raises
+            any ratelimit errors.
+        max_backoff
+            The maximum time this should backoff for before trying if Hikari
+            raises any ratelimit errors.
 
         Returns
         -------

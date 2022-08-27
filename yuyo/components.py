@@ -143,7 +143,7 @@ class ComponentContext:
         deferred within 3 seconds from it being received otherwise it'll be
         marked as failed.
 
-        This will be true if either [yuyo.components.CompontentContext.respond][],
+        This will be true if either [yuyo.components.ComponentContext.respond][],
         [yuyo.components.ComponentContext.create_initial_response][] or
         [yuyo.components.ComponentContext.edit_initial_response][]
         (after a deferral) has been called.
@@ -230,10 +230,6 @@ class ComponentContext:
             Calling this on a context which hasn't had an initial response yet
             will lead to a [hikari.errors.NotFoundError][] being raised.
 
-        !!! note
-            Since (as of writing) ephemeral responses cannot be deleted by the bot,
-            `delete_after` is ignored for ephemeral slash command responses.
-
         Parameters
         ----------
         content
@@ -308,8 +304,6 @@ class ComponentContext:
         ValueError
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions.
-
-            If the interaction will have expired before `delete_after` is reached.
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
@@ -411,6 +405,8 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -425,10 +421,127 @@ class ComponentContext:
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
+        """Create the initial response for this context.
+
+        !!! warning
+            Calling this on a context which already has an initial response
+            will result in this raising a [hikari.errors.NotFoundError][].
+            This includes if the REST interaction server has already responded
+            to the request and deferrals.
+
+        Parameters
+        ----------
+        content
+            The content to edit the last response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+
+        ephemeral
+            Whether the deferred response should be ephemeral.
+
+            Passing [True][] here is a shorthand for including `1 << 64` in the
+            passed flags.
+        content
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            `str`.
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+        attachment
+            If provided, the message attachment. This can be a resource,
+            or string of a path on your computer or a URL.
+        attachments
+            If provided, the message attachments. These can be resources, or
+            strings consisting of paths on your computer or URLs.
+        component
+            If provided, builder object of the component to include in this message.
+        components
+            If provided, a sequence of the component builder objects to include
+            in this message.
+        embed
+            If provided, the message embed.
+        embeds
+            If provided, the message embeds.
+        flags
+            If provided, the message flags this response should have.
+
+            As of writing the only message flag which can be set here is
+            [hikari.messages.MessageFlag.EPHEMERAL][].
+        tts
+            If provided, whether the message will be read out by a screen
+            reader using Discord's TTS (text-to-speech) system.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all user mentions will be detected.
+            If provided, and [False][], all user mentions will be ignored
+            if appearing in the message body.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all role mentions will be detected.
+            If provided, and [False][], all role mentions will be ignored
+            if appearing in the message body.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; invalid image URLs in embeds.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.NotFoundError
+            If the interaction is not found or if the interaction's initial
+            response has already been created.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         async with self._response_lock:
             await self._create_initial_response(
                 response_type,
                 content=content,
+                attachment=attachment,
+                attachments=attachments,
                 component=component,
                 components=components,
                 embed=embed,
@@ -441,12 +554,26 @@ class ComponentContext:
             )
 
     async def delete_initial_response(self) -> None:
+        """Delete the initial response after invoking this context.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The last context has no initial response.
+        """
         await self._interaction.delete_initial_response()
         # If they defer then delete the initial response, this should be treated as having
         # an initial response to allow for followup responses.
         self._has_responded = True
 
     async def delete_last_response(self) -> None:
+        """Delete the last response after invoking this context.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The last context has no responses.
+        """
         if self._last_response_id is None:
             if self._has_responded or self._has_been_deferred:
                 await self._interaction.delete_initial_response()
@@ -478,6 +605,100 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
+        """Edit the initial response for this context.
+
+        Parameters
+        ----------
+        content
+            The content to edit the initial response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        attachment
+            A singular attachment to edit the initial response with.
+        attachments
+            A sequence of attachments to edit the initial response with.
+        component
+            If provided, builder object of the component to set for this message.
+            This component will replace any previously set components and passing
+            [None][] will remove all components.
+        components
+            If provided, a sequence of the component builder objects set for
+            this message. These components will replace any previously set
+            components and passing [None][] or an empty sequence will
+            remove all components.
+        embed
+            An embed to replace the initial response with.
+        embeds
+            A sequence of embeds to replace the initial response with.
+        replace_attachments
+            Whether to replace the attachments of the response or not.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message
+            The message that has been edited.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         result = await self._interaction.edit_initial_response(
             content=content,
             attachment=attachment,
@@ -514,6 +735,102 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
+        """Edit the last response for this context.
+
+        Parameters
+        ----------
+        content
+            The content to edit the last response with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        attachment
+            A singular attachment to edit the last response with.
+        attachments
+            A sequence of attachments to edit the last response with.
+        component
+            If provided, builder object of the component to set for this message.
+            This component will replace any previously set components and passing
+            [None][] will remove all components.
+        components
+            If provided, a sequence of the component builder objects set for
+            this message. These components will replace any previously set
+            components and passing [None][] or an empty sequence will
+            remove all components.
+        embed
+            An embed to replace the last response with.
+        embeds
+            A sequence of embeds to replace the last response with.
+        replace_attachments
+            Whether to replace the attachments of the response or not.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message
+            The message that has been edited.
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         if self._last_response_id:
             return await self._interaction.edit_message(
                 self._last_response_id,
@@ -622,6 +939,107 @@ class ComponentContext:
             typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
         ] = hikari.UNDEFINED,
     ) -> typing.Optional[hikari.Message]:
+        """Respond to this context.
+
+        Parameters
+        ----------
+        content
+            The content to respond with.
+
+            If provided, the message contents. If
+            [hikari.undefined.UNDEFINED][], then nothing will be sent
+            in the content. Any other value here will be cast to a
+            [str][].
+
+            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
+            is provided, then this will instead update the embed. This allows
+            for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.files.Resource][], then the
+            content is instead treated as an attachment if no `attachment` and
+            no `attachments` kwargs are provided.
+        ensure_result
+            Ensure that this call will always return a message object.
+
+            If [True][] then this will always return [hikari.messages.Message][],
+            otherwise this will return `hikari.Message | None`.
+
+            It's worth noting that, under certain scenarios within the slash
+            command flow, this may lead to an extre request being made.
+        attachment
+            If provided, the message attachment. This can be a resource,
+            or string of a path on your computer or a URL.
+        attachments
+            If provided, the message attachments. These can be resources, or
+            strings consisting of paths on your computer or URLs.
+        component
+            If provided, builder object of the component to include in this response.
+        components
+            If provided, a sequence of the component builder objects to include
+            in this response.
+        embed
+            An embed to respond with.
+        embeds
+            A sequence of embeds to respond with.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+
+        Returns
+        -------
+        hikari.Message | None
+            The message that has been created if it was immedieatly available or
+            `ensure_result` was set to [True][], else [None][].
+
+        Raises
+        ------
+        ValueError
+            If more than 100 unique objects/entities are passed for
+            `role_mentions` or `user_mentions`.
+
+            If both `attachment` and `attachments` are passed or both `component`
+            and `components` are passed or both `embed` and `embeds` are passed.
+        hikari.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.NotFoundError
+            If the channel is not found.
+        hikari.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         async with self._response_lock:
             if self._has_responded:
                 message = await self._interaction.execute(
@@ -1326,7 +1744,7 @@ class WaitForExecutor(AbstractComponentExecutor):
 WaitForComponent = WaitForExecutor
 
 WaitFor = WaitForExecutor
-"""Alias for [yoyo.components.WaitForExecutor][]."""
+"""Alias of [yuyo.components.WaitForExecutor][]."""
 
 
 class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):  # noqa: D101
@@ -1522,11 +1940,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
-        load_from_attributes
-            Whether this should load sub-components from its attributes.
-
-            This is helpful when inheritance and [yuyo.components.as_child_executor][]
-            are being used to declare child executors within this executor.
         timeout
             The amount of time to wait after the component's last execution or creation
             until it times out.
