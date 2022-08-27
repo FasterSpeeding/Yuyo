@@ -1,16 +1,12 @@
-name: Check dependencies
+name: Upgrade dev dependencies
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   schedule:
-    - cron: "0 12 * * 6"
+    - cron: "0 12 1 * *"
   workflow_dispatch:
 
 jobs:
-  check-dependencies:
+  upgrade-dev-deps:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,5 +22,12 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install -r ./dev-requirements/nox.txt
 
-      - name: Check dependencies
-        run: python -m nox -s check-dependencies
+      - name: Upgrade dev dependencies
+        run: python -m nox -s upgrade-dev-deps
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: task/upgrade-dev-deps
+          commit-message: Upgrade dev dependencies
+          title: Upgrade dev dependencies

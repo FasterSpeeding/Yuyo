@@ -32,7 +32,7 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["async_paginate_string", "sync_paginate_string", "paginate_string"]
+__all__: typing.Sequence[str] = ["async_paginate_string", "paginate_string", "sync_paginate_string"]
 
 import collections.abc as collections
 import textwrap
@@ -50,8 +50,8 @@ DefaultT = typing.TypeVar("DefaultT")
 EntryT = typing.Tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
 """A type hint used to represent a paginator entry.
 
-This should be a tuple of the string message content or `hikari.undefined.UNDEFINED`
-to the message's embed if set else `hikari.undefined.UNDEFINED`.
+This should be a tuple of the string message content or [hikari.undefined.UNDEFINED][]
+to the message's embed if set else [hikari.undefined.UNDEFINED][].
 """
 
 LEFT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
@@ -89,12 +89,12 @@ async def collect_iterator(iterator: IteratorT[T], /) -> typing.List[T]:
 
     Parameters
     ----------
-    iterator : typing.union[typing.AsyncIterator[ValueT], typing.Iterator[ValueT]]
+    iterator
         The iterator to collect. This iterator may be asynchronous or synchronous.
 
     Returns
     -------
-    ValueT
+    list[T]
         A sequence of the remaining values in the iterator.
     """
     if isinstance(iterator, collections.AsyncIterator):
@@ -135,21 +135,19 @@ async def async_paginate_string(
 
     Parameters
     ----------
-    lines : typing.AsyncIterator[builtins.str]
+    lines
         The asynchronous iterator of lines to paginate.
-    char_limit : builtins.int
+    char_limit
         The limit for how many characters should be included per yielded page.
-        This defaults to 2000
-    line_limit : builtins.int
+    line_limit
         The limit for how many lines should be included per yielded page.
-        This defaults to 25.
-    wrapper : typing.Optional[builtins.str]
+    wrapper
         A wrapper for each yielded page. This should leave "{}" in it
         to be replaced by the page's content.
 
     Returns
     -------
-    typing.AsyncIterator[typing.Tuple[builtins.str, builtins.int]]
+    typing.AsyncIterator[tuple[str, int]]
         An async iterator of page tuples (string context to int zero-based index).
     """
     if wrapper:
@@ -207,21 +205,19 @@ def sync_paginate_string(
 
     Parameters
     ----------
-    lines : typing.Iterator[builtins.str]
+    lines
         The iterator of lines to paginate.
-    char_limit : builtins.int
+    char_limit
         The limit for how many characters should be included per yielded page.
-        This defaults to 2000
-    line_limit : builtins.int
+    line_limit
         The limit for how many lines should be included per yielded page.
-        This defaults to 25.
-    wrapper : typing.Optional[builtins.str]
+    wrapper
         A wrapper for each yielded page. This should leave "{}" in it
         to be replaced by the page's content.
 
     Returns
     -------
-    typing.Iterator[typing.Tuple[builtins.str, builtins.int]]
+    typing.Iterator[tuple[str, int]]
         An iterator of page tuples (string context to int zero-based index).
     """
     if wrapper:
@@ -301,21 +297,19 @@ def paginate_string(
 
     Parameters
     ----------
-    lines : typing.union[typing.AsyncIterator[builtins.str], typing.Iterator[builtins.str]]
+    lines
         The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
-    char_limit : builtins.int
+    char_limit
         The limit for how many characters should be included per yielded page.
-        This defaults to 2000
-    line_limit : builtins.int
+    line_limit
         The limit for how many lines should be included per yielded page.
-        This defaults to 25.
-    wrapper : typing.Optional[builtins.str]
+    wrapper
         A wrapper for each yielded page. This should leave "{}" in it
         to be replaced by the page's content.
 
     Returns
     -------
-    typing.Union[AsyncIterator[typing.Tuple[builtins.str, builtins.int]], typing.Iterator[typing.Tuple[builtins.str, builtins.int]]]
+    AsyncIterator[tuple[str, int]] | typing.Iterator[tuple[str, int]]
         An iterator of page tuples (string context to int zero-based index).
     """  # noqa: E501  - line too long
     if isinstance(lines, typing.AsyncIterator):

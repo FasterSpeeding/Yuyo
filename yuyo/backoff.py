@@ -55,32 +55,8 @@ class Backoff:
 
     This class acts as an asynchronous iterator and can be iterated over to
     provide implicit backoff where for every iteration other than the first
-    this will either back off for the time passed to `Backoff.set_next_backoff`
-    if applicable or a time calculated exponentially.
-
-    Other Parameters
-    ----------------
-    max_retries : typing.Optional[builtins.int]
-        The maximum amount of times this should iterate for between resets.
-        If left as `builtins.None` then this iterator will be unlimited.
-        This must be greater than or equal to 1.
-    base : builtins.float
-        The base to use. Defaults to `2.0`.
-    maximum : builtins.float
-        The max value the backoff can be in a single iteration. Anything above
-        this will be capped to this base value plus random jitter.
-    jitter_multiplier : builtins.float
-        The multiplier for the random jitter. Defaults to `1.0`.
-        Set to `0` to disable jitter.
-    initial_increment : builtins.int
-        The initial increment to start at. Defaults to `0`.
-
-    Raises
-    ------
-    ValueError
-        If an `builtins.int` that's too big to be represented as a
-        `builtins.float` or a non-finite value is passed in place of a field
-        that's annotated as `builtins.float` or if `max_retries` is less than 1.
+    this will either back off for the time passed to
+    [yuyo.backoff.Backoff.set_next_backoff][] if applicable or a time calculated exponentially.
 
     Examples
     --------
@@ -106,9 +82,9 @@ class Backoff:
             break
     ```
 
-    Alternatively you may want to explicitly call `Backoff.backoff`, a
-    alternative of the previous example which uses `Backoff.backoff` may
-    look like the following
+    Alternatively you may want to explicitly call [yuyo.backoff.Backoff.backoff][], a
+    alternative of the previous example which uses [yuyo.backoff.Backoff.backoff][]
+    may look like the following
 
     ```py
     backoff = Backoff()
@@ -136,6 +112,34 @@ class Backoff:
         jitter_multiplier: float = 1.0,
         initial_increment: int = 0,
     ) -> None:
+        """Initialise a backoff instance.
+
+        Parameters
+        ----------
+        max_retries
+            The maximum amount of times this should iterate for between resets.
+
+            If left as [None][] then this iterator will be unlimited.
+            This must be greater than or equal to 1.
+        base
+            The base to use.
+        maximum
+            The max value the backoff can be in a single iteration. Anything above
+            this will be capped to this base value plus random jitter.
+        jitter_multiplier
+            The multiplier for the random jitter.
+
+            Set to `0` to disable jitter.
+        initial_increment
+            The initial increment to start at.
+
+        Raises
+        ------
+        ValueError
+            If an [int][] that's too big to be represented as a [float][] or a
+            non-finite value is passed in place of a field that's annotated as
+            [float][] or if `max_retries` is less than `1`.
+        """
         if max_retries is not None and max_retries < 1:
             raise ValueError("max_retries must be greater than 1")
 
@@ -176,7 +180,7 @@ class Backoff:
         """Whether "max_retries" has been reached.
 
         This can be used to workout whether the loop was explicitly broken out
-        of using `Backoff.finish`/`break` or if it hit "max_retries".
+        of using [yuyo.backoff.Backoff.finish][]/`break` or if it hit "max_retries".
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
@@ -187,10 +191,11 @@ class Backoff:
 
         Parameters
         ----------
-        backoff_ : typing.Optional[float]
-            The time this should backoff for. If left as `builtins.None` then
-            this will back off for the last time provided with
-            `Backoff.set_next_backoff` if available or the next exponential time.
+        backoff_
+            The time this should backoff for. If left as [None][] then this will
+            back off for the last time provided with
+            [yuyo.backoff.Backoff.set_next_backoff][] if available or the next
+            exponential time.
         """
         self._started = True
         if backoff_ is None and self._next_backoff is not None:
@@ -215,11 +220,11 @@ class Backoff:
         self._started = False
 
     def set_next_backoff(self, backoff_: float, /) -> None:
-        """Specify a backoff time for the next iteration or `Backoff.backoff` call.
+        """Specify a backoff time for the next iteration or [yuyo.backoff.Backoff.backoff][] call.
 
         If this is called then the exponent won't be increased for this iteration.
 
-        .. note::
+        !!! note
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
         """
@@ -228,28 +233,13 @@ class Backoff:
 
 
 class ErrorManager:
-    """A context manager provided to allow for more concise error handling with `Backoff`.
-
-    Other Parameters
-    ----------------
-    *rules : typing.Tuple[typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]]
-        Rules to initiate this error context manager with.
-
-        These are each a 2-length tuple where the tuple[0] is an
-        iterable of types of the exceptions this rule should apply to
-        and tuple[1] is the rule's callback function.
-
-        The callback function will be called with the raised exception when it
-        matches one of the passed exceptions for the relevant rule and may
-        raise, return `builtins.True` to indicate that the current error should
-        be raised outside of the context manager or
-        `builtins.False`/`builtins.None` to suppress the current error.
+    """A context manager provided to allow for more concise error handling with [yuyo.backoff.Backoff][].
 
     Examples
     --------
-    The following is an example of using `ErrorManager` alongside `Backoff`
-    in-order to handle the exceptions which may be raised while trying to
-    reply to a message.
+    The following is an example of using [yuyo.backoff.ErrorManager][] alongside
+    [yuyo.backoff.Backoff][] in-order to handle the exceptions which may be raised
+    while trying to reply to a message.
 
     ```py
     retry = Backoff()
@@ -287,6 +277,23 @@ class ErrorManager:
             typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]
         ],
     ) -> None:
+        """Initialise an error manager instance.
+
+        Parameters
+        ----------
+        *rules
+            Rules to initiate this error context manager with.
+
+            These are each a 2-length tuple where the `tuple[0]` is an
+            iterable of types of the exceptions this rule should apply to
+            and `tuple[1]` is the rule's callback function.
+
+            The callback function will be called with the raised exception when it
+            matches one of the passed exceptions for the relevant rule and may
+            raise, return [True][[]] to indicate that the current error should
+            be raised outside of the context manager or
+            [False][]/[None][] to suppress the current error.
+        """
         self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
 
     def __enter__(self) -> ErrorManager:
@@ -324,14 +331,14 @@ class ErrorManager:
 
         Parameters
         ----------
-        exceptions : typing.Iterable[typing.Type[builtins.BaseException]]
+        exceptions
             An iterable of types of the exceptions this rule should apply to.
-        result : typing.Callable[[typing.Any], typing.Optional[builtins.bool]]
+        result
             The function called with the raised exception when it matches one
             of the passed `exceptions`.
-            This may raise, return `builtins.True` to indicate that the current
+            This may raise, return [True][] to indicate that the current
             error should be raised outside of the context manager or
-            `builtins.False`/`builtins.None` to suppress the current error.
+            [False][]/[None][] to suppress the current error.
 
         Returns
         -------
