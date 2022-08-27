@@ -4,15 +4,13 @@
 #
 #    pip-compile --output-file=dev-requirements/tests.txt dev-requirements/tests.in
 #
-atomicwrites==1.4.1
-    # via pytest
 attrs==22.1.0
     # via pytest
 coverage[toml]==6.4.3
     # via pytest-cov
 execnet==1.9.0
     # via pytest-xdist
-freezegun==1.2.1
+freezegun==1.2.2
     # via -r dev-requirements/tests.in
 iniconfig==1.1.1
     # via pytest
