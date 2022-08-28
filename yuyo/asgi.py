@@ -38,6 +38,7 @@ import asyncio
 import sys
 import traceback
 import typing
+import urllib.parse
 import uuid
 
 import hikari
@@ -349,10 +350,11 @@ class AsgiAdapter:
                     data = b""
 
                 mimetype = reader.mimetype.encode() if reader.mimetype else _OCTET_STREAM_CONTENT_TYPE
+                filename = urllib.parse.quote(reader.filename, "").encode()
                 body = (
                     b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'  # noqa: MOD001
-                    b"filename=%b\r\nContent-Type: %b\r\n\r\n%b"  # noqa: MOD001
-                    % (boundary, index, reader.filename.encode(), mimetype, data)
+                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b'  # noqa: MOD001
+                    % (boundary, index, filename, mimetype, data)
                 )
                 await send({"type": "http.response.body", "body": body, "more_body": True})
 
