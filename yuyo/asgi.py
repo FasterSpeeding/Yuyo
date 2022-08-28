@@ -363,8 +363,8 @@ class AsgiAdapter:
 
 
 if sys.version_info >= (3, 10):
-    _aiter = aiter
-    _anext = anext
+    _aiter = aiter  # noqa: F821
+    _anext = anext  # noqa: F821
 
 else:
 
