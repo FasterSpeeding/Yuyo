@@ -35,8 +35,11 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
+import sys
 import traceback
 import typing
+import urllib.parse
+import uuid
 
 import hikari
 
@@ -47,13 +50,16 @@ if typing.TYPE_CHECKING:
     from hikari.api import config as hikari_config
 
 _AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
+_T = typing.TypeVar("_T")
 
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
+_OCTET_STREAM_CONTENT_TYPE: typing.Final[bytes] = b"application/octet-stream"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
 _X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"x-signature-ed25519"
 _X_SIGNATURE_TIMESTAMP_HEADER: typing.Final[bytes] = b"x-signature-timestamp"
+_MULTIPART_CONTENT_TYPE: typing.Final[bytes] = b"multipart/form-data; boundary=%b"
 _TEXT_CONTENT_TYPE: typing.Final[bytes] = b"text/plain; charset=UTF-8"
 
 
@@ -81,16 +87,31 @@ class AsgiAdapter:
     feature (e.g `python -m pip install hikari[server]`).
     """
 
-    __slots__ = ("_on_shutdown", "_on_startup", "_server")
+    __slots__ = ("_executor", "_on_shutdown", "_on_startup", "_server")
 
-    def __init__(self, server: hikari.api.InteractionServer, /) -> None:
+    def __init__(
+        self, server: hikari.api.InteractionServer, /, *, executor: typing.Optional[concurrent.futures.Executor] = None
+    ) -> None:
         """Initialise the adapter.
 
         Parameters
         ----------
         server
             The interaction server to use.
+        executor
+            If non-[None][], then this executor is used instead of the
+            [concurrent.futures.ThreadPoolExecutor][] attached to the
+            [asyncio.AbstractEventLoop][] that the bot will run on. This
+            executor is used primarily for file-IO.
+
+            While mainly supporting the [concurrent.futures.ThreadPoolExecutor][]
+            implementation in the standard lib, Hikari's file handling systems
+            should also work with [concurrent.futures.ProcessPoolExecutor][], which
+            relies on all objects used in IPC to be `pickle`able. Many third-party
+            libraries will not support this fully though, so your mileage may vary
+            on using ProcessPoolExecutor implementations with this parameter.
         """
+        self._executor = executor
         self._on_shutdown: typing.List[
             typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
         ] = []
@@ -266,33 +287,13 @@ class AsgiAdapter:
             await _error_response(send, b"POST request must have a body")
             return
 
-        content_type: typing.Optional[bytes] = None
-        signature: typing.Optional[bytes] = None
-        timestamp: typing.Optional[bytes] = None
-        for name, value in scope["headers"]:
-            # As per-spec these should be matched case-insensitively.
-            name = name.lower()
-            if name == _X_SIGNATURE_ED25519_HEADER:
-                try:
-                    signature = bytes.fromhex(value.decode("ascii"))
+        try:
+            content_type, signature, timestamp = _find_headers(scope)
 
-                # Yes UnicodeDecodeError means failed ascii decode.
-                except (ValueError, UnicodeDecodeError):
-                    await _error_response(send, b"Invalid ED25519 signature header found")
-                    return
-
-                if timestamp and content_type:
-                    break
-
-            elif name == _X_SIGNATURE_TIMESTAMP_HEADER:
-                timestamp = value
-                if signature and content_type:
-                    break
-
-            elif name == _CONTENT_TYPE_KEY:
-                content_type = value
-                if signature and timestamp:
-                    break
+        # Yes UnicodeDecodeError means failed ascii decode.
+        except (ValueError, UnicodeDecodeError):
+            await _error_response(send, b"Invalid ED25519 signature header found")
+            return
 
         if not content_type or content_type.lower().split(b";", 1)[0] != _JSON_CONTENT_TYPE:
             await _error_response(send, b"Content-Type must be application/json")
@@ -312,8 +313,96 @@ class AsgiAdapter:
         if response.headers:
             headers.extend((key.encode(), value.encode()) for key, value in response.headers.items())
 
+        boundary = None
+        if response.files:
+            boundary = uuid.uuid4().hex.encode()
+            headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))  # noqa: S001
+
+        elif response.content_type:
+            headers.append((_CONTENT_TYPE_KEY, response.content_type.encode()))
+
         await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
-        await send({"type": "http.response.body", "body": response.payload or b"", "more_body": False})
+
+        if boundary:
+            await self._send_multipart(send, response, boundary)
+
+        else:
+            await send({"type": "http.response.body", "body": response.payload or b"", "more_body": False})
+
+    async def _send_multipart(
+        self, send: asgiref.ASGISendCallable, response: hikari.api.Response, boundary: bytes, /
+    ) -> None:
+        if response.payload:
+            content_type = response.content_type.encode() if response.content_type else _JSON_CONTENT_TYPE
+            body = (
+                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
+                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"  # noqa: MOD001
+                % (boundary, content_type, len(response.payload), response.payload)
+            )
+            await send({"type": "http.response.body", "body": body, "more_body": True})
+
+        for index, attachment in enumerate(response.files):
+            async with attachment.stream(executor=self._executor) as reader:
+                iterator = _aiter(reader)
+                try:
+                    data = await _anext(iterator)
+                except StopAsyncIteration:
+                    data = b""
+
+                mimetype = reader.mimetype.encode() if reader.mimetype else _OCTET_STREAM_CONTENT_TYPE
+                filename = urllib.parse.quote(reader.filename, "").encode()
+                body = (
+                    b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'  # noqa: MOD001
+                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b'  # noqa: MOD001
+                    % (boundary, index, filename, mimetype, data)
+                )
+                await send({"type": "http.response.body", "body": body, "more_body": True})
+
+                async for chunk in iterator:
+                    await send({"type": "http.response.body", "body": chunk, "more_body": True})
+
+        await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
+
+
+if sys.version_info >= (3, 10):
+    _aiter = aiter  # noqa: F821
+    _anext = anext  # noqa: F821
+
+else:
+
+    def _aiter(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+        return iterable.__aiter__()
+
+    async def _anext(iterator: typing.AsyncIterator[_T], /) -> _T:
+        return await iterator.__anext__()
+
+
+def _find_headers(
+    scope: asgiref.HTTPScope,
+) -> tuple[typing.Optional[bytes], typing.Optional[bytes], typing.Optional[bytes]]:
+    content_type: typing.Optional[bytes] = None
+    signature: typing.Optional[bytes] = None
+    timestamp: typing.Optional[bytes] = None
+    for name, value in scope["headers"]:
+        # As per-spec these should be matched case-insensitively.
+        name = name.lower()
+        if name == _X_SIGNATURE_ED25519_HEADER:
+            signature = bytes.fromhex(value.decode("ascii"))
+
+            if timestamp and content_type:
+                break
+
+        elif name == _X_SIGNATURE_TIMESTAMP_HEADER:
+            timestamp = value
+            if signature and content_type:
+                break
+
+        elif name == _CONTENT_TYPE_KEY:
+            content_type = value
+            if signature and timestamp:
+                break
+
+    return content_type, signature, timestamp
 
 
 class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
@@ -328,7 +417,6 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
 
     __slots__: typing.Sequence[str] = (
         "_entity_factory",
-        "_executor",
         "_http_settings",
         "_is_alive",
         "_is_asgi_managed",
@@ -461,7 +549,6 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
             public_key = bytes.fromhex(public_key)
 
         self._entity_factory = hikari.impl.EntityFactoryImpl(self)
-        self._executor = executor
         self._http_settings = http_settings or hikari.impl.HTTPSettings()
         self._is_alive = False
         self._join_event: typing.Optional[asyncio.Event] = None
@@ -481,7 +568,8 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         super().__init__(
             hikari.impl.InteractionServer(
                 entity_factory=self._entity_factory, rest_client=self._rest, public_key=public_key
-            )
+            ),
+            executor=executor,
         )
 
         self._is_asgi_managed = asgi_managed

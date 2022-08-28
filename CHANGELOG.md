@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Support for sending attachments in the initial response to the ASGI server implementation.
 - Support for sending attachments on initial response to the `ComponentContext`.
 
 ### Changed

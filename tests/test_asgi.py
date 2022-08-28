@@ -30,12 +30,17 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import asyncio
+import concurrent.futures
 import contextlib
 import traceback
+import types
+import typing
+import uuid
 from unittest import mock
 
 import asgiref.typing
 import hikari
+import hikari.files
 import pytest
 
 import yuyo
@@ -43,6 +48,54 @@ import yuyo
 # pyright: reportUnknownMemberType=none
 # pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
+
+
+class _ChunkedReader(hikari.files.AsyncReader):
+    __slots__ = ("_chunks",)
+
+    def __init__(self, chunks: typing.List[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+        super().__init__(filename, mimetype)
+        self._chunks = iter(chunks)
+
+    async def __aiter__(self) -> typing.AsyncGenerator[typing.Any, bytes]:
+        for value in self._chunks:
+            yield value
+
+
+class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[hikari.files.ReaderImplT]):
+    def __init__(self, reader: hikari.files.ReaderImplT, /) -> None:
+        self._reader = reader
+
+    async def __aenter__(self) -> hikari.files.ReaderImplT:
+        return self._reader
+
+    async def __aexit__(
+        self,
+        exc_type: typing.Optional[typing.Type[BaseException]],
+        exc: typing.Optional[BaseException],
+        exc_tb: typing.Optional[types.TracebackType],
+    ) -> None:
+        pass
+
+
+class _ChunkedFile(hikari.files.Resource[_ChunkedReader]):
+    __slots__ = ("_reader",)
+
+    def __init__(self, chunks: typing.List[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+        self._reader = _ChunkedReader(chunks, filename, mimetype=mimetype)
+
+    @property
+    def filename(self) -> str:
+        return self._reader.filename
+
+    @property
+    def url(self) -> str:
+        raise NotImplementedError
+
+    def stream(
+        self, *, executor: typing.Optional[concurrent.futures.Executor] = None, head_only: bool = False
+    ) -> hikari.files.AsyncReaderContextManager[_ChunkedReader]:
+        return _NoOpAsyncReaderContextManagerImpl(self._reader)
 
 
 class TestAsgiAdapter:
@@ -280,8 +333,9 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = "jazz hands"
+        stub_server.on_interaction.return_value.files = ()
         stub_server.on_interaction.return_value.headers = {
-            "Content-Type": "jazz hands",
             "kill": "me baby",
             "I am the milk man": "my milk is delicious",
             "and the sea shall run white": "with his rage",
@@ -296,10 +350,10 @@ class TestAsgiAdapter:
                         "type": "http.response.start",
                         "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
-                            (b"Content-Type", b"jazz hands"),
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
+                            (b"content-type", b"jazz hands"),
                         ],
                     }
                 ),
@@ -307,6 +361,299 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": stub_server.on_interaction.return_value.payload,
+                        "more_body": False,
+                    }
+                ),
+            ]
+        )
+        mock_receive.assert_has_awaits([mock.call(), mock.call()])
+        stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
+
+    @pytest.mark.asyncio()
+    async def test_process_request_when_multipart_response(
+        self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
+    ):
+        http_scope["headers"] = [
+            (b"Content-Type", b"application/json"),
+            (b"x-signature-timestamp", b"321123"),
+            (b"random-header2", b"random value"),
+            (b"x-signature-ed25519", b"6e796161"),
+            (b"random-header", b"random value"),
+        ]
+        boundary_uuid = uuid.uuid4()
+        mock_receive = mock.AsyncMock(
+            side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
+        )
+        mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = "application/json"
+        stub_server.on_interaction.return_value.files = [
+            hikari.Bytes(b"beep beep\ni'm a sheep", "hi.txt", mimetype="text/plain"),
+            hikari.Bytes(b"good\nbye\nmy\nMiku", "bye.exe", mimetype="fuckedup/me"),
+        ]
+        stub_server.on_interaction.return_value.headers = {
+            "kill": "me baby",
+            "I am the milk man": "my milk is delicious",
+            "and the sea shall run white": "with his rage",
+        }
+        stub_server.on_interaction.return_value.payload = b'{"ok": "no", "byebye": "boomer"}'
+
+        with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
+            await adapter.process_request(http_scope, mock_receive, mock_send)
+
+        patched_uuid4.assert_called_once_with()
+        mock_send.assert_has_awaits(
+            [
+                mock.call(
+                    {
+                        "type": "http.response.start",
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "headers": [
+                            (b"kill", b"me baby"),
+                            (b"I am the milk man", b"my milk is delicious"),
+                            (b"and the sea shall run white", b"with his rage"),
+                            (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
+                        ],
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'Type: application/json\r\nContent-Length: 32\r\n\r\n{"ok": "no", "byebye": "boomer"}'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'filename="hi.txt"\r\nContent-Type: text/plain\r\n\r\nbeep beep\ni\'m a sheep'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'filename="bye.exe"\r\nContent-Type: fuckedup/me\r\n\r\ngood\nbye\nmy\nMiku'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
+                        "more_body": False,
+                    }
+                ),
+            ]
+        )
+        mock_receive.assert_has_awaits([mock.call(), mock.call()])
+        stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
+
+    @pytest.mark.asyncio()
+    async def test_process_request_when_chunked_file(
+        self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
+    ):
+        http_scope["headers"] = [
+            (b"Content-Type", b"application/json"),
+            (b"x-signature-timestamp", b"321123"),
+            (b"random-header2", b"random value"),
+            (b"x-signature-ed25519", b"6e796161"),
+            (b"random-header", b"random value"),
+        ]
+        boundary_uuid = uuid.uuid4()
+        mock_receive = mock.AsyncMock(
+            side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
+        )
+        mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = "application/json"
+        stub_server.on_interaction.return_value.files = [
+            _ChunkedFile(
+                [b"chunk1\n\n\nhi bye", b"chunk\n22\n\n\nyeet", b"chunketh 3 ok"],
+                "chunky.chunks",
+                mimetype="split/me/up",
+            ),
+            hikari.Bytes(b"yeet meow\nnyaa", "yeet.txt", mimetype="text/plain"),
+        ]
+        stub_server.on_interaction.return_value.headers = {
+            "kill": "me baby",
+            "I am the milk man": "my milk is delicious",
+            "and the sea shall run white": "with his rage",
+        }
+        stub_server.on_interaction.return_value.payload = b'{"ok": "no", "bye": "boom"}'
+
+        with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
+            await adapter.process_request(http_scope, mock_receive, mock_send)
+
+        patched_uuid4.assert_called_once_with()
+        mock_send.assert_has_awaits(
+            [
+                mock.call(
+                    {
+                        "type": "http.response.start",
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "headers": [
+                            (b"kill", b"me baby"),
+                            (b"I am the milk man", b"my milk is delicious"),
+                            (b"and the sea shall run white", b"with his rage"),
+                            (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
+                        ],
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'Type: application/json\r\nContent-Length: 27\r\n\r\n{"ok": "no", "bye": "boom"}'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'filename="chunky.chunks"\r\nContent-Type: split/me/up\r\n\r\nchunk1\n\n\nhi bye'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (b"chunk\n22\n\n\nyeet"),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (b"chunketh 3 ok"),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'filename="yeet.txt"\r\nContent-Type: text/plain\r\n\r\nyeet meow\nnyaa'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
+                        "more_body": False,
+                    }
+                ),
+            ]
+        )
+        mock_receive.assert_has_awaits([mock.call(), mock.call()])
+        stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
+
+    @pytest.mark.asyncio()
+    async def test_process_request_when_empty_file(
+        self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
+    ):
+        http_scope["headers"] = [
+            (b"Content-Type", b"application/json"),
+            (b"x-signature-timestamp", b"321123"),
+            (b"random-header2", b"random value"),
+            (b"x-signature-ed25519", b"6e796161"),
+            (b"random-header", b"random value"),
+        ]
+        boundary_uuid = uuid.uuid4()
+        mock_receive = mock.AsyncMock(
+            side_effect=[{"body": b"cat", "more_body": True}, {"body": b"girls", "more_body": False}]
+        )
+        mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = "application/json"
+        stub_server.on_interaction.return_value.files = [
+            hikari.Bytes(b"", "empty.inside", mimetype="voided"),
+            hikari.Bytes(b"good\nbye\nmy\nMiku", "bye.exe", mimetype="fuckedup/me"),
+        ]
+        stub_server.on_interaction.return_value.headers = {
+            "kill": "me baby",
+            "I am the milk man": "my milk is delicious",
+            "and the sea shall run white": "with his rage",
+        }
+        stub_server.on_interaction.return_value.payload = b'{"ok": "yes", "yeet the": "boomer"}'
+
+        with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
+            await adapter.process_request(http_scope, mock_receive, mock_send)
+
+        patched_uuid4.assert_called_once_with()
+        mock_send.assert_has_awaits(
+            [
+                mock.call(
+                    {
+                        "type": "http.response.start",
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "headers": [
+                            (b"kill", b"me baby"),
+                            (b"I am the milk man", b"my milk is delicious"),
+                            (b"and the sea shall run white", b"with his rage"),
+                            (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
+                        ],
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'Type: application/json\r\nContent-Length: 35\r\n\r\n{"ok": "yes", "yeet the": "boomer"}'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'filename="empty.inside"\r\nContent-Type: voided\r\n\r\n' % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": (
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'filename="bye.exe"\r\nContent-Type: fuckedup/me\r\n\r\ngood\nbye\nmy\nMiku'
+                            % boundary_uuid.hex.encode()
+                        ),
+                        "more_body": True,
+                    }
+                ),
+                mock.call(
+                    {
+                        "type": "http.response.body",
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
                         "more_body": False,
                     }
                 ),
@@ -638,6 +985,8 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.content_type = None
+        stub_server.on_interaction.return_value.files = ()
         stub_server.on_interaction.return_value.payload = None
         stub_server.on_interaction.return_value.headers = None
 
