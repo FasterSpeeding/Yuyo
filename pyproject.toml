@@ -4,8 +4,6 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "hikari-yuyo"
-version = "1.0.6a1"
-description = "A collection of utility classes and functions for use with Hikari"
 readme = "README.md"
 requires-python = ">=3.8.0,<3.12"
 license = {file = "LICENSE"}
@@ -28,6 +26,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = ["asgiref~=3.0", "hikari~=2.0.0.dev109"]
+dynamic = ["description", "version"]
 
 [project.urls]
 homepage = "https://github.com/FasterSpeeding/Yuyo"
