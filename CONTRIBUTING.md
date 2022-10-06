@@ -39,12 +39,12 @@ A few examples of pdoc style would be:
   following the lines of something like "the {x} instance to enable chained calls".
 
 ### CHANGELOG.md
- 
+
 While you aren't required to update the changelog as a contributor, a reference on the schema CHANGELOG.md follows
 can be found [here](https://keepachangelog.com/en/1.0.0/).
 
 It should be noted that not all changes will be included in the changelog (since some are just not significant enough)
-and it comes down to a maintainer's discretion as to what is included. 
+and it comes down to a maintainer's discretion as to what is included.
 
 ### Tests
 
@@ -90,5 +90,3 @@ This project follows [semantic versioning 2.0.0](https://semver.org/) and [PEP 4
 * All top-level modules should be included explicitly imported into `yuyo.__init__` and included in
   `yuyo.__init__.__all__` for type-completness with only the most important of their contents needing to be included in
   `yuyo.__init__.__all__`.
-
-
