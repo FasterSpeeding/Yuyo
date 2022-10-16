@@ -57,5 +57,8 @@ plugins:
           import:
             - https://docs.python.org/3.9/objects.inv
             - https://hikari-py.github.io/hikari/objects.inv
-      watch:
-        - yuyo
+
+watch:
+  - CHANGELOG.md
+  - README.md
+  - yuyo
