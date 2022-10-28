@@ -55,13 +55,6 @@ __all__: typing.Sequence[str] = [
     "SelectMenuBuilder",
     "WaitForExecutor",
     "__author__",
-    "__ci__",
-    "__copyright__",
-    "__docs__",
-    "__email__",
-    "__issue_tracker__",
-    "__license__",
-    "__url__",
     "__version__",
     "as_child_executor",
     "as_component_callback",
@@ -85,14 +78,6 @@ from .pagination import *
 from .reactions import *
 
 __author__: typing.Final[str] = "Faster Speeding"
-__ci__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo/actions"
-__copyright__: typing.Final[str] = "© 2020-2022 Faster Speeding"
-__coverage__: typing.Final[str] = "https://codeclimate.com/github/FasterSpeeding/Yuyo"
-__docs__: typing.Final[str] = "https://yuyo.cursed.solutions/"
-__email__: typing.Final[str] = "lucina@lmbyrne.dev"
-__issue_tracker__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo/issues"
-__license__: typing.Final[str] = "BSD"
-__url__: typing.Final[str] = "https://github.com/FasterSpeeding/Yuyo"
 __version__: typing.Final[str] = "1.1.1a1"
 
 
