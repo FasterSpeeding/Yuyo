@@ -31,10 +31,10 @@ dependencies = ["asgiref~=3.0", "hikari~=2.0.0.dev109"]
 dynamic = ["description"]
 
 [project.urls]
-homepage = "https://github.com/FasterSpeeding/Yuyo"
-repository = "https://github.com/FasterSpeeding/Yuyo"
-documentation = "https://yuyo.cursed.solutions/"
-changelog = "https://github.com/FasterSpeeding/Yuyo/blob/master/CHANGELOG.md"
+Homepage = "https://github.com/FasterSpeeding/Yuyo"
+Repository = "https://github.com/FasterSpeeding/Yuyo"
+Documentation = "https://yuyo.cursed.solutions/"
+Changelog = "https://github.com/FasterSpeeding/Yuyo/blob/master/CHANGELOG.md"
 
 [tool.flit.module]
 name = "yuyo"
