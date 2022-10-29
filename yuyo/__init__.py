@@ -54,8 +54,6 @@ __all__: typing.Sequence[str] = [
     "ReactionPaginator",
     "SelectMenuBuilder",
     "WaitForExecutor",
-    "__author__",
-    "__version__",
     "as_child_executor",
     "as_component_callback",
     "as_reaction_callback",
@@ -76,9 +74,6 @@ from .backoff import *
 from .components import *
 from .pagination import *
 from .reactions import *
-
-__author__: typing.Final[str] = "Faster Speeding"
-__version__: typing.Final[str] = "1.1.1a1"
 
 
 WaitForComponent = WaitForExecutor
