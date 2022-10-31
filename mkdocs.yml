@@ -44,6 +44,9 @@ plugins:
       default_handler: python
       handlers:
         python:
+          import:
+            - https://docs.python.org/3.9/objects.inv
+            - https://hikari-py.github.io/hikari/objects.inv
           options:
             docstring_section_style: spacy
             docstring_style: numpy
@@ -53,9 +56,6 @@ plugins:
             show_signature_annotations: false
             show_source: false
             show_submodules: false
-          import:
-            - https://docs.python.org/3.9/objects.inv
-            - https://hikari-py.github.io/hikari/objects.inv
 
 watch:
   - CHANGELOG.md
