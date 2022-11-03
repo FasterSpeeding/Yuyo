@@ -1934,7 +1934,7 @@ class WaitForExecutor(AbstractComponentExecutor):
 
         if self._authors and ctx.interaction.user.id not in self._authors:
             await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
             )
             return
 
