@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `delete_after` option to `ComponentContext` response methods.
 - `expires_at` property to `ComponentContext`.
 
+### Changed
+- `ComponentExecutor.execute` now takes a context object instead of interaction and future objects.
+
 ### Fixed
 - `ComponentContext.respond` trying to edit in the initial response instead of create a follow up if a deferred initial response was deleted.
 - Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.

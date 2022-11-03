@@ -70,6 +70,7 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
     _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
     _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
+    _ComponentContextT = typing.TypeVar("_ComponentContextT", bound="ComponentContext")
     _ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
     _MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
@@ -124,7 +125,7 @@ class ComponentContext:
     def __init__(
         self,
         *,
-        ephemeral_default: bool,
+        ephemeral_default: bool = False,
         interaction: hikari.ComponentInteraction,
         register_task: typing.Callable[[asyncio.Task[typing.Any]], None],
         response_future: typing.Optional[asyncio.Future[ResponseT]] = None,
@@ -170,6 +171,20 @@ class ComponentContext:
     def interaction(self) -> hikari.ComponentInteraction:
         """Object of the interaction this context is for."""
         return self._interaction
+
+    def set_ephemeral_default(self: _ComponentContextT, state: bool, /) -> _ComponentContextT:
+        """Set the ephemeral default state for this context.
+
+        Parameters
+        ----------
+        state
+            The new ephemeral default state.
+
+            If this is [True][] then all calls to the response creating methods
+            on this context will default to being ephemeral.
+        """
+        self._ephemeral_default = state
+        return self
 
     def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta]) -> float:
         delete_after = _delete_after_to_float(delete_after)
@@ -545,6 +560,8 @@ class ComponentContext:
 
         Parameters
         ----------
+        response_type
+            The type of message response to give.
         content
             The content to edit the last response with.
 
@@ -1476,7 +1493,9 @@ class ComponentClient:
         future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         try:
-            await executor.execute(interaction, future=future)
+            await executor.execute(
+                ComponentContext(interaction=interaction, register_task=self._add_task, response_future=future)
+            )
         except ExecutorClosed:
             self._executors.pop(interaction.message.id, None)
 
@@ -1740,9 +1759,7 @@ class AbstractComponentExecutor(abc.ABC):
         """Whether this executor has ended."""
 
     @abc.abstractmethod
-    async def execute(
-        self, _: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         raise NotImplementedError
 
 
@@ -1796,14 +1813,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        ctx = ComponentContext(
-            ephemeral_default=self._ephemeral_default, interaction=interaction, response_future=future
-        )
-        callback = self._id_to_callback[interaction.custom_id]
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        callback = self._id_to_callback[ctx.interaction.custom_id]
         await callback(ctx)
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
@@ -1816,22 +1829,6 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             return callback
 
         return decorator
-
-
-async def _pre_execution_error(
-    interaction: hikari.ComponentInteraction, future: typing.Optional[asyncio.Future[ResponseT]], message: str, /
-) -> None:
-    if future:
-        future.set_result(
-            interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
-            .set_content(message)
-            .set_flags(hikari.MessageFlag.EPHEMERAL)
-        )
-
-    else:
-        await interaction.create_initial_response(
-            hikari.ResponseType.MESSAGE_CREATE, message, flags=hikari.MessageFlag.EPHEMERAL
-        )
 
 
 class WaitForExecutor(AbstractComponentExecutor):
@@ -1927,25 +1924,25 @@ class WaitForExecutor(AbstractComponentExecutor):
         finally:
             self._finished = True
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         if not self._future:
-            await _pre_execution_error(interaction, future, "This button isn't active")
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "This button isn't active", ephemeral=True
+            )
             return
 
         if self._finished:
             raise ExecutorClosed
 
-        if self._authors and interaction.user.id not in self._authors:
-            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+            )
             return
 
         self._finished = True
-        self._future.set_result(
-            ComponentContext(interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default)
-        )
+        self._future.set_result(ctx)
 
 
 WaitForComponent = WaitForExecutor
@@ -2244,13 +2241,11 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._executors.append(executor)
         return self
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         for executor in self._executors:
-            if interaction.custom_id in executor.custom_ids:
-                await executor.execute(interaction, future=future)
+            if ctx.interaction.custom_id in executor.custom_ids:
+                await executor.execute(ctx)
                 return
 
         raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
@@ -2357,15 +2352,15 @@ class ComponentPaginator(ActionRowExecutor):
         """
         return [self]
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        if self._authors and interaction.user.id not in self._authors:
-            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+            )
             return
 
-        await super().execute(interaction, future=future)
+        await super().execute(ctx)
 
     async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
         """Get the next entry in this paginator.
