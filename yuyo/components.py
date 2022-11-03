@@ -221,11 +221,16 @@ class ComponentContext:
         ----------
         defer_type
             The type of deferral this should be.
-            This may either be `hikari.ResponseType.DEFERRED_MESSAGE_CREATE` to
-            indicate that the following up call to `ComponentContext.edit_initial_response`
-            or `ComponentContext.respond` should create a new message or
-            `hikari.ResponseType.DEFERRED_MESSAGE_UPDATE` to indicate that the following
-            call to the aforementioned methods should update the existing message.
+
+            This may any of the following
+            * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
+                to indicate that the following up call to
+                [yuyo.components.ComponentContext.edit_initial_response][]
+                or [yuyo.components.ComponentContext.respond][] should create
+                a new message.
+            * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
+                to indicate that the following call to the aforementioned
+                methods should update the existing message.
         ephemeral
             Whether the deferred response should be ephemeral.
             Passing [True][] here is a shorthand for including `1 << 64` in the
@@ -1519,18 +1524,10 @@ class ComponentClient:
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
         if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ResponseT] = asyncio.Future()
-            self._add_task(
-                asyncio.create_task(
-                    constant_callback(
-                        ComponentContext(
-                            ephemeral_default=False,
-                            interaction=interaction,
-                            register_task=self._add_task,
-                            response_future=future,
-                        )
-                    )
-                )
+            ctx = ComponentContext(
+                ephemeral_default=False, interaction=interaction, register_task=self._add_task, response_future=future
             )
+            self._add_task(asyncio.create_task(constant_callback(ctx)))
             return await future
 
         if executor := self._executors.get(interaction.message.id):
