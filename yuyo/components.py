@@ -1925,7 +1925,7 @@ class WaitForExecutor(AbstractComponentExecutor):
         # <<inherited docstring from AbstractComponentExecutor>>.
         if not self._future:
             await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This button isn't active", ephemeral=True
+                hikari.ResponseType.MESSAGE_CREATE, "The bot isn't ready for that yet", ephemeral=True
             )
             return
 
@@ -1934,7 +1934,7 @@ class WaitForExecutor(AbstractComponentExecutor):
 
         if self._authors and ctx.interaction.user.id not in self._authors:
             await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
             )
             return
 
@@ -2353,7 +2353,7 @@ class ComponentPaginator(ActionRowExecutor):
         # <<inherited docstring from AbstractComponentExecutor>>.
         if self._authors and ctx.interaction.user.id not in self._authors:
             await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
             )
             return
 
