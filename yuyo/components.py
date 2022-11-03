@@ -54,6 +54,7 @@ import asyncio
 import datetime
 import inspect
 import itertools
+import logging
 import os
 import typing
 import uuid
@@ -69,6 +70,7 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
     _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
     _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
+    _ComponentContextT = typing.TypeVar("_ComponentContextT", bound="ComponentContext")
     _ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
     _MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
@@ -98,6 +100,13 @@ ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
 ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
+_INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
+_LOGGER = logging.getLogger("hikari.yuyo.components")
+
+
+def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int]) -> float:
+    return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
+
 
 class ComponentContext:
     """The general context passed around for a component trigger."""
@@ -108,6 +117,7 @@ class ComponentContext:
         "_has_been_deferred",
         "_interaction",
         "_last_response_id",
+        "_register_task",
         "_response_future",
         "_response_lock",
     )
@@ -115,8 +125,9 @@ class ComponentContext:
     def __init__(
         self,
         *,
-        ephemeral_default: bool,
+        ephemeral_default: bool = False,
         interaction: hikari.ComponentInteraction,
+        register_task: typing.Callable[[asyncio.Task[typing.Any]], None],
         response_future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         self._ephemeral_default = ephemeral_default
@@ -124,8 +135,14 @@ class ComponentContext:
         self._has_been_deferred = False
         self._interaction = interaction
         self._last_response_id: typing.Optional[hikari.Snowflake] = None
+        self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
+
+    @property
+    def expires_at(self) -> datetime.datetime:
+        # <<inherited docstring from tanjun.abc.SlashContext>>.
+        return self._interaction.created_at + _INTERACTION_LIFETIME
 
     @property
     def has_been_deferred(self) -> bool:
@@ -155,6 +172,30 @@ class ComponentContext:
         """Object of the interaction this context is for."""
         return self._interaction
 
+    def set_ephemeral_default(self: _ComponentContextT, state: bool, /) -> _ComponentContextT:
+        """Set the ephemeral default state for this context.
+
+        Parameters
+        ----------
+        state
+            The new ephemeral default state.
+
+            If this is [True][] then all calls to the response creating methods
+            on this context will default to being ephemeral.
+        """
+        self._ephemeral_default = state
+        return self
+
+    def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta]) -> float:
+        delete_after = _delete_after_to_float(delete_after)
+        time_left = (
+            _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.timezone.utc) - self._interaction.created_at)
+        ).total_seconds()
+        if delete_after + 10 > time_left:
+            raise ValueError("This interaction will have expired before delete_after is reached")
+
+        return delete_after
+
     def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]) -> int:
         if flags is not hikari.UNDEFINED:
             assert isinstance(flags, int)
@@ -167,9 +208,14 @@ class ComponentContext:
         defer_type: hikari.DeferredResponseTypesT,
         /,
         *,
+        ephemeral: bool = False,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
-        """Mark this context as deferred.
+        """Defer the initial response for this context.
+
+        !!! note
+            The ephemeral state of the first response is decided by whether the
+            deferral is ephemeral.
 
         Parameters
         ----------
@@ -185,16 +231,21 @@ class ComponentContext:
             * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
                 to indicate that the following call to the aforementioned
                 methods should update the existing message.
+        ephemeral
+            Whether the deferred response should be ephemeral.
+            Passing [True][] here is a shorthand for including `1 << 64` in the
+            passed flags.
         flags
-            The flags to set for this deferral.
-
-            As of writing, the only message flag which can be set here is
-            [hikari.messages.MessageFlag.EPHEMERAL][] which indicates that the deferred
-            message create should be only visible by the interaction's author.
+            The flags to use for the initial response.
         """
-        flags = self._get_flags(flags)
+        if ephemeral:
+            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
+
+        else:
+            flags = self._get_flags(flags)
+
         async with self._response_lock:
-            if self._has_been_deferred or self._has_responded:
+            if self._has_been_deferred:
                 raise RuntimeError("Context has already been responded to")
 
             self._has_been_deferred = True
@@ -204,10 +255,67 @@ class ComponentContext:
             else:
                 await self._interaction.create_initial_response(defer_type, flags=flags)
 
+    async def _delete_followup_after(self, delete_after: float, message: hikari.Message) -> None:
+        await asyncio.sleep(delete_after)
+        try:
+            await self._interaction.delete_message(message)
+        except hikari.NotFoundError as exc:
+            _LOGGER.debug("Failed to delete response message after %.2f seconds", delete_after, exc_info=exc)
+
+    async def _create_followup(
+        self,
+        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
+        *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
+        ] = hikari.UNDEFINED,
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
+        ] = hikari.UNDEFINED,
+        tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
+        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+    ) -> hikari.Message:
+        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
+        message = await self._interaction.execute(
+            content=content,
+            attachment=attachment,
+            attachments=attachments,
+            component=component,
+            components=components,
+            embed=embed,
+            embeds=embeds,
+            flags=self._get_flags(flags),
+            tts=tts,
+            mentions_everyone=mentions_everyone,
+            user_mentions=user_mentions,
+            role_mentions=role_mentions,
+        )
+        self._last_response_id = message.id
+        # This behaviour is undocumented and only kept by Discord for "backwards compatibility"
+        # but the followup endpoint can be used to create the initial response for slash
+        # commands or edit in a deferred response and (while this does lead to some
+        # unexpected behaviour around deferrals) should be accounted for.
+        self._has_responded = True
+
+        if delete_after is not None:
+            self._register_task(asyncio.create_task(self._delete_followup_after(delete_after, message)))
+
+        return message
+
     async def create_followup(
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -245,6 +353,15 @@ class ComponentContext:
             Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
+
+            Slash command responses can only be deleted within 15 minutes of the
+            command being received.
+        ephemeral
+            Whether the deferred response should be ephemeral.
+            Passing [True][] here is a shorthand for including `1 << 64` in the
+            passed flags.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -305,26 +422,37 @@ class ComponentContext:
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions.
 
+            If the interaction will have expired before `delete_after` is reached.
+
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         """
+        if ephemeral:
+            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
+
         async with self._response_lock:
-            message = await self._interaction.execute(
+            return await self._create_followup(
                 content=content,
+                delete_after=delete_after,
                 attachment=attachment,
                 attachments=attachments,
                 component=component,
                 components=components,
                 embed=embed,
                 embeds=embeds,
-                flags=self._get_flags(flags),
-                tts=tts,
                 mentions_everyone=mentions_everyone,
                 user_mentions=user_mentions,
                 role_mentions=role_mentions,
+                tts=tts,
+                flags=flags,
             )
-            self._last_response_id = message.id
-            return message
+
+    async def _delete_initial_response_after(self, delete_after: float) -> None:
+        await asyncio.sleep(delete_after)
+        try:
+            await self.delete_initial_response()
+        except hikari.NotFoundError as exc:
+            _LOGGER.debug("Failed to delete response message after %.2f seconds", delete_after, exc_info=exc)
 
     async def _create_initial_response(
         self,
@@ -332,6 +460,7 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -349,6 +478,7 @@ class ComponentContext:
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
         flags = self._get_flags(flags)
+        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
         if self._has_responded:
             raise RuntimeError("Initial response has already been created")
 
@@ -383,21 +513,23 @@ class ComponentContext:
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
             # pre-fix in init.
             result = hikari.impl.InteractionMessageBuilder(
-                type=hikari.ResponseType.MESSAGE_CREATE,  # pyright: ignore reportGeneralTypeIssues
-                content=content,  # pyright: ignore reportGeneralTypeIssues
-                attachments=attachments,  # pyright: ignore reportGeneralTypeIssues
-                components=components,  # pyright: ignore reportGeneralTypeIssues
-                embeds=embeds,  # pyright: ignore reportGeneralTypeIssues
-                flags=flags,  # pyright: ignore reportGeneralTypeIssues
-                is_tts=tts,  # pyright: ignore reportGeneralTypeIssues
-                mentions_everyone=mentions_everyone,  # pyright: ignore reportGeneralTypeIssues
-                user_mentions=user_mentions,  # pyright: ignore reportGeneralTypeIssues
-                role_mentions=role_mentions,  # pyright: ignore reportGeneralTypeIssues
+                response_type,
+                content,
+                attachments=attachments,  # pyright: ignore [ reportGeneralTypeIssues ]
+                components=components,  # pyright: ignore [ reportGeneralTypeIssues ]
+                embeds=embeds,  # pyright: ignore [ reportGeneralTypeIssues ]
+                flags=flags,  # pyright: ignore [ reportGeneralTypeIssues ]
+                is_tts=tts,  # pyright: ignore [ reportGeneralTypeIssues ]
+                mentions_everyone=mentions_everyone,  # pyright: ignore [ reportGeneralTypeIssues ]
+                user_mentions=user_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]
+                role_mentions=role_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]
             )
 
             self._response_future.set_result(result)
 
         self._has_responded = True
+        if delete_after is not None:
+            self._register_task(asyncio.create_task(self._delete_initial_response_after(delete_after)))
 
     async def create_initial_response(
         self,
@@ -405,6 +537,8 @@ class ComponentContext:
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -412,11 +546,11 @@ class ComponentContext:
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
@@ -431,6 +565,8 @@ class ComponentContext:
 
         Parameters
         ----------
+        response_type
+            The type of message response to give.
         content
             The content to edit the last response with.
 
@@ -446,7 +582,11 @@ class ComponentContext:
             Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
 
+            Slash command responses can only be deleted within 15 minutes of the
+            command being received.
         ephemeral
             Whether the deferred response should be ephemeral.
 
@@ -510,6 +650,8 @@ class ComponentContext:
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
+            If the interaction will have expired before `delete_after` is reached.
+
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         hikari.BadRequestError
@@ -536,9 +678,13 @@ class ComponentContext:
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
+        if ephemeral:
+            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
+
         async with self._response_lock:
             await self._create_initial_response(
                 response_type,
+                delete_after=delete_after,
                 content=content,
                 attachment=attachment,
                 attachments=attachments,
@@ -590,19 +736,20 @@ class ComponentContext:
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedNoneOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedNoneOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         replace_attachments: bool = False,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
         """Edit the initial response for this context.
@@ -624,6 +771,11 @@ class ComponentContext:
             Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
+
+            Slash command responses can only be deleted within 15 minutes of
+            the command being received.
         attachment
             A singular attachment to edit the initial response with.
         attachments
@@ -670,6 +822,9 @@ class ComponentContext:
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
+            If `delete_after` would be more than 15 minutes after the slash
+            command was called.
+
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         hikari.BadRequestError
@@ -699,7 +854,8 @@ class ComponentContext:
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
-        result = await self._interaction.edit_initial_response(
+        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
+        message = await self._interaction.edit_initial_response(
             content=content,
             attachment=attachment,
             attachments=attachments,
@@ -714,25 +870,30 @@ class ComponentContext:
         )
         # This will be False if the initial response was deferred with this finishing the referral.
         self._has_responded = True
-        return result
+
+        if delete_after is not None:
+            self._register_task(asyncio.create_task(self._delete_initial_response_after(delete_after)))
+
+        return message
 
     async def edit_last_response(
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedNoneOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedNoneOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         replace_attachments: bool = False,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
     ) -> hikari.Message:
         """Edit the last response for this context.
@@ -754,6 +915,11 @@ class ComponentContext:
             Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
+
+            Slash command responses can only be deleted within 15 minutes of
+            the command being received.
         attachment
             A singular attachment to edit the last response with.
         attachments
@@ -802,6 +968,9 @@ class ComponentContext:
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
+            If `delete_after` would be more than 15 minutes after the slash
+            command was called.
+
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         hikari.BadRequestError
@@ -832,7 +1001,8 @@ class ComponentContext:
             If an internal error occurs on Discord while handling the request.
         """
         if self._last_response_id:
-            return await self._interaction.edit_message(
+            delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
+            message = await self._interaction.edit_message(
                 self._last_response_id,
                 content=content,
                 attachment=attachment,
@@ -846,9 +1016,14 @@ class ComponentContext:
                 user_mentions=user_mentions,
                 role_mentions=role_mentions,
             )
+            if delete_after is not None:
+                self._register_task(asyncio.create_task(self._delete_followup_after(delete_after, message)))
+
+            return message
 
         if self._has_responded or self._has_been_deferred:
             return await self.edit_initial_response(
+                delete_after=delete_after,
                 content=content,
                 attachment=attachment,
                 attachments=attachments,
@@ -865,9 +1040,33 @@ class ComponentContext:
         raise LookupError("Context has no previous responses")
 
     async def fetch_initial_response(self) -> hikari.Message:
+        """Fetch the initial response for this context.
+
+        Returns
+        -------
+        hikari.messages.Message
+            The initial response's message object.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The response was not found.
+        """
         return await self._interaction.fetch_initial_response()
 
     async def fetch_last_response(self) -> hikari.Message:
+        """Fetch the last response for this context.
+
+        Returns
+        -------
+        hikari.messages.Message
+            The most response response's message object.
+
+        Raises
+        ------
+        LookupError, hikari.NotFoundError
+            The response was not found.
+        """
         if self._last_response_id is not None:
             return await self._interaction.fetch_message(self._last_response_id)
 
@@ -881,7 +1080,8 @@ class ComponentContext:
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        ensure_result: typing.Literal[False] = False,
+        ensure_result: typing.Literal[True],
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -889,13 +1089,13 @@ class ComponentContext:
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]:
+    ) -> hikari.Message:
         ...
 
     @typing.overload
@@ -903,7 +1103,8 @@ class ComponentContext:
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        ensure_result: typing.Literal[True],
+        ensure_result: bool = False,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -911,13 +1112,13 @@ class ComponentContext:
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> hikari.Message:
+    ) -> typing.Optional[hikari.Message]:
         ...
 
     async def respond(
@@ -925,6 +1126,7 @@ class ComponentContext:
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: bool = False,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -932,11 +1134,11 @@ class ComponentContext:
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool]
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-        role_mentions: hikari.UndefinedOr[
-            typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool]
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
     ) -> typing.Optional[hikari.Message]:
         """Respond to this context.
@@ -966,6 +1168,11 @@ class ComponentContext:
 
             It's worth noting that, under certain scenarios within the slash
             command flow, this may lead to an extre request being made.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
+
+            Slash command responses can only be deleted within 15 minutes of
+            the command being received.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -1011,6 +1218,9 @@ class ComponentContext:
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
+            If `delete_after` would be more than 15 minutes after the slash
+            command was called.
+
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         hikari.BadRequestError
@@ -1042,8 +1252,9 @@ class ComponentContext:
         """
         async with self._response_lock:
             if self._has_responded:
-                message = await self._interaction.execute(
+                return await self._create_followup(
                     content,
+                    delete_after=delete_after,
                     attachment=attachment,
                     attachments=attachments,
                     component=component,
@@ -1054,14 +1265,13 @@ class ComponentContext:
                     user_mentions=user_mentions,
                     role_mentions=role_mentions,
                 )
-                self._last_response_id = message.id
-                return message
 
             if self._has_been_deferred:
                 return await self.edit_initial_response(
+                    delete_after=delete_after,
+                    content=content,
                     attachment=attachment,
                     attachments=attachments,
-                    content=content,
                     component=component,
                     components=components,
                     embed=embed,
@@ -1073,9 +1283,10 @@ class ComponentContext:
 
             await self._create_initial_response(
                 hikari.ResponseType.MESSAGE_CREATE,
+                delete_after=delete_after,
+                content=content,
                 attachment=attachment,
                 attachments=attachments,
-                content=content,
                 component=component,
                 components=components,
                 embed=embed,
@@ -1121,7 +1332,7 @@ class ExecutorClosed(Exception):
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
-    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server")
+    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server", "_tasks")
 
     def __init__(
         self,
@@ -1162,6 +1373,7 @@ class ComponentClient:
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._prefix_ids: typing.Dict[str, CallbackSig] = {}
         self._server = server
+        self._tasks: typing.List[asyncio.Task[typing.Any]] = []
 
         if event_managed or event_managed is None and event_manager:
             if not event_manager:
@@ -1215,6 +1427,14 @@ class ComponentClient:
             The initialised component client.
         """
         return cls(server=bot.interaction_server)
+
+    def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
+        self._tasks.remove(task)
+
+    def _add_task(self, task: asyncio.Task[typing.Any], /) -> None:
+        if not task.done():
+            self._tasks.append(task)
+            task.add_done_callback(self._remove_task)
 
     async def _on_starting(self, event: hikari.StartingEvent) -> None:
         self.open()
@@ -1278,7 +1498,9 @@ class ComponentClient:
         future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         try:
-            await executor.execute(interaction, future=future)
+            await executor.execute(
+                ComponentContext(interaction=interaction, register_task=self._add_task, response_future=future)
+            )
         except ExecutorClosed:
             self._executors.pop(interaction.message.id, None)
 
@@ -1287,7 +1509,9 @@ class ComponentClient:
             return
 
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            await constant_callback(ComponentContext(ephemeral_default=False, interaction=event.interaction))
+            await constant_callback(
+                ComponentContext(ephemeral_default=False, interaction=event.interaction, register_task=self._add_task)
+            )
 
         elif executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
@@ -1300,17 +1524,16 @@ class ComponentClient:
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
         if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ResponseT] = asyncio.Future()
-            asyncio.create_task(
-                constant_callback(
-                    ComponentContext(ephemeral_default=False, interaction=interaction, response_future=future)
-                )
+            ctx = ComponentContext(
+                ephemeral_default=False, interaction=interaction, register_task=self._add_task, response_future=future
             )
+            self._add_task(asyncio.create_task(constant_callback(ctx)))
             return await future
 
         if executor := self._executors.get(interaction.message.id):
             if not executor.has_expired:
                 future = asyncio.Future()
-                asyncio.create_task(self._execute_executor(executor, interaction, future=future))
+                self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
                 return await future
 
             del self._executors[interaction.message.id]
@@ -1533,9 +1756,7 @@ class AbstractComponentExecutor(abc.ABC):
         """Whether this executor has ended."""
 
     @abc.abstractmethod
-    async def execute(
-        self, _: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         raise NotImplementedError
 
 
@@ -1589,14 +1810,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        ctx = ComponentContext(
-            ephemeral_default=self._ephemeral_default, interaction=interaction, response_future=future
-        )
-        callback = self._id_to_callback[interaction.custom_id]
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        callback = self._id_to_callback[ctx.interaction.custom_id]
         await callback(ctx)
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
@@ -1609,22 +1826,6 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             return callback
 
         return decorator
-
-
-async def _pre_execution_error(
-    interaction: hikari.ComponentInteraction, future: typing.Optional[asyncio.Future[ResponseT]], message: str, /
-) -> None:
-    if future:
-        future.set_result(
-            interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
-            .set_content(message)
-            .set_flags(hikari.MessageFlag.EPHEMERAL)
-        )
-
-    else:
-        await interaction.create_initial_response(
-            hikari.ResponseType.MESSAGE_CREATE, message, flags=hikari.MessageFlag.EPHEMERAL
-        )
 
 
 class WaitForExecutor(AbstractComponentExecutor):
@@ -1720,25 +1921,25 @@ class WaitForExecutor(AbstractComponentExecutor):
         finally:
             self._finished = True
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         if not self._future:
-            await _pre_execution_error(interaction, future, "This button isn't active")
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "This button isn't active", ephemeral=True
+            )
             return
 
         if self._finished:
             raise ExecutorClosed
 
-        if self._authors and interaction.user.id not in self._authors:
-            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+            )
             return
 
         self._finished = True
-        self._future.set_result(
-            ComponentContext(interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default)
-        )
+        self._future.set_result(ctx)
 
 
 WaitForComponent = WaitForExecutor
@@ -2037,13 +2238,11 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._executors.append(executor)
         return self
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         for executor in self._executors:
-            if interaction.custom_id in executor.custom_ids:
-                await executor.execute(interaction, future=future)
+            if ctx.interaction.custom_id in executor.custom_ids:
+                await executor.execute(ctx)
                 return
 
         raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
@@ -2150,15 +2349,15 @@ class ComponentPaginator(ActionRowExecutor):
         """
         return [self]
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        if self._authors and interaction.user.id not in self._authors:
-            await _pre_execution_error(interaction, future, "You are not allowed to use this button")
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this button", ephemeral=True
+            )
             return
 
-        await super().execute(interaction, future=future)
+        await super().execute(ctx)
 
     async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
         """Get the next entry in this paginator.
