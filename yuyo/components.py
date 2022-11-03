@@ -60,7 +60,7 @@ import typing
 import uuid
 import warnings
 
-import alluka
+import alluka as alluka_
 import hikari
 
 from . import pagination
@@ -1341,7 +1341,7 @@ class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
     __slots__ = (
-        "_alluka_client",
+        "_alluka",
         "_constant_ids",
         "_event_manager",
         "_executors",
@@ -1354,7 +1354,7 @@ class ComponentClient:
     def __init__(
         self,
         *,
-        alluka_client: typing.Optional[alluka.Client] = None,
+        alluka: typing.Optional[alluka_.Client] = None,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
@@ -1368,7 +1368,7 @@ class ComponentClient:
 
         Parameters
         ----------
-        alluka_client
+        alluka
             The Alluka client to use for DI in this client.
 
             If not provided then this will initialise its own Alluka client.
@@ -1389,7 +1389,7 @@ class ComponentClient:
         ValueError
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
-        self._alluka_client = alluka_client or alluka.Client()
+        self._alluka = alluka or alluka_.Client()
         self._constant_ids: typing.Dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
@@ -1417,8 +1417,8 @@ class ComponentClient:
         self.close()
 
     @property
-    def alluka_client(self) -> alluka.Client:
-        return self._alluka_client
+    def alluka(self) -> alluka_.Client:
+        return self._alluka
 
     @classmethod
     def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
@@ -1536,7 +1536,7 @@ class ComponentClient:
 
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
             ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await self._alluka_client.call_with_async_di(constant_callback, ctx)
+            await self._alluka.call_with_async_di(constant_callback, ctx)
 
         elif executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
@@ -1550,7 +1550,7 @@ class ComponentClient:
         if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ResponseT] = asyncio.Future()
             ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
-            self._add_task(asyncio.create_task(self._alluka_client.call_with_async_di(constant_callback, ctx)))
+            self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
 
         if executor := self._executors.get(interaction.message.id):
@@ -1837,7 +1837,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         callback = self._id_to_callback[ctx.interaction.custom_id]
-        await ctx.client.alluka_client.call_with_async_di(callback, ctx)
+        await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
         self._id_to_callback[id_] = callback
