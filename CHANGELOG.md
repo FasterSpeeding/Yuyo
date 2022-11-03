@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `ComponentContext.respond` trying to edit in the initial response instead of create a follow up if a deferred initial response was deleted.
 
+### Removed
+- The project metadata dunder attributes from [yuyo][].
+  [importlib.metadata][] should be used to get this metadata instead.
+
 ## [1.1.1a1] - 2022-08-28
 ### Added
 - Support for sending attachments in the initial response to the ASGI server implementation.
