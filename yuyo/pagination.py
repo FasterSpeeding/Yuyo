@@ -32,19 +32,19 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["async_paginate_string", "paginate_string", "sync_paginate_string"]
+__all__: typing.Sequence[str] = ["aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
-import collections.abc as collections
+import sys
 import textwrap
 import typing
 
 import hikari
 
-T = typing.TypeVar("T")
-"""A type hint used to represent the type handled by an iterator."""
+from . import _internal
 
-DefaultT = typing.TypeVar("DefaultT")
-"""A type hint used to represent a "default" argument provided to a function."""
+if typing.TYPE_CHECKING:
+
+    _T = typing.TypeVar("_T")
 
 
 EntryT = typing.Tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
@@ -80,57 +80,22 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 """The emoji used to close a menu in a component context."""
 
 
-IteratorT = typing.Union[typing.AsyncIterator[T], typing.Iterator[T]]
-"""A type hint used in places where both iterators and async-iterators are supported."""
+if sys.version_info >= (3, 10):
+    _aiter = aiter
 
+else:
 
-async def collect_iterator(iterator: IteratorT[T], /) -> typing.List[T]:
-    """Collect the rest of an async or sync iterator into a mutable sequence.
-
-    Parameters
-    ----------
-    iterator
-        The iterator to collect. This iterator may be asynchronous or synchronous.
-
-    Returns
-    -------
-    list[T]
-        A sequence of the remaining values in the iterator.
-    """
-    if isinstance(iterator, collections.AsyncIterator):
-        return [value async for value in iterator]
-
-    return list(iterator)
-
-
-async def seek_iterator(iterator: IteratorT[T], /, default: DefaultT) -> typing.Union[T, DefaultT]:
-    """Get the next value in an async or sync iterator."""
-    if isinstance(iterator, collections.AsyncIterator):
-        return await seek_async_iterator(iterator, default=default)
-
-    return seek_sync_iterator(iterator, default=default)
-
-
-async def seek_async_iterator(iterator: typing.AsyncIterator[T], /, default: DefaultT) -> typing.Union[T, DefaultT]:
-    """Get the next value in an async iterator."""
-    async for value in iterator:
-        return value
-
-    return default
-
-
-def seek_sync_iterator(iterator: typing.Iterator[T], /, default: DefaultT) -> typing.Union[T, DefaultT]:
-    """Get the next value in an async iterator."""
-    return next(iterator, default)
+    def _aiter(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+        return iterable.__aiter__()
 
 
 async def async_paginate_string(
-    lines: typing.AsyncIterator[str],
+    lines: typing.AsyncIterable[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.AsyncIterator[typing.Tuple[str, int]]:
+) -> typing.AsyncIterator[str]:
     """Lazily paginate an iterator of lines.
 
     Parameters
@@ -154,15 +119,15 @@ async def async_paginate_string(
         char_limit -= len(wrapper) + 2
 
     # As this is incremented before yielding and zero-index we have to start at -1.
-    page_number = -1
     page_size = 0
     page: typing.List[str] = []
+    lines = _aiter(lines)
 
-    while (line := await seek_async_iterator(lines, default=None)) is not None:
+    while (line := await _internal.seek_async_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:
-            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), (page_number := page_number + 1)
+            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
             page.clear()
             page_size = 0
 
@@ -182,7 +147,7 @@ async def async_paginate_string(
 
             # yield all the sub-lines at once.
             for sub_line in map(wrapper.format, sub_pages) if wrapper else sub_pages:
-                yield sub_line, (page_number := page_number + 1)
+                yield sub_line
 
         # Otherwise it should be added to the next page.
         else:
@@ -191,16 +156,16 @@ async def async_paginate_string(
 
     # This catches the likely dangling page after iteration ends.
     if page:
-        yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1
+        yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
 
 
 def sync_paginate_string(
-    lines: typing.Iterator[str],
+    lines: typing.Iterable[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.Iterator[typing.Tuple[str, int]]:
+) -> typing.Iterator[str]:
     """Lazily paginate an iterator of lines.
 
     Parameters
@@ -224,15 +189,15 @@ def sync_paginate_string(
         char_limit -= len(wrapper) + 2
 
     # As this is incremented before yielding and zero-index we have to start at -1.
-    page_number = -1
     page_size = 0
     page: typing.List[str] = []
+    lines = iter(lines)
 
-    while (line := seek_sync_iterator(lines, default=None)) is not None:
+    while (line := _internal.seek_sync_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:
-            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), (page_number := page_number + 1)
+            yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
             page.clear()
             page_size = 0
 
@@ -252,7 +217,7 @@ def sync_paginate_string(
 
             # yield all the sub-lines at once.
             for sub_line in map(wrapper.format, sub_pages) if wrapper else sub_pages:
-                yield sub_line, (page_number := page_number + 1)
+                yield sub_line
 
         # Otherwise it should be added to the next page.
         else:
@@ -261,7 +226,7 @@ def sync_paginate_string(
 
     # This catches the likely dangling page after iteration ends.
     if page:
-        yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page), page_number + 1
+        yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
 
 
 @typing.overload
@@ -271,7 +236,7 @@ def paginate_string(
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.AsyncIterator[typing.Tuple[str, int]]:
+) -> typing.AsyncIterator[str]:
     ...
 
 
@@ -282,22 +247,22 @@ def paginate_string(
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.Iterator[typing.Tuple[str, int]]:
+) -> typing.Iterator[str]:
     ...
 
 
 def paginate_string(
-    lines: IteratorT[str],
+    lines: _internal.IterableT[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> IteratorT[typing.Tuple[str, int]]:
+) -> _internal.IteratorT[str]:
     """Lazily paginate an iterator of lines.
 
     Parameters
     ----------
-    lines
+    lines : typing.Iterator[str] | typing.AsyncIterator[str]
         The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
     char_limit
         The limit for how many characters should be included per yielded page.
@@ -312,7 +277,26 @@ def paginate_string(
     AsyncIterator[tuple[str, int]] | typing.Iterator[tuple[str, int]]
         An iterator of page tuples (string context to int zero-based index).
     """  # noqa: E501  - line too long
-    if isinstance(lines, typing.AsyncIterator):
+    if isinstance(lines, typing.AsyncIterable):
         return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
     return sync_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
+
+
+async def aenumerate(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[tuple[int, _T]]:
+    """Async equivalent of [enumerate][].
+
+    Parameters
+    ----------
+    iterable
+        The async iterable to enumerate.
+
+    Returns
+    -------
+    collections.abc.AsyncIterator[tuple[int, _T]]
+        The enumerated async iterator.
+    """
+    counter = -1
+    async for value in iterable:
+        counter += 1
+        yield (counter, value)

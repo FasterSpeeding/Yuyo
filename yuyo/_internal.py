@@ -29,43 +29,55 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""Internal functions and types used in Yuyo."""
+from __future__ import annotations
 
-# pyright: reportUnknownMemberType=none
-# This leads to too many false-positives around mocks.
+__all__ = []
 
+import typing
 from collections import abc as collections
-from unittest import mock
 
-import pytest
-
-from yuyo import pagination
-
-
-@pytest.mark.skip()
-async def test_async_paginate_string():
-    raise NotImplementedError
+_T = typing.TypeVar("_T")
+_DefaultT = typing.TypeVar("_DefaultT")
+IterableT = typing.Union[typing.AsyncIterable[_T], typing.Iterable[_T]]
+IteratorT = typing.Union[typing.AsyncIterator[_T], typing.Iterator[_T]]
 
 
-@pytest.mark.skip()
-def test_sync_paginate_string():
-    raise NotImplementedError
+async def collect_iterable(iterator: IterableT[_T], /) -> typing.List[_T]:
+    """Collect the rest of an async or sync iterator into a mutable sequence.
+
+    Parameters
+    ----------
+    iterator
+        The iterator to collect. This iterator may be asynchronous or synchronous.
+
+    Returns
+    -------
+    list[T]
+        A sequence of the remaining values in the iterator.
+    """
+    if isinstance(iterator, collections.AsyncIterable):
+        return [value async for value in iterator]
+
+    return list(iterator)
 
 
-def test_paginate_string_with_async_iterator():
-    mock_iterator = mock.Mock(collections.AsyncIterator, __aiter__=mock.Mock(), __anext__=mock.Mock())
+async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+    """Get the next value in an async or sync iterator."""
+    if isinstance(iterator, collections.AsyncIterator):
+        return await seek_async_iterator(iterator, default=default)
 
-    with mock.patch.object(pagination, "async_paginate_string") as async_paginate_string:
-        result = pagination.paginate_string(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
-
-        assert result is async_paginate_string.return_value
-        async_paginate_string.assert_called_once_with(mock_iterator, char_limit=432, line_limit=563, wrapper="sex me")
+    return seek_sync_iterator(iterator, default=default)
 
 
-def test_paginate_string_with_sync_iterator():
-    mock_iterator = iter(("1", "2", "3"))
+async def seek_async_iterator(iterator: typing.AsyncIterator[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+    """Get the next value in an async iterator."""
+    async for value in iterator:
+        return value
 
-    with mock.patch.object(pagination, "sync_paginate_string") as sync_paginate_string:
-        result = pagination.paginate_string(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
+    return default
 
-        assert result is sync_paginate_string.return_value
-        sync_paginate_string.assert_called_once_with(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
+
+def seek_sync_iterator(iterator: typing.Iterator[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+    """Get the next value in an async iterator."""
+    return next(iterator, default)
