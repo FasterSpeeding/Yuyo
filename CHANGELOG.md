@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `defer` methods as a shorthand for including `1 << 6` in the passed flags.
 - `delete_after` option to `ComponentContext` response methods.
 - `expires_at` property to `ComponentContext`.
+- Support for dependency injection through [Alluka][alluka] to the reaction and component clients.
 
 ### Changed
 - `ComponentExecutor.execute` now takes a context object instead of interaction and future objects.

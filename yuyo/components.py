@@ -60,6 +60,7 @@ import typing
 import uuid
 import warnings
 
+import alluka as alluka_
 import hikari
 
 from . import pagination
@@ -112,6 +113,7 @@ class ComponentContext:
     """The general context passed around for a component trigger."""
 
     __slots__ = (
+        "_client",
         "_ephemeral_default",
         "_has_responded",
         "_has_been_deferred",
@@ -124,12 +126,14 @@ class ComponentContext:
 
     def __init__(
         self,
-        *,
-        ephemeral_default: bool = False,
+        client: ComponentClient,
         interaction: hikari.ComponentInteraction,
         register_task: typing.Callable[[asyncio.Task[typing.Any]], None],
+        *,
+        ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
+        self._client = client
         self._ephemeral_default = ephemeral_default
         self._has_responded = False
         self._has_been_deferred = False
@@ -138,6 +142,10 @@ class ComponentContext:
         self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
+
+    @property
+    def client(self) -> ComponentClient:
+        return self._client
 
     @property
     def expires_at(self) -> datetime.datetime:
@@ -1332,11 +1340,21 @@ class ExecutorClosed(Exception):
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
-    __slots__ = ("_constant_ids", "_event_manager", "_executors", "_gc_task", "_prefix_ids", "_server", "_tasks")
+    __slots__ = (
+        "_alluka",
+        "_constant_ids",
+        "_event_manager",
+        "_executors",
+        "_gc_task",
+        "_prefix_ids",
+        "_server",
+        "_tasks",
+    )
 
     def __init__(
         self,
         *,
+        alluka: typing.Optional[alluka_.abc.Client] = None,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
@@ -1350,6 +1368,10 @@ class ComponentClient:
 
         Parameters
         ----------
+        alluka
+            The Alluka client to use for callback dependency injection in this client.
+
+            If not provided then this will initialise its own Alluka client.
         event_manager
             The event manager this client should listen to dispatched component
             interactions from if applicable.
@@ -1367,6 +1389,7 @@ class ComponentClient:
         ValueError
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
+        self._alluka = alluka or alluka_.Client()
         self._constant_ids: typing.Dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
@@ -1392,6 +1415,11 @@ class ComponentClient:
         exc_traceback: typing.Optional[types.TracebackType],
     ) -> None:
         self.close()
+
+    @property
+    def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
+        return self._alluka
 
     @classmethod
     def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
@@ -1436,10 +1464,10 @@ class ComponentClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, event: hikari.StartingEvent) -> None:
+    async def _on_starting(self, _: hikari.StartingEvent, /) -> None:
         self.open()
 
-    async def _on_stopping(self, event: hikari.StoppingEvent) -> None:
+    async def _on_stopping(self, _: hikari.StoppingEvent, /) -> None:
         self.close()
 
     async def _gc(self) -> None:
@@ -1498,9 +1526,8 @@ class ComponentClient:
         future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         try:
-            await executor.execute(
-                ComponentContext(interaction=interaction, register_task=self._add_task, response_future=future)
-            )
+            ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+            await executor.execute(ctx)
         except ExecutorClosed:
             self._executors.pop(interaction.message.id, None)
 
@@ -1509,9 +1536,8 @@ class ComponentClient:
             return
 
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            await constant_callback(
-                ComponentContext(ephemeral_default=False, interaction=event.interaction, register_task=self._add_task)
-            )
+            ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
+            await self._alluka.call_with_async_di(constant_callback, ctx)
 
         elif executor := self._executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
@@ -1524,10 +1550,8 @@ class ComponentClient:
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ResponseT:
         if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ResponseT] = asyncio.Future()
-            ctx = ComponentContext(
-                ephemeral_default=False, interaction=interaction, register_task=self._add_task, response_future=future
-            )
-            self._add_task(asyncio.create_task(constant_callback(ctx)))
+            ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
+            self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
 
         if executor := self._executors.get(interaction.message.id):
@@ -1814,7 +1838,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         callback = self._id_to_callback[ctx.interaction.custom_id]
-        await callback(ctx)
+        await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
         self._id_to_callback[id_] = callback
