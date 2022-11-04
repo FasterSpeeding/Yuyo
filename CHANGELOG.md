@@ -6,24 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `ephemeral` keyword-argument to `ComponentContext`'s `create_initial_response`, `create_follow_up`
-  and `defer` methods as a shorthand for including `1 << 6` in the passed flags.
-- `delete_after` option to `ComponentContext` response methods.
-- `expires_at` property to `ComponentContext`.
+- `ephemeral` keyword-argument to [yuyo.components.ComponentContext][]'s `create_initial_response`,
+  `create_follow_up` and `defer` methods as a shorthand for including `1 << 6` in the passed flags.
+- `delete_after` option to [yuyo.components.ComponentContext][] response methods.
+- `expires_at` property to [yuyo.components.ComponentContext][].
 - Support for dependency injection through [Alluka][alluka] to the reaction and component clients.
 
 ### Changed
 - `ComponentExecutor.execute` now takes a context object instead of interaction and future objects.
 - [yuyo.pagination.async_paginate_string][], [yuyo.pagination.sync_paginate_string][] and
-  [yuyo.pagination.paginate_string][] now return an (async) iterator of the [str] pages rather than
-  an iterator of `tuple[str, int]`. If you need page counts, use [enumerate] or
+  [yuyo.pagination.paginate_string][] now return an (async) iterator of the [str][] pages rather than
+  an iterator of `tuple[str, int]`. If you need page counts, use [enumerate][] or
   [yuyo.pagination.aenumerate][].
 - (Async) iterables can now be passed to [yuyo.pagination.async_paginate_string][],
   [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][] instead of just
   iterators.
 
 ### Fixed
-- `ComponentContext.respond` trying to edit in the initial response instead of create a follow up if a deferred initial response was deleted.
+- [yuyo.components.ComponentContext.respond][] trying to edit in the initial response instead
+  of create a follow up if a deferred initial response was deleted.
 - Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.
 
 ### Removed
