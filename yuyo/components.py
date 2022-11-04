@@ -68,25 +68,22 @@ from . import pagination
 if typing.TYPE_CHECKING:
     import types
 
+    from typing_extensions import Self
+
     _T = typing.TypeVar("_T")
-    _ActionRowExecutorT = typing.TypeVar("_ActionRowExecutorT", bound="ActionRowExecutor")
-    _ComponentClientT = typing.TypeVar("_ComponentClientT", bound="ComponentClient")
-    _ComponentContextT = typing.TypeVar("_ComponentContextT", bound="ComponentContext")
-    _ComponentExecutorT = typing.TypeVar("_ComponentExecutorT", bound="ComponentExecutor")
-    _MultiComponentExecutorT = typing.TypeVar("_MultiComponentExecutorT", bound="MultiComponentExecutor")
 
     class _ContainerProto(typing.Protocol):
-        def add_callback(self: _T, _: str, __: CallbackSig, /) -> _T:
+        def add_callback(self, _: str, __: CallbackSig, /) -> Self:
             raise NotImplementedError
 
-        def add_component(self: _T, _: hikari.api.ComponentBuilder, /) -> _T:
+        def add_component(self, _: hikari.api.ComponentBuilder, /) -> Self:
             raise NotImplementedError
 
     class _ParentExecutorProto(typing.Protocol):
-        def add_builder(self: _T, _: hikari.api.ComponentBuilder, /) -> _T:
+        def add_builder(self, _: hikari.api.ComponentBuilder, /) -> Self:
             raise NotImplementedError
 
-        def add_executor(self: _T, _: AbstractComponentExecutor, /) -> _T:
+        def add_executor(self, _: AbstractComponentExecutor, /) -> Self:
             raise NotImplementedError
 
 
@@ -94,11 +91,11 @@ def _random_id() -> str:
     return str(uuid.uuid4())
 
 
-AbstractComponentExecutorT = typing.TypeVar("AbstractComponentExecutorT", bound="AbstractComponentExecutor")
+_AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
-ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
-ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
+_ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
+_ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
@@ -180,7 +177,7 @@ class ComponentContext:
         """Object of the interaction this context is for."""
         return self._interaction
 
-    def set_ephemeral_default(self: _ComponentContextT, state: bool, /) -> _ComponentContextT:
+    def set_ephemeral_default(self, state: bool, /) -> Self:
         """Set the ephemeral default state for this context.
 
         Parameters
@@ -1568,9 +1565,7 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    def set_constant_id(
-        self: _ComponentClientT, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False
-    ) -> _ComponentClientT:
+    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
         """Add a constant "custom_id" callback.
 
         These are callbacks which'll always be called for a specific custom_id
@@ -1629,7 +1624,7 @@ class ComponentClient:
         """
         return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
 
-    def remove_constant_id(self: _ComponentClientT, custom_id: str, /) -> _ComponentClientT:
+    def remove_constant_id(self, custom_id: str, /) -> Self:
         """Remove a constant "custom_id" callback.
 
         Parameters
@@ -1690,15 +1685,15 @@ class ComponentClient:
         return decorator
 
     def add_executor(
-        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
-    ) -> _ComponentClientT:
+        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
+    ) -> Self:
         """Deprecated alias of [yuyo.components.ComponentClient.add_executor][]."""
         warnings.warn("add_executor is deprecated, use set_executor instead.", DeprecationWarning, stacklevel=2)
         return self.set_executor(message, executor)
 
     def set_executor(
-        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
-    ) -> _ComponentClientT:
+        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
+    ) -> Self:
         """Set the component executor for a message.
 
         Parameters
@@ -1736,9 +1731,7 @@ class ComponentClient:
         """
         return self._executors.get(int(message))
 
-    def remove_executor(
-        self: _ComponentClientT, message: hikari.SnowflakeishOr[hikari.Message], /
-    ) -> _ComponentClientT:
+    def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         """Remove the component executor for a message.
 
         Parameters
@@ -1840,7 +1833,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         callback = self._id_to_callback[ctx.interaction.custom_id]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
-    def add_callback(self: _ComponentExecutorT, id_: str, callback: CallbackSig, /) -> _ComponentExecutorT:
+    def add_callback(self, id_: str, callback: CallbackSig, /) -> Self:
         self._id_to_callback[id_] = callback
         return self
 
@@ -1972,11 +1965,11 @@ WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerProtoT]):  # noqa: D101
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
     def __init__(
-        self, callback: CallbackSig, container: ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
+        self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
@@ -1988,15 +1981,15 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[ContainerPro
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> ContainerProtoT:
+    def add_to_container(self) -> _ContainerProtoT:
         self._container.add_callback(self.custom_id, self.callback)
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):  # noqa: D101
+class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: ContainerProtoT, custom_id: str) -> None:
+    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
         super().__init__(container=container, custom_id=custom_id)  # pyright: ignore reportGeneralTypeIssues
@@ -2005,7 +1998,7 @@ class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[ContainerProtoT]):  # noqa
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> ContainerProtoT:
+    def add_to_container(self) -> _ContainerProtoT:
         self._container.add_callback(self.custom_id, self.callback)
         return super().add_to_container()
 
@@ -2047,39 +2040,37 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         self._stored_type = type_
 
-    def add_component(self: _ActionRowExecutorT, component: hikari.api.ComponentBuilder, /) -> _ActionRowExecutorT:
+    def add_component(self, component: hikari.api.ComponentBuilder, /) -> Self:
         self._components.append(component)
         return self
 
     @typing.overload
     def add_button(
-        self: _ActionRowExecutorT,
+        self,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
         /,
         *,
         custom_id: typing.Optional[str] = None,
-    ) -> InteractiveButtonBuilder[_ActionRowExecutorT]:
+    ) -> InteractiveButtonBuilder[Self]:
         ...
 
     @typing.overload
     def add_button(
-        self: _ActionRowExecutorT,
+        self,
         style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
         /,
-    ) -> hikari.impl.LinkButtonBuilder[_ActionRowExecutorT]:
+    ) -> hikari.impl.LinkButtonBuilder[Self]:
         ...
 
     def add_button(
-        self: _ActionRowExecutorT,
+        self,
         style: typing.Union[int, hikari.ButtonStyle],
         callback_or_url: typing.Union[CallbackSig, str],
         *,
         custom_id: typing.Optional[str] = None,
-    ) -> typing.Union[
-        hikari.impl.LinkButtonBuilder[_ActionRowExecutorT], InteractiveButtonBuilder[_ActionRowExecutorT]
-    ]:
+    ) -> typing.Union[hikari.impl.LinkButtonBuilder[Self], InteractiveButtonBuilder[Self]]:
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if style in hikari.InteractiveButtonTypes:
             # Pyright doesn't properly support _ attrs kwargs
@@ -2102,8 +2093,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         )
 
     def add_select_menu(
-        self: _ActionRowExecutorT, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
-    ) -> SelectMenuBuilder[_ActionRowExecutorT]:
+        self, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
+    ) -> SelectMenuBuilder[Self]:
         self._assert_can_add_type(hikari.ComponentType.SELECT_MENU)
         if custom_id is None:
             custom_id = _random_id()
@@ -2117,31 +2108,31 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         }
 
 
-class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[ParentExecutorProtoT]):
+class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentExecutorProtoT]):
     """Extended action row implementation which can be tied to a multi-component executor."""
 
     __slots__ = ("_parent",)
 
     def __init__(
-        self, parent: ParentExecutorProtoT, *, ephemeral_default: bool = False, load_from_attributes: bool = False
+        self, parent: _ParentExecutorProtoT, *, ephemeral_default: bool = False, load_from_attributes: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes)
         self._parent = parent
 
-    def add_to_parent(self) -> ParentExecutorProtoT:
+    def add_to_parent(self) -> _ParentExecutorProtoT:
         """Add this action row to its parent executor.
 
         Returns
         -------
-        ParentExecutorProtoT
+        _ParentExecutorProtoT
             The parent executor this action row was added to.
         """
         return self._parent.add_executor(self).add_builder(self)
 
 
 def as_child_executor(  # noqa: D103
-    executor: typing.Type[AbstractComponentExecutorT], /
-) -> typing.Type[AbstractComponentExecutorT]:
+    executor: typing.Type[_AbstractComponentExecutorT], /
+) -> typing.Type[_AbstractComponentExecutorT]:
     executor.__is_child_executor__ = True  # type: ignore
     return executor
 
@@ -2203,9 +2194,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
 
-    def add_builder(
-        self: _MultiComponentExecutorT, builder: hikari.api.ComponentBuilder, /
-    ) -> _MultiComponentExecutorT:
+    def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
         """Add a non-executable component builder to this executor.
 
         This is useful for adding components that are not meant to be executed, such as a
@@ -2223,7 +2212,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._builders.append(builder)
         return self
 
-    def add_action_row(self: _MultiComponentExecutorT) -> ChildActionRowExecutor[_MultiComponentExecutorT]:
+    def add_action_row(self) -> ChildActionRowExecutor[Self]:
         """Create a builder class to add an action row to this executor.
 
         For the most part this follows the same implementation as
@@ -2233,7 +2222,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
         Returns
         -------
-        ChildActionRowExecutor[_MultiComponentExecutorT]
+        ChildActionRowExecutor[Self]
             A builder class to add an action row to this executor.
 
             [yuyo.components.ChildActionRowExecutor.add_to_parent][] should be
@@ -2242,9 +2231,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         """
         return ChildActionRowExecutor(self)
 
-    def add_executor(
-        self: _MultiComponentExecutorT, executor: AbstractComponentExecutor, /
-    ) -> _MultiComponentExecutorT:
+    def add_executor(self, executor: AbstractComponentExecutor, /) -> Self:
         """Add a component executor to this multi-component executor.
 
         This method is internally used by the `add_{component}` methods.

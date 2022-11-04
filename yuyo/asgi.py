@@ -48,8 +48,8 @@ if typing.TYPE_CHECKING:
 
     import asgiref.typing as asgiref
     from hikari.api import config as hikari_config
+    from typing_extensions import Self
 
-_AsgiAdapterT = typing.TypeVar("_AsgiAdapterT", bound="AsgiAdapter")
 _T = typing.TypeVar("_T")
 
 
@@ -159,10 +159,10 @@ class AsgiAdapter:
             raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self: _AsgiAdapterT,
+        self,
         callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
         /,
-    ) -> _AsgiAdapterT:
+    ) -> Self:
         """Add a callback to be called when the ASGI server shuts down.
 
         !!! warning
@@ -183,10 +183,10 @@ class AsgiAdapter:
         return self
 
     def add_startup_callback(
-        self: _AsgiAdapterT,
+        self,
         callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
         /,
-    ) -> _AsgiAdapterT:
+    ) -> Self:
         """Add a callback to be called when the ASGI server starts up.
 
         !!! warning
