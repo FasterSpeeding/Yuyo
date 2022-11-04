@@ -34,7 +34,6 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
-    # /__init__.py
     "AbstractComponentExecutor",
     "AbstractReactionHandler",
     "ActionRowExecutor",
@@ -54,6 +53,7 @@ __all__: typing.Sequence[str] = [
     "ReactionPaginator",
     "SelectMenuBuilder",
     "WaitForExecutor",
+    "aenumerate",
     "as_child_executor",
     "as_component_callback",
     "as_reaction_callback",
