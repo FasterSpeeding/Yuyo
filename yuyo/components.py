@@ -2730,16 +2730,16 @@ class ComponentStream(AbstractComponentExecutor):
             and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
         )
 
-    def __enter__(self: _ComponentStreamT) -> _ComponentStreamT:
+    def __enter__(self) -> Self:
         self.open()
         return self
 
     def __exit__(
-        self: _ComponentStreamT,
-        exc_type: typing.Optional[typing.Type[BaseException]],
-        exc: typing.Optional[BaseException],
+        self,
+        exc_type: typing.Optional[typing.Type[Exception]],
+        exc: typing.Optional[Exception],
         exc_traceback: typing.Optional[types.TracebackType],
-    ) -> _ComponentStreamT:
+    ) -> Self:
         self.close()
         return self
 
@@ -2770,26 +2770,28 @@ class ComponentStream(AbstractComponentExecutor):
         except asyncio.TimeoutError:
             raise StopAsyncIteration from None
 
-    async def execute(
-        self, interaction: hikari.ComponentInteraction, /, *, future: typing.Optional[asyncio.Future[ResponseT]] = None
-    ) -> None:
+    async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
         if not self._queue:
-            await _pre_execution_error(interaction, future, "This bot isn't ready for that yet")
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "This bot isn't ready for that yet", ephemeral=True
+            )
             return
 
-        if self._authors and interaction.user.id not in self._authors:
-            await _pre_execution_error(interaction, future, "You are not allowed to use this component")
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
+            )
             return
 
         try:
-            self._queue.put_nowait(
-                ComponentContext(
-                    interaction=interaction, response_future=future, ephemeral_default=self._ephemeral_default
-                )
-            )
+
+            self._queue.put_nowait(ctx)
         except asyncio.QueueFull:
-            await _pre_execution_error(interaction, future, "This bot isn't ready for that yet")
+            await ctx.create_initial_response(
+                hikari.ResponseType.MESSAGE_CREATE, "This bot isn't ready for that yet", ephemeral=True
+            )
 
 
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
