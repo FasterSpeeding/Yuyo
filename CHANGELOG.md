@@ -5,6 +5,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.2.1a1] - 2022-11-04
+### Added
+- `ephemeral` keyword-argument to [yuyo.components.ComponentContext][]'s `create_initial_response`,
+  `create_follow_up` and `defer` methods as a shorthand for including `1 << 6` in the passed flags.
+- `delete_after` option to [yuyo.components.ComponentContext][] response methods.
+- `expires_at` property to [yuyo.components.ComponentContext][].
+- Support for dependency injection through [Alluka][alluka] to the reaction and component clients.
+
+### Changed
+- `ComponentExecutor.execute` now takes a context object instead of interaction and future objects.
+- [yuyo.pagination.async_paginate_string][], [yuyo.pagination.sync_paginate_string][] and
+  [yuyo.pagination.paginate_string][] now return an (async) iterator of the [str][] pages rather than
+  an iterator of `tuple[str, int]`. If you need page counts, use [enumerate][] or
+  [yuyo.pagination.aenumerate][].
+- (Async) iterables can now be passed to [yuyo.pagination.async_paginate_string][],
+  [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][] instead of just
+  iterators.
+
+### Fixed
+- [yuyo.components.ComponentContext.respond][] trying to edit in the initial response instead
+  of create a follow up if a deferred initial response was deleted.
+- Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.
+
+### Removed
+- The project metadata dunder attributes from [yuyo][].
+  [importlib.metadata][] should be used to get this metadata instead.
+
 ## [1.1.1a1] - 2022-08-28
 ### Added
 - Support for sending attachments in the initial response to the ASGI server implementation.
@@ -103,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.1.1a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.2.1a1...HEAD
+[1.2.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.2.1a1
 [1.1.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.1.1a1
 [1.0.6a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.5a1.post1...v1.0.6a1
 [1.0.5a1.post1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.5a1...v1.0.5a1.post1
