@@ -47,6 +47,7 @@ import datetime
 import inspect
 import typing
 
+import alluka as alluka_
 import hikari
 
 from . import backoff
@@ -109,13 +110,15 @@ class AbstractReactionHandler(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def on_reaction_event(self, event: EventT, /) -> None:
+    async def on_reaction_event(self, event: EventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
         """Handle a reaction event.
 
         Parameters
         ----------
         event
             The event to handle.
+        alluka
+            The Alluka client to use for DI during callback calls.
 
         Raises
         ------
@@ -286,7 +289,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         return decorator
 
-    async def on_reaction_event(self, event: EventT, /) -> None:
+    async def on_reaction_event(self, event: EventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             asyncio.create_task(self.close())
@@ -306,7 +309,12 @@ class ReactionHandler(AbstractReactionHandler):
             self._lock = asyncio.Lock()
 
         async with self._lock:
-            await method(event)
+            if alluka:
+                await alluka.call_with_async_di(method, event)
+
+            else:
+                await method(event)
+
             self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
@@ -656,10 +664,15 @@ class ReactionClient:
         [yuyo.reactions.ReactionClient.from_gateway_bot][].
     """
 
-    __slots__ = ("blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
+    __slots__ = ("_alluka", "blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
 
     def __init__(
-        self, *, rest: hikari.api.RESTClient, event_manager: hikari.api.EventManager, event_managed: bool = True
+        self,
+        *,
+        rest: hikari.api.RESTClient,
+        event_manager: hikari.api.EventManager,
+        alluka: typing.Optional[alluka_.abc.Client] = None,
+        event_managed: bool = True,
     ) -> None:
         """Initialise a reaction client.
 
@@ -669,10 +682,13 @@ class ReactionClient:
             The REST client to register this reaction client with.
         event_manager
             The event manager client to register this reaction client with.
+        alluka
+            The alluka client to use for callback DI.
         event_managed
             Whether the reaction client should be automatically opened and
             closed based on the lifetime events dispatched by `event_managed`.
         """
+        self._alluka = alluka or alluka_.Client()
         self.blacklist: typing.List[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
@@ -682,6 +698,10 @@ class ReactionClient:
         if event_managed:
             self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
             self._event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
+
+    @property
+    def alluka(self) -> alluka_.abc.Client:
+        return self._alluka
 
     @classmethod
     def from_gateway_bot(cls, bot: traits.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
@@ -722,7 +742,7 @@ class ReactionClient:
 
         if listener := self._handlers.get(event.message_id):
             try:
-                await listener.on_reaction_event(event)
+                await listener.on_reaction_event(event, alluka=self._alluka)
             except HandlerClosed:
                 self._handlers.pop(event.message_id, None)
 

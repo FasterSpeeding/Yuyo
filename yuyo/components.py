@@ -1354,7 +1354,7 @@ class ComponentClient:
     def __init__(
         self,
         *,
-        alluka: typing.Optional[alluka_.Client] = None,
+        alluka: typing.Optional[alluka_.abc.Client] = None,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         event_managed: typing.Optional[bool] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
@@ -1417,7 +1417,7 @@ class ComponentClient:
         self.close()
 
     @property
-    def alluka(self) -> alluka_.Client:
+    def alluka(self) -> alluka_.abc.Client:
         return self._alluka
 
     @classmethod
