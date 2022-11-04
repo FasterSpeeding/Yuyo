@@ -93,7 +93,7 @@ _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
 _ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
-CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSig = typing.Callable[["ComponentContext"], typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
