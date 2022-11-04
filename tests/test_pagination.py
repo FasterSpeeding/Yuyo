@@ -85,7 +85,6 @@ async def test_aenumerate():
 
     result = await _internal.collect_iterable(iterator)
 
-    print(result)
     assert result == [(0, "a"), (1, "meow"), (2, "nyaa"), (3, "nom")]
 
 
