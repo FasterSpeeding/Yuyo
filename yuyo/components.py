@@ -95,7 +95,7 @@ def _random_id() -> str:
 
 
 AbstractComponentExecutorT = typing.TypeVar("AbstractComponentExecutorT", bound="AbstractComponentExecutor")
-CallbackSig = typing.Callable[["ComponentContext"], typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ContainerProtoT = typing.TypeVar("ContainerProtoT", bound="_ContainerProto")
 ParentExecutorProtoT = typing.TypeVar("ParentExecutorProtoT", bound="_ParentExecutorProto")
