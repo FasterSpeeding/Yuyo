@@ -44,7 +44,8 @@ from yuyo import _internal
 @pytest.mark.asyncio()
 async def test_backwards_compat_aiter_():
     mock_iterable = mock.Mock(
-        typing.AsyncIterable, __aiter__=mock.Mock(return_value=mock.AsyncMock(typing.AsyncIterator))
+        collections.AsyncIterable,
+        __aiter__=mock.Mock(return_value=mock.AsyncMock(collections.AsyncIterator, __anext__=mock.AsyncMock())),
     )
 
     result = _internal.aiter_(mock_iterable)
@@ -90,21 +91,21 @@ async def test_backwards_compat_anext__when_exhausted_and_no_default():
     [
         (
             mock.Mock(
-                collections.AsyncIterator,
+                collections.AsyncIterable,
                 __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=[5, 3, 5, 33]))),
             ),
             [5, 3, 5, 33],
         ),
         (
             mock.Mock(
-                collections.AsyncIterator,
+                collections.AsyncIterable,
                 __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=StopAsyncIteration))),
             ),
             [],
         ),
     ],
 )
-async def test_collect_iterable_with_async_iterator(value: typing.AsyncIterator[int], result: typing.List[int]):
+async def test_collect_iterable_with_async_iterator(value: typing.AsyncIterable[int], result: typing.List[int]):
     assert await _internal.collect_iterable(value) == result
 
 
