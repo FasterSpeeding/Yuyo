@@ -38,6 +38,7 @@
 import warnings
 from unittest import mock
 
+import alluka
 import hikari
 import pytest
 
@@ -62,6 +63,18 @@ class TestComponentClient:
         mock_event_manger.subscribe.assert_has_calls(
             [mock.call(hikari.StartingEvent, client._on_starting), mock.call(hikari.StoppingEvent, client._on_stopping)]
         )
+
+    def test_alluka(self):
+        client = yuyo.ComponentClient(event_manager=mock.Mock())
+
+        assert isinstance(client.alluka, alluka.Client)
+
+    def test_alluka_with_passed_through_client(self):
+        mock_alluka = mock.Mock()
+
+        client = yuyo.ComponentClient(alluka=mock_alluka, event_manager=mock.Mock())
+
+        assert client.alluka is mock_alluka
 
     def test_from_gateway_bot(self):
         mock_bot = mock.Mock()

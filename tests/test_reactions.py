@@ -31,6 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unittest import mock
 
+import alluka
 import hikari
 
 from yuyo import reactions
@@ -51,6 +52,20 @@ def test_as_reaction_callback_with_custom_emoji():
     assert reactions.as_reaction_callback(emoji)(obj) is obj
 
     assert obj.__emoji_identifier__ == 123
+
+
+class TestReactionClient:
+    def test_alluka(self):
+        client = reactions.ReactionClient(rest=mock.AsyncMock(), event_manager=mock.Mock())
+
+        assert isinstance(client.alluka, alluka.Client)
+
+    def test_alluka_with_passed_through_client(self):
+        mock_alluka = mock.Mock()
+
+        client = reactions.ReactionClient(alluka=mock_alluka, rest=mock.AsyncMock(), event_manager=mock.Mock())
+
+        assert client.alluka is mock_alluka
 
 
 class TestReactionHandler:

@@ -1369,7 +1369,7 @@ class ComponentClient:
         Parameters
         ----------
         alluka
-            The Alluka client to use for DI in this client.
+            The Alluka client to use for callback dependency injection in this client.
 
             If not provided then this will initialise its own Alluka client.
         event_manager
@@ -1418,6 +1418,7 @@ class ComponentClient:
 
     @property
     def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
         return self._alluka
 
     @classmethod

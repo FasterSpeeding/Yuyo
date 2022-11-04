@@ -118,7 +118,7 @@ class AbstractReactionHandler(abc.ABC):
         event
             The event to handle.
         alluka
-            The Alluka client to use for DI during callback calls.
+            The Alluka client to use for callback dependency injection during callback calls.
 
         Raises
         ------
@@ -701,6 +701,7 @@ class ReactionClient:
 
     @property
     def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
         return self._alluka
 
     @classmethod
