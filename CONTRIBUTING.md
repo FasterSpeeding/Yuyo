@@ -64,9 +64,6 @@ good references for how projects should be type-hinted to be `type-complete`.
 
 * This project deviates from the symbolic python standard of importing types from the typing module and instead
   imports the typing module itself to use generics and types in it like `typing.Union` and `typing.Optional`.
-* Since this project supports python 3.9+, the `typing` types which were deprecated by
-  [PEP 585](https://www.python.org/dev/peps/pep-0585/) should be avoided in favour of their `collections.abc`,
-  builtin, `re` and `contextlib` equivalents.
 * The standard way for using `collections.abc` types within this project is to `import collections.abc as collections`.
 ---
 

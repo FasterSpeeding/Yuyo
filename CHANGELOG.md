@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `ComponentExecutor.execute` now takes a context object instead of interaction and future objects.
+- [yuyo.pagination.async_paginate_string][], [yuyo.pagination.sync_paginate_string][] and
+  [yuyo.pagination.paginate_string][] now return an (async) iterator of the [str] pages rather than
+  an iterator of `tuple[str, int]`. If you need page counts, use [enumerate] or
+  [yuyo.pagination.aenumerate][].
+- (Async) iterables can now be passed to [yuyo.pagination.async_paginate_string][],
+  [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][] instead of just
+  iterators.
 
 ### Fixed
 - `ComponentContext.respond` trying to edit in the initial response instead of create a follow up if a deferred initial response was deleted.

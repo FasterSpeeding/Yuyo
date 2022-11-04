@@ -33,97 +33,12 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from collections import abc as collections
 from unittest import mock
 
 import pytest
 
 from yuyo import pagination
-
-
-@pytest.mark.asyncio()
-@pytest.mark.parametrize(
-    ("value", "result"),
-    [
-        (
-            mock.Mock(
-                collections.AsyncIterator,
-                __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=[5, 3, 5, 33]))),
-            ),
-            [5, 3, 5, 33],
-        ),
-        (
-            mock.Mock(
-                collections.AsyncIterator,
-                __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=StopAsyncIteration))),
-            ),
-            [],
-        ),
-    ],
-)
-async def test_collect_iterator_with_async_iterator(value: typing.AsyncIterator[int], result: typing.List[int]):
-    assert await pagination.collect_iterator(value) == result
-
-
-@pytest.mark.asyncio()
-@pytest.mark.parametrize(
-    ("value", "result"),
-    [
-        (iter((1, 2, 3, 4, 4, 4)), [1, 2, 3, 4, 4, 4]),
-        (iter([]), []),
-    ],
-)
-async def test_collect_iterator_with_sync_iterator(value: typing.Iterator[int], result: typing.List[int]):
-    assert await pagination.collect_iterator(value) == result
-
-
-@pytest.mark.asyncio()
-async def test_seek_iterator_with_async_iterator():
-    mock_iterator = mock.Mock(collections.AsyncIterator)
-
-    with mock.patch.object(pagination, "seek_async_iterator") as seek_async_iterator:
-        assert await pagination.seek_iterator(mock_iterator, default=123) is seek_async_iterator.return_value
-
-        seek_async_iterator.assert_awaited_once_with(mock_iterator, default=123)
-
-
-@pytest.mark.asyncio()
-async def test_seek_iterator_with_sync_iterator():
-    mock_iterator = mock.Mock(collections.Iterator)
-
-    with mock.patch.object(pagination, "seek_sync_iterator") as seek_sync_iterator:
-        assert await pagination.seek_iterator(mock_iterator, default=432) is seek_sync_iterator.return_value
-
-        seek_sync_iterator.assert_called_once_with(mock_iterator, default=432)
-
-
-@pytest.mark.asyncio()
-async def test_seek_async_iterator():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(return_value=554433))),
-    )
-
-    assert await pagination.seek_async_iterator(mock_iterator, default=432) == 554433
-
-
-@pytest.mark.asyncio()
-async def test_seek_async_iterator_when_exhausted():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=StopAsyncIteration))),
-    )
-
-    assert await pagination.seek_async_iterator(mock_iterator, default=659595) == 659595
-
-
-def test_seek_sync_iterator():
-    assert pagination.seek_sync_iterator(iter((1,)), default=3322232) == 1
-
-
-def test_seek_sync_iterator_when_exhausted():
-    assert pagination.seek_sync_iterator(iter(()), default=3322232) == 3322232
 
 
 @pytest.mark.skip()

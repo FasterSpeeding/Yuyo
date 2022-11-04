@@ -35,13 +35,14 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
-import sys
 import traceback
 import typing
 import urllib.parse
 import uuid
 
 import hikari
+
+from . import _internal
 
 if typing.TYPE_CHECKING:
     import concurrent.futures
@@ -343,9 +344,9 @@ class AsgiAdapter:
 
         for index, attachment in enumerate(response.files):
             async with attachment.stream(executor=self._executor) as reader:
-                iterator = _aiter(reader)
+                iterator = _internal.aiter_(reader)
                 try:
-                    data = await _anext(iterator)
+                    data = await _internal.anext_(iterator)
                 except StopAsyncIteration:
                     data = b""
 
@@ -362,19 +363,6 @@ class AsgiAdapter:
                     await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
         await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
-
-
-if sys.version_info >= (3, 10):
-    _aiter = aiter  # noqa: F821
-    _anext = anext  # noqa: F821
-
-else:
-
-    def _aiter(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
-        return iterable.__aiter__()
-
-    async def _anext(iterator: typing.AsyncIterator[_T], /) -> _T:
-        return await iterator.__anext__()
 
 
 def _find_headers(

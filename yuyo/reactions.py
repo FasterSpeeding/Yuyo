@@ -50,6 +50,7 @@ import typing
 import alluka as alluka_
 import hikari
 
+from . import _internal
 from . import backoff
 from . import pagination
 
@@ -58,8 +59,9 @@ if typing.TYPE_CHECKING:
     from hikari.api import event_manager as event_manager_api
     from typing_extensions import Self
 
+    _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
 
-_EventT = typing.TypeVar("_EventT", bound=hikari.Event)
+
 EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
@@ -342,7 +344,7 @@ class ReactionPaginator(ReactionHandler):
 
     def __init__(
         self,
-        iterator: pagination.IteratorT[pagination.EntryT],
+        iterator: _internal.IteratorT[pagination.EntryT],
         *,
         authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
         triggers: typing.Collection[str] = (
@@ -356,7 +358,7 @@ class ReactionPaginator(ReactionHandler):
 
         Parameters
         ----------
-        iterator
+        iterator : typing.Iterator[yuyo.pagination.EntryT] | typing.AsyncIterator[yuyo.pagination.EntryT]
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
             `entry[0]` represents the message's possible content and can either be
@@ -378,7 +380,7 @@ class ReactionPaginator(ReactionHandler):
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
         self._buffer: typing.List[pagination.EntryT] = []
         self._index = -1
-        self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
+        self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
@@ -437,7 +439,7 @@ class ReactionPaginator(ReactionHandler):
 
     async def _on_last(self, _: EventT, /) -> None:
         if self._iterator:
-            self._buffer.extend(await pagination.collect_iterator(self._iterator))
+            self._buffer.extend(await _internal.collect_iterable(self._iterator))
 
         if self._buffer:
             self._index = len(self._buffer) - 1
@@ -451,7 +453,7 @@ class ReactionPaginator(ReactionHandler):
             return self._buffer[self._index]
 
         # If entry is not None then the generator's position was pushed forwards.
-        if self._iterator and (entry := await pagination.seek_iterator(self._iterator, default=None)):
+        if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
             self._index += 1
             self._buffer.append(entry)
             return entry

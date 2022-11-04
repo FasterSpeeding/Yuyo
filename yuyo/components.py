@@ -63,6 +63,7 @@ import warnings
 import alluka as alluka_
 import hikari
 
+from . import _internal
 from . import pagination
 
 if typing.TYPE_CHECKING:
@@ -71,6 +72,7 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
+    _AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 
     class _ContainerProto(typing.Protocol):
         def add_callback(self, _: str, __: CallbackSig, /) -> Self:
@@ -87,19 +89,19 @@ if typing.TYPE_CHECKING:
             raise NotImplementedError
 
 
-def _random_id() -> str:
-    return str(uuid.uuid4())
-
-
-_AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
-CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
-CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
 _ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
+_INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
+
+CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
-_INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 _LOGGER = logging.getLogger("hikari.yuyo.components")
+
+
+def _random_id() -> str:
+    return str(uuid.uuid4())
 
 
 def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int]) -> float:
@@ -2270,7 +2272,7 @@ class ComponentPaginator(ActionRowExecutor):
 
     def __init__(
         self,
-        iterator: pagination.IteratorT[pagination.EntryT],
+        iterator: _internal.IteratorT[pagination.EntryT],
         *,
         authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
@@ -2286,7 +2288,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         Parameters
         ----------
-        iterator
+        iterator : typing.Iterator[yuyo.pagination.EntryT] | typing.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
             This should be an iterator of tuples of `(hikari.UndefinedOr[str],
@@ -2323,7 +2325,7 @@ class ComponentPaginator(ActionRowExecutor):
         self._buffer: typing.List[pagination.EntryT] = []
         self._ephemeral_default = ephemeral_default
         self._index: int = -1
-        self._iterator: typing.Optional[pagination.IteratorT[pagination.EntryT]] = iterator
+        self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
@@ -2403,7 +2405,7 @@ class ComponentPaginator(ActionRowExecutor):
             return self._buffer[self._index]
 
         # If entry is not None then the generator's position was pushed forwards.
-        if self._iterator and (entry := await pagination.seek_iterator(self._iterator, default=None)):
+        if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
             self._index += 1
             self._buffer.append(entry)
             return entry
@@ -2447,7 +2449,7 @@ class ComponentPaginator(ActionRowExecutor):
                 .add_to_container()
             )
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
-            self._buffer.extend(await pagination.collect_iterator(self._iterator))
+            self._buffer.extend(await _internal.collect_iterable(self._iterator))
             self._index = len(self._buffer) - 1
             self._iterator = None
 
