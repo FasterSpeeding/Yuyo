@@ -1940,6 +1940,7 @@ class WaitForExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
         if not self._future:
             await ctx.create_initial_response(
                 hikari.ResponseType.MESSAGE_CREATE, "The bot isn't ready for that yet", ephemeral=True
@@ -2362,6 +2363,7 @@ class ComponentPaginator(ActionRowExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
         if self._authors and ctx.interaction.user.id not in self._authors:
             await ctx.create_initial_response(
                 hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
