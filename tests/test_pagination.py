@@ -33,12 +33,16 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
+import typing
 from collections import abc as collections
 from unittest import mock
 
 import pytest
 
+from yuyo import _internal
 from yuyo import pagination
+
+_T = typing.TypeVar("_T")
 
 
 @pytest.mark.skip()
@@ -69,3 +73,26 @@ def test_paginate_string_with_sync_iterator():
 
         assert result is sync_paginate_string.return_value
         sync_paginate_string.assert_called_once_with(mock_iterator, char_limit=222, line_limit=5555, wrapper="s")
+
+
+async def fake_awake(value: _T, /) -> _T:
+    return value
+
+
+@pytest.mark.asyncio()
+async def test_aenumerate():
+    iterator = pagination.aenumerate((await fake_awake(value) for value in ("a", "meow", "nyaa", "nom")))
+
+    result = await _internal.collect_iterable(iterator)
+
+    assert result == [(0, "a"), (1, "meow"), (2, "nyaa"), (3, "nom")]
+
+
+@pytest.mark.asyncio()
+async def test_aenumerate_for_empty_iterator():
+    raw_iterator: typing.AsyncIterator[str] = (await fake_awake(value) for value in ())
+    iterator = pagination.aenumerate(raw_iterator)
+
+    result = await _internal.collect_iterable(iterator)
+
+    assert result == []
