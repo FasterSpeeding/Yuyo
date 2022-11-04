@@ -42,7 +42,6 @@ import hikari
 from . import _internal
 
 if typing.TYPE_CHECKING:
-
     _T = typing.TypeVar("_T")
 
 
@@ -113,7 +112,7 @@ async def async_paginate_string(
     page: typing.List[str] = []
     lines = _internal.aiter_(lines)
 
-    while (line := await _internal.seek_async_iterator(lines, default=None)) is not None:
+    while (line := await _internal.anext_(lines, None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:
@@ -183,7 +182,7 @@ def sync_paginate_string(
     page: typing.List[str] = []
     lines = iter(lines)
 
-    while (line := _internal.seek_sync_iterator(lines, default=None)) is not None:
+    while (line := next(lines, None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:
@@ -283,7 +282,7 @@ async def aenumerate(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncItera
 
     Returns
     -------
-    collections.abc.AsyncIterator[tuple[int, _T]]
+    typing.AsyncIterator[tuple[int, _T]]
         The enumerated async iterator.
     """
     counter = -1

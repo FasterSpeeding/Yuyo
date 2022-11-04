@@ -43,6 +43,8 @@ _DefaultT = typing.TypeVar("_DefaultT")
 IterableT = typing.Union[typing.AsyncIterable[_T], typing.Iterable[_T]]
 IteratorT = typing.Union[typing.AsyncIterator[_T], typing.Iterator[_T]]
 
+_NO_DEFAULT = object()
+
 
 if sys.version_info >= (3, 10):
     aiter_ = aiter  # noqa: F821
@@ -53,8 +55,24 @@ else:
     def aiter_(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
         return iterable.__aiter__()
 
+    @typing.overload
     async def anext_(iterator: typing.AsyncIterator[_T], /) -> _T:
-        return await iterator.__anext__()
+        ...
+
+    @typing.overload
+    async def anext_(iterator: typing.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]:
+        ...
+
+    async def anext_(
+        iterator: typing.AsyncIterator[_T], default: _DefaultT = _NO_DEFAULT, /
+    ) -> typing.Union[_T, _DefaultT]:
+        try:
+            return await iterator.__anext__()
+        except StopAsyncIteration:
+            if default is _NO_DEFAULT:
+                raise
+
+            return typing.cast("_T", default)
 
 
 async def collect_iterable(iterator: IterableT[_T], /) -> typing.List[_T]:
@@ -79,19 +97,6 @@ async def collect_iterable(iterator: IterableT[_T], /) -> typing.List[_T]:
 async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
     """Get the next value in an async or sync iterator."""
     if isinstance(iterator, collections.AsyncIterator):
-        return await seek_async_iterator(iterator, default=default)
+        return await anext_(iterator, default)
 
-    return seek_sync_iterator(iterator, default=default)
-
-
-async def seek_async_iterator(iterator: typing.AsyncIterator[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-    """Get the next value in an async iterator."""
-    async for value in iterator:
-        return value
-
-    return default
-
-
-def seek_sync_iterator(iterator: typing.Iterator[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
-    """Get the next value in an async iterator."""
     return next(iterator, default)

@@ -42,6 +42,37 @@ from yuyo import _internal
 
 
 @pytest.mark.asyncio()
+async def test_backwards_compat_anext_():
+    mock_iterator = mock.Mock(
+        collections.AsyncIterator,
+        __anext__=mock.AsyncMock(return_value=554433),
+    )
+
+    assert await _internal.anext_(mock_iterator, 432) == 554433
+
+
+@pytest.mark.asyncio()
+async def test_backwards_compat_anext__when_exhausted():
+    mock_iterator = mock.Mock(
+        collections.AsyncIterator,
+        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
+    )
+
+    assert await _internal.anext_(mock_iterator, 659595) == 659595
+
+
+@pytest.mark.asyncio()
+async def test_backwards_compat_anext__when_exhausted_and_no_default():
+    mock_iterator = mock.Mock(
+        collections.AsyncIterator,
+        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
+    )
+
+    with pytest.raises(StopAsyncIteration):
+        await _internal.anext_(mock_iterator)
+
+
+@pytest.mark.asyncio()
 @pytest.mark.parametrize(
     ("value", "result"),
     [
@@ -79,47 +110,33 @@ async def test_collect_iterable_with_sync_iterator(value: typing.Iterator[int], 
 
 @pytest.mark.asyncio()
 async def test_seek_iterator_with_async_iterator():
-    mock_iterator = mock.Mock(collections.AsyncIterator)
+    mock_iterator = mock.Mock(
+        collections.AsyncIterator,
+        __anext__=mock.AsyncMock(return_value=4321234),
+    )
 
-    with mock.patch.object(_internal, "seek_async_iterator") as seek_async_iterator:
-        assert await _internal.seek_iterator(mock_iterator, default=123) is seek_async_iterator.return_value
+    assert await _internal.seek_iterator(mock_iterator, default=123) == 4321234
 
-        seek_async_iterator.assert_awaited_once_with(mock_iterator, default=123)
+
+@pytest.mark.asyncio()
+async def test_seek_iterator_with_depleted_async_iterator():
+    mock_iterator = mock.Mock(
+        collections.AsyncIterator,
+        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
+    )
+
+    assert await _internal.seek_iterator(mock_iterator, default=323423) == 323423
 
 
 @pytest.mark.asyncio()
 async def test_seek_iterator_with_sync_iterator():
-    mock_iterator = mock.Mock(collections.Iterator)
+    mock_iterator = iter([1543, 5, 7, 3, 12])
 
-    with mock.patch.object(_internal, "seek_sync_iterator") as seek_sync_iterator:
-        assert await _internal.seek_iterator(mock_iterator, default=432) is seek_sync_iterator.return_value
-
-        seek_sync_iterator.assert_called_once_with(mock_iterator, default=432)
+    assert await _internal.seek_iterator(mock_iterator, default=432) == 1543
 
 
 @pytest.mark.asyncio()
-async def test_seek_async_iterator():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(return_value=554433))),
-    )
+async def test_seek_iterator_with_depleted_sync_iterator():
+    mock_iterator = iter([])
 
-    assert await _internal.seek_async_iterator(mock_iterator, default=432) == 554433
-
-
-@pytest.mark.asyncio()
-async def test_seek_async_iterator_when_exhausted():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __aiter__=mock.Mock(return_value=mock.Mock(__anext__=mock.AsyncMock(side_effect=StopAsyncIteration))),
-    )
-
-    assert await _internal.seek_async_iterator(mock_iterator, default=659595) == 659595
-
-
-def test_seek_sync_iterator():
-    assert _internal.seek_sync_iterator(iter((1,)), default=3322232) == 1
-
-
-def test_seek_sync_iterator_when_exhausted():
-    assert _internal.seek_sync_iterator(iter(()), default=3322232) == 3322232
+    assert await _internal.seek_iterator(mock_iterator, default=123321) == 123321
