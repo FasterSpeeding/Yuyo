@@ -34,6 +34,7 @@ from __future__ import annotations
 
 __all__ = []
 
+import sys
 import typing
 from collections import abc as collections
 
@@ -41,6 +42,19 @@ _T = typing.TypeVar("_T")
 _DefaultT = typing.TypeVar("_DefaultT")
 IterableT = typing.Union[typing.AsyncIterable[_T], typing.Iterable[_T]]
 IteratorT = typing.Union[typing.AsyncIterator[_T], typing.Iterator[_T]]
+
+
+if sys.version_info >= (3, 10):
+    aiter_ = aiter  # noqa: F821
+    anext_ = anext  # noqa: F821
+
+else:
+
+    def aiter_(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+        return iterable.__aiter__()
+
+    async def anext_(iterator: typing.AsyncIterator[_T], /) -> _T:
+        return await iterator.__anext__()
 
 
 async def collect_iterable(iterator: IterableT[_T], /) -> typing.List[_T]:

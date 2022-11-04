@@ -34,7 +34,6 @@ from __future__ import annotations
 
 __all__: typing.Sequence[str] = ["aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
-import sys
 import textwrap
 import typing
 
@@ -80,15 +79,6 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 """The emoji used to close a menu in a component context."""
 
 
-if sys.version_info >= (3, 10):
-    _aiter = aiter
-
-else:
-
-    def _aiter(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
-        return iterable.__aiter__()
-
-
 async def async_paginate_string(
     lines: typing.AsyncIterable[str],
     *,
@@ -121,7 +111,7 @@ async def async_paginate_string(
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_size = 0
     page: typing.List[str] = []
-    lines = _aiter(lines)
+    lines = _internal.aiter_(lines)
 
     while (line := await _internal.seek_async_iterator(lines, default=None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
