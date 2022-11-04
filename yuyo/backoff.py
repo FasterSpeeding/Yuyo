@@ -46,8 +46,7 @@ from hikari.impl import rate_limits
 if typing.TYPE_CHECKING:
     import types
 
-
-ErrorManagerT = typing.TypeVar("ErrorManagerT", bound="ErrorManager")
+    from typing_extensions import Self
 
 
 class Backoff:
@@ -323,10 +322,10 @@ class ErrorManager:
         self._rules.clear()
 
     def with_rule(
-        self: ErrorManagerT,
+        self,
         exceptions: typing.Iterable[typing.Type[BaseException]],
         result: typing.Callable[[typing.Any], typing.Optional[bool]],
-    ) -> ErrorManagerT:
+    ) -> Self:
         """Add a rule to this exception context manager.
 
         Parameters
@@ -342,7 +341,7 @@ class ErrorManager:
 
         Returns
         -------
-        ErrorManager
+        Self
             This returns the handler a rule was being added to in-order to
             allow for chained calls.
         """

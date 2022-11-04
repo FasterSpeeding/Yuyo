@@ -56,10 +56,7 @@ from . import pagination
 if typing.TYPE_CHECKING:
     from hikari import traits
     from hikari.api import event_manager as event_manager_api
-
-    _ReactionHandlerT = typing.TypeVar("_ReactionHandlerT", bound="ReactionHandler")
-    _ReactionPaginatorT = typing.TypeVar("_ReactionPaginatorT", bound="ReactionPaginator")
-    _ReactionClientT = typing.TypeVar("_ReactionClientT", bound="ReactionClient")
+    from typing_extensions import Self
 
 
 _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
@@ -216,11 +213,11 @@ class ReactionHandler(AbstractReactionHandler):
         self._message = None
 
     def add_callback(
-        self: _ReactionHandlerT,
+        self,
         emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]],
         callback: CallbackSig,
         /,
-    ) -> _ReactionHandlerT:
+    ) -> Self:
         """Add a callback to this reaction handler.
 
         Parameters
@@ -470,7 +467,7 @@ class ReactionPaginator(ReactionHandler):
             content, embed = self._buffer[self._index]
             await self._edit_message(content=content, embed=embed)
 
-    def add_author(self: _ReactionPaginatorT, user: hikari.SnowflakeishOr[hikari.User], /) -> _ReactionPaginatorT:
+    def add_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> Self:
         """Add a author/owner to this handler.
 
         Parameters
@@ -759,11 +756,11 @@ class ReactionClient:
         return self._gc_task is None
 
     def add_handler(
-        self: _ReactionClientT,
+        self,
         message: hikari.SnowflakeishOr[hikari.Message],
         /,
         paginator: AbstractReactionHandler,
-    ) -> _ReactionClientT:
+    ) -> Self:
         """Add a reaction handler to this reaction client.
 
         !!! note
