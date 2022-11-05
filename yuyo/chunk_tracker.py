@@ -32,7 +32,12 @@
 """Utility class for tracking request guild member responses."""
 from __future__ import annotations
 
-__all__: list[str] = []
+__all__: typing.Sequence[str] = [
+    "ChunkRequestFinished",
+    "ChunkTracker",
+    "ChunkingFinishedEvent",
+    "ShardChunkingFinishedEvent",
+]
 
 import base64
 import datetime
@@ -193,8 +198,9 @@ class ShardChunkingFinishedEvent(hikari.ShardEvent):
 class ChunkTracker:
     """Chunk payload event tracker.
 
-    This will dispatch [ShardChunkingFinishedEvent][], [ChunkingFinishedEvent][]
-    and [ChunkRequestFinished][] events.
+    This will dispatch [ShardChunkingFinishedEvent][yuyo.chunk_tracker.ShardChunkingFinishedEvent],
+    [ChunkingFinishedEvent][yuyo.chunk_tracker.ChunkingFinishedEvent]
+    and [ChunkRequestFinished][yuyo.chunk_tracker.ChunkRequestFinished] events.
     """
 
     __slots__ = (
@@ -215,7 +221,7 @@ class ChunkTracker:
         """Initialise a chunk tracker.
 
         For a shorthand for initialising this from a [hikari.traits.GatewayBotAware][]
-        see [ChunkTracker.from_gateway_bot][].
+        see [ChunkTracker.from_gateway_bot][yuyo.chunk_tracker.ChunkTracker.from_gateway_bot].
 
         Parameters
         ----------
