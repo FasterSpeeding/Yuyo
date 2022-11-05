@@ -148,7 +148,11 @@ class ComponentContext:
 
     @property
     def expires_at(self) -> datetime.datetime:
-        # <<inherited docstring from tanjun.abc.SlashContext>>.
+        """When this application command context expires.
+
+        After this time is reached, the message/response methods on this
+        context will always raise [hikari.errors.NotFoundError][].
+        """
         return self._interaction.created_at + _INTERACTION_LIFETIME
 
     @property
