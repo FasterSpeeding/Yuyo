@@ -41,7 +41,7 @@ __all__: typing.Sequence[str] = [
     "AsgiBot",
     "Backoff",
     "ChildActionRowExecutor",
-    "ChunkRequestFinished",
+    "ChunkRequestFinishedEvent",
     "ChunkTracker",
     "ComponentClient",
     "ComponentContext",

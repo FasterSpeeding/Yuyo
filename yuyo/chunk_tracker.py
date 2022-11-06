@@ -33,7 +33,7 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
-    "ChunkRequestFinished",
+    "ChunkRequestFinishedEvent",
     "ChunkTracker",
     "FinishedChunkingEvent",
     "ShardFinishedChunkingEvent",
@@ -61,7 +61,7 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("hikari.yuyo.chunk_trackers")
 
 
-class ChunkRequestFinished(hikari.Event):
+class ChunkRequestFinishedEvent(hikari.Event):
     """Event that's dispatched when a specific chunk request has finished.
 
     This will be fired for every chunk request which has a nonce.
@@ -296,8 +296,8 @@ class ChunkTracker:
     """Chunk payload event tracker.
 
     This will dispatch [ShardFinishedChunkingEvent][yuyo.chunk_tracker.ShardFinishedChunkingEvent],
-    [FinishedChunkingEvent][yuyo.chunk_tracker.FinishedChunkingEvent]
-    and [ChunkRequestFinished][yuyo.chunk_tracker.ChunkRequestFinished] events.
+    [FinishedChunkingEvent][yuyo.chunk_tracker.FinishedChunkingEvent] and
+    [ChunkRequestFinishedEvent][yuyo.chunk_tracker.ChunkRequestFinishedEvent] events.
 
     To configure this to automatically request member chunks to fill a member
     and/or presence cache on startup and guild join see
@@ -487,7 +487,7 @@ class ChunkTracker:
             timed_out_shards.clear()
 
     async def _dispatch_finished(self, data: _RequestData, /, *, nonce: typing.Optional[str] = None) -> None:
-        await self._event_manager.dispatch(ChunkRequestFinished(self._rest, data.shard, data))
+        await self._event_manager.dispatch(ChunkRequestFinishedEvent(self._rest, data.shard, data))
         shard_info = self._tracked_identifies.get(data.shard.id)
         if not shard_info or nonce and not shard_info.check_nonce(data.guild_id, nonce):
             return
