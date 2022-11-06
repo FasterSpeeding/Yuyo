@@ -298,6 +298,7 @@ class ChunkTracker:
         "_auto_chunk_members",
         "_chunk_presences",
         "_event_manager",
+        "_is_starting",
         "_requests",
         "_rest",
         "_shards",
@@ -327,6 +328,7 @@ class ChunkTracker:
         self._auto_chunk_members = False
         self._chunk_presences = False
         self._event_manager = event_manager
+        self._is_starting: bool = False
         self._requests: typing.Dict[str, _RequestData] = {}
         self._rest = rest
         self._shards = shards
@@ -334,6 +336,8 @@ class ChunkTracker:
         self._tracked_identifies: typing.Dict[int, _ShardInfo] = {}
         event_manager.subscribe(hikari.ShardPayloadEvent, self._on_payload_event)
         event_manager.subscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
+        event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
+        event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
     @classmethod
     def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /) -> Self:
@@ -486,11 +490,9 @@ class ChunkTracker:
             missing_guild_ids=list(shard_info.guild_ids.difference(shard_info.incomplete_guild_ids)),
         )
         await self._event_manager.dispatch(event)
-        if not self._tracked_identifies:
+        if not self._tracked_identifies and self._is_starting:
+            self._is_starting = False
             await self._event_manager.dispatch(ChunkingFinishedEvent(self._rest))
-
-    async def _on_shard_ready_event(self, event: hikari.events.ShardReadyEvent, /) -> None:
-        self._tracked_identifies[event.shard.id] = _ShardInfo(event.shard, event.unavailable_guilds)
 
     async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
         if event.name == "GUILD_CREATE":
@@ -578,3 +580,17 @@ class ChunkTracker:
 
         else:
             await self._dispatch_finished(data, nonce=nonce)
+
+    async def _on_shard_ready_event(self, event: hikari.ShardReadyEvent, /) -> None:
+        self._tracked_identifies[event.shard.id] = _ShardInfo(event.shard, event.unavailable_guilds)
+
+    async def _on_starting_event(self, event: hikari.StartingEvent, /) -> None:
+        self._is_starting = True
+
+    async def _on_stopping_event(self, event: hikari.StoppedEvent, /) -> None:
+        self._is_starting = False
+        self._requests.clear()
+        self._tracked_identifies.clear()
+
+        if self._task:
+            self._task.cancel()
