@@ -264,10 +264,16 @@ _TIMEOUT = datetime.timedelta(seconds=5)
 class _ShardInfo:
     __slots__ = ("guild_ids", "incomplete_guild_ids", "known_nonces", "last_received_at", "shard")
 
-    def __init__(self, shard: hikari.api.GatewayShard, guild_ids: typing.Sequence[hikari.Snowflake], /) -> None:
+    def __init__(
+        self,
+        shard: hikari.api.GatewayShard,
+        guild_ids: typing.Sequence[hikari.Snowflake],
+        /,
+        known_nonces: typing.Optional[typing.Dict[hikari.Snowflake, str]] = None,
+    ) -> None:
         self.guild_ids = set(guild_ids)
         self.incomplete_guild_ids: typing.List[hikari.Snowflake] = []
-        self.known_nonces: typing.Dict[hikari.Snowflake, str] = {}
+        self.known_nonces: typing.Dict[hikari.Snowflake, str] = known_nonces or {}
         self.last_received_at = _now()
         self.shard = shard
 
@@ -516,9 +522,12 @@ class ChunkTracker:
                 and event.payload.get("large")
                 and event.shard.intents & hikari.Intents.GUILD_MEMBERS
             ):
-                nonce = _random_nonce()
                 if shard_info := self._tracked_identifies.get(event.shard.id):
+                    nonce = shard_info.known_nonces.get(guild_id) or _random_nonce()
                     shard_info.known_nonces[guild_id] = nonce
+
+                else:
+                    nonce = _random_nonce()
 
                 include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
                 await self._shards.request_guild_members(guild_id, include_presences=include_presences, nonce=nonce)
@@ -595,12 +604,20 @@ class ChunkTracker:
             await self._dispatch_finished(data, nonce=nonce)
 
     async def _on_shard_ready_event(self, event: hikari.ShardReadyEvent, /) -> None:
-        self._tracked_identifies[event.shard.id] = _ShardInfo(event.shard, event.unavailable_guilds)
+        if self._auto_chunk_members:
+            known_nonces = {guild_id: _random_nonce() for guild_id in event.unavailable_guilds}
 
-    async def _on_starting_event(self, event: hikari.StartingEvent, /) -> None:
+        else:
+            known_nonces = None
+
+        self._tracked_identifies[event.shard.id] = _ShardInfo(
+            event.shard, event.unavailable_guilds, known_nonces=known_nonces
+        )
+
+    async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._is_starting = True
 
-    async def _on_stopping_event(self, event: hikari.StoppedEvent, /) -> None:
+    async def _on_stopping_event(self, _: hikari.StoppedEvent, /) -> None:
         self._is_starting = False
         self._requests.clear()
         self._tracked_identifies.clear()
