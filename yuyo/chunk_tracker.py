@@ -61,74 +61,6 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("hikari.yuyo.chunk_trackers")
 
 
-def log_task_exc(
-    message: str, /
-) -> typing.Callable[[typing.Callable[_P, typing.Awaitable[_T]]], typing.Callable[_P, _CoroT[_T]]]:
-    """Log the exception when a task raises instead of leaving it up to the gods."""
-
-    def decorator(callback: typing.Callable[_P, typing.Awaitable[_T]], /) -> typing.Callable[_P, _CoroT[_T]]:
-        @functools.wraps(callback)
-        async def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _T:
-            try:
-                return await callback(*args, **kwargs)
-
-            except Exception as exc:
-                _LOGGER.exception(message, exc_info=exc)
-                raise exc from None  # noqa: R101  # use bare raise in except handler?
-
-        return wrapper
-
-    return decorator
-
-
-class _RequestData:
-    __slots__ = (
-        "chunk_count",
-        "first_received_at",
-        "guild_id",
-        "last_received_at",
-        "missing_chunks",
-        "not_found_ids",
-        "shard",
-    )
-
-    def __init__(
-        self,
-        shard: hikari.api.GatewayShard,
-        guild_id: hikari.Snowflake,
-        /,
-        *,
-        chunk_count: typing.Optional[int] = None,
-        first_received_at: datetime.datetime,
-        last_received_at: datetime.datetime,
-        missing_chunks: typing.Optional[typing.Set[int]] = None,
-        not_found_ids: typing.Optional[typing.Set[hikari.Snowflake]] = None,
-    ) -> None:
-        self.chunk_count: typing.Optional[int] = chunk_count
-        self.first_received_at: datetime.datetime = first_received_at
-        self.guild_id: hikari.Snowflake = guild_id
-        self.last_received_at: datetime.datetime = last_received_at
-        self.missing_chunks: typing.Optional[typing.Set[int]] = missing_chunks
-        self.not_found_ids: typing.Set[hikari.Snowflake] = not_found_ids or set()
-        self.shard: hikari.api.GatewayShard = shard
-
-
-def _now() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
-
-
-_TIMEOUT = datetime.timedelta(seconds=5)
-
-
-class _ShardInfo:
-    __slots__ = ("guild_ids", "last_received_at", "shard")
-
-    def __init__(self, shard: hikari.api.GatewayShard, guild_ids: typing.Sequence[hikari.Snowflake], /) -> None:
-        self.guild_ids = set(guild_ids)
-        self.last_received_at = _now()
-        self.shard = shard
-
-
 class ChunkRequestFinished(hikari.Event):
     """Event that's dispatched when a specific chunk request has finished.
 
@@ -264,6 +196,95 @@ class ShardChunkingFinishedEvent(hikari.ShardEvent):
     def missed_guild_ids(self) -> typing.Sequence[hikari.Snowflake]:
         """Sequence of the IDs of guilds no chunk responses were received for."""
         return self._missing_guild_ids
+
+
+def _log_task_exc(
+    message: str, /
+) -> typing.Callable[[typing.Callable[_P, typing.Awaitable[_T]]], typing.Callable[_P, _CoroT[_T]]]:
+    """Log the exception when a task raises instead of leaving it up to the gods."""
+
+    def decorator(callback: typing.Callable[_P, typing.Awaitable[_T]], /) -> typing.Callable[_P, _CoroT[_T]]:
+        @functools.wraps(callback)
+        async def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+            try:
+                return await callback(*args, **kwargs)
+
+            except Exception as exc:
+                _LOGGER.exception(message, exc_info=exc)
+                raise exc from None  # noqa: R101  # use bare raise in except handler?
+
+        return wrapper
+
+    return decorator
+
+
+class _RequestData:
+    __slots__ = (
+        "chunk_count",
+        "first_received_at",
+        "guild_id",
+        "last_received_at",
+        "missing_chunks",
+        "not_found_ids",
+        "shard",
+    )
+
+    def __init__(
+        self,
+        shard: hikari.api.GatewayShard,
+        guild_id: hikari.Snowflake,
+        /,
+        *,
+        chunk_count: typing.Optional[int] = None,
+        first_received_at: datetime.datetime,
+        last_received_at: datetime.datetime,
+        missing_chunks: typing.Optional[typing.Set[int]] = None,
+        not_found_ids: typing.Optional[typing.Set[hikari.Snowflake]] = None,
+    ) -> None:
+        self.chunk_count: typing.Optional[int] = chunk_count
+        self.first_received_at: datetime.datetime = first_received_at
+        self.guild_id: hikari.Snowflake = guild_id
+        self.last_received_at: datetime.datetime = last_received_at
+        self.missing_chunks: typing.Optional[typing.Set[int]] = missing_chunks
+        self.not_found_ids: typing.Set[hikari.Snowflake] = not_found_ids or set()
+        self.shard: hikari.api.GatewayShard = shard
+
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
+_TIMEOUT = datetime.timedelta(seconds=5)
+
+
+class _ShardInfo:
+    __slots__ = ("guild_ids", "last_received_at", "shard")
+
+    def __init__(self, shard: hikari.api.GatewayShard, guild_ids: typing.Sequence[hikari.Snowflake], /) -> None:
+        self.guild_ids = set(guild_ids)
+        self.last_received_at = _now()
+        self.shard = shard
+
+
+class _TimedOutShard:
+    __slots__ = ("incomplete_guild_ids", "shard_info")
+
+    def __init__(self, shard_info: _ShardInfo) -> None:
+        self.incomplete_guild_ids: typing.List[hikari.Snowflake] = []
+        self.shard_info: _ShardInfo = shard_info
+
+    def mark_incomplete(self, guild_id: hikari.Snowflake, /) -> None:
+        try:
+            self.shard_info.guild_ids.remove(guild_id)
+
+        except KeyError:
+            pass
+
+        else:
+            self.incomplete_guild_ids.append(guild_id)
+
+    def missing_guild_ids(self) -> typing.Sequence[hikari.Snowflake]:
+        return list(self.shard_info.guild_ids.difference(self.incomplete_guild_ids))
 
 
 class ChunkTracker:
@@ -407,10 +428,10 @@ class ChunkTracker:
     def _unset_task(self, task: asyncio.Task[None], /) -> None:
         self._task = None
 
-    @log_task_exc("Chunk tracker crashed")
+    @_log_task_exc("Chunk tracker crashed")
     async def _loop(self) -> None:
         timed_out_requests: typing.List[_RequestData] = []
-        timed_out_shards: typing.List[_ShardInfo] = []
+        timed_out_shards: typing.Dict[int, _TimedOutShard] = {}
 
         while self._tracked_identifies or self._requests:
             await asyncio.sleep(1)
@@ -419,10 +440,13 @@ class ChunkTracker:
                 if date - shard_info.last_received_at < _TIMEOUT:
                     continue
 
-                timed_out_shards.append(shard_info)
+                timed_out_shards[shard_info.shard.id] = _TimedOutShard(shard_info)
                 del self._tracked_identifies[shard_info.shard.id]
 
             for nonce, request_info in self._requests.items():
+                if shard_info := timed_out_shards.get(request_info.shard.id):
+                    shard_info.mark_incomplete(request_info.guild_id)
+
                 if date - request_info.last_received_at < _TIMEOUT:
                     continue
 
@@ -430,7 +454,16 @@ class ChunkTracker:
                 del self._requests[nonce]
 
             await asyncio.gather(*map(self._dispatch_finished, timed_out_requests))
-            await asyncio.gather(*(self._dispatch_shard_finished(shard_info.shard) for shard_info in timed_out_shards))
+            await asyncio.gather(
+                *(
+                    self._dispatch_shard_finished(
+                        info.shard_info.shard,
+                        incomplete_guild_ids=info.incomplete_guild_ids,
+                        missing_guild_ids=info.missing_guild_ids(),
+                    )
+                    for info in timed_out_shards.values()
+                )
+            )
             timed_out_requests.clear()
             timed_out_shards.clear()
 
