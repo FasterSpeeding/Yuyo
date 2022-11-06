@@ -35,8 +35,8 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = [
     "ChunkRequestFinished",
     "ChunkTracker",
-    "ChunkingFinishedEvent",
-    "ShardChunkingFinishedEvent",
+    "FinishedChunkingEvent",
+    "ShardFinishedChunkingEvent",
 ]
 
 import asyncio
@@ -123,13 +123,13 @@ class ChunkRequestFinished(hikari.Event):
         return self._data.not_found_ids
 
 
-class ChunkingFinishedEvent(hikari.Event):  # TODO: better name?
+class FinishedChunkingEvent(hikari.Event):
     """Event that's dispatched when the startup chunking has finished for the bot.
 
     This indicates that any cache member and presences resources should be
     complete globally.
 
-    This will only be fired after bot startups.
+    This will only be fired once after bot startups.
     """
 
     __slots__ = ("_app",)
@@ -147,7 +147,7 @@ class ChunkingFinishedEvent(hikari.Event):  # TODO: better name?
         return self._app
 
 
-class ShardChunkingFinishedEvent(hikari.ShardEvent):
+class ShardFinishedChunkingEvent(hikari.ShardEvent):
     """Event that's dispatched when the startup chunking has finished for a shard.
 
     This indicates that any cache member and presences resources should be
@@ -289,8 +289,8 @@ class _ShardInfo:
 class ChunkTracker:
     """Chunk payload event tracker.
 
-    This will dispatch [ShardChunkingFinishedEvent][yuyo.chunk_tracker.ShardChunkingFinishedEvent],
-    [ChunkingFinishedEvent][yuyo.chunk_tracker.ChunkingFinishedEvent]
+    This will dispatch [ShardFinishedChunkingEvent][yuyo.chunk_tracker.ShardFinishedChunkingEvent],
+    [FinishedChunkingEvent][yuyo.chunk_tracker.FinishedChunkingEvent]
     and [ChunkRequestFinished][yuyo.chunk_tracker.ChunkRequestFinished] events.
 
     To configure this to automatically request member chunks to fill a member
@@ -496,7 +496,7 @@ class ChunkTracker:
             await self._dispatch_shard_finished(shard_info)
 
     async def _dispatch_shard_finished(self, shard_info: _ShardInfo, /) -> None:
-        event = ShardChunkingFinishedEvent(
+        event = ShardFinishedChunkingEvent(
             self._rest,
             shard_info.shard,
             incomplete_guild_ids=shard_info.incomplete_guild_ids,
@@ -505,7 +505,7 @@ class ChunkTracker:
         await self._event_manager.dispatch(event)
         if not self._tracked_identifies and self._is_starting:
             self._is_starting = False
-            await self._event_manager.dispatch(ChunkingFinishedEvent(self._rest))
+            await self._event_manager.dispatch(FinishedChunkingEvent(self._rest))
 
     async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
         if event.name == "GUILD_CREATE":
