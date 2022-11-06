@@ -292,6 +292,15 @@ class ChunkTracker:
     This will dispatch [ShardChunkingFinishedEvent][yuyo.chunk_tracker.ShardChunkingFinishedEvent],
     [ChunkingFinishedEvent][yuyo.chunk_tracker.ChunkingFinishedEvent]
     and [ChunkRequestFinished][yuyo.chunk_tracker.ChunkRequestFinished] events.
+
+    To configure this to automatically request member chunks to fill a member
+    and/or presence cache on startup and guild join see
+    [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members].
+
+    !!! note
+        This will track the responses for any chunk request with a set nonce with
+        [ChunkTracker.request_guild_members][yuyo.chunk_tracker.ChunkTracker.request_guild_members]
+        ensuring a request will be tracked.
     """
 
     __slots__ = (
@@ -394,6 +403,10 @@ class ChunkTracker:
 
     def set_auto_chunk_members(self, state: bool, /, *, chunk_presences: bool = True) -> Self:
         """Configure whether this should request member chunks in response to GUILD_CREATE.
+
+        This may be useful for filling 3rd party caches but may conflict with
+        the `auto_chunk_members` config of [hikari.impl.bot.GatewayBot][] if it's
+        enabled.
 
         !!! warning
             This will be ignored if [Intents.GUILD_MEMBERS][hikari.intents.Intents.GUILD_MEMBERS]
