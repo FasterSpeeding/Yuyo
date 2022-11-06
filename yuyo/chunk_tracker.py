@@ -86,7 +86,6 @@ class _RequestData:
         "chunk_count",
         "first_received_at",
         "guild_id",
-        "is_startup",
         "last_received_at",
         "missing_chunks",
         "not_found_ids",
@@ -101,7 +100,6 @@ class _RequestData:
         *,
         chunk_count: typing.Optional[int] = None,
         first_received_at: datetime.datetime,
-        is_startup: bool = False,
         last_received_at: datetime.datetime,
         missing_chunks: typing.Optional[typing.Set[int]] = None,
         not_found_ids: typing.Optional[typing.Set[hikari.Snowflake]] = None,
@@ -109,7 +107,6 @@ class _RequestData:
         self.chunk_count: typing.Optional[int] = chunk_count
         self.first_received_at: datetime.datetime = first_received_at
         self.guild_id: hikari.Snowflake = guild_id
-        self.is_startup: bool = is_startup
         self.last_received_at: datetime.datetime = last_received_at
         self.missing_chunks: typing.Optional[typing.Set[int]] = missing_chunks
         self.not_found_ids: typing.Set[hikari.Snowflake] = not_found_ids or set()
@@ -439,9 +436,6 @@ class ChunkTracker:
 
     async def _dispatch_finished(self, data: _RequestData, /) -> None:
         await self._event_manager.dispatch(ChunkRequestFinished(self._rest, data.shard, data))
-        if not data.is_startup:
-            return
-
         try:
             shard_info = self._tracked_identifies[data.shard.id]
             shard_info.guild_ids.remove(data.guild_id)
