@@ -468,15 +468,28 @@ class ChunkTracker:
         self._tracked_identifies[event.shard.id] = _ShardInfo(event.shard, event.unavailable_guilds)
 
     async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
-        if (
-            event.name == "GUILD_CREATE"
-            and self._auto_chunk_members
-            and event.payload.get("large")
-            and event.shard.intents & hikari.Intents.GUILD_MEMBERS
-        ):
+        if event.name == "GUILD_CREATE":
             guild_id = hikari.Snowflake(event.payload["id"])
-            include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
-            await self.request_guild_members(guild_id, include_presences=include_presences)
+
+            if (
+                self._auto_chunk_members
+                and event.payload.get("large")
+                and event.shard.intents & hikari.Intents.GUILD_MEMBERS
+            ):
+                include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
+                await self.request_guild_members(guild_id, include_presences=include_presences)
+                return
+
+            try:
+                shard_info = self._tracked_identifies[event.shard.id]
+                shard_info.guild_ids.remove(guild_id)
+
+            except KeyError:
+                pass
+
+            else:
+                if not shard_info.guild_ids:
+                    await self._dispatch_shard_finished(event.shard)
 
         if event.name != "GUILD_MEMBERS_CHUNK":
             return
