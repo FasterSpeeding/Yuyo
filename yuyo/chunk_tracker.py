@@ -218,6 +218,10 @@ def _log_task_exc(
     return decorator
 
 
+def _random_nonce() -> str:
+    return base64.b64encode(random.getrandbits(128).to_bytes(16, "big")).rstrip(b"=").decode()
+
+
 class _RequestData:
     __slots__ = (
         "chunk_count",
@@ -258,10 +262,11 @@ _TIMEOUT = datetime.timedelta(seconds=5)
 
 
 class _ShardInfo:
-    __slots__ = ("guild_ids", "last_received_at", "shard")
+    __slots__ = ("guild_ids", "known_nonces", "last_received_at", "shard")
 
     def __init__(self, shard: hikari.api.GatewayShard, guild_ids: typing.Sequence[hikari.Snowflake], /) -> None:
         self.guild_ids = set(guild_ids)
+        self.known_nonces: typing.Dict[hikari.Snowflake, str] = {}
         self.last_received_at = _now()
         self.shard = shard
 
@@ -384,7 +389,7 @@ class ChunkTracker:
             When trying to request presences without the `GUILD_MEMBERS` or when trying to
             request the full list of members without `GUILD_PRESENCES`.
         """
-        nonce = base64.b64encode(random.getrandbits(128).to_bytes(16, "big")).rstrip(b"=").decode()
+        nonce = _random_nonce()
         await self._shards.request_guild_members(
             guild, include_presences=include_presences, query=query, limit=limit, users=users, nonce=nonce
         )
@@ -467,10 +472,14 @@ class ChunkTracker:
             timed_out_requests.clear()
             timed_out_shards.clear()
 
-    async def _dispatch_finished(self, data: _RequestData, /) -> None:
+    async def _dispatch_finished(self, data: _RequestData, /, *, nonce: typing.Optional[str] = None) -> None:
         await self._event_manager.dispatch(ChunkRequestFinished(self._rest, data.shard, data))
+        shard_info = self._tracked_identifies.get(data.shard.id)
+        known_nonce = shard_info.known_nonces.get(data.guild_id) if shard_info else None
+        if not shard_info or known_nonce and nonce and known_nonce != nonce:
+            return
+
         try:
-            shard_info = self._tracked_identifies[data.shard.id]
             shard_info.guild_ids.remove(data.guild_id)
         except KeyError:
             return
@@ -509,8 +518,12 @@ class ChunkTracker:
                 and event.payload.get("large")
                 and event.shard.intents & hikari.Intents.GUILD_MEMBERS
             ):
+                nonce = _random_nonce()
+                if shard_info := self._tracked_identifies.get(event.shard.id):
+                    shard_info.known_nonces[guild_id] = nonce
+
                 include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
-                await self.request_guild_members(guild_id, include_presences=include_presences)
+                await self._shards.request_guild_members(guild_id, include_presences=include_presences, nonce=nonce)
                 return
 
             try:
@@ -553,7 +566,7 @@ class ChunkTracker:
 
             if not data.missing_chunks:
                 del self._requests[nonce]
-                await self._dispatch_finished(data)
+                await self._dispatch_finished(data, nonce=nonce)
 
             else:
                 self._ensure_loop()
@@ -577,4 +590,4 @@ class ChunkTracker:
             self._ensure_loop()
 
         else:
-            await self._dispatch_finished(data)
+            await self._dispatch_finished(data, nonce=nonce)
