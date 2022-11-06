@@ -41,6 +41,9 @@ __all__: typing.Sequence[str] = [
     "AsgiBot",
     "Backoff",
     "ChildActionRowExecutor",
+    "ChunkRequestFinished",
+    "ChunkTracker",
+    "ChunkingFinishedEvent",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
@@ -52,6 +55,7 @@ __all__: typing.Sequence[str] = [
     "ReactionHandler",
     "ReactionPaginator",
     "SelectMenuBuilder",
+    "ShardChunkingFinishedEvent",
     "WaitForExecutor",
     "aenumerate",
     "as_child_executor",
@@ -60,6 +64,7 @@ __all__: typing.Sequence[str] = [
     "asgi",
     "async_paginate_string",
     "backoff",
+    "chunk_tracker",
     "components",
     "paginate_string",
     "pagination",
@@ -71,6 +76,7 @@ import typing
 
 from .asgi import *
 from .backoff import *
+from .chunk_tracker import *
 from .components import *
 from .pagination import *
 from .reactions import *
