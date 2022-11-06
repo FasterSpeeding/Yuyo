@@ -262,7 +262,7 @@ _TIMEOUT = datetime.timedelta(seconds=5)
 
 
 class _ShardInfo:
-    __slots__ = ("guild_ids", "incomplete_guild_ids", "known_nonces", "last_received_at", "shard")
+    __slots__ = ("any_received", "guild_ids", "incomplete_guild_ids", "known_nonces", "last_received_at", "shard")
 
     def __init__(
         self,
@@ -271,6 +271,7 @@ class _ShardInfo:
         /,
         known_nonces: typing.Optional[typing.Dict[hikari.Snowflake, str]] = None,
     ) -> None:
+        self.any_received = False
         self.guild_ids = set(guild_ids)
         self.incomplete_guild_ids: typing.List[hikari.Snowflake] = []
         self.known_nonces: typing.Dict[hikari.Snowflake, str] = known_nonces or {}
@@ -475,11 +476,12 @@ class ChunkTracker:
                 if date - shard_info.last_received_at < _TIMEOUT and shard_info.guild_ids:
                     continue
 
+                del self._tracked_identifies[shard_info.shard.id]
                 # It is assumed that if any of the tracked requests for an identify
                 # aren't timed-out yet then the identify tracker won't be timed-out
                 # yet either so this logic doesn't have to check for tracked requests.
-                timed_out_shards.append(shard_info)
-                del self._tracked_identifies[shard_info.shard.id]
+                if shard_info.any_received:
+                    timed_out_shards.append(shard_info)
 
             await asyncio.gather(*map(self._dispatch_finished, timed_out_requests))
             await asyncio.gather(*map(self._dispatch_shard_finished, timed_out_shards))
@@ -513,36 +515,41 @@ class ChunkTracker:
             self._is_starting = False
             await self._event_manager.dispatch(FinishedChunkingEvent(self._rest))
 
-    async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
-        if event.name == "GUILD_CREATE":
-            guild_id = hikari.Snowflake(event.payload["id"])
+    async def _on_guild_event(self, event: hikari.ShardPayloadEvent, /) -> None:
+        guild_id = hikari.Snowflake(event.payload["id"])
 
-            if (
-                self._auto_chunk_members
-                and event.payload.get("large")
-                and event.shard.intents & hikari.Intents.GUILD_MEMBERS
-            ):
-                if shard_info := self._tracked_identifies.get(event.shard.id):
-                    nonce = shard_info.known_nonces.get(guild_id) or _random_nonce()
-                    shard_info.known_nonces[guild_id] = nonce
+        if not self._auto_chunk_members:
+            return
 
-                else:
-                    nonce = _random_nonce()
-
-                include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
-                await self._shards.request_guild_members(guild_id, include_presences=include_presences, nonce=nonce)
-                return
-
-            try:
-                shard_info = self._tracked_identifies[event.shard.id]
-                shard_info.guild_ids.remove(guild_id)
-
-            except KeyError:
-                pass
+        if event.payload.get("large") and event.shard.intents & hikari.Intents.GUILD_MEMBERS:
+            if shard_info := self._tracked_identifies.get(event.shard.id):
+                nonce = shard_info.known_nonces.get(guild_id) or _random_nonce()
+                shard_info.known_nonces[guild_id] = nonce
 
             else:
-                if not shard_info.guild_ids:
-                    await self._dispatch_shard_finished(shard_info)
+                nonce = _random_nonce()
+
+            include_presences = self._chunk_presences and bool(event.shard.intents & hikari.Intents.GUILD_PRESENCES)
+            await self._shards.request_guild_members(guild_id, include_presences=include_presences, nonce=nonce)
+            return
+
+        try:
+            shard_info = self._tracked_identifies[event.shard.id]
+            shard_info.guild_ids.remove(guild_id)
+
+        except KeyError:
+            pass
+
+        else:
+            # This is a lie but will hopefully lead to more consistent behaviour.
+            shard_info.any_received = True
+
+            if not shard_info.guild_ids:
+                await self._dispatch_shard_finished(shard_info)
+
+    async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
+        if event.name == "GUILD_CREATE":
+            await self._on_guild_event(event)
 
         if event.name != "GUILD_MEMBERS_CHUNK":
             return
@@ -560,6 +567,7 @@ class ChunkTracker:
 
         shard_info = self._tracked_identifies.get(event.shard.id)
         if shard_info and shard_info.check_nonce(guild_id, nonce):
+            shard_info.any_received = True
             shard_info.last_received_at = date
 
         data = self._requests.get(nonce)
