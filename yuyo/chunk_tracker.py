@@ -351,7 +351,6 @@ class ChunkTracker:
         self._task: typing.Optional[asyncio.Task[None]] = None
         self._tracked_identifies: typing.Dict[int, _ShardInfo] = {}
         event_manager.subscribe(hikari.ShardPayloadEvent, self._on_payload_event)
-        event_manager.subscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
         event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
@@ -552,7 +551,10 @@ class ChunkTracker:
             return
 
     async def _on_payload_event(self, event: hikari.ShardPayloadEvent, /) -> None:
-        if event.name == "GUILD_CREATE":
+        if event.name == "READY":
+            await self._on_shard_ready_event(event)
+
+        elif event.name == "GUILD_CREATE":
             await self._on_guild_event(event)
 
         if event.name != "GUILD_MEMBERS_CHUNK":
@@ -615,16 +617,15 @@ class ChunkTracker:
         else:
             await self._dispatch_finished(data, nonce=nonce)
 
-    async def _on_shard_ready_event(self, event: hikari.ShardReadyEvent, /) -> None:
+    async def _on_shard_ready_event(self, event: hikari.ShardPayloadEvent, /) -> None:
+        guild_ids = [hikari.Snowflake(guild["id"]) for guild in event.payload["guilds"]]
         if self._auto_chunk_members:
-            known_nonces = {guild_id: _random_nonce() for guild_id in event.unavailable_guilds}
+            known_nonces = {guild_id: _random_nonce() for guild_id in guild_ids}
 
         else:
             known_nonces = None
 
-        self._tracked_identifies[event.shard.id] = _ShardInfo(
-            event.shard, event.unavailable_guilds, known_nonces=known_nonces
-        )
+        self._tracked_identifies[event.shard.id] = _ShardInfo(event.shard, guild_ids, known_nonces=known_nonces)
 
     async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._is_starting = True
