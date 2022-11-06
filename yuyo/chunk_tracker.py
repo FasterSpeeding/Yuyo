@@ -112,7 +112,8 @@ class ChunkRequestFinishedEvent(hikari.Event):
     @property
     def missed_chunks(self) -> typing.Collection[int]:
         """Collection of the chunk responses which were missed (if any)."""
-        return self._data.missing_chunks or ()
+        assert self._data.missing_chunks is not None
+        return self._data.missing_chunks
 
     @property
     def not_found_ids(self) -> typing.Collection[hikari.Snowflake]:
@@ -157,7 +158,7 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
     (including re-identifies).
     """
 
-    __slots__ = ("_app", "_incomplete_guild_ids", "_missing_guild_ids", "_shard")
+    __slots__ = ("_app", "_incomplete_guild_ids", "_missed_guild_ids", "_shard")
 
     def __init__(
         self,
@@ -166,7 +167,7 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
         /,
         *,
         incomplete_guild_ids: typing.Sequence[hikari.Snowflake] = (),
-        missing_guild_ids: typing.Sequence[hikari.Snowflake] = (),
+        missed_guild_ids: typing.Sequence[hikari.Snowflake] = (),
     ) -> None:
         """Initialise a shard chunking finished event.
 
@@ -174,7 +175,7 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
         """
         self._app = app
         self._incomplete_guild_ids = incomplete_guild_ids
-        self._missing_guild_ids = missing_guild_ids
+        self._missed_guild_ids = missed_guild_ids
         self._shard = shard
 
     @property
@@ -195,7 +196,7 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
     @property
     def missed_guild_ids(self) -> typing.Sequence[hikari.Snowflake]:
         """Sequence of the IDs of guilds no chunk responses were received for."""
-        return self._missing_guild_ids
+        return self._missed_guild_ids
 
 
 def _log_task_exc(
@@ -507,7 +508,7 @@ class ChunkTracker:
             self._rest,
             shard_info.shard,
             incomplete_guild_ids=shard_info.incomplete_guild_ids,
-            missing_guild_ids=list(shard_info.guild_ids.difference(shard_info.incomplete_guild_ids)),
+            missed_guild_ids=list(shard_info.guild_ids.difference(shard_info.incomplete_guild_ids)),
         )
         await self._event_manager.dispatch(event)
         if not self._tracked_identifies and self._is_starting:
