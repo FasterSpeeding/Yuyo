@@ -53,6 +53,7 @@ if sys.version_info >= (3, 10):
 else:
 
     def aiter_(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+        """Backwards compat impl of `aiter`."""
         return iterable.__aiter__()
 
     @typing.overload
@@ -66,6 +67,7 @@ else:
     async def anext_(
         iterator: typing.AsyncIterator[_T], default: _DefaultT = _NO_DEFAULT, /
     ) -> typing.Union[_T, _DefaultT]:
+        """Backwards compat impl of `anext`."""
         try:
             return await iterator.__anext__()
         except StopAsyncIteration:
