@@ -22,7 +22,9 @@ class Bar(Foo):
     def bar(self, value: int) -> int:
         return ~value
 
+
 if typing.TYPE_CHECKING:
+
     def _foo(_: Barist) -> None:
         return None
 
