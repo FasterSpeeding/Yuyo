@@ -73,14 +73,6 @@ async def _error_response(
     await send({"type": "http.response.body", "body": body, "more_body": False})
 
 
-async def _maybe_await(
-    callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-) -> None:
-    result = callback()
-    if asyncio.iscoroutine(result):
-        await result
-
-
 class AsgiAdapter:
     """Asgi/3 adapter for Hikari's interaction server interface.
 
@@ -113,13 +105,21 @@ class AsgiAdapter:
             on using ProcessPoolExecutor implementations with this parameter.
         """
         self._executor = executor
-        self._on_shutdown: typing.List[
-            typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-        ] = []
-        self._on_startup: typing.List[
-            typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-        ] = []
+        self._on_shutdown: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_startup: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
         self._server = server
+
+    @property
+    def on_shutdown(
+        self,
+    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+        return self._on_shutdown
+
+    @property
+    def on_startup(
+        self,
+    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+        return self._on_startup
 
     @property
     def server(self) -> hikari.api.InteractionServer:
@@ -160,10 +160,8 @@ class AsgiAdapter:
             raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self,
-        callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
-        /,
-    ) -> Self:
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
         """Add a callback to be called when the ASGI server shuts down.
 
         !!! warning
@@ -174,20 +172,29 @@ class AsgiAdapter:
         ----------
         callback
             The shutdown callback to add.
-
-        Returns
-        -------
-        Self
-            This adapter to enable call chaining.
         """
         self._on_shutdown.append(callback)
-        return self
+
+    def remove_shutdown_callback(
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a shutdown callback.
+
+        Parameters
+        ----------
+        callback
+            The shutdown callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        self._on_shutdown.remove(callback)
 
     def add_startup_callback(
-        self,
-        callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
-        /,
-    ) -> Self:
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
         """Add a callback to be called when the ASGI server starts up.
 
         !!! warning
@@ -198,14 +205,25 @@ class AsgiAdapter:
         ----------
         callback
             The startup callback to add.
-
-        Returns
-        -------
-        Self
-            This adapter to enable call chaining.
         """
         self._on_startup.append(callback)
-        return self
+
+    def remove_startup_callback(
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a startup callback.
+
+        Parameters
+        ----------
+        callback
+            The startup callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        self._on_startup.remove(callback)
 
     async def process_lifespan_event(
         self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
@@ -232,7 +250,7 @@ class AsgiAdapter:
 
         if message_type == "lifespan.startup":
             try:
-                await asyncio.gather(*map(_maybe_await, self._on_startup))
+                await asyncio.gather(*(callback(self) for callback in self._on_startup))
 
             except BaseException:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
@@ -242,7 +260,7 @@ class AsgiAdapter:
 
         elif message_type == "lifespan.shutdown":
             try:
-                await asyncio.gather(*map(_maybe_await, self._on_shutdown))
+                await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
 
             except BaseException:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
@@ -393,7 +411,7 @@ def _find_headers(
     return content_type, signature, timestamp
 
 
-class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
+class AsgiBot(AsgiAdapter):
     """Bot implementation which acts as an ASGI adapter.
 
     This bot doesn't initiate a server internally but instead
@@ -624,7 +642,7 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         loop.run_until_complete(self.start())
         loop.run_until_complete(self.join())
 
-    async def _start(self) -> None:
+    async def _start(self, _: Self) -> None:
         self._join_event = asyncio.Event()
         self._is_alive = True
         self._rest.start()
@@ -650,9 +668,9 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
-        await self._start()
+        await self._start(self)
 
-    async def _close(self) -> None:
+    async def _close(self, _: Self) -> None:
         assert self._join_event is not None
         self._is_alive = False
         await self._rest.close()
@@ -680,10 +698,19 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         if not self._is_alive or not self._join_event:
             raise RuntimeError("The client is not running")
 
-        await self._close()
+        await self._close(self)
 
     async def join(self) -> None:
         if self._join_event is None:
             raise RuntimeError("The client is not running")
 
         await self._join_event.wait()
+
+
+if typing.TYPE_CHECKING:
+
+    def _test(value: hikari.RESTBotAware) -> None:
+        raise NotImplementedError
+
+    def _other_test(value: AsgiBot) -> None:  # pyright: ignore [ reportUnusedFunction ]
+        _test(value)

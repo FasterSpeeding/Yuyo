@@ -5,6 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Bumped the minimum Hikari version to `2.0.0.dev112`.
+- [yuyo.asgi.AsgiAdapter][]'s startup and shutdown callbacks now take 1 argument,
+  must return [None][] and must be asynchronous to match the methods added to
+  RESTBotAware in <https://github.com/hikari-py/hikari/releases/tag/2.0.0.dev112>.
+
+  This argument will be of type [yuyo.asgi.AsgiAdapter][] when these methods are
+  called of an asgi adapter and of type [yuyo.asgi.AsgiBot][] when called on an
+  asgi bot instance.
+
+### Removed
+- `replace_attachments` argument from the relevant context edit response methods.
+  For more information see <https://github.com/hikari-py/hikari/releases/tag/2.0.0.dev112>.
+
 ## [1.2.1a1] - 2022-11-04
 ### Added
 - `ephemeral` keyword-argument to [yuyo.components.ComponentContext][]'s `create_initial_response`,

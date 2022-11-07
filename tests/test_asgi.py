@@ -205,7 +205,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock()
         mock_callback = mock.Mock()
-        adapter.add_startup_callback(mock_async_callback).add_startup_callback(mock_callback)
+        adapter.add_startup_callback(mock_async_callback)
+        adapter.add_startup_callback(mock_callback)
 
         await adapter.process_lifespan_event(mock_receive, mock_send)
 
@@ -220,7 +221,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock(side_effect=Exception("test"))
         mock_callback = mock.Mock()
-        adapter.add_startup_callback(mock_async_callback).add_startup_callback(mock_callback)
+        adapter.add_startup_callback(mock_async_callback)
+        adapter.add_startup_callback(mock_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)
@@ -237,7 +239,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock()
         mock_callback = mock.Mock(side_effect=Exception("test"))
-        adapter.add_startup_callback(mock_async_callback).add_startup_callback(mock_callback)
+        adapter.add_startup_callback(mock_async_callback)
+        adapter.add_startup_callback(mock_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)
@@ -264,7 +267,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock()
         mock_callback = mock.Mock()
-        adapter.add_shutdown_callback(mock_async_callback).add_shutdown_callback(mock_callback)
+        adapter.add_shutdown_callback(mock_async_callback)
+        adapter.add_shutdown_callback(mock_callback)
 
         await adapter.process_lifespan_event(mock_receive, mock_send)
 
@@ -279,7 +283,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock(side_effect=Exception("test"))
         mock_callback = mock.Mock()
-        adapter.add_shutdown_callback(mock_async_callback).add_shutdown_callback(mock_callback)
+        adapter.add_shutdown_callback(mock_async_callback)
+        adapter.add_shutdown_callback(mock_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)
@@ -298,7 +303,8 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         mock_async_callback = mock.AsyncMock()
         mock_callback = mock.Mock(side_effect=Exception("test"))
-        adapter.add_shutdown_callback(mock_async_callback).add_shutdown_callback(mock_callback)
+        adapter.add_shutdown_callback(mock_async_callback)
+        adapter.add_shutdown_callback(mock_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)

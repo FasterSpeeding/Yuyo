@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = ["alluka~=0.1.2", "asgiref~=3.0", "hikari~=2.0.0.dev109"]
+dependencies = ["alluka~=0.1.2", "asgiref~=3.0", "hikari~=2.0.0.dev112"]
 dynamic = ["description"]
 
 [project.urls]

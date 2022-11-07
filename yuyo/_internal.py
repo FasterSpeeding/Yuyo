@@ -32,7 +32,7 @@
 """Internal functions and types used in Yuyo."""
 from __future__ import annotations
 
-__all__ = []
+__all__: typing.Sequence[str] = []
 
 import sys
 import typing
