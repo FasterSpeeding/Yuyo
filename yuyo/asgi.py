@@ -51,11 +51,10 @@ if typing.TYPE_CHECKING:
     from hikari.api import config as hikari_config
     from typing_extensions import Self
 
-_T = typing.TypeVar("_T")
-
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
-_JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
+_RAW_JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
+_JSON_CONTENT_TYPE: typing.Final[bytes] = _RAW_JSON_CONTENT_TYPE + b"; charset=UTF-8"
 _OCTET_STREAM_CONTENT_TYPE: typing.Final[bytes] = b"application/octet-stream"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
 _X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"x-signature-ed25519"
@@ -71,14 +70,6 @@ async def _error_response(
         {"type": "http.response.start", "status": status_code, "headers": [(_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE)]}
     )
     await send({"type": "http.response.body", "body": body, "more_body": False})
-
-
-async def _maybe_await(
-    callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-) -> None:
-    result = callback()
-    if asyncio.iscoroutine(result):
-        await result
 
 
 class AsgiAdapter:
@@ -113,13 +104,21 @@ class AsgiAdapter:
             on using ProcessPoolExecutor implementations with this parameter.
         """
         self._executor = executor
-        self._on_shutdown: typing.List[
-            typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-        ] = []
-        self._on_startup: typing.List[
-            typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]]
-        ] = []
+        self._on_shutdown: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_startup: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
         self._server = server
+
+    @property
+    def on_shutdown(
+        self,
+    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+        return self._on_shutdown
+
+    @property
+    def on_startup(
+        self,
+    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+        return self._on_startup
 
     @property
     def server(self) -> hikari.api.InteractionServer:
@@ -160,10 +159,8 @@ class AsgiAdapter:
             raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self,
-        callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
-        /,
-    ) -> Self:
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
         """Add a callback to be called when the ASGI server shuts down.
 
         !!! warning
@@ -174,20 +171,29 @@ class AsgiAdapter:
         ----------
         callback
             The shutdown callback to add.
-
-        Returns
-        -------
-        Self
-            This adapter to enable call chaining.
         """
         self._on_shutdown.append(callback)
-        return self
+
+    def remove_shutdown_callback(
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a shutdown callback.
+
+        Parameters
+        ----------
+        callback
+            The shutdown callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        self._on_shutdown.remove(callback)
 
     def add_startup_callback(
-        self,
-        callback: typing.Callable[[], typing.Union[None, typing.Coroutine[typing.Any, typing.Any, None]]],
-        /,
-    ) -> Self:
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
         """Add a callback to be called when the ASGI server starts up.
 
         !!! warning
@@ -198,14 +204,25 @@ class AsgiAdapter:
         ----------
         callback
             The startup callback to add.
-
-        Returns
-        -------
-        Self
-            This adapter to enable call chaining.
         """
         self._on_startup.append(callback)
-        return self
+
+    def remove_startup_callback(
+        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a startup callback.
+
+        Parameters
+        ----------
+        callback
+            The startup callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        self._on_startup.remove(callback)
 
     async def process_lifespan_event(
         self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
@@ -232,7 +249,7 @@ class AsgiAdapter:
 
         if message_type == "lifespan.startup":
             try:
-                await asyncio.gather(*map(_maybe_await, self._on_startup))
+                await asyncio.gather(*(callback(self) for callback in self._on_startup))
 
             except BaseException:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
@@ -242,7 +259,7 @@ class AsgiAdapter:
 
         elif message_type == "lifespan.shutdown":
             try:
-                await asyncio.gather(*map(_maybe_await, self._on_shutdown))
+                await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
 
             except BaseException:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
@@ -296,7 +313,7 @@ class AsgiAdapter:
             await _error_response(send, b"Invalid ED25519 signature header found")
             return
 
-        if not content_type or content_type.lower().split(b";", 1)[0] != _JSON_CONTENT_TYPE:
+        if not content_type or content_type.lower().split(b";", 1)[0] != _RAW_JSON_CONTENT_TYPE:
             await _error_response(send, b"Content-Type must be application/json")
             return
 
@@ -319,8 +336,8 @@ class AsgiAdapter:
             boundary = uuid.uuid4().hex.encode()
             headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))  # noqa: S001
 
-        elif response.content_type:
-            headers.append((_CONTENT_TYPE_KEY, response.content_type.encode()))
+        elif content_type := _content_type(response):
+            headers.append((_CONTENT_TYPE_KEY, content_type))
 
         await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
 
@@ -334,7 +351,7 @@ class AsgiAdapter:
         self, send: asgiref.ASGISendCallable, response: hikari.api.Response, boundary: bytes, /
     ) -> None:
         if response.payload:
-            content_type = response.content_type.encode() if response.content_type else _JSON_CONTENT_TYPE
+            content_type = _content_type(response) or _JSON_CONTENT_TYPE
             body = (
                 b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
                 b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"  # noqa: MOD001
@@ -365,6 +382,14 @@ class AsgiAdapter:
         await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
 
 
+def _content_type(response: hikari.api.Response) -> typing.Optional[bytes]:
+    if response.content_type:
+        if response.charset:
+            return f"{response.content_type}; charset={response.charset}".encode()
+
+        return response.content_type.encode()
+
+
 def _find_headers(
     scope: asgiref.HTTPScope,
 ) -> tuple[typing.Optional[bytes], typing.Optional[bytes], typing.Optional[bytes]]:
@@ -393,7 +418,8 @@ def _find_headers(
     return content_type, signature, timestamp
 
 
-class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
+# pyright seemingly gets the type var equality wrong here
+class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportIncompatibleMethodOverride ]
     """Bot implementation which acts as an ASGI adapter.
 
     This bot doesn't initiate a server internally but instead
@@ -624,7 +650,7 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         loop.run_until_complete(self.start())
         loop.run_until_complete(self.join())
 
-    async def _start(self) -> None:
+    async def _start(self, _: Self) -> None:
         self._join_event = asyncio.Event()
         self._is_alive = True
         self._rest.start()
@@ -650,9 +676,9 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
-        await self._start()
+        await self._start(self)
 
-    async def _close(self) -> None:
+    async def _close(self, _: Self) -> None:
         assert self._join_event is not None
         self._is_alive = False
         await self._rest.close()
@@ -680,7 +706,7 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):
         if not self._is_alive or not self._join_event:
             raise RuntimeError("The client is not running")
 
-        await self._close()
+        await self._close(self)
 
     async def join(self) -> None:
         if self._join_event is None:
