@@ -61,7 +61,7 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("hikari.yuyo.chunk_trackers")
 
 
-class ChunkRequestFinishedEvent(hikari.Event):
+class ChunkRequestFinishedEvent(hikari.ShardEvent):
     """Event that's dispatched when a specific chunk request has finished.
 
     This will be fired for every chunk request which has a nonce.
