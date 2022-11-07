@@ -203,51 +203,27 @@ class TestAsgiAdapter:
     async def test_process_lifespan_event_on_startup_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
         mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock()
-        mock_callback = mock.Mock()
-        adapter.add_startup_callback(mock_async_callback)
-        adapter.add_startup_callback(mock_callback)
+        mock_startup_callback = mock.AsyncMock()
+        adapter.add_startup_callback(mock_startup_callback)
 
         await adapter.process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
+        mock_startup_callback.assert_awaited_once_with(adapter)
         mock_send.assert_awaited_once_with({"type": "lifespan.startup.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_startup_when_sync_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test_process_lifespan_event_on_startup_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
         mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock(side_effect=Exception("test"))
-        mock_callback = mock.Mock()
-        adapter.add_startup_callback(mock_async_callback)
-        adapter.add_startup_callback(mock_callback)
+        mock_startup_callback = mock.AsyncMock(side_effect=Exception("test"))
+        adapter.add_startup_callback(mock_startup_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
-        mock_send.assert_awaited_once_with({"type": "lifespan.startup.failed", "message": format_exc.return_value})
-        format_exc.assert_called_once_with()
-
-    @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_startup_when_async_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
-        mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
-        mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock()
-        mock_callback = mock.Mock(side_effect=Exception("test"))
-        adapter.add_startup_callback(mock_async_callback)
-        adapter.add_startup_callback(mock_callback)
-
-        with mock.patch.object(traceback, "format_exc") as format_exc:
-            await adapter.process_lifespan_event(mock_receive, mock_send)
-
-        mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
+        mock_startup_callback.assert_awaited_once_with(adapter)
         mock_send.assert_awaited_once_with({"type": "lifespan.startup.failed", "message": format_exc.return_value})
         format_exc.assert_called_once_with()
 
@@ -265,53 +241,30 @@ class TestAsgiAdapter:
     async def test_process_lifespan_event_on_shutdown_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
         mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock()
-        mock_callback = mock.Mock()
-        adapter.add_shutdown_callback(mock_async_callback)
-        adapter.add_shutdown_callback(mock_callback)
+        mock_shutdown_callback = mock.AsyncMock()
+        adapter.add_shutdown_callback(mock_shutdown_callback)
 
         await adapter.process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
+        mock_shutdown_callback.assert_awaited_once_with(adapter)
         mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_shutdown_when_sync_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test_process_lifespan_event_on_shutdown_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
         mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock(side_effect=Exception("test"))
-        mock_callback = mock.Mock()
-        adapter.add_shutdown_callback(mock_async_callback)
-        adapter.add_shutdown_callback(mock_callback)
+        mock_shutdown_callback = mock.AsyncMock()
+        mock_startup_callback = mock.AsyncMock(side_effect=Exception("test"))
+        adapter.add_shutdown_callback(mock_shutdown_callback)
+        adapter.add_shutdown_callback(mock_startup_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
             await adapter.process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
-        mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.failed", "message": format_exc.return_value})
-        format_exc.assert_called_once_with()
-
-    @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_shutdown_when_async_callback_fails(
-        self, adapter: yuyo.AsgiAdapter
-    ) -> None:
-        mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
-        mock_send = mock.AsyncMock()
-        mock_async_callback = mock.AsyncMock()
-        mock_callback = mock.Mock(side_effect=Exception("test"))
-        adapter.add_shutdown_callback(mock_async_callback)
-        adapter.add_shutdown_callback(mock_callback)
-
-        with mock.patch.object(traceback, "format_exc") as format_exc:
-            await adapter.process_lifespan_event(mock_receive, mock_send)
-
-        mock_receive.assert_awaited_once_with()
-        mock_async_callback.assert_awaited_once_with()
-        mock_callback.assert_called_once_with()
+        mock_shutdown_callback.assert_awaited_once_with(adapter)
+        mock_startup_callback.assert_awaited_once_with(adapter)
         mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.failed", "message": format_exc.return_value})
         format_exc.assert_called_once_with()
 
@@ -331,7 +284,7 @@ class TestAsgiAdapter:
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
-            (b"Content-Type", b"application/json"),
+            (b"Content-Type", b"application/json; charset=UTF-8"),
             (b"x-signature-timestamp", b"321123"),
             (b"random-header2", b"random value"),
             (b"x-signature-ed25519", b"6e796161"),
@@ -342,6 +295,7 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.charset = "nyaa"
         stub_server.on_interaction.return_value.content_type = "jazz hands"
         stub_server.on_interaction.return_value.files = ()
         stub_server.on_interaction.return_value.headers = {
@@ -362,7 +316,7 @@ class TestAsgiAdapter:
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
-                            (b"content-type", b"jazz hands"),
+                            (b"content-type", b"jazz hands; charset=nyaa"),
                         ],
                     }
                 ),
@@ -395,6 +349,7 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.charset = "nooooo"
         stub_server.on_interaction.return_value.content_type = "application/json"
         stub_server.on_interaction.return_value.files = [
             hikari.Bytes(b"beep beep\ni'm a sheep", "hi.txt", mimetype="text/plain"),
@@ -430,8 +385,8 @@ class TestAsgiAdapter:
                         "type": "http.response.body",
                         "body": (
                             b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
-                            b'Type: application/json\r\nContent-Length: 32\r\n\r\n{"ok": "no", "byebye": "boomer"}'
-                            % boundary_uuid.hex.encode()
+                            b'Type: application/json; charset=nooooo\r\nContent-Length: 32\r\n\r\n{"ok"'
+                            b': "no", "byebye": "boomer"}' % boundary_uuid.hex.encode()
                         ),
                         "more_body": True,
                     }
@@ -475,7 +430,7 @@ class TestAsgiAdapter:
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
-            (b"Content-Type", b"application/json"),
+            (b"Content-Type", b"application/json; charset=UTF-8"),
             (b"x-signature-timestamp", b"321123"),
             (b"random-header2", b"random value"),
             (b"x-signature-ed25519", b"6e796161"),
@@ -487,6 +442,7 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.charset = "meowmeow"
         stub_server.on_interaction.return_value.content_type = "application/json"
         stub_server.on_interaction.return_value.files = [
             _ChunkedFile(
@@ -526,8 +482,8 @@ class TestAsgiAdapter:
                         "type": "http.response.body",
                         "body": (
                             b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
-                            b'Type: application/json\r\nContent-Length: 27\r\n\r\n{"ok": "no", "bye": "boom"}'
-                            % boundary_uuid.hex.encode()
+                            b"Type: application/json; charset=meowmeow\r\nContent-Length: 27\r\n\r\n{"
+                            b'"ok": "no", "bye": "boom"}' % boundary_uuid.hex.encode()
                         ),
                         "more_body": True,
                     }
@@ -585,7 +541,7 @@ class TestAsgiAdapter:
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
-            (b"Content-Type", b"application/json"),
+            (b"Content-Type", b"application/json; charset=UTF-8"),
             (b"x-signature-timestamp", b"321123"),
             (b"random-header2", b"random value"),
             (b"x-signature-ed25519", b"6e796161"),
@@ -597,6 +553,7 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.return_value.charset = "yeet"
         stub_server.on_interaction.return_value.content_type = "application/json"
         stub_server.on_interaction.return_value.files = [
             hikari.Bytes(b"", "empty.inside", mimetype="voided"),
@@ -632,8 +589,8 @@ class TestAsgiAdapter:
                         "type": "http.response.body",
                         "body": (
                             b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
-                            b'Type: application/json\r\nContent-Length: 35\r\n\r\n{"ok": "yes", "yeet the": "boomer"}'
-                            % boundary_uuid.hex.encode()
+                            b'Type: application/json; charset=yeet\r\nContent-Length: 35\r\n\r\n{"ok": '
+                            b'"yes", "yeet the": "boomer"}' % boundary_uuid.hex.encode()
                         ),
                         "more_body": True,
                     }
