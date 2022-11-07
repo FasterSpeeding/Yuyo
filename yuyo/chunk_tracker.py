@@ -212,7 +212,7 @@ def _log_task_exc(
 
             except Exception as exc:
                 _LOGGER.exception(message, exc_info=exc)
-                raise exc from None  # noqa: R101  # use bare raise in except handler?
+                raise
 
         return wrapper
 
