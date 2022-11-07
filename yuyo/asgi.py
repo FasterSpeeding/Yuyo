@@ -51,8 +51,6 @@ if typing.TYPE_CHECKING:
     from hikari.api import config as hikari_config
     from typing_extensions import Self
 
-_T = typing.TypeVar("_T")
-
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
 _RAW_JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
@@ -420,7 +418,8 @@ def _find_headers(
     return content_type, signature, timestamp
 
 
-class AsgiBot(AsgiAdapter):
+# pyright seemingly gets the type var equality wrong here
+class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportIncompatibleMethodOverride ]
     """Bot implementation which acts as an ASGI adapter.
 
     This bot doesn't initiate a server internally but instead
@@ -714,12 +713,3 @@ class AsgiBot(AsgiAdapter):
             raise RuntimeError("The client is not running")
 
         await self._join_event.wait()
-
-
-if typing.TYPE_CHECKING:
-
-    def _test(value: hikari.RESTBotAware) -> None:
-        raise NotImplementedError
-
-    def _other_test(value: AsgiBot) -> None:  # pyright: ignore [ reportUnusedFunction ]
-        _test(value)

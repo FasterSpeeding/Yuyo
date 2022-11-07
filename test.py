@@ -6,7 +6,7 @@ _FooT = typing.TypeVar("_FooT", bound="Foo")
 
 
 class Barist(typing.Protocol):
-    def foo(self, callback: typing.Callable[["Barist"], None]) -> None:
+    def foo(self, callback: typing.Callable[[Self], None]) -> None:
         raise NotImplementedError
 
     def bar(self, value: int) -> int:
@@ -18,15 +18,15 @@ class Foo:
         return None
 
 
-class Bar(Foo):
+class Bar(Foo, Barist):
     def bar(self, value: int) -> int:
         return ~value
 
 
-if typing.TYPE_CHECKING:
+# if typing.TYPE_CHECKING:
 
-    def _foo(_: Barist) -> None:
-        return None
+#     def _foo(_: Barist) -> None:
+#         return None
 
-    def _bar(value: Bar) -> None:  # pyright: ignore [ reportUnusedFunction ]
-        _foo(value)
+#     def _bar(value: Bar) -> None:  # pyright: ignore [ reportUnusedFunction ]
+#         _foo(value)
