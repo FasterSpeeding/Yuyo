@@ -480,7 +480,7 @@ class TestAsgiAdapter:
         )
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
-        stub_server.on_interaction.return_value.charset = "meowmeow"
+        stub_server.on_interaction.return_value.charset = None
         stub_server.on_interaction.return_value.content_type = "application/json"
         stub_server.on_interaction.return_value.files = [
             _ChunkedFile(
@@ -520,7 +520,7 @@ class TestAsgiAdapter:
                         "type": "http.response.body",
                         "body": (
                             b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
-                            b"Type: application/json; charset=meowmeow\r\nContent-Length: 27\r\n\r\n{"
+                            b"Type: application/json\r\nContent-Length: 27\r\n\r\n{"
                             b'"ok": "no", "bye": "boom"}' % boundary_uuid.hex.encode()
                         ),
                         "more_body": True,
