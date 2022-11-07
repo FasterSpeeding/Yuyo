@@ -55,7 +55,8 @@ _T = typing.TypeVar("_T")
 
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
-_JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
+_RAW_JSON_CONTENT_TYPE: typing.Final[bytes] = b"application/json"
+_JSON_CONTENT_TYPE: typing.Final[bytes] = _RAW_JSON_CONTENT_TYPE + b"; charset=UTF-8"
 _OCTET_STREAM_CONTENT_TYPE: typing.Final[bytes] = b"application/octet-stream"
 _BAD_REQUEST_STATUS: typing.Final[int] = 400
 _X_SIGNATURE_ED25519_HEADER: typing.Final[bytes] = b"x-signature-ed25519"
@@ -314,7 +315,7 @@ class AsgiAdapter:
             await _error_response(send, b"Invalid ED25519 signature header found")
             return
 
-        if not content_type or content_type.lower().split(b";", 1)[0] != _JSON_CONTENT_TYPE:
+        if not content_type or content_type.lower().split(b";", 1)[0] != _RAW_JSON_CONTENT_TYPE:
             await _error_response(send, b"Content-Type must be application/json")
             return
 
@@ -337,8 +338,8 @@ class AsgiAdapter:
             boundary = uuid.uuid4().hex.encode()
             headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))  # noqa: S001
 
-        elif response.content_type:
-            headers.append((_CONTENT_TYPE_KEY, response.content_type.encode()))
+        elif content_type := _content_type(response):
+            headers.append((_CONTENT_TYPE_KEY, content_type))
 
         await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
 
@@ -352,7 +353,7 @@ class AsgiAdapter:
         self, send: asgiref.ASGISendCallable, response: hikari.api.Response, boundary: bytes, /
     ) -> None:
         if response.payload:
-            content_type = response.content_type.encode() if response.content_type else _JSON_CONTENT_TYPE
+            content_type = _content_type(response) or _JSON_CONTENT_TYPE
             body = (
                 b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
                 b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"  # noqa: MOD001
@@ -381,6 +382,14 @@ class AsgiAdapter:
                     await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
         await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
+
+
+def _content_type(response: hikari.api.Response) -> typing.Optional[bytes]:
+    if response.content_type:
+        if response.charset:
+            return f"{response.content_type}; charset={response.charset}".encode()
+
+        return response.content_type.encode()
 
 
 def _find_headers(
