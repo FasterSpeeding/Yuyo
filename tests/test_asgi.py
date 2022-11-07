@@ -189,6 +189,44 @@ class TestAsgiAdapter:
                 mock.AsyncMock(),
             )
 
+    def test_add_shutdown_callback(self, adapter: yuyo.AsgiAdapter):
+        mock_callback = mock.AsyncMock()
+        mock_other_callback = mock.AsyncMock()
+
+        adapter.add_shutdown_callback(mock_callback)
+        adapter.add_shutdown_callback(mock_other_callback)
+
+        assert adapter.on_shutdown == [mock_callback, mock_other_callback]
+
+    def test_remove_shutdown_callback(self, adapter: yuyo.AsgiAdapter):
+        mock_callback = mock.AsyncMock()
+        mock_other_callback = mock.AsyncMock()
+        adapter.add_shutdown_callback(mock_callback)
+        adapter.add_shutdown_callback(mock_other_callback)
+
+        adapter.remove_shutdown_callback(mock_callback)
+
+        assert adapter.on_shutdown == [mock_other_callback]
+
+    def test_add_startup_callback(self, adapter: yuyo.AsgiAdapter):
+        mock_callback = mock.AsyncMock()
+        mock_other_callback = mock.AsyncMock()
+
+        adapter.add_startup_callback(mock_callback)
+        adapter.add_startup_callback(mock_other_callback)
+
+        assert adapter.on_startup == [mock_callback, mock_other_callback]
+
+    def test_remove_startup_callback(self, adapter: yuyo.AsgiAdapter):
+        mock_callback = mock.AsyncMock()
+        mock_other_callback = mock.AsyncMock()
+        adapter.add_startup_callback(mock_callback)
+        adapter.add_startup_callback(mock_other_callback)
+
+        adapter.remove_startup_callback(mock_callback)
+
+        assert adapter.on_startup == [mock_other_callback]
+
     @pytest.mark.asyncio()
     async def test_process_lifespan_event_on_startup(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
