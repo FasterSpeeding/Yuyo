@@ -306,9 +306,8 @@ class ChunkTracker:
     [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members].
 
     !!! note
-        This will track the responses for any chunk request with a set nonce with
         [ChunkTracker.request_guild_members][yuyo.chunk_tracker.ChunkTracker.request_guild_members]
-        ensuring a request will be tracked.
+        ensures a request will be tracked as this only tracks chunk requests with a set nonce.
     """
 
     __slots__ = (
@@ -375,7 +374,7 @@ class ChunkTracker:
         limit: int = 0,
         users: hikari.UndefinedOr[hikari.SnowflakeishSequence[hikari.User]] = hikari.UNDEFINED,
     ) -> None:
-        """Request for a guild chunk.
+        """Request guild members.
 
         !!! note
             To request the full list of members, leave `query` as `""` (empty
