@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.8">
     
     
       
@@ -20,7 +20,7 @@
       <link rel="stylesheet" href="../../assets/stylesheets/main.20d9efc8.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.815d1a91.min.css">
         
       
       
@@ -363,6 +363,20 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../chunk_tracker/" class="md-nav__link">
+        yuyo.chunk_tracker
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -643,6 +657,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.edit_last_response" class="md-nav__link">
     edit_last_response()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.expires_at" class="md-nav__link">
+    expires_at()
   </a>
   
 </li>
@@ -1158,6 +1179,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.edit_last_response" class="md-nav__link">
     edit_last_response()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.expires_at" class="md-nav__link">
+    expires_at()
   </a>
   
 </li>
@@ -3692,7 +3720,7 @@ passed flags.</p>
   </span>
 
 <a href="#yuyo.components.ComponentContext.edit_initial_response" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">edit_initial_response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delete_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embeds</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">replace_attachments</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mentions_everyone</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">user_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">role_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">edit_initial_response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delete_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embeds</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">mentions_everyone</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">user_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">role_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3848,22 +3876,6 @@ remove all components.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>hikari.UNDEFINED</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>replace_attachments</code></td>
-          <td class="doc-param-details">
-            <p>Whether to replace the attachments of the response or not.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -4074,7 +4086,7 @@ nature, and will trigger this exception if they occur.</p>
   </span>
 
 <a href="#yuyo.components.ComponentContext.edit_last_response" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">edit_last_response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delete_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embeds</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">replace_attachments</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mentions_everyone</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">user_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">role_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">edit_last_response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delete_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embeds</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">mentions_everyone</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">user_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">role_mentions</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4230,22 +4242,6 @@ remove all components.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>hikari.UNDEFINED</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>replace_attachments</code></td>
-          <td class="doc-param-details">
-            <p>Whether to replace the attachments of the response or not.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -4438,6 +4434,32 @@ nature, and will trigger this exception if they occur.</p>
         </tr>
     </tbody>
   </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.ComponentContext.expires_at" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">expires_at</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.expires_at" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">expires_at</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>When this application command context expires.</p>
+<p>After this time is reached, the message/response methods on this
+context will always raise <a class="autorefs autorefs-external" href="https://hikari-py.github.io/hikari/hikari/errors.html#hikari.errors.NotFoundError">hikari.errors.NotFoundError</a>.</p>
 
   </div>
 
@@ -6025,7 +6047,7 @@ should default to ephemeral (meaning only the author can see them) unless
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../backoff/" class="md-footer__link md-footer__link--prev" aria-label="Previous: yuyo.backoff" rel="prev">
+        <a href="../chunk_tracker/" class="md-footer__link md-footer__link--prev" aria-label="Previous: yuyo.chunk_tracker" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -6034,7 +6056,7 @@ should default to ephemeral (meaning only the author can see them) unless
               <span class="md-footer__direction">
                 Previous
               </span>
-              yuyo.backoff
+              yuyo.chunk_tracker
             </div>
           </div>
         </a>
@@ -6081,7 +6103,7 @@ should default to ephemeral (meaning only the author can see them) unless
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.8492ddcf.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d6c3db9e.min.js"></script>
       
     
   </body>
