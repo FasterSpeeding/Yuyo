@@ -89,6 +89,11 @@ class AbstractCountStrategy(abc.ABC):
 
     __slots__ = ()
 
+    @property
+    @abc.abstractmethod
+    def is_shard_bound(self) -> bool:
+        """Whether this count is just for the current shards."""
+
     @abc.abstractmethod
     async def close(self) -> None:
         """Close the counter."""
@@ -98,13 +103,16 @@ class AbstractCountStrategy(abc.ABC):
         """Open the counter."""
 
     @abc.abstractmethod
-    async def count(self) -> int:
+    async def count(self) -> typing.Union[int, typing.Mapping[int, int]]:
         """Get a possibly cached guild count from this counter.
 
         Returns
         -------
         int
-            The current guild count.
+            The current guild count(s).
+
+            If this is an int then this is a global count.
+            If this is a mapping then this is shard-specific counts.
 
         Raises
         ------
@@ -160,6 +168,10 @@ class CacheStrategy(_LoadableStrategy):
     def __init__(self, cache: hikari.api.Cache, /) -> None:
         self._cache = cache
 
+    @property
+    def is_shard_bound(self) -> bool:
+        return True
+
     async def close(self) -> None:
         return None
 
@@ -191,7 +203,7 @@ class SakeStrategy(AbstractCountStrategy):
     This relies on [Sake][sake].
     """
 
-    __slots__ = ("_cache",)
+    __slots__ = ("_cache", "_is_shard_bound")
 
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
         """Initialise a sake strategy.
@@ -202,6 +214,10 @@ class SakeStrategy(AbstractCountStrategy):
             The Sake guild cache to use to get the guild count.
         """
         self._cache = cache
+
+    @property
+    def is_shard_bound(self) -> bool:
+        return False
 
     async def close(self) -> None:
         return None
@@ -232,6 +248,10 @@ class EventStrategy(_LoadableStrategy):
         self._guild_ids: typing.Set[hikari.Snowflake] = set()
         self._shards = shards
         self._started = False
+
+    @property
+    def is_shard_bound(self) -> bool:
+        return True
 
     async def _on_shard_ready_event(self, event: hikari.ShardReadyEvent, /) -> None:
         for guild_id in event.unavailable_guilds:
@@ -440,19 +460,20 @@ class ServiceManager(AbstractManager):
         self._user_agent = user_agent
 
         if strategy:
+
             self._counter = strategy
-            return
-
-        for strategy_ in _strategies:
-            try:
-                self._counter = strategy_.spawn(self)
-                break
-
-            except _InvalidStrategyError:
-                pass
 
         else:
-            raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
+            for strategy_ in _strategies:
+                try:
+                    self._counter = strategy_.spawn(self)
+                    break
+
+                except _InvalidStrategyError:
+                    pass
+
+            else:
+                raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
 
         if event_managed or event_managed is None and event_manager:
             if not event_manager:
@@ -460,6 +481,9 @@ class ServiceManager(AbstractManager):
 
             event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
             event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
+
+        if self._counter.is_shard_bound and not self._shards:
+            raise ValueError("Cannot use a shard bound strategy without shards present")
 
     @classmethod
     def from_gateway_bot(
@@ -787,17 +811,32 @@ class TopGGService:
     def __init__(self, token: str, /) -> None:
         self._token = token
 
-    async def update_top_gg(self, client: AbstractManager, /) -> None:
+    async def __call__(self, client: AbstractManager, /) -> None:
+        counts = await client.counter.count()
         me = await client.get_me()
         headers = {"Authorization": self._token, "User-Agent": client.user_agent}
-        json = {"server_count": await client.counter.count()}
+        session = client.get_session()
+        url = f"https://top.gg/api/bots/{me.id}/stats"
+
+        if isinstance(counts, int):
+            json: typing.Dict[str, typing.Union[int, typing.List[int]]] = {"server_count": counts}
+
+        else:
+            if not client.shards:
+                raise RuntimeError("Shard count unknown")
+
+            async with session.get(url, headers=headers) as response:
+                response.raise_for_status()
+                raw_shards: typing.Optional[typing.List[str]] = (await response.json()).get("shards")
+
+            shards = {index: int(count) for index, count in enumerate(raw_shards or ())}
+            shards.update(counts)
+            json = {"shard_count": [shards.get(shard_id, 0) for shard_id in range(client.shards.shard_count)]}
 
         if client.shards:
             json["shard_count"] = client.shards.shard_count
 
-        session = client.get_session()
-
-        async with session.post(f"https://top.gg/api/bots/{me.id}/stats", headers=headers, json=json) as response:
+        async with session.post(url, headers=headers, json=json) as response:
             await _log_response("Top.GG", response)
 
 
@@ -822,14 +861,20 @@ class BotsGGService:
         self._token = token
 
     async def __call__(self, client: AbstractManager, /) -> None:
+        counts = await client.counter.count()
         me = await client.get_me()
         headers = {"Authorization": self._token, "User-Agent": client.user_agent}
-        json = {"guildCount": await client.counter.count()}
+        session = client.get_session()
+
+        if isinstance(counts, int):
+            json: typing.Dict[str, typing.Union[int, typing.List[typing.Dict[str, int]]]] = {"guildCount": counts}
+
+        else:
+            json = {"shards": [{"shardId": shard_id, "guildCount": count} for shard_id, count in counts.items()]}
 
         if client.shards:
             json["shardCount"] = client.shards.shard_count
 
-        session = client.get_session()
         async with session.post(
             f"https://discord.bots.gg/api/v1/bots/{me.id}/stats", headers=headers, json=json
         ) as response:
