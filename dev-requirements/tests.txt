@@ -8,8 +8,6 @@ attrs==22.1.0
     # via pytest
 coverage[toml]==6.5.0
     # via pytest-cov
-exceptiongroup==1.0.0
-    # via pytest
 execnet==1.9.0
     # via pytest-xdist
 iniconfig==1.1.1
@@ -27,7 +25,7 @@ pytest==7.2.0
     #   pytest-cov
     #   pytest-timeout
     #   pytest-xdist
-pytest-asyncio==0.20.1
+pytest-asyncio==0.20.2
     # via -r dev-requirements/tests.in
 pytest-cov==4.0.0
     # via -r dev-requirements/tests.in
@@ -35,9 +33,5 @@ pytest-timeout==2.1.0
     # via -r dev-requirements/tests.in
 pytest-xdist==3.0.2
     # via -r dev-requirements/tests.in
-tomli==2.0.1
-    # via
-    #   coverage
-    #   pytest
 typing-extensions==4.4.0
     # via -r dev-requirements/tests.in
