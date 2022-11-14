@@ -139,7 +139,7 @@ class _LoadableStrategy(AbstractCountStrategy, abc.ABC):
         """
 
 
-def _as_strategy(strategy: typing.Type[_LoadableStrategyT]) -> typing.Type[_LoadableStrategyT]:
+def _as_strategy(strategy: typing.Type[_LoadableStrategyT], /) -> typing.Type[_LoadableStrategyT]:
     _strategies.append(strategy)
     return strategy
 
@@ -155,7 +155,7 @@ class CacheStrategy(_LoadableStrategy):
 
     __slots__ = ("_cache",)
 
-    def __init__(self, cache: hikari.api.Cache) -> None:
+    def __init__(self, cache: hikari.api.Cache, /) -> None:
         self._cache = cache
 
     async def close(self) -> None:
@@ -225,7 +225,7 @@ class EventStrategy(_LoadableStrategy):
 
     __slots__ = ("_event_manager", "_guild_ids", "_shards", "_started")
 
-    def __init__(self, event_manager: hikari.api.EventManager, shards: hikari.ShardAware) -> None:
+    def __init__(self, event_manager: hikari.api.EventManager, shards: hikari.ShardAware, /) -> None:
         self._event_manager = event_manager
         self._guild_ids: typing.Set[hikari.Snowflake] = set()
         self._shards = shards
@@ -456,8 +456,8 @@ class ServiceManager(AbstractManager):
             if not event_manager:
                 raise ValueError("event_managed may only be passed when an event_manager is also passed")
 
-            event_manager.subscribe(hikari.StartingEvent, self._on_starting)
-            event_manager.subscribe(hikari.StoppingEvent, self._on_stopping)
+            event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
+            event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
     @classmethod
     def from_gateway_bot(
@@ -575,10 +575,10 @@ class ServiceManager(AbstractManager):
     def user_agent(self) -> str:
         return self._user_agent or _DEFAULT_USER_AGENT
 
-    async def _on_starting(self, event: hikari.StartingEvent) -> None:
+    async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         await self.open()
 
-    async def _on_stopping(self, event: hikari.StoppingEvent) -> None:
+    async def _on_stopping_event(self, _: hikari.StoppingEvent, /) -> None:
         await self.close()
 
     def add_service(
@@ -621,7 +621,7 @@ class ServiceManager(AbstractManager):
         if float_repeat < 1:
             raise ValueError("Repeat cannot be under 1 second")
 
-        self._queue_insert(self._services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
+        _queue_insert(self._services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
         return self
 
     def remove_service(self, service: ServiceSig, /) -> None:
@@ -651,7 +651,7 @@ class ServiceManager(AbstractManager):
             raise ValueError("Couldn't find service")
 
     def with_service(
-        self, /, repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1)
+        self, *, repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1)
     ) -> typing.Callable[[_ServiceSigT], _ServiceSigT]:
         """Add a service to this manager by decorating a function.
 
@@ -762,20 +762,20 @@ class ServiceManager(AbstractManager):
 
                 time_taken = time.perf_counter() - time_taken
                 queue = [(time_ - time_taken, service) for time_, service in queue]
-                self._queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
+                _queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
 
-    @staticmethod
-    def _queue_insert(sequence: typing.List[_T], check: typing.Callable[[_T], bool], value: _T) -> None:
-        # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
-        index: int = -1
-        for index, sub_value in enumerate(sequence):
-            if check(sub_value):
-                break
 
-        else:
-            index += 1
+def _queue_insert(sequence: typing.List[_T], check: typing.Callable[[_T], bool], value: _T, /) -> None:
+    # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
+    index: int = -1
+    for index, sub_value in enumerate(sequence):
+        if check(sub_value):
+            break
 
-        sequence.insert(index, value)
+    else:
+        index += 1
+
+    sequence.insert(index, value)
 
 
 async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) -> None:
