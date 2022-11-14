@@ -177,7 +177,10 @@ class CacheStrategy(_LoadableStrategy):
         if not cache_enabled or not shard_enabled:
             raise _InvalidStrategyError
 
-        return cls(manager.cache)
+        if manager.cache.settings.components & hikari.api.CacheComponents.GUILDS:
+            return cls(manager.cache)
+
+        raise _InvalidStrategyError
 
 
 class SakeStrategy(AbstractCountStrategy):
