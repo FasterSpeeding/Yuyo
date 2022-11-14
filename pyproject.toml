@@ -30,6 +30,9 @@ classifiers = [
 dependencies = ["alluka~=0.1.2", "asgiref~=3.0", "hikari~=2.0.0.dev112"]
 dynamic = ["description"]
 
+[project.optional-dependencies]
+sake = ["hikari-sake>=1.0.4a1, <2.0.0"]
+
 [project.urls]
 Homepage = "https://github.com/FasterSpeeding/Yuyo"
 Repository = "https://github.com/FasterSpeeding/Yuyo"

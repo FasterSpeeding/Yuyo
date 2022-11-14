@@ -33,16 +33,18 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
+    "AbstractCountStrategy",
+    "AbstractManager",
     "BotsGGService",
     "CacheStrategy",
-    "CountStrategyProto",
+    "CountUnknownError",
     "EventStrategy",
-    "InvalidStrategyError",
-    "ManagerProto",
+    "SakeStrategy",
     "ServiceManager",
     "TopGGService",
 ]
 
+import abc
 import asyncio
 import datetime
 import logging
@@ -53,55 +55,70 @@ import aiohttp
 import hikari
 import hikari.api
 
-# from . import __version__
-from . import backoff
-
 if typing.TYPE_CHECKING:
+    import sake
     from hikari import traits
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
     _ServiceSigT = typing.TypeVar("_ServiceSigT", bound="ServiceSig")
-    _StrategyT = typing.TypeVar("_StrategyT", bound="CountStrategyProto")
+    _LoadableStrategyT = typing.TypeVar("_LoadableStrategyT", bound="_LoadableStrategy")
 
 
 _LOGGER = logging.getLogger("hikari.yuyo")
-_strategies: typing.List[typing.Type[CountStrategyProto]] = []
-_DEFAULT_USER_AGENT = "Yuyo.last_status"  # f"/{__version__}"
+_strategies: typing.List[typing.Type[_LoadableStrategy]] = []
+_DEFAULT_USER_AGENT = "Yuyo.last_status"
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
-ServiceSig = typing.Callable[["ManagerProto"], typing.Coroutine[typing.Any, typing.Any, None]]
+ServiceSig = typing.Callable[["AbstractManager"], typing.Coroutine[typing.Any, typing.Any, None]]
 
 
-def _as_strategy(strategy: typing.Type[_StrategyT]) -> typing.Type[_StrategyT]:
-    _strategies.append(strategy)
-    return strategy
-
-
-class InvalidStrategyError(TypeError):
+class _InvalidStrategyError(TypeError):
     """Error raised by spawn when the strategy isn't valid for the provided manager."""
 
 
-class CountStrategyProto(typing.Protocol):
+class CountUnknownError(RuntimeError):
+    """Error raised when the count is currently unknown."""
+
+
+class AbstractCountStrategy(abc.ABC):
     """Protocol of a class used for calculating the bot's guild count."""
 
     __slots__ = ()
 
+    @abc.abstractmethod
     async def close(self) -> None:
         """Close the counter."""
-        raise NotImplementedError
 
+    @abc.abstractmethod
     async def open(self) -> None:
         """Open the counter."""
-        raise NotImplementedError
 
+    @abc.abstractmethod
     async def count(self) -> int:
-        """Get a possibly cached guild count from this counter."""
-        raise NotImplementedError
+        """Get a possibly cached guild count from this counter.
+
+        Returns
+        -------
+        int
+            The current guild count.
+
+        Raises
+        ------
+        CountUnknownError
+            If the count is currently unknown.
+        """
+
+
+class _LoadableStrategy(AbstractCountStrategy, abc.ABC):
+    """ABC of a count strategy which can be automatically loaded."""
+
+    __slots__ = ()
 
     @classmethod
-    def spawn(cls: typing.Type[_StrategyT], manager: ManagerProto, /) -> _StrategyT:
+    @abc.abstractmethod
+    def spawn(cls, manager: AbstractManager, /) -> Self:
         """Spawn a counter for a specific manager.
 
         Parameters
@@ -116,16 +133,20 @@ class CountStrategyProto(typing.Protocol):
 
         Raises
         ------
-        InvalidStrategyError
+        _InvalidStrategyError
             If this strategy wouldn't be able to accurately get a guild count
             with the provided manager and it's resources.
         """
-        raise NotImplementedError
+
+
+def _as_strategy(strategy: typing.Type[_LoadableStrategyT]) -> typing.Type[_LoadableStrategyT]:
+    _strategies.append(strategy)
+    return strategy
 
 
 @_as_strategy
-class CacheStrategy(CountStrategyProto):
-    """Cache based implementation of `CountStrategyProto`.
+class CacheStrategy(_LoadableStrategy):
+    """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
 
     !!! warning
         This will only function properly if GUILD intents are declared
@@ -147,21 +168,53 @@ class CacheStrategy(CountStrategyProto):
         return len(self._cache.get_guilds_view())
 
     @classmethod
-    def spawn(cls, manager: ManagerProto, /) -> CacheStrategy:
+    def spawn(cls, manager: AbstractManager, /) -> CacheStrategy:
         if not manager.cache or not manager.shards:
-            raise InvalidStrategyError
+            raise _InvalidStrategyError
 
         cache_enabled = manager.cache.settings.components & hikari.api.CacheComponents.GUILDS
         shard_enabled = manager.shards.intents & hikari.Intents.GUILDS
         if not cache_enabled or not shard_enabled:
-            raise InvalidStrategyError
+            raise _InvalidStrategyError
 
         return cls(manager.cache)
 
 
+class SakeStrategy(AbstractCountStrategy):
+    """Async cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
+
+    This relies on [Sake][sake].
+    """
+
+    __slots__ = ("_cache",)
+
+    def __init__(self, cache: sake.abc.GuildCache, /) -> None:
+        """Initialise a sake strategy.
+
+        Parameters
+        ----------
+        cache
+            The Sake guild cache to use to get the guild count.
+        """
+        self._cache = cache
+
+    async def close(self) -> None:
+        return None
+
+    async def open(self) -> None:
+        return None
+
+    async def count(self) -> int:
+        try:
+            return await self._cache.iter_guilds().len()
+        except sake.ClosedClient:
+            _LOGGER.warning("Couldn't get guild count from closed Sake cache")
+            raise CountUnknownError from None
+
+
 @_as_strategy
-class EventStrategy(CountStrategyProto):
-    """Cache based implementation of `CountStrategyProto`.
+class EventStrategy(_LoadableStrategy):
+    """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
 
     !!! warning
         This will only function properly if GUILD intents are declared.
@@ -226,50 +279,51 @@ class EventStrategy(CountStrategyProto):
         return len(self._guild_ids)
 
     @classmethod
-    def spawn(cls, manager: ManagerProto, /) -> EventStrategy:
+    def spawn(cls, manager: AbstractManager, /) -> EventStrategy:
         events = manager.event_manager
         shards = manager.shards
         if not events or not shards or not (shards.intents & hikari.Intents.GUILDS) == hikari.Intents.GUILDS:
-            raise InvalidStrategyError
+            raise _InvalidStrategyError
 
         return cls(events, shards)
 
 
-class ManagerProto(typing.Protocol):
-    """Protocol of the class responsible for managing services."""
+class AbstractManager(typing.Protocol):
+    """Abstract class used for managing services."""
 
     __slots__ = ()
 
     @property
+    @abc.abstractmethod
     def cache(self) -> typing.Optional[hikari.api.Cache]:
         """The cache service this manager is bound to."""
-        raise NotImplementedError
 
     @property
-    def counter(self) -> CountStrategyProto:
+    @abc.abstractmethod
+    def counter(self) -> AbstractCountStrategy:
         """The country strategy this manager was initialised with."""
-        raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
         """The event manager this manager is bound to."""
-        raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def shards(self) -> typing.Optional[hikari.ShardAware]:
         """The shard aware client this manager is bound to."""
-        raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def rest(self) -> hikari.api.RESTClient:
         """The REST client this manager is bound to."""
-        raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def user_agent(self) -> str:
         """User agent services within this manager should use for requests."""
-        raise NotImplementedError
 
+    @abc.abstractmethod
     async def get_me(self) -> hikari.User:
         """Get user object of the bot this manager is bound to.
 
@@ -278,8 +332,8 @@ class ManagerProto(typing.Protocol):
         hikari.users.User
             User object of the bot this manager is bound to.
         """
-        raise NotImplementedError
 
+    @abc.abstractmethod
     def get_session(self) -> aiohttp.ClientSession:
         """Get an aiohttp session to use to make requests within the services.
 
@@ -294,7 +348,6 @@ class ManagerProto(typing.Protocol):
             * If this is called in an environment with no running event loop.
             * If the client isn't running.
         """
-        raise NotImplementedError
 
 
 class _ServiceDescriptor:
@@ -308,7 +361,7 @@ class _ServiceDescriptor:
         return f"_ServiceDescriptor <{self.function}, {self.repeat}>"
 
 
-class ServiceManager(ManagerProto):
+class ServiceManager(AbstractManager):
     """Standard service manager."""
 
     __slots__ = (
@@ -334,7 +387,7 @@ class ServiceManager(ManagerProto):
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         shards: typing.Optional[traits.ShardAware] = None,
         event_managed: typing.Optional[bool] = None,
-        strategy: typing.Optional[CountStrategyProto] = None,
+        strategy: typing.Optional[AbstractCountStrategy] = None,
         user_agent: typing.Optional[str] = None,
     ) -> None:
         """Initialise a service manager.
@@ -345,18 +398,19 @@ class ServiceManager(ManagerProto):
             The RESTAware Hikari client to bind this manager to.
         cache
             The cache aware Hikari client this manager should use.
-        event_manger
+        event_manager
             The event manager aware Hikari client this manager should use.
         shards
             The shard aware Hikari client this manager should use.
         event_managed
             Whether this client should be automatically opened and closed based
-            on `event_manger`'s lifetime events.
-            Defaults to `True` when `event_manager` is passed.
+            on `event_manager`'s lifetime events.
+
+            Defaults to [True][] when `event_manager` is passed.
         strategy
             The counter strategy this manager should expose to services.
 
-            If this is left as `None` then the manager will try to pick
+            If this is left as [None][] then the manager will try to pick
             a suitable standard strategy based on the provided Hikari clients.
         user_agent
             Override the standard user agent used during requests to bot list services.
@@ -365,9 +419,9 @@ class ServiceManager(ManagerProto):
         ------
         ValueError
             If the manager failed to find a suitable standard strategy to use
-            when `strategy` was left as `None`.
+            when `strategy` was left as [None][].
 
-            If `event_managed` is passed as `True` when `event_manager` is None.
+            If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         self._cache = cache
         self._event_manager = event_manager
@@ -389,7 +443,7 @@ class ServiceManager(ManagerProto):
                 self._counter = strategy_.spawn(self)
                 break
 
-            except InvalidStrategyError:
+            except _InvalidStrategyError:
                 pass
 
         else:
@@ -409,7 +463,7 @@ class ServiceManager(ManagerProto):
         /,
         *,
         event_managed: bool = True,
-        strategy: typing.Optional[CountStrategyProto] = None,
+        strategy: typing.Optional[AbstractCountStrategy] = None,
         user_agent: typing.Optional[str] = None,
     ) -> ServiceManager:
         """Build a service manager from a gateway bot.
@@ -421,11 +475,10 @@ class ServiceManager(ManagerProto):
         event_managed
             Whether this client should be automatically opened and closed based
             on `bot`'s lifetime events.
-            Defaults to `True`.
         strategy
             The counter strategy this manager should expose to services.
 
-            If this is left as `None` then the manager will try to pick
+            If this is left as [None][] then the manager will try to pick
             a suitable standard strategy based on the provided Hikari clients.
         user_agent
             Override the standard user agent used during requests to bot list services.
@@ -439,7 +492,7 @@ class ServiceManager(ManagerProto):
         ------
         ValueError
             If the manager failed to find a suitable standard strategy to use
-            when `strategy` was left as `None`.
+            when `strategy` was left as [None][].
         """
         return cls(
             bot.rest,
@@ -456,7 +509,7 @@ class ServiceManager(ManagerProto):
         bot: traits.RESTBotAware,
         /,
         *,
-        strategy: typing.Optional[CountStrategyProto] = None,
+        strategy: typing.Optional[AbstractCountStrategy] = None,
         user_agent: typing.Optional[str] = None,
     ) -> ServiceManager:
         """Build a service manager from a REST bot.
@@ -468,7 +521,7 @@ class ServiceManager(ManagerProto):
         strategy
             The counter strategy this manager should expose to services.
 
-            If this is left as `None` then the manager will try to pick
+            If this is left as [None][] then the manager will try to pick
             a suitable standard strategy based on the provided Hikari clients.
         user_agent
             Override the standard user agent used during requests to bot list services.
@@ -482,7 +535,7 @@ class ServiceManager(ManagerProto):
         ------
         ValueError
             If the manager failed to find a suitable standard strategy to use
-            when `strategy` was left as `None`.
+            when `strategy` was left as [None][].
         """
         return cls(bot.rest, strategy=strategy, user_agent=user_agent)
 
@@ -496,7 +549,7 @@ class ServiceManager(ManagerProto):
         return self._cache
 
     @property
-    def counter(self) -> CountStrategyProto:
+    def counter(self) -> AbstractCountStrategy:
         return self._counter
 
     @property
@@ -526,7 +579,11 @@ class ServiceManager(ManagerProto):
         await self.close()
 
     def add_service(
-        self, service: ServiceSig, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
+        self,
+        service: ServiceSig,
+        /,
+        *,
+        repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1),
     ) -> Self:
         """Add a service to this manager.
 
@@ -536,8 +593,6 @@ class ServiceManager(ManagerProto):
             Asynchronous callback used to update this service.
         repeat
             How often this service should be updated in seconds.
-
-            This defaults to 1 hour.
 
         Returns
         -------
@@ -593,7 +648,7 @@ class ServiceManager(ManagerProto):
             raise ValueError("Couldn't find service")
 
     def with_service(
-        self, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60, /
+        self, /, repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1)
     ) -> typing.Callable[[_ServiceSigT], _ServiceSigT]:
         """Add a service to this manager by decorating a function.
 
@@ -601,8 +656,6 @@ class ServiceManager(ManagerProto):
         ----------
         repeat
             How often this service should be updated in seconds.
-
-            This defaults to 1 hour.
 
         Returns
         -------
@@ -656,24 +709,14 @@ class ServiceManager(ManagerProto):
         if self._me:
             return self._me
 
-        if not self._me_lock:
-            self._me_lock = asyncio.Lock()
+        if self._cache:
+            self._me = self._cache.get_me()
 
-        async with self._me_lock:
-            retry = backoff.Backoff()
+        if not self._me:
+            if not self._me_lock:
+                self._me_lock = asyncio.Lock()
 
-            async for _ in retry:
-                try:
-                    self._me = await self._rest.fetch_my_user()
-                    break
-
-                except hikari.InternalServerError:
-                    continue
-
-                except hikari.RateLimitedError as exc:
-                    retry.set_next_backoff(exc.retry_after)
-
-            else:
+            async with self._me_lock:
                 self._me = await self._rest.fetch_my_user()
 
         if not self._user_agent:
@@ -705,6 +748,9 @@ class ServiceManager(ManagerProto):
 
                 try:
                     await service.function(self)
+
+                except CountUnknownError:
+                    pass
 
                 except Exception as exc:
                     _LOGGER.exception(
@@ -772,7 +818,7 @@ class TopGGService:
     def __init__(self, token: str, /) -> None:
         self._token = token
 
-    async def update_top_gg(self, client: ManagerProto, /) -> None:
+    async def update_top_gg(self, client: AbstractManager, /) -> None:
         me = await client.get_me()
         headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"server_count": await client.counter.count()}
@@ -806,7 +852,7 @@ class BotsGGService:
         """
         self._token = token
 
-    async def __call__(self, client: ManagerProto, /) -> None:
+    async def __call__(self, client: AbstractManager, /) -> None:
         me = await client.get_me()
         headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"guildCount": await client.counter.count()}
