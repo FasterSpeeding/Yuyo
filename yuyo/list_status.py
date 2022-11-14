@@ -508,42 +508,6 @@ class ServiceManager(AbstractManager):
             user_agent=user_agent,
         )
 
-    @classmethod
-    def from_rest_bot(
-        cls,
-        bot: traits.RESTBotAware,
-        /,
-        *,
-        strategy: typing.Optional[AbstractCountStrategy] = None,
-        user_agent: typing.Optional[str] = None,
-    ) -> ServiceManager:
-        """Build a service manager from a REST bot.
-
-        Parameters
-        ----------
-        bot
-            The REST bot to build a service manager from.
-        strategy
-            The counter strategy this manager should expose to services.
-
-            If this is left as [None][] then the manager will try to pick
-            a suitable standard strategy based on the provided Hikari clients.
-        user_agent
-            Override the standard user agent used during requests to bot list services.
-
-        Returns
-        -------
-        ServiceManager
-            The build service manager.
-
-        Raises
-        ------
-        ValueError
-            If the manager failed to find a suitable standard strategy to use
-            when `strategy` was left as [None][].
-        """
-        return cls(bot.rest, strategy=strategy, user_agent=user_agent)
-
     @property
     def is_alive(self) -> bool:
         """Wwhether this manager is active."""
