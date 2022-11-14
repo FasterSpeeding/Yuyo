@@ -41,6 +41,7 @@ __all__: typing.Sequence[str] = [
     "EventStrategy",
     "SakeStrategy",
     "ServiceManager",
+    "ServiceSig",
     "TopGGService",
 ]
 
@@ -72,6 +73,7 @@ _DEFAULT_USER_AGENT = "Yuyo.last_status"
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
 ServiceSig = typing.Callable[["AbstractManager"], typing.Coroutine[typing.Any, typing.Any, None]]
+"""Signature of a callback used to update a service."""
 
 
 class _InvalidStrategyError(TypeError):
