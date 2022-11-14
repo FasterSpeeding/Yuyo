@@ -58,9 +58,9 @@ from . import backoff
 
 if typing.TYPE_CHECKING:
     from hikari import traits
+    from typing_extensions import Self
 
-    _ServiceManagerT = typing.TypeVar("_ServiceManagerT", bound="ServiceManager")
-    _ValueT = typing.TypeVar("_ValueT")
+    _T = typing.TypeVar("_T")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
     _ServiceSigT = typing.TypeVar("_ServiceSigT", bound="ServiceSig")
     _StrategyT = typing.TypeVar("_StrategyT", bound="CountStrategyProto")
@@ -526,8 +526,8 @@ class ServiceManager(ManagerProto):
         await self.close()
 
     def add_service(
-        self: _ServiceManagerT, service: ServiceSig, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
-    ) -> _ServiceManagerT:
+        self, service: ServiceSig, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
+    ) -> Self:
         """Add a service to this manager.
 
         Parameters
@@ -541,7 +541,7 @@ class ServiceManager(ManagerProto):
 
         Returns
         -------
-        ServiceManager
+        Self
             Object of this service manager.
 
         Raises
@@ -716,7 +716,7 @@ class ServiceManager(ManagerProto):
                 self._queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
 
     @staticmethod
-    def _queue_insert(sequence: typing.List[_ValueT], check: typing.Callable[[_ValueT], bool], value: _ValueT) -> None:
+    def _queue_insert(sequence: typing.List[_T], check: typing.Callable[[_T], bool], value: _T) -> None:
         # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
         index: int = -1
         for index, sub_value in enumerate(sequence):
