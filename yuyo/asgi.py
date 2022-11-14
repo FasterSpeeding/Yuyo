@@ -389,6 +389,8 @@ def _content_type(response: hikari.api.Response) -> typing.Optional[bytes]:
 
         return response.content_type.encode()
 
+    return None  # MyPy
+
 
 def _find_headers(
     scope: asgiref.HTTPScope,

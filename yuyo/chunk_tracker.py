@@ -518,6 +518,7 @@ class ChunkTracker:
         guild_id = hikari.Snowflake(event.payload["id"])
         auto_chunk = self._auto_chunk_members and event.shard.intents & hikari.Intents.GUILD_MEMBERS
 
+        shard_info: typing.Optional[_ShardInfo]  # MyPy
         if not event.payload.get("large"):
             # Any sane auto-chunker will be ignoring this case so we can short-cut
             # the tracking of chunking which was triggered based on GUILD_CREATEs
