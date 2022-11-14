@@ -33,16 +33,14 @@
 from __future__ import annotations
 
 __all__: typing.Sequence[str] = [
+    "BotsGGService",
     "CacheStrategy",
     "CountStrategyProto",
     "EventStrategy",
     "InvalidStrategyError",
     "ManagerProto",
     "ServiceManager",
-    "ServiceProto",
-    "make_bots_gg_service",
-    "make_d_boats_service",
-    "make_top_gg_service",
+    "TopGGService",
 ]
 
 import asyncio
@@ -53,30 +51,30 @@ import typing
 
 import aiohttp
 import hikari
+import hikari.api
 
-from . import __version__
+# from . import __version__
 from . import backoff
 
 if typing.TYPE_CHECKING:
     from hikari import traits
-    from hikari.api import event_manager as event_manager_api
 
     _ServiceManagerT = typing.TypeVar("_ServiceManagerT", bound="ServiceManager")
     _ValueT = typing.TypeVar("_ValueT")
+    _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
+    _ServiceSigT = typing.TypeVar("_ServiceSigT", bound="ServiceSig")
+    _StrategyT = typing.TypeVar("_StrategyT", bound="CountStrategyProto")
 
-ServiceT = typing.TypeVar("ServiceT", bound="ServiceProto")
-"""Type-hint of an object used for targeting a specific service."""
-
-StrategyT = typing.TypeVar("StrategyT", bound="CountStrategyProto")
-"""Type-hint of an object used for calculating the bot's guild count."""
 
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[CountStrategyProto]] = []
-_DEFAULT_USER_AGENT = f"Yuyo.last_status/{__version__}"
+_DEFAULT_USER_AGENT = "Yuyo.last_status"  # f"/{__version__}"
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
+ServiceSig = typing.Callable[["ManagerProto"], typing.Coroutine[typing.Any, typing.Any, None]]
 
-def _as_strategy(strategy: typing.Type[StrategyT]) -> typing.Type[StrategyT]:
+
+def _as_strategy(strategy: typing.Type[_StrategyT]) -> typing.Type[_StrategyT]:
     _strategies.append(strategy)
     return strategy
 
@@ -84,13 +82,11 @@ def _as_strategy(strategy: typing.Type[StrategyT]) -> typing.Type[StrategyT]:
 class InvalidStrategyError(TypeError):
     """Error raised by spawn when the strategy isn't valid for the provided manager."""
 
-    __slots__: typing.Sequence[str] = ()
-
 
 class CountStrategyProto(typing.Protocol):
     """Protocol of a class used for calculating the bot's guild count."""
 
-    __slots__: typing.Sequence[str] = ()
+    __slots__ = ()
 
     async def close(self) -> None:
         """Close the counter."""
@@ -105,13 +101,18 @@ class CountStrategyProto(typing.Protocol):
         raise NotImplementedError
 
     @classmethod
-    def spawn(cls: typing.Type[StrategyT], manager: ManagerProto, /) -> StrategyT:
+    def spawn(cls: typing.Type[_StrategyT], manager: ManagerProto, /) -> _StrategyT:
         """Spawn a counter for a specific manager.
 
         Parameters
         ----------
-        manager : ManagerProto
+        manager
             Object of the manager this counter is being spawned for.
+
+        Returns
+        -------
+        Self
+            The spawned counter.
 
         Raises
         ------
@@ -131,7 +132,7 @@ class CacheStrategy(CountStrategyProto):
         and the guild cache resource is enabled.
     """
 
-    __slots__: typing.Sequence[str] = ("_cache",)
+    __slots__ = ("_cache",)
 
     def __init__(self, cache: hikari.api.Cache) -> None:
         self._cache = cache
@@ -150,7 +151,7 @@ class CacheStrategy(CountStrategyProto):
         if not manager.cache or not manager.shards:
             raise InvalidStrategyError
 
-        cache_enabled = manager.cache.settings.components & hikari.CacheComponents.GUILDS
+        cache_enabled = manager.cache.settings.components & hikari.api.CacheComponents.GUILDS
         shard_enabled = manager.shards.intents & hikari.Intents.GUILDS
         if not cache_enabled or not shard_enabled:
             raise InvalidStrategyError
@@ -166,9 +167,9 @@ class EventStrategy(CountStrategyProto):
         This will only function properly if GUILD intents are declared.
     """
 
-    __slots__: typing.Sequence[str] = ("_event_manager", "_guild_ids", "_shards", "_started")
+    __slots__ = ("_event_manager", "_guild_ids", "_shards", "_started")
 
-    def __init__(self, event_manager: hikari.api.EventManager, shards: traits.ShardAware) -> None:
+    def __init__(self, event_manager: hikari.api.EventManager, shards: hikari.ShardAware) -> None:
         self._event_manager = event_manager
         self._guild_ids: typing.Set[hikari.Snowflake] = set()
         self._shards = shards
@@ -193,8 +194,8 @@ class EventStrategy(CountStrategyProto):
 
     def _try_unsubscribe(
         self,
-        event_type: typing.Type[event_manager_api.EventT],
-        callback: event_manager_api.CallbackT[event_manager_api.EventT],
+        event_type: typing.Type[_EventT],
+        callback: typing.Callable[[_EventT], typing.Coroutine[typing.Any, typing.Any, None]],
     ) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
@@ -208,7 +209,7 @@ class EventStrategy(CountStrategyProto):
 
         self._try_unsubscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
-        self._try_unsubscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)  # type: ignore[misc]
+        self._try_unsubscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)
         self._try_unsubscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
         self._guild_ids.clear()
 
@@ -234,114 +235,34 @@ class EventStrategy(CountStrategyProto):
         return cls(events, shards)
 
 
-# @_as_strategy
-class _RESTStrategy(CountStrategyProto):
-    __slots__: typing.Sequence[str] = ("_count", "_lock", "_requesting", "_time", "_delta")
-
-    def __init__(self, *, delta: datetime.timedelta = datetime.timedelta(hours=1)) -> None:
-        self._count = -1
-        self._lock: typing.Optional[asyncio.Lock] = None
-        self._requesting = False
-        self._time = 0.0
-        self._delta = delta.total_seconds()
-
-    async def close(self) -> None:
-        return None
-
-    async def open(self) -> None:
-        return None
-
-    async def count(self) -> int:
-        if not self._lock:
-            self._lock = asyncio.Lock()
-
-        async with self._lock:
-            if self._count == -1:
-                self._time = time.perf_counter()
-                self._count = await self._calculate_count()
-
-            elif time.perf_counter() - self._time > self._delta and not self._requesting:
-                self._time = time.perf_counter()
-                asyncio.create_task(self._calculate_count())
-
-            return self._count
-
-    async def _calculate_count(self) -> int:
-        if self._requesting:
-            raise RuntimeError("Already calculating the count")
-
-        self._requesting = True
-        # TODO: logic
-        self._requesting = False
-        return 42
-
-    @classmethod
-    def spawn(cls, manager: ManagerProto, /) -> _RESTStrategy:
-        raise InvalidStrategyError
-        # return cls()
-
-
 class ManagerProto(typing.Protocol):
     """Protocol of the class responsible for managing services."""
 
-    __slots__: typing.Sequence[str] = ()
+    __slots__ = ()
 
     @property
     def cache(self) -> typing.Optional[hikari.api.Cache]:
-        """Return the cache service this manager is bound to.
-
-        Returns
-        -------
-        typing.Optional[hikari.api.Cache]
-            The cache this service was bound to if applicable
-            else `None`.
-        """
+        """The cache service this manager is bound to."""
         raise NotImplementedError
 
     @property
     def counter(self) -> CountStrategyProto:
-        """Return the country strategy this manager was initialised with.
-
-        Returns
-        -------
-        CountStrategyProto
-            The country strategy this manager was initialised with.
-        """
+        """The country strategy this manager was initialised with."""
         raise NotImplementedError
 
     @property
     def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
-        """Return the event manager this manager is bound to.
-
-        Returns
-        -------
-        typing.Optional[hikari.api.EventManager]
-            The event manager this manager was bound to if applicable
-            else `None`.
-        """
+        """The event manager this manager is bound to."""
         raise NotImplementedError
 
     @property
-    def shards(self) -> typing.Optional[traits.ShardAware]:
-        """Return the shard aware client this manager is bound to.
-
-        Returns
-        -------
-        typing.Optional[hikari.traits.ShardAware]
-            The shard aware client this manager was bound to if applicable
-            else `None`.
-        """
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """The shard aware client this manager is bound to."""
         raise NotImplementedError
 
     @property
     def rest(self) -> hikari.api.RESTClient:
-        """Return the REST client this manager is bound to.
-
-        Returns
-        -------
-        hikari.api.RESTClient
-            The REST client this manager was bound to.
-        """
+        """The REST client this manager is bound to."""
         raise NotImplementedError
 
     @property
@@ -376,17 +297,10 @@ class ManagerProto(typing.Protocol):
         raise NotImplementedError
 
 
-class ServiceProto(typing.Protocol):
-    """Protocol of a callable used to update a service's guild count."""
-
-    async def __call__(self, client: ManagerProto, /) -> None:
-        raise NotImplementedError
-
-
 class _ServiceDescriptor:
-    __slots__: typing.Sequence[str] = ("repeat", "function")
+    __slots__ = ("repeat", "function")
 
-    def __init__(self, service: ServiceProto, repeat: float, /) -> None:
+    def __init__(self, service: ServiceSig, repeat: float, /) -> None:
         self.function = service
         self.repeat = repeat
 
@@ -395,45 +309,14 @@ class _ServiceDescriptor:
 
 
 class ServiceManager(ManagerProto):
-    """Standard service manager.
+    """Standard service manager."""
 
-    Parameters
-    ----------
-    rest : hikari.traits.RESTAware
-        The RESTAware Hikari client to bind this manager to.
-
-    Other Parameters
-    ----------------
-    cache : typing.Optional[hikari.traits.CacheAware]
-        The cache aware Hikari client this manager should use.
-    event_manger : typing.Optional[hikari.traits.EventManagerAware]
-        The event manager aware Hikari client this manager should use.
-    shards : typing.Optional[hikari.traits.ShardAware]
-        The shard aware Hikari client this manager should use.
-    event_managed : bool
-        Whether this client should be automatically opened and closed based
-        on `event_manger`'s lifetime events.
-        Defaults to `True` when `event_manager` is passed.
-    strategy : typing.Optional[CountStrategyProto]
-        The counter strategy this manager should expose to services.
-
-        If this is left as `None` then the manager will try to pick
-        a suitable standard strategy based on the provided Hikari clients.
-    user_agent : typing.Optional[str]
-        Override the standard user agent used during requests to bot list services.
-
-    Raises
-    ------
-    ValueError
-        If the manager failed to find a suitable standard strategy to use
-        when `strategy` was left as `None`.
-
-        If `event_managed` is passed as `True` when `event_manager` is None.
-    """
-
-    __slots__: typing.Sequence[str] = (
+    __slots__ = (
         "_cache",
+        "_counter",
         "_event_manager",
+        "_me",
+        "_me_lock",
         "_rest",
         "_services",
         "_session",
@@ -454,7 +337,38 @@ class ServiceManager(ManagerProto):
         strategy: typing.Optional[CountStrategyProto] = None,
         user_agent: typing.Optional[str] = None,
     ) -> None:
+        """Initialise a service manager.
 
+        Parameters
+        ----------
+        rest
+            The RESTAware Hikari client to bind this manager to.
+        cache
+            The cache aware Hikari client this manager should use.
+        event_manger
+            The event manager aware Hikari client this manager should use.
+        shards
+            The shard aware Hikari client this manager should use.
+        event_managed
+            Whether this client should be automatically opened and closed based
+            on `event_manger`'s lifetime events.
+            Defaults to `True` when `event_manager` is passed.
+        strategy
+            The counter strategy this manager should expose to services.
+
+            If this is left as `None` then the manager will try to pick
+            a suitable standard strategy based on the provided Hikari clients.
+        user_agent
+            Override the standard user agent used during requests to bot list services.
+
+        Raises
+        ------
+        ValueError
+            If the manager failed to find a suitable standard strategy to use
+            when `strategy` was left as `None`.
+
+            If `event_managed` is passed as `True` when `event_manager` is None.
+        """
         self._cache = cache
         self._event_manager = event_manager
         self._rest = rest
@@ -470,9 +384,9 @@ class ServiceManager(ManagerProto):
             self._counter = strategy
             return
 
-        for strategy in _strategies:
+        for strategy_ in _strategies:
             try:
-                self._counter = strategy.spawn(self)
+                self._counter = strategy_.spawn(self)
                 break
 
             except InvalidStrategyError:
@@ -502,21 +416,18 @@ class ServiceManager(ManagerProto):
 
         Parameters
         ----------
-        rest : hikari.traits.GatewayBotAware
+        bot
             The gateway bot to build a service manager from.
-
-        Other Parameters
-        ----------------
-        event_managed : bool
+        event_managed
             Whether this client should be automatically opened and closed based
             on `bot`'s lifetime events.
             Defaults to `True`.
-        strategy : typing.Optional[CountStrategyProto]
+        strategy
             The counter strategy this manager should expose to services.
 
             If this is left as `None` then the manager will try to pick
             a suitable standard strategy based on the provided Hikari clients.
-        user_agent : typing.Optional[str]
+        user_agent
             Override the standard user agent used during requests to bot list services.
 
         Returns
@@ -552,17 +463,14 @@ class ServiceManager(ManagerProto):
 
         Parameters
         ----------
-        bot : hikari.traits.RESTBotAware
+        bot
             The REST bot to build a service manager from.
-
-        Other Parameters
-        ----------------
-        strategy : typing.Optional[CountStrategyProto]
+        strategy
             The counter strategy this manager should expose to services.
 
             If this is left as `None` then the manager will try to pick
             a suitable standard strategy based on the provided Hikari clients.
-        user_agent : typing.Optional[str]
+        user_agent
             Override the standard user agent used during requests to bot list services.
 
         Returns
@@ -580,7 +488,7 @@ class ServiceManager(ManagerProto):
 
     @property
     def is_alive(self) -> bool:
-        """Return whether this manager is active."""
+        """Wwhether this manager is active."""
         return self._task is not None
 
     @property
@@ -604,7 +512,7 @@ class ServiceManager(ManagerProto):
         return self._shards
 
     @property
-    def services(self) -> typing.Sequence[ServiceProto]:
+    def services(self) -> typing.Sequence[ServiceSig]:
         return [service.function for service in self._services]
 
     @property
@@ -618,18 +526,15 @@ class ServiceManager(ManagerProto):
         await self.close()
 
     def add_service(
-        self: _ServiceManagerT, service: ServiceProto, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
+        self: _ServiceManagerT, service: ServiceSig, /, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60
     ) -> _ServiceManagerT:
         """Add a service to this manager.
 
         Parameters
         ----------
-        service : ServiceProto
+        service
             Asynchronous callback used to update this service.
-
-        Other Parameters
-        ----------------
-        repeat : typing.Union[datetime.timedelta, int, float]
+        repeat
             How often this service should be updated in seconds.
 
             This defaults to 1 hour.
@@ -661,12 +566,12 @@ class ServiceManager(ManagerProto):
         self._queue_insert(self._services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
         return self
 
-    def remove_service(self, service: ServiceProto) -> None:
+    def remove_service(self, service: ServiceSig, /) -> None:
         """Remove the first found entry of the registered service.
 
         Parameters
         ----------
-        service : ServiceProto
+        service
             Service callback to unregister.
 
         Raises
@@ -689,19 +594,19 @@ class ServiceManager(ManagerProto):
 
     def with_service(
         self, repeat: typing.Union[datetime.timedelta, int, float] = 60 * 60, /
-    ) -> typing.Callable[[ServiceT], ServiceT]:
+    ) -> typing.Callable[[_ServiceSigT], _ServiceSigT]:
         """Add a service to this manager by decorating a function.
 
-        Other Parameters
-        ----------------
-        repeat : typing.Union[datetime.timedelta, int, float]
+        Parameters
+        ----------
+        repeat
             How often this service should be updated in seconds.
 
             This defaults to 1 hour.
 
         Returns
         -------
-        typing.Callable[[ServiceT], ServiceT]
+        typing.Callable[[ServiceSig], ServiceSig]
             Decorator callback used to add a service.
 
         Raises
@@ -712,7 +617,7 @@ class ServiceManager(ManagerProto):
             If the client is already running.
         """
 
-        def decorator(service: ServiceT, /) -> ServiceT:
+        def decorator(service: _ServiceSigT, /) -> _ServiceSigT:
             self.add_service(service, repeat=repeat)
             return service
 
@@ -859,23 +764,17 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
         )
 
 
-def make_top_gg_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://top.gg.
+class TopGGService:
+    """https://top.gg status update service."""
 
-    Parameters
-    ----------
-    token : str
-        Authorization token used to update the bot's status.
+    __slots__ = ("_token",)
 
-    Returns
-    -------
-    ServiceProto
-        The service callback used to update a bot's status on https://top.gg.
-    """
+    def __init__(self, token: str, /) -> None:
+        self._token = token
 
-    async def update_top_gg(client: ManagerProto, /) -> None:
+    async def update_top_gg(self, client: ManagerProto, /) -> None:
         me = await client.get_me()
-        headers = {"Authorization": token, "User-Agent": client.user_agent}
+        headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"server_count": await client.counter.count()}
 
         if client.shards:
@@ -886,26 +785,30 @@ def make_top_gg_service(token: str) -> ServiceProto:
         async with session.post(f"https://top.gg/api/bots/{me.id}/stats", headers=headers, json=json) as response:
             await _log_response("Top.GG", response)
 
-    return update_top_gg
 
+class BotsGGService:
+    """https://discord.bots.gg status update service."""
 
-def make_bots_gg_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://discord.bots.gg.
+    __slots__ = ("_token",)
 
-    Parameters
-    ----------
-    token : str
-        Authorization token used to update the bot's status.
+    def __init__(self, token: str, /) -> None:
+        """Initialise a bots.gg service.
 
-    Returns
-    -------
-    ServiceProto
-        The service callback used to update a bot's status on https://discord.bots.gg.
-    """
+        Parameters
+        ----------
+        token
+            Authorization token used to update the bot's status.
 
-    async def update_bots_gg(client: ManagerProto, /) -> None:
+        Returns
+        -------
+        ServiceSig
+            The service callback used to update a bot's status on .
+        """
+        self._token = token
+
+    async def __call__(self, client: ManagerProto, /) -> None:
         me = await client.get_me()
-        headers = {"Authorization": token, "User-Agent": client.user_agent}
+        headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"guildCount": await client.counter.count()}
 
         if client.shards:
@@ -916,31 +819,3 @@ def make_bots_gg_service(token: str) -> ServiceProto:
             f"https://discord.bots.gg/api/v1/bots/{me.id}/stats", headers=headers, json=json
         ) as response:
             await _log_response("Bots.GG", response)
-
-    return update_bots_gg
-
-
-def make_d_boats_service(token: str) -> ServiceProto:
-    """Make a service callback to update a bot's status on https://discord.boats.
-
-    Parameters
-    ----------
-    token : str
-        Authorization token used to update the bot's status.
-
-    Returns
-    -------
-    ServiceProto
-        The service callback used to update a bot's status on https://discord.boats.
-    """
-
-    async def update_d_boats(client: ManagerProto, /) -> None:
-        me = await client.get_me()
-        headers = {"Authorization": token, "User-Agent": client.user_agent}
-        json = {"server_count": await client.counter.count()}
-        session = client.get_session()
-
-        async with session.post(f"https://discord.boats/api/bots/{me.id}", headers=headers, json=json) as response:
-            await _log_response("Bots.GG", response)
-
-    return update_d_boats
