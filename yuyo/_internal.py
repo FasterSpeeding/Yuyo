@@ -34,6 +34,7 @@ from __future__ import annotations
 
 __all__: typing.Sequence[str] = []
 
+import enum
 import sys
 import typing
 from collections import abc as collections
@@ -43,7 +44,16 @@ _DefaultT = typing.TypeVar("_DefaultT")
 IterableT = typing.Union[typing.AsyncIterable[_T], typing.Iterable[_T]]
 IteratorT = typing.Union[typing.AsyncIterator[_T], typing.Iterator[_T]]
 
-_NO_DEFAULT = object()
+
+class _NoDefaultEnum(enum.Enum):
+    VALUE = object()
+
+
+NO_DEFAULT = _NoDefaultEnum.VALUE
+"""Internal singleton used to signify when a value wasn't provided."""
+
+NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
+"""The type of `NO_DEFAULT`."""
 
 
 if sys.version_info >= (3, 10):
@@ -65,13 +75,13 @@ else:
         ...
 
     async def anext_(
-        iterator: typing.AsyncIterator[_T], default: _DefaultT = _NO_DEFAULT, /
+        iterator: typing.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /
     ) -> typing.Union[_T, _DefaultT]:
         """Backwards compat impl of `anext`."""
         try:
             return await iterator.__anext__()
         except StopAsyncIteration:
-            if default is _NO_DEFAULT:
+            if default is NO_DEFAULT:
                 raise
 
             return typing.cast("_T", default)

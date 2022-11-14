@@ -458,6 +458,8 @@ class ReactionPaginator(ReactionHandler):
             self._buffer.append(entry)
             return entry
 
+        return None  # MyPy
+
     async def _on_next(self, _: EventT, /) -> None:
         if entry := await self.get_next_entry():
             content, embed = entry

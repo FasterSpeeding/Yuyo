@@ -140,7 +140,7 @@ warn_redundant_casts = false
 
 # compatibility with pyright
 allow_redefinition = true
-disable_error_code = ["return-value"]
+disable_error_code = ["type-abstract"]
 
 [tool.slotscheck]
 strict-imports = true

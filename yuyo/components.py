@@ -1301,6 +1301,8 @@ class ComponentContext:
         if ensure_result:
             return await self._interaction.fetch_initial_response()
 
+        return None  # MyPy
+
 
 _ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikari.files.RAWISH_TYPES, os.PathLike)
 
@@ -2404,6 +2406,8 @@ class ComponentPaginator(ActionRowExecutor):
             self._index += 1
             self._buffer.append(entry)
             return entry
+
+        return None  # MyPy
 
     @staticmethod
     def _noop(ctx: ComponentContext) -> typing.Coroutine[typing.Any, typing.Any, None]:
