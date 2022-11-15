@@ -906,7 +906,6 @@ class DiscordBotListService:
             return
 
         back_off = backoff.Backoff()
-
         for shard_id, count in counts.items():
             async for _ in back_off:
                 retry_after = await self._post(client, count, shard_id=shard_id)
@@ -915,6 +914,8 @@ class DiscordBotListService:
 
                 elif retry_after != -1:
                     back_off.set_next_backoff(retry_after)
+
+            back_off.reset()
 
     async def _post(
         self, client: AbstractManager, count: int, /, *, shard_id: typing.Optional[int] = None
