@@ -191,10 +191,7 @@ class CacheStrategy(_LoadableStrategy):
         if not cache_enabled or not shard_enabled:
             raise _InvalidStrategyError
 
-        if manager.cache.settings.components & hikari.api.CacheComponents.GUILDS:
-            return cls(manager.cache)
-
-        raise _InvalidStrategyError
+        return cls(manager.cache)
 
 
 class SakeStrategy(AbstractCountStrategy):
@@ -455,7 +452,7 @@ class ServiceManager(AbstractManager):
         self._session: typing.Optional[aiohttp.ClientSession] = None
         self._shards = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
-        self._me = (cache and cache.get_me()) or None
+        self._me: typing.Optional[hikari.OwnUser] = None
         self._me_lock: typing.Optional[asyncio.Lock] = None
         self._user_agent = user_agent
 
