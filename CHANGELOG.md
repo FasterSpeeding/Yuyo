@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
+  [yuyo.backoff.Backoff.set_next_backoff][] has been called.
+
+### Fixed
+- [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.
+  For this it will now raise a [StopAsyncIteration][] when either has been reached.
+
+### Removed
+- `backoff` option from [yuyo.backoff.Backoff.backoff][] to better match the aiter flow.
+
 ## [1.3.1a1] - 2022-11-07
 ### Added
 - A chunk request tracker implementation.
