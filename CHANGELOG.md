@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   For this it will now raise a [StopAsyncIteration][] when either has been reached.
 
 ### Removed
-- `backoff` option from [yuyo.backoff.Backoff.backoff][] to better match the aiter syntax.
+- `backoff` option from [yuyo.backoff.Backoff.backoff][] to better match the aiter flow.
 
 ## [1.3.1a1] - 2022-11-07
 ### Added
