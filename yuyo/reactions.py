@@ -63,7 +63,7 @@ if typing.TYPE_CHECKING:
 
 
 EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
-CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSig = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 
