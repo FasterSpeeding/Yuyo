@@ -56,6 +56,8 @@ import aiohttp
 import hikari
 import hikari.api
 
+from . import backoff
+
 if typing.TYPE_CHECKING:
     import sake
     from hikari import traits
@@ -70,6 +72,8 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[_LoadableStrategy]] = []
 _DEFAULT_USER_AGENT = "Yuyo.last_status"
+_RATE_LIMITED_STATUS = 429
+_RETRY_ERROR_CODES = frozenset((_RATE_LIMITED_STATUS, 500, 502, 503, 504))
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
 ServiceSig = typing.Callable[["AbstractManager"], typing.Coroutine[typing.Any, typing.Any, None]]
@@ -787,7 +791,7 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
     elif response.status == 401:
         _LOGGER.warning("%s returned a 401, are you sure you provided the right token? %r", service_name, content)
 
-    elif response.status == 429:
+    elif response.status == _RATE_LIMITED_STATUS:
         _LOGGER.warning("Hit ratelimit while trying to post bot's stats to %s: %r", service_name, content)
 
     else:
@@ -801,11 +805,18 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) 
 
 
 class TopGGService:
-    """https://top.gg status update service."""
+    """<https://top.gg> status update service."""
 
     __slots__ = ("_token",)
 
     def __init__(self, token: str, /) -> None:
+        """Initialise a top.gg service.
+
+        Parameters
+        ----------
+        token
+            Authorization token used to update the bot's status.
+        """
         self._token = token
 
     async def __call__(self, client: AbstractManager, /) -> None:
@@ -838,7 +849,7 @@ class TopGGService:
 
 
 class BotsGGService:
-    """https://discord.bots.gg status update service."""
+    """<https://discord.bots.gg> status update service."""
 
     __slots__ = ("_token",)
 
@@ -849,11 +860,6 @@ class BotsGGService:
         ----------
         token
             Authorization token used to update the bot's status.
-
-        Returns
-        -------
-        ServiceSig
-            The service callback used to update a bot's status on .
         """
         self._token = token
 
@@ -876,3 +882,62 @@ class BotsGGService:
             f"https://discord.bots.gg/api/v1/bots/{me.id}/stats", headers=headers, json=json
         ) as response:
             await _log_response("Bots.GG", response)
+
+
+class DiscordBotListService:
+    """<https://discordbotlist.com> status update service."""
+
+    __slots__ = ("_token",)
+
+    def __init__(self, token: str, /) -> None:
+        """Initialise a discordbotlist.com service.
+
+        Parameters
+        ----------
+        token
+            Authorization token used to update the bot's status.
+        """
+        self._token = token
+
+    async def __call__(self, client: AbstractManager, /) -> None:
+        counts = await client.counter.count()
+        if isinstance(counts, int):
+            await self._post(client, counts)
+            return
+
+        back_off = backoff.Backoff()
+
+        for shard_id, count in counts.items():
+            async for _ in back_off:
+                retry_after = await self._post(client, count, shard_id=shard_id)
+                if retry_after is None:
+                    break
+
+                elif retry_after != -1:
+                    back_off.set_next_backoff(retry_after)
+
+    async def _post(
+        self, client: AbstractManager, count: int, /, *, shard_id: typing.Optional[int] = None
+    ) -> typing.Optional[int]:
+        headers = {"Authorization": self._token}
+        json = {"guilds": count}
+        me = await client.get_me()
+        session = client.get_session()
+
+        if shard_id is not None:
+            json["shard_id"] = shard_id
+
+        async with session.post(
+            f"https://discordbotlist.com/api/v1/bots/{me.id}/stats", headers=headers, json=json
+        ) as response:
+            if shard_id is None:
+                await _log_response("Discordbotlist.com", response)
+                return
+
+            if response.status in _RETRY_ERROR_CODES:
+                if retry_after := response.headers.get("Retry-After"):
+                    return int(retry_after)
+
+                return -1
+
+            response.raise_for_status()
