@@ -106,3 +106,7 @@ class TestTopGGService:
 
 class TestBotsGGService:
     ...
+
+
+class TestDiscordBotListService:
+    ...

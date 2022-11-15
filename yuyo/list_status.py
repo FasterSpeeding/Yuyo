@@ -38,6 +38,7 @@ __all__: typing.Sequence[str] = [
     "BotsGGService",
     "CacheStrategy",
     "CountUnknownError",
+    "DiscordBotListService",
     "EventStrategy",
     "SakeStrategy",
     "ServiceManager",
@@ -839,7 +840,7 @@ class TopGGService:
 
             shards = {index: int(count) for index, count in enumerate(raw_shards or ())}
             shards.update(counts)
-            json = {"shard_count": [shards.get(shard_id, 0) for shard_id in range(client.shards.shard_count)]}
+            json = {"shards": [shards.get(shard_id, 0) for shard_id in range(client.shards.shard_count)]}
 
         if client.shards:
             json["shard_count"] = client.shards.shard_count
