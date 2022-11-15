@@ -161,7 +161,8 @@ class Backoff:
             self._started = True
             return
 
-        await self.backoff()
+        if await self.backoff():
+            raise StopAsyncIteration
 
     @property
     def is_depleted(self) -> bool:
@@ -172,19 +173,21 @@ class Backoff:
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
-    async def backoff(self) -> None:
+    async def backoff(self) -> bool:
         """Sleep for the provided backoff or for the next exponent.
 
         This provides an alternative to iterating over this class.
 
-        Raises
-        ------
-        StopAsyncIteration
-            If this has been marked as finished or has reached the max retries.
+        Returns
+        -------
+        bool
+            Whether this has reached the end of its iteration.
+
+            If this returns [True][] then that call didn't sleep as this has
+            been marked as finished or has reached the max retries.
         """
         if self._finished or self.is_depleted:
-            self._finished = False
-            raise StopAsyncIteration
+            return True
 
         self._started = True
         # We do this even if _next_backoff is set to make sure it's always incremented.
@@ -195,6 +198,7 @@ class Backoff:
 
         self._retries += 1
         await asyncio.sleep(backoff_)
+        return False
 
     def finish(self) -> None:
         """Mark the iterator as finished to break out of the current loop."""
