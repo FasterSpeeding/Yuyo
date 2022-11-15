@@ -61,7 +61,7 @@ class TestCacheStrategy:
     def test_spawn_when_no_shards(self):
         ...
 
-    def test_spawn_whne_not_cache_enabled(self):
+    def test_spawn_when_not_cache_enabled(self):
         ...
 
     def test_spawn_when_no_shards_declared(self):

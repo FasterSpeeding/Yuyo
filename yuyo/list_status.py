@@ -462,7 +462,6 @@ class ServiceManager(AbstractManager):
         self._user_agent = user_agent
 
         if strategy:
-
             self._counter = strategy
 
         else:
