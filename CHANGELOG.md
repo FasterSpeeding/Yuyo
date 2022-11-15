@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- A system for automatically declaring a bot's guild count on the bot lists
+  top.gg, bots.gg and discordbotlist.com. See [yuyo.list_status][] for more
+  information.
+
 ### Changed
 - [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
   [yuyo.backoff.Backoff.set_next_backoff][] has been called.
