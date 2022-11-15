@@ -74,8 +74,8 @@ class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[typing.Type[BaseException]],
-        exc: typing.Optional[BaseException],
+        exc_type: typing.Optional[typing.Type[Exception]],
+        exc: typing.Optional[Exception],
         exc_tb: typing.Optional[types.TracebackType],
     ) -> None:
         pass

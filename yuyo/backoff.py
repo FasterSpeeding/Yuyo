@@ -39,6 +39,7 @@ from __future__ import annotations
 __all__: typing.Sequence[str] = ["Backoff", "ErrorManager"]
 
 import asyncio
+import random
 import typing
 
 from hikari.impl import rate_limits
@@ -155,24 +156,7 @@ class Backoff:
         return self
 
     async def __anext__(self) -> None:
-        if self._finished or self.is_depleted:
-            self._finished = False
-            raise StopAsyncIteration
-
-        # We don't want to backoff on the first iteration.
-        if not self._started:
-            self._started = True
-            return
-
-        backoff_: float
-        if self._next_backoff is None:
-            backoff_ = next(self._backoff)
-        else:
-            backoff_ = self._next_backoff
-            self._next_backoff = None
-
-        self._retries += 1
-        await asyncio.sleep(backoff_)
+        await self.backoff()
 
     @property
     def is_depleted(self) -> bool:
@@ -183,27 +167,32 @@ class Backoff:
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
-    async def backoff(self, backoff_: typing.Optional[float], /) -> None:
+    async def backoff(self) -> None:
         """Sleep for the provided backoff or for the next exponent.
 
         This provides an alternative to iterating over this class.
 
-        Parameters
-        ----------
-        backoff_
-            The time this should backoff for. If left as [None][] then this will
-            back off for the last time provided with
-            [yuyo.backoff.Backoff.set_next_backoff][] if available or the next
-            exponential time.
+        Raises
+        ------
+        StopAsyncIteration
+            If this has been marked as finished or has reached the max retries.
         """
-        self._started = True
-        if backoff_ is None and self._next_backoff is not None:
-            backoff_ = self._next_backoff
+        if self._finished or self.is_depleted:
+            self._finished = False
+            raise StopAsyncIteration
+
+        # We don't want to backoff on the first iteration.
+        if not self._started:
+            self._started = True
+            return
+
+        # We do this even if _next_backoff is set to make sure it's always incremented.
+        backoff_ = next(self._backoff)
+        if self._next_backoff is not None:
+            backoff_ = self._next_backoff + random.random() * self._backoff.jitter_multiplier  # noqa: S311
             self._next_backoff = None
 
-        elif backoff_ is None:
-            backoff_ = next(self._backoff)
-
+        self._retries += 1
         await asyncio.sleep(backoff_)
 
     def finish(self) -> None:
@@ -300,8 +289,8 @@ class ErrorManager:
 
     def __exit__(
         self,
-        exception_type: typing.Optional[typing.Type[BaseException]],
-        exception: typing.Optional[BaseException],
+        exception_type: typing.Optional[typing.Type[Exception]],
+        exception: typing.Optional[Exception],
         exception_traceback: typing.Optional[types.TracebackType],
     ) -> typing.Optional[bool]:
         if exception_type is None:
