@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- [backoff.Backoff][] now increments the internal counter regardless of whether
-  [backoff.Backoff.set_next_backoff][] has been called.
+- [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
+  [yuyo.backoff.Backoff.set_next_backoff][] has been called.
 
 ### Fixed
 - [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.
