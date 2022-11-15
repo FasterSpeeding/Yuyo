@@ -58,6 +58,8 @@ class Backoff:
     this will either back off for the time passed to
     [yuyo.backoff.Backoff.set_next_backoff][] if applicable or a time calculated exponentially.
 
+    Each iteration yields the current retry counter (starting at 0).
+
     Examples
     --------
     An example of using this class as an asynchronous iterator may look like
@@ -155,14 +157,16 @@ class Backoff:
     def __aiter__(self) -> Backoff:
         return self
 
-    async def __anext__(self) -> None:
+    async def __anext__(self) -> int:
         # We don't want to backoff on the first iteration.
         if not self._started:
             self._started = True
-            return
+            return 0
 
         if await self.backoff():
             raise StopAsyncIteration
+
+        return self._retries
 
     @property
     def is_depleted(self) -> bool:
@@ -267,7 +271,7 @@ class ErrorManager:
     def __init__(
         self,
         *rules: typing.Tuple[
-            typing.Iterable[typing.Type[BaseException]], typing.Callable[[typing.Any], typing.Optional[bool]]
+            typing.Iterable[typing.Type[Exception]], typing.Callable[[typing.Any], typing.Optional[bool]]
         ],
     ) -> None:
         """Initialise an error manager instance.
@@ -317,7 +321,7 @@ class ErrorManager:
 
     def with_rule(
         self,
-        exceptions: typing.Iterable[typing.Type[BaseException]],
+        exceptions: typing.Iterable[typing.Type[Exception]],
         result: typing.Callable[[typing.Any], typing.Optional[bool]],
     ) -> Self:
         """Add a rule to this exception context manager.
