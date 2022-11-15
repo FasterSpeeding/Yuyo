@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
   [yuyo.backoff.Backoff.set_next_backoff][] has been called.
-- [yuyo.backoff.Backoff][] now iterates over the retry counter ([int][]), starting at 0.
-  Rather than just [None][].
+- [yuyo.backoff.Backoff][] now iterates over the retry counter ([int][]), starting at 0,
+  rather than just [None][].
 - [yuyo.backoff.Backoff.backoff][] now returns the current retry count as [int][] or
   [None][] if it has reached max retries or the finished flag has been set.
 
