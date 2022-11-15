@@ -58,7 +58,7 @@ class Backoff:
     this will either back off for the time passed to
     [yuyo.backoff.Backoff.set_next_backoff][] if applicable or a time calculated exponentially.
 
-    Each iteration yields the current retry counter (starting at 0).
+    Each iteration yields the current retry count (starting at 0).
 
     Examples
     --------
@@ -163,10 +163,11 @@ class Backoff:
             self._started = True
             return 0
 
-        if await self.backoff():
+        result = await self.backoff()
+        if result is None:
             raise StopAsyncIteration
 
-        return self._retries
+        return result
 
     @property
     def is_depleted(self) -> bool:
@@ -177,21 +178,21 @@ class Backoff:
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
-    async def backoff(self) -> bool:
+    async def backoff(self) -> typing.Optional[int]:
         """Sleep for the provided backoff or for the next exponent.
 
         This provides an alternative to iterating over this class.
 
         Returns
         -------
-        bool
+        int | None
             Whether this has reached the end of its iteration.
 
             If this returns [True][] then that call didn't sleep as this has
             been marked as finished or has reached the max retries.
         """
         if self._finished or self.is_depleted:
-            return True
+            return None
 
         self._started = True
         # We do this even if _next_backoff is set to make sure it's always incremented.
@@ -202,7 +203,7 @@ class Backoff:
 
         self._retries += 1
         await asyncio.sleep(backoff_)
-        return False
+        return self._retries
 
     def finish(self) -> None:
         """Mark the iterator as finished to break out of the current loop."""
