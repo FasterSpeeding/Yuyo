@@ -156,6 +156,11 @@ class Backoff:
         return self
 
     async def __anext__(self) -> None:
+        # We don't want to backoff on the first iteration.
+        if not self._started:
+            self._started = True
+            return
+
         await self.backoff()
 
     @property
@@ -181,11 +186,7 @@ class Backoff:
             self._finished = False
             raise StopAsyncIteration
 
-        # We don't want to backoff on the first iteration.
-        if not self._started:
-            self._started = True
-            return
-
+        self._started = True
         # We do this even if _next_backoff is set to make sure it's always incremented.
         backoff_ = next(self._backoff)
         if self._next_backoff is not None:
