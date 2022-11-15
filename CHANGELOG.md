@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [backoff.Backoff.set_next_backoff][] has been called.
 
 ### Fixed
-- [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag. 
+- [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.
   For this it will now raise a [StopAsyncIteration][] when either has been reached.
 
 ### Removed
