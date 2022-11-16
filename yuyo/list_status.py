@@ -74,6 +74,7 @@ _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: typing.List[typing.Type[_LoadableStrategy]] = []
 _DEFAULT_USER_AGENT = "Yuyo.last_status"
 _RATE_LIMITED_STATUS = 429
+_RETRY_AFTER_KEY = "Retry-After"
 _RETRY_ERROR_CODES = frozenset((_RATE_LIMITED_STATUS, 500, 502, 503, 504))
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
@@ -208,7 +209,7 @@ class SakeStrategy(AbstractCountStrategy):
     __slots__ = ("_cache", "_is_shard_bound")
 
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
-        """Initialise a sake strategy.
+        """Initialise a Sake strategy.
 
         Parameters
         ----------
@@ -309,7 +310,7 @@ class EventStrategy(_LoadableStrategy):
     def spawn(cls, manager: AbstractManager, /) -> EventStrategy:
         events = manager.event_manager
         shards = manager.shards
-        if not events or not shards or not (shards.intents & hikari.Intents.GUILDS) == hikari.Intents.GUILDS:
+        if not events or not shards or not shards.intents & hikari.Intents.GUILDS:
             raise _InvalidStrategyError
 
         return cls(events, shards)
@@ -672,14 +673,16 @@ class ServiceManager(AbstractManager):
 
     async def close(self) -> None:
         """Close this manager."""
-        if self._task:
-            self._task.cancel()
-            self._task = None
-            await self._counter.close()
+        if not self._task:
+            return
 
-            if self._session and not self._session.closed:
-                await self._session.close()
-                self._session = None
+        self._task.cancel()
+        self._task = None
+        await self._counter.close()
+
+        if self._session and not self._session.closed:
+            await self._session.close()
+            self._session = None
 
     async def open(self) -> None:
         """Start this manager.
@@ -769,9 +772,9 @@ def _queue_insert(sequence: typing.List[_T], check: typing.Callable[[_T], bool],
     sequence.insert(index, value)
 
 
-async def _log_response(service_name: str, response: aiohttp.ClientResponse, /) -> None:
+async def _log_response(service_name: str, response: aiohttp.ClientResponse, /, is_global: bool = True) -> None:
     if response.status < 300:
-        _LOGGER.debug("Posted bot's stats to %s", service_name)
+        _LOGGER.info("Posted bot's stats to %s for the ", service_name, "whole bot" if is_global else "local shards")
         return
 
     try:
@@ -827,16 +830,19 @@ class TopGGService:
         url = f"https://top.gg/api/bots/{me.id}/stats"
 
         if isinstance(counts, int):
+            is_global = True
             json: typing.Dict[str, typing.Union[int, typing.List[int]]] = {"server_count": counts}
 
         else:
             if not client.shards:
                 raise RuntimeError("Shard count unknown")
 
+            _LOGGER.debug("Fetching stats from Top.GG")
             async with session.get(url, headers=headers) as response:
                 response.raise_for_status()
                 raw_shards: typing.Optional[typing.List[str]] = (await response.json()).get("shards")
 
+            is_global = False
             shards = {index: int(count) for index, count in enumerate(raw_shards or ())}
             shards.update(counts)
             json = {"shards": [shards.get(shard_id, 0) for shard_id in range(client.shards.shard_count)]}
@@ -845,7 +851,7 @@ class TopGGService:
             json["shard_count"] = client.shards.shard_count
 
         async with session.post(url, headers=headers, json=json) as response:
-            await _log_response("Top.GG", response)
+            await _log_response("Top.GG", response, is_global=is_global)
 
 
 class BotsGGService:
@@ -871,9 +877,11 @@ class BotsGGService:
 
         if isinstance(counts, int):
             json: typing.Dict[str, typing.Union[int, typing.List[typing.Dict[str, int]]]] = {"guildCount": counts}
+            is_global = True
 
         else:
             json = {"shards": [{"shardId": shard_id, "guildCount": count} for shard_id, count in counts.items()]}
+            is_global = False
 
         if client.shards:
             json["shardCount"] = client.shards.shard_count
@@ -881,7 +889,7 @@ class BotsGGService:
         async with session.post(
             f"https://discord.bots.gg/api/v1/bots/{me.id}/stats", headers=headers, json=json
         ) as response:
-            await _log_response("Bots.GG", response)
+            await _log_response("Bots.GG", response, is_global=is_global)
 
 
 class DiscordBotListService:
@@ -907,8 +915,10 @@ class DiscordBotListService:
 
         back_off = backoff.Backoff()
         for shard_id, count in counts.items():
-            async for _ in back_off:
+            async for retry in back_off:
+                _LOGGER.debug("Posting stats to DiscordBotList for shard %s; attempt %s", shard_id, retry + 1)
                 retry_after = await self._post(client, count, shard_id=shard_id)
+                _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
                 if retry_after is None:
                     break
 
@@ -932,11 +942,11 @@ class DiscordBotListService:
             f"https://discordbotlist.com/api/v1/bots/{me.id}/stats", headers=headers, json=json
         ) as response:
             if shard_id is None:
-                await _log_response("Discordbotlist.com", response)
+                await _log_response("Discordbotlist.com", response, is_global=False)
                 return
 
             if response.status in _RETRY_ERROR_CODES:
-                if retry_after := response.headers.get("Retry-After"):
+                if retry_after := response.headers.get(_RETRY_AFTER_KEY):
                     return int(retry_after)
 
                 return -1
