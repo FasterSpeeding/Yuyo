@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rather than just [None][].
 - [yuyo.backoff.Backoff.backoff][] now returns the current retry count as [int][] or
   [None][] if it has reached max retries or the finished flag has been set.
+- Allow [None][] to be passed for `attachment` and `attachments` to edit response methods.
 
 ### Fixed
 - [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.
