@@ -55,7 +55,6 @@ from . import backoff
 from . import pagination
 
 if typing.TYPE_CHECKING:
-    from hikari import traits
     from hikari.api import event_manager as event_manager_api
     from typing_extensions import Self
 
@@ -706,7 +705,7 @@ class ReactionClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: traits.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
+    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters

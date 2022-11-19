@@ -31,6 +31,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # pyright: reportPrivateUsage=none
+# pyright: reportUnknownMemberType=none
+# This leads to too many false-positives around mocks.
 
 import asyncio
 import concurrent.futures
@@ -47,10 +49,6 @@ import hikari.files
 import pytest
 
 import yuyo
-
-# pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
-# This leads to too many false-positives around mocks.
 
 
 class _ChunkedReader(hikari.files.AsyncReader):
@@ -1193,7 +1191,8 @@ class TestAsgiBot:
 
         bot = StubBot("token", "Bot", asgi_managed=False)
 
-        bot.run()
+        with stack:
+            bot.run()
 
         mock_get_running_loop.assert_called_once_with()
         mock_make_event_loop.assert_not_called()
@@ -1221,7 +1220,8 @@ class TestAsgiBot:
 
         bot = StubBot("token", "Bot", asgi_managed=False)
 
-        bot.run()
+        with stack:
+            bot.run()
 
         mock_get_running_loop.assert_called_once_with()
         mock_make_event_loop.assert_called_once_with()
