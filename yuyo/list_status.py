@@ -229,6 +229,8 @@ class SakeStrategy(AbstractCountStrategy):
         return None
 
     async def count(self) -> int:
+        import sake
+
         try:
             return await self._cache.iter_guilds().len()
         except sake.ClosedClient:
@@ -263,12 +265,11 @@ class EventStrategy(_LoadableStrategy):
     async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._guild_ids.clear()
 
-    async def _on_guild_visibility_event(self, event: hikari.GuildVisibilityEvent, /) -> None:
-        if isinstance(event, hikari.GuildAvailableEvent):
-            self._guild_ids.add(event.guild_id)
+    async def _on_guild_available_event(self, event: hikari.GuildAvailableEvent):
+        self._guild_ids.add(event.guild_id)
 
-        elif isinstance(event, hikari.GuildLeaveEvent):
-            self._guild_ids.remove(event.guild_id)
+    async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent):
+        self._guild_ids.remove(event.guild_id)
 
     async def _on_guild_update_event(self, event: hikari.GuildUpdateEvent, /) -> None:
         self._guild_ids.add(event.guild_id)
@@ -290,7 +291,8 @@ class EventStrategy(_LoadableStrategy):
 
         self._try_unsubscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
-        self._try_unsubscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)
+        self._try_unsubscribe(hikari.GuildAvailableEvent, self._on_guild_available_event)
+        self._try_unsubscribe(hikari.GuildLeaveEvent, self._on_guild_leave_event)
         self._try_unsubscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
         self._guild_ids.clear()
 
@@ -300,7 +302,8 @@ class EventStrategy(_LoadableStrategy):
 
         self._event_manager.subscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
-        self._event_manager.subscribe(hikari.GuildVisibilityEvent, self._on_guild_visibility_event)
+        self._event_manager.subscribe(hikari.GuildAvailableEvent, self._on_guild_available_event)
+        self._event_manager.subscribe(hikari.GuildLeaveEvent, self._on_guild_leave_event)
         self._event_manager.subscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
 
     async def count(self) -> int:

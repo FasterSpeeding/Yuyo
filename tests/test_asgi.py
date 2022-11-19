@@ -31,6 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # pyright: reportPrivateUsage=none
+# pyright: reportUnknownMemberType=none
+# pyright: reportPrivateUsage=none
+# This leads to too many false-positives around mocks.
 
 import asyncio
 import concurrent.futures
@@ -47,10 +50,6 @@ import hikari.files
 import pytest
 
 import yuyo
-
-# pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
-# This leads to too many false-positives around mocks.
 
 
 class _ChunkedReader(hikari.files.AsyncReader):
