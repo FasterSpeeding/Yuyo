@@ -32,7 +32,6 @@
 
 # pyright: reportPrivateUsage=none
 # pyright: reportUnknownMemberType=none
-# pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
 
 import asyncio
