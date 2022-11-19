@@ -6,7 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Allow [None][] to be passed for `attachment` and `attachments` to edit response methods.
 - [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
   [yuyo.backoff.Backoff.set_next_backoff][] has been called.
 - [yuyo.backoff.Backoff][] now iterates over the retry counter ([int][]), starting at 0,
