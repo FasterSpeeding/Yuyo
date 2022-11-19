@@ -939,7 +939,7 @@ class DiscordBotListService:
     async def _post(
         self, client: AbstractManager, count: int, /, *, shard_id: typing.Optional[int] = None
     ) -> typing.Optional[int]:
-        headers = {"Authorization": self._token}
+        headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"guilds": count}
         me = await client.get_me()
         session = client.get_session()

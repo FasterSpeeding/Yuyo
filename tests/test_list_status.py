@@ -29,7 +29,10 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 # pyright: reportPrivateUsage=none
+# pyright: reportUnknownMemberType=none
+# This leads to too many false-positives around mocks.
 
 import datetime
 import typing
@@ -654,16 +657,224 @@ class TestServiceManager:
         ...
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.asyncio()
 class TestTopGGService:
-    ...
+    async def test_call_when_count_is_global(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="echo meow")
+        mock_manager.counter.count = mock.AsyncMock(return_value=43343)
+        mock_manager.get_me.return_value.id = hikari.Snowflake(651231)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 64
+        service = list_status.TopGGService("meow meow")
+
+        await service(mock_manager)
+
+        mock_session.post.assert_called_once_with(
+            "https://top.gg/api/bots/651231/stats",
+            headers={"Authorization": "meow meow", "User-Agent": "echo meow"},
+            json={"server_count": 43343, "shard_count": 64},
+        )
+
+    async def test_call_when_shard_specific(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_session.get.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.get.return_value.__aenter__.return_value.json.return_value = {
+            "shards": [654, 234, 123, 543, 675, 234, 123, 54, 654, 13, 4123, 43, 243]
+        }
+        mock_session.get.return_value.__aenter__.return_value.status = 200
+        mock_session.get.return_value.__aenter__.return_value.raise_for_status = mock.Mock()
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="echo meow")
+        mock_manager.counter.count = mock.AsyncMock(return_value={5: 34123, 4: 234432, 6: 2399, 3: 54123, 7: 43123})
+        mock_manager.get_me.return_value.id = hikari.Snowflake(432123)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 16
+        service = list_status.TopGGService("meow meow")
+
+        await service(mock_manager)
+
+        mock_session.post.assert_called_once_with(
+            "https://top.gg/api/bots/432123/stats",
+            headers={"Authorization": "meow meow", "User-Agent": "echo meow"},
+            json={
+                "shards": [654, 234, 123, 54123, 234432, 34123, 2399, 43123, 654, 13, 4123, 43, 243, 0, 0, 0],
+                "shard_count": 16,
+            },
+        )
+        mock_session.post.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
+
+    async def test_call_when_count_is_shard_specific_and_shards_not_previously_tracked(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_session.get.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.get.return_value.__aenter__.return_value.json.return_value = {}
+        mock_session.get.return_value.__aenter__.return_value.raise_for_status = mock.Mock()
+        mock_session.get.return_value.__aenter__.return_value.status = 200
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="aaaaaaaaaaaaaaaaa")
+        mock_manager.counter.count = mock.AsyncMock(return_value={5: 34123, 4: 54123, 6: 2399, 3: 234123, 7: 43123})
+        mock_manager.get_me.return_value.id = hikari.Snowflake(4326543)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 12
+        service = list_status.TopGGService("nommy took")
+
+        await service(mock_manager)
+
+        mock_session.get.assert_called_once_with(
+            "https://top.gg/api/bots/4326543/stats",
+            headers={"Authorization": "nommy took", "User-Agent": "aaaaaaaaaaaaaaaaa"},
+        )
+        mock_session.get.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.get.return_value.__aexit__.assert_awaited_once_with(None, None, None)
+        mock_session.post.assert_called_once_with(
+            "https://top.gg/api/bots/4326543/stats",
+            headers={"Authorization": "nommy took", "User-Agent": "aaaaaaaaaaaaaaaaa"},
+            json={
+                "shards": [0, 0, 0, 234123, 54123, 34123, 2399, 43123, 0, 0, 0, 0],
+                "shard_count": 12,
+            },
+        )
+        mock_session.post.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
+
+    async def test_call_when_count_is_shard_specific_and_client_shards_not_specified(self):
+        mock_session = mock.Mock()
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), shards=None, user_agent="echo meow")
+        mock_manager.counter.count = mock.AsyncMock(return_value={0: 231, 1: 343, 2: 32123})
+        mock_manager.get_session.return_value = mock_session
+        service = list_status.TopGGService("fake token")
+
+        with pytest.raises(RuntimeError, match="Shard count unknown"):
+            await service(mock_manager)
+
+        mock_session.post.assert_not_called()
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.asyncio()
 class TestBotsGGService:
-    ...
+    async def test_call_when_count_is_global(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="nyaa")
+        mock_manager.counter.count = mock.AsyncMock(return_value=876456)
+        mock_manager.get_me.return_value.id = hikari.Snowflake(65423)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 64
+        service = list_status.BotsGGService("pokey")
+
+        await service(mock_manager)
+
+        mock_session.post.assert_called_once_with(
+            "https://discord.bots.gg/api/v1/bots/65423/stats",
+            headers={"Authorization": "pokey", "User-Agent": "nyaa"},
+            json={"guildCount": 876456, "shardCount": 64},
+        )
+        mock_session.post.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
+
+    async def test_call_when_count_is_shard_specific(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="aaaaaaaaaaaaaaaaa")
+        mock_manager.counter.count = mock.AsyncMock(return_value={11: 34123, 10: 541234, 7: 54234, 9: 123321})
+        mock_manager.get_me.return_value.id = hikari.Snowflake(321321)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 32
+        service = list_status.BotsGGService("meow")
+
+        await service(mock_manager)
+
+        mock_session.post.assert_called_once_with(
+            "https://discord.bots.gg/api/v1/bots/321321/stats",
+            headers={"Authorization": "meow", "User-Agent": "aaaaaaaaaaaaaaaaa"},
+            json={
+                "shards": [
+                    {"shardId": 11, "guildCount": 34123},
+                    {"shardId": 10, "guildCount": 541234},
+                    {"shardId": 7, "guildCount": 54234},
+                    {"shardId": 9, "guildCount": 123321},
+                ],
+                "shardCount": 32,
+            },
+        )
+        mock_session.post.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
 
-@pytest.mark.skip(reason="TODO")
+@pytest.mark.asyncio()
 class TestDiscordBotListService:
-    ...
+    async def test_call_when_count_is_global(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="nommy")
+        mock_manager.counter.count = mock.AsyncMock(return_value=53345123)
+        mock_manager.get_me.return_value.id = hikari.Snowflake(99887766)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 128
+        service = list_status.DiscordBotListService("sleeping")
+
+        await service(mock_manager)
+
+        mock_session.post.assert_called_once_with(
+            "https://discordbotlist.com/api/v1/bots/99887766/stats",
+            headers={"Authorization": "sleeping", "User-Agent": "nommy"},
+            json={"guilds": 53345123},
+        )
+        mock_session.post.return_value.__aenter__.assert_awaited_once_with()
+        mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
+
+    async def test_call_when_count_is_shard_specific(self):
+        mock_session = mock.Mock()
+        mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
+        mock_session.post.return_value.__aenter__.return_value.status = 200
+        mock_session.post.return_value.__aenter__.return_value.raise_for_status = mock.Mock()
+        mock_manager = mock.Mock(get_me=mock.AsyncMock(), user_agent="boom")
+        mock_manager.counter.count = mock.AsyncMock(return_value={5: 123321, 7: 543345, 9: 12332143, 10: 543123})
+        mock_manager.get_me.return_value.id = hikari.Snowflake(234432)
+        mock_manager.get_session.return_value = mock_session
+        mock_manager.shards.shard_count = 128
+        service = list_status.DiscordBotListService("bye")
+
+        await service(mock_manager)
+
+        assert mock_session.post.call_args_list == [
+            mock.call(
+                "https://discordbotlist.com/api/v1/bots/234432/stats",
+                headers={"Authorization": "bye", "User-Agent": "boom"},
+                json={"guilds": 123321, "shard_id": 5},
+            ),
+            mock.call(
+                "https://discordbotlist.com/api/v1/bots/234432/stats",
+                headers={"Authorization": "bye", "User-Agent": "boom"},
+                json={"guilds": 543345, "shard_id": 7},
+            ),
+            mock.call(
+                "https://discordbotlist.com/api/v1/bots/234432/stats",
+                headers={"Authorization": "bye", "User-Agent": "boom"},
+                json={"guilds": 12332143, "shard_id": 9},
+            ),
+            mock.call(
+                "https://discordbotlist.com/api/v1/bots/234432/stats",
+                headers={"Authorization": "bye", "User-Agent": "boom"},
+                json={"guilds": 543123, "shard_id": 10},
+            ),
+        ]
+        mock_session.post.return_value.__aenter__.assert_has_awaits(
+            [mock.call(), mock.call(), mock.call(), mock.call()]
+        )
+        mock_session.post.return_value.__aexit__.assert_has_awaits(
+            [
+                mock.call(None, None, None),
+                mock.call(None, None, None),
+                mock.call(None, None, None),
+                mock.call(None, None, None),
+            ]
+        )
