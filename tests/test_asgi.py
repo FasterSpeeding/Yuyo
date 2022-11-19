@@ -1192,7 +1192,8 @@ class TestAsgiBot:
 
         bot = StubBot("token", "Bot", asgi_managed=False)
 
-        bot.run()
+        with stack:
+            bot.run()
 
         mock_get_running_loop.assert_called_once_with()
         mock_make_event_loop.assert_not_called()
@@ -1220,7 +1221,8 @@ class TestAsgiBot:
 
         bot = StubBot("token", "Bot", asgi_managed=False)
 
-        bot.run()
+        with stack:
+            bot.run()
 
         mock_get_running_loop.assert_called_once_with()
         mock_make_event_loop.assert_called_once_with()
