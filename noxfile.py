@@ -150,7 +150,7 @@ def flake8(session: nox.Session) -> None:
 @nox.session(reuse_venv=True, name="slot-check")
 def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
-    install_requirements(session, ".[sake]", *_dev_dep("lint"))
+    install_requirements(session, ".[asgi, sake]", *_dev_dep("lint"))
     session.run("slotscheck", "-m", "yuyo")
 
 
@@ -209,7 +209,7 @@ def reformat(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    install_requirements(session, ".[sake]", "hikari[server]", *_dev_dep("tests"))
+    install_requirements(session, ".[asgi, sake]", *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -217,7 +217,7 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
-    install_requirements(session, ".[sake]", "hikari[server]", *_dev_dep("tests"))
+    install_requirements(session, ".[asgi, sake]", *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -239,7 +239,7 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    install_requirements(session, ".[sake]", *_dev_dep("nox", "tests", "type-checking"))
+    install_requirements(session, ".[asgi, sake]", *_dev_dep("nox", "tests", "type-checking"))
     _run_pyright(session)
     session.run("python", "-m", "mypy", "--version")
     # Right now MyPy is allowed to fail without failing CI as the alternative is to let MyPy bugs block releases.

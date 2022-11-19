@@ -27,10 +27,11 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = ["alluka~=0.1.2", "asgiref~=3.0", "hikari~=2.0.0.dev112"]
+dependencies = ["alluka~=0.1.2", "hikari~=2.0.0.dev112"]
 dynamic = ["description"]
 
 [project.optional-dependencies]
+asgi = ["asgiref~=3.0", "hikari[server]"]
 sake = ["hikari-sake>=1.0.4a1, <2.0.0"]
 
 [project.urls]
