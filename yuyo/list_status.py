@@ -269,7 +269,10 @@ class EventStrategy(_LoadableStrategy):
         self._guild_ids.add(event.guild_id)
 
     async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent):
-        self._guild_ids.remove(event.guild_id)
+        try:
+            self._guild_ids.remove(event.guild_id)
+        except KeyError:
+            pass
 
     async def _on_guild_update_event(self, event: hikari.GuildUpdateEvent, /) -> None:
         self._guild_ids.add(event.guild_id)
@@ -289,6 +292,7 @@ class EventStrategy(_LoadableStrategy):
         if not self._started:
             return
 
+        self._started = False
         self._try_unsubscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         self._try_unsubscribe(hikari.StartingEvent, self._on_starting_event)
         self._try_unsubscribe(hikari.GuildAvailableEvent, self._on_guild_available_event)
@@ -300,6 +304,7 @@ class EventStrategy(_LoadableStrategy):
         if self._started:
             return
 
+        self._started = True
         self._event_manager.subscribe(hikari.ShardReadyEvent, self._on_shard_ready_event)
         self._event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
         self._event_manager.subscribe(hikari.GuildAvailableEvent, self._on_guild_available_event)
@@ -533,6 +538,7 @@ class ServiceManager(AbstractManager):
             cache=bot.cache,
             event_manager=bot.event_manager,
             event_managed=event_managed,
+            shards=bot,
             strategy=strategy,
             user_agent=user_agent,
         )
