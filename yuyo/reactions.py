@@ -33,13 +33,7 @@
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [
-    "AbstractReactionHandler",
-    "ReactionClient",
-    "ReactionHandler",
-    "ReactionPaginator",
-    "as_reaction_callback",
-]
+__all__: typing.Sequence[str] = ["AbstractReactionHandler", "ReactionClient", "ReactionHandler", "ReactionPaginator"]
 
 import abc
 import asyncio

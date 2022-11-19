@@ -18,6 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [yuyo.backoff.Backoff.backoff][] now returns the current retry count as [int][] or
   [None][] if it has reached max retries or the finished flag has been set.
 - Allow [None][] to be passed for `attachment` and `attachments` to edit response methods.
+- Star imports are no-longer used on the top level (at [yuyo][]) so only the attributes present
+  in `yuyo.__all__` can be accessed there now.
+- [yuyo.components.AbstractComponentExecutor][], [yuyo.components.ChildActionRowExecutor][],
+  `InteractiveButtonBuilder`, `yuyo.components.as_child_executor`,
+  `yuyo.components.as_component_callback`, [yuyo.reactions.AbstractReactionHandler][], and
+  `yuyo.reactions.as_reaction_callback` are no longer included in `yuyo.__all__`/exported
+  top-level.
+
+### Deprecated
+- `yuyo.components.as_child_executor`, `yuyo.components.as_component_callback`, and
+  `yuyo.components.as_reaction_callback` are no longer documented (included in their
+  relevant module's `__all__`) as these are considered deprecated and undocumented.
 
 ### Fixed
 - [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.

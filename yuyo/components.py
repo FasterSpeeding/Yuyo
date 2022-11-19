@@ -45,8 +45,6 @@ __all__: typing.Sequence[str] = [
     "SelectMenuBuilder",
     "WaitFor",
     "WaitForExecutor",
-    "as_child_executor",
-    "as_component_callback",
 ]
 
 import abc
