@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - [CacheStrategy.__init__][yuyo.list_status.CacheStrategy.__init__] now takes two arguments
-  `(hikari.SHardAware, hikari.api.Cache)`.
+  `(hikari.api.Cache, hikari.ShardAware)`.
 
 ### Fixed
 - [yuyo.list_status.DiscordBotListService][]'s logging when declaring per-shard stats.

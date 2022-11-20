@@ -172,7 +172,7 @@ class CacheStrategy(_LoadableStrategy):
 
     __slots__ = ("_cache", "_shards")
 
-    def __init__(self, shards: hikari.ShardAware, cache: hikari.api.Cache, /) -> None:
+    def __init__(self, cache: hikari.api.Cache, shards: hikari.ShardAware, /) -> None:
         self._cache = cache
         self._shards = shards
 
@@ -199,7 +199,7 @@ class CacheStrategy(_LoadableStrategy):
         if not cache_enabled or not shard_enabled:
             raise _InvalidStrategyError
 
-        return cls(manager.shards, manager.cache)
+        return cls(manager.cache, manager.shards)
 
 
 class SakeStrategy(AbstractCountStrategy):
@@ -330,7 +330,7 @@ def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: typing.Iterable[hikar
     counts: typing.Dict[int, int] = {}
 
     for guild_id in guild_ids:
-        shard_id = hikari.snowflakes.calculate_shard_id(shards, guild_id)
+        shard_id = hikari.snowflakes.calculate_shard_id(shards.shard_count, guild_id)
         try:
             counts[shard_id] += 1
 
@@ -945,6 +945,7 @@ class DiscordBotListService:
                 retry_after = await self._post(client, count, shard_id=shard_id)
                 if retry_after is None:
                     _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
+                    break
 
                 elif retry_after != -1:
                     back_off.set_next_backoff(retry_after)
