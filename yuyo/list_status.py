@@ -173,6 +173,15 @@ class CacheStrategy(_LoadableStrategy):
     __slots__ = ("_cache", "_shards")
 
     def __init__(self, cache: hikari.api.Cache, shards: hikari.ShardAware, /) -> None:
+        """Initialise a cache strategy.
+
+        Parameters
+        ----------
+        cache
+            The cache object this should use for getting the guild count.
+        shards
+            The shard aware client this should use for grouping counts per-shard.
+        """
         self._cache = cache
         self._shards = shards
 
@@ -213,6 +222,11 @@ class SakeStrategy(AbstractCountStrategy):
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
         """Initialise a Sake strategy.
 
+        Unlike [yuyo.list_status.CacheStrategy][CacheStrategy] and
+        [EventStrategy][yuyo.list_status.EventStrategy] this strategy must be
+        directly initialised and passed to [ServiceManager.__init__][yuyo.list_status.ServiceManager]
+        as `strategy=`.
+
         Parameters
         ----------
         cache
@@ -251,6 +265,20 @@ class EventStrategy(_LoadableStrategy):
     __slots__ = ("_event_manager", "_guild_ids", "_shards", "_started")
 
     def __init__(self, event_manager: hikari.api.EventManager, shards: hikari.ShardAware, /) -> None:
+        """Initialise an event etrategy.
+
+        !!! note
+            You usually won't need to initialise this yourself as
+            [yuyo.list_status.ServiceManager][] will automatically pick this
+            strategy if the bot config matches it.
+
+        Parameters
+        ----------
+        event_manager
+            The event manager this should use to track shard guild counts.
+        shards
+            The shard manager this should use to track shard guild counts.
+        """
         self._event_manager = event_manager
         self._guild_ids: typing.Set[hikari.Snowflake] = set()
         self._shards = shards
@@ -949,10 +977,10 @@ class DiscordBotListService:
 
                 elif retry_after != -1:
                     back_off.set_next_backoff(retry_after)
-                    _LOGGER.info("Ratelimited on posting stats to DiscordBotList, retrying in %s seconds", retry_after)
+                    _LOGGER.info("Rate-limited on posting stats to DiscordBotList, retrying in %s seconds", retry_after)
 
                 else:
-                    _LOGGER.info("Ratelimited on posting stats to DiscordBotList, retrying soon")
+                    _LOGGER.info("Rate-limited on posting stats to DiscordBotList, retrying soon")
 
             back_off.reset()
 
