@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [CacheStrategy.__init__][yuyo.list_status.CacheStrategy.__init__] now takes two arguments
+  `(hikari.api.Cache, hikari.ShardAware)`.
+
+### Fixed
+- [yuyo.list_status.DiscordBotListService][]'s logging when declaring per-shard stats.
+- Declare bot stats per-shard instead of for the whole bot when list status is using the
+  standard cache or event strategies.
+
 ## [1.4.0a1] - 2022-11-20
 ### Added
 - A system for automatically declaring a bot's guild count on the bot lists

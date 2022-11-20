@@ -56,6 +56,7 @@ import typing
 import aiohttp
 import hikari
 import hikari.api
+import hikari.snowflakes
 
 from . import backoff
 
@@ -169,10 +170,20 @@ class CacheStrategy(_LoadableStrategy):
         and the guild cache resource is enabled.
     """
 
-    __slots__ = ("_cache",)
+    __slots__ = ("_cache", "_shards")
 
-    def __init__(self, cache: hikari.api.Cache, /) -> None:
+    def __init__(self, cache: hikari.api.Cache, shards: hikari.ShardAware, /) -> None:
+        """Initialise a cache strategy.
+
+        Parameters
+        ----------
+        cache
+            The cache object this should use for getting the guild count.
+        shards
+            The shard aware client this should use for grouping counts per-shard.
+        """
         self._cache = cache
+        self._shards = shards
 
     @property
     def is_shard_bound(self) -> bool:
@@ -184,8 +195,8 @@ class CacheStrategy(_LoadableStrategy):
     async def open(self) -> None:
         return None
 
-    async def count(self) -> int:
-        return len(self._cache.get_guilds_view())
+    async def count(self) -> typing.Mapping[int, int]:
+        return _shard_guild_ids(self._shards, self._cache.get_guilds_view().keys())
 
     @classmethod
     def spawn(cls, manager: AbstractManager, /) -> CacheStrategy:
@@ -197,7 +208,7 @@ class CacheStrategy(_LoadableStrategy):
         if not cache_enabled or not shard_enabled:
             raise _InvalidStrategyError
 
-        return cls(manager.cache)
+        return cls(manager.cache, manager.shards)
 
 
 class SakeStrategy(AbstractCountStrategy):
@@ -210,6 +221,11 @@ class SakeStrategy(AbstractCountStrategy):
 
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
         """Initialise a Sake strategy.
+
+        Unlike [CacheStrategy][yuyo.list_status.CacheStrategy] and
+        [EventStrategy][yuyo.list_status.EventStrategy] this strategy must be
+        directly initialised and passed to [ServiceManager.__init__][yuyo.list_status.ServiceManager]
+        as `strategy=`.
 
         Parameters
         ----------
@@ -249,6 +265,20 @@ class EventStrategy(_LoadableStrategy):
     __slots__ = ("_event_manager", "_guild_ids", "_shards", "_started")
 
     def __init__(self, event_manager: hikari.api.EventManager, shards: hikari.ShardAware, /) -> None:
+        """Initialise an event etrategy.
+
+        !!! note
+            You usually won't need to initialise this yourself as
+            [yuyo.list_status.ServiceManager][] will automatically pick this
+            strategy if the bot config matches it.
+
+        Parameters
+        ----------
+        event_manager
+            The event manager this should use to track shard guild counts.
+        shards
+            The shard manager this should use to track shard guild counts.
+        """
         self._event_manager = event_manager
         self._guild_ids: typing.Set[hikari.Snowflake] = set()
         self._shards = shards
@@ -311,8 +341,8 @@ class EventStrategy(_LoadableStrategy):
         self._event_manager.subscribe(hikari.GuildLeaveEvent, self._on_guild_leave_event)
         self._event_manager.subscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
 
-    async def count(self) -> int:
-        return len(self._guild_ids)
+    async def count(self) -> typing.Mapping[int, int]:
+        return _shard_guild_ids(self._shards, self._guild_ids)
 
     @classmethod
     def spawn(cls, manager: AbstractManager, /) -> EventStrategy:
@@ -322,6 +352,20 @@ class EventStrategy(_LoadableStrategy):
             raise _InvalidStrategyError
 
         return cls(events, shards)
+
+
+def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: typing.Iterable[hikari.Snowflake], /) -> dict[int, int]:
+    counts = {shard_id: 0 for shard_id in shards.shards.keys()}
+
+    for guild_id in guild_ids:
+        shard_id = hikari.snowflakes.calculate_shard_id(shards.shard_count, guild_id)
+        try:
+            counts[shard_id] += 1
+
+        except KeyError:
+            counts[shard_id] = 1
+
+    return counts
 
 
 class AbstractManager(typing.Protocol):
@@ -927,12 +971,16 @@ class DiscordBotListService:
             async for retry in back_off:
                 _LOGGER.debug("Posting stats to DiscordBotList for shard %s; attempt %s", shard_id, retry + 1)
                 retry_after = await self._post(client, count, shard_id=shard_id)
-                _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
                 if retry_after is None:
+                    _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
                     break
 
                 elif retry_after != -1:
                     back_off.set_next_backoff(retry_after)
+                    _LOGGER.info("Rate-limited on posting stats to DiscordBotList, retrying in %s seconds", retry_after)
+
+                else:
+                    _LOGGER.info("Rate-limited on posting stats to DiscordBotList, retrying soon")
 
             back_off.reset()
 
