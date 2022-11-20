@@ -60,7 +60,11 @@ class TestCacheStrategy:
     async def test_count(self):
         mock_cache = mock.Mock()
         mock_cache.get_guilds_view.return_value = {
-            123321: None, 651234: None, 321123312: None, 65453: None, 876432123: None
+            123321: None,
+            651234: None,
+            321123312: None,
+            65453: None,
+            876432123: None,
         }
         strategy = list_status.CacheStrategy(mock_cache, mock.AsyncMock(shard_count=4))
 
@@ -436,7 +440,7 @@ class TestEventStrategy:
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
         await event_manager.dispatch(guild_update_event)
-        assert await strategy.count() == {0:4}
+        assert await strategy.count() == {0: 4}
 
         await event_manager.dispatch(hikari.StartingEvent(app=mock.AsyncMock()))
 
@@ -484,7 +488,7 @@ class TestEventStrategy:
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
         await event_manager.dispatch(guild_update_event)
-        assert await strategy.count() == {0:2, 1: 2}
+        assert await strategy.count() == {0: 2, 1: 2}
 
         await strategy.close()
 
