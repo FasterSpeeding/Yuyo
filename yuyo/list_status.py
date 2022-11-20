@@ -927,12 +927,15 @@ class DiscordBotListService:
             async for retry in back_off:
                 _LOGGER.debug("Posting stats to DiscordBotList for shard %s; attempt %s", shard_id, retry + 1)
                 retry_after = await self._post(client, count, shard_id=shard_id)
-                _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
                 if retry_after is None:
-                    break
+                    _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
 
                 elif retry_after != -1:
                     back_off.set_next_backoff(retry_after)
+                    _LOGGER.info("Ratelimited on posting stats to DiscordBotList, retrying in %s seconds", retry_after)
+
+                else:
+                    _LOGGER.info("Ratelimited on posting stats to DiscordBotList, retrying soon")
 
             back_off.reset()
 
