@@ -5,6 +5,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.4.0a1] - 2022-11-20
+### Added
+- A system for automatically declaring a bot's guild count on the bot lists
+  top.gg, bots.gg and discordbotlist.com. See [yuyo.list_status][] for more
+  information.
+- `"asgi"` feature flag for ensuring this installs with the dependencies required to run
+  the Asgi REST bot adapter.
+
+### Changed
+- [yuyo.backoff.Backoff][] now increments the internal counter regardless of whether
+  [yuyo.backoff.Backoff.set_next_backoff][] has been called.
+- [yuyo.backoff.Backoff][] now iterates over the retry counter ([int][]), starting at 0,
+  rather than just [None][].
+- [yuyo.backoff.Backoff.backoff][] now returns the current retry count as [int][] or
+  [None][] if it has reached max retries or the finished flag has been set.
+- Allow [None][] to be passed for `attachment` and `attachments` to edit response methods.
+- Star imports are no-longer used on the top level (at [yuyo][]) so only the attributes present
+  in `yuyo.__all__` can be accessed there now.
+- [yuyo.components.AbstractComponentExecutor][], [yuyo.components.ChildActionRowExecutor][],
+  `InteractiveButtonBuilder`, `yuyo.components.as_child_executor`,
+  `yuyo.components.as_component_callback`, [yuyo.reactions.AbstractReactionHandler][], and
+  `yuyo.reactions.as_reaction_callback` are no longer included in `yuyo.__all__`/exported
+  top-level.
+
+### Deprecated
+- `yuyo.components.as_child_executor`, `yuyo.components.as_component_callback`, and
+  `yuyo.components.as_reaction_callback` are no longer documented (included in their
+  relevant module's `__all__`) as these are considered deprecated and undocumented.
+
+### Fixed
+- [yuyo.backoff.Backoff.backoff][] now respects the max retires config and finished flag.
+  For this it will now return [None][] without sleeping when either has been reached.
+
+### Removed
+- `backoff` option from [yuyo.backoff.Backoff.backoff][] to better match the aiter flow.
+
 ## [1.3.1a1] - 2022-11-07
 ### Added
 - A chunk request tracker implementation.
@@ -149,7 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.3.1a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1...HEAD
+[1.4.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.3.1a1...v1.4.0a1
 [1.3.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.2.1a1...v1.3.1a1
 [1.2.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.2.1a1
 [1.1.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.1.1a1
