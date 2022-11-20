@@ -222,7 +222,7 @@ class SakeStrategy(AbstractCountStrategy):
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
         """Initialise a Sake strategy.
 
-        Unlike [yuyo.list_status.CacheStrategy][CacheStrategy] and
+        Unlike [CacheStrategy][yuyo.list_status.CacheStrategy] and
         [EventStrategy][yuyo.list_status.EventStrategy] this strategy must be
         directly initialised and passed to [ServiceManager.__init__][yuyo.list_status.ServiceManager]
         as `strategy=`.
