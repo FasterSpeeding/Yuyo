@@ -66,9 +66,10 @@ class TestCacheStrategy:
             65453: None,
             876432123: None,
         }
-        strategy = list_status.CacheStrategy(mock_cache, mock.AsyncMock(shard_count=4))
+        mock_shards = mock.AsyncMock(shard_count=4, shards={0: mock.Mock(), 1: mock.Mock()})
+        strategy = list_status.CacheStrategy(mock_cache, mock_shards)
 
-        assert await strategy.count() == {0: 5}
+        assert await strategy.count() == {0: 5, 1: 0}
 
     def test_spawn(self):
         mock_cache = mock.Mock()
@@ -230,7 +231,10 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=4))
+        mock_shards = mock.AsyncMock(
+            shard_count=4, shards={0: mock.Mock(), 1: mock.Mock(), 2: mock.Mock(), 3: mock.Mock()}
+        )
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
 
         event.unavailable_guilds = [
@@ -274,7 +278,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=2))
+        mock_shards = mock.AsyncMock(shard_count=2, shards={0: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
 
         await event_manager.dispatch(event)
@@ -300,14 +305,15 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=4))
+        mock_shards = mock.AsyncMock(shard_count=4, shards={0: mock.Mock(), 1: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
 
         await event_manager.dispatch(event)
         event.guild.id = hikari.Snowflake(546534)
         await event_manager.dispatch(event)
 
-        assert await strategy.count() == {0: 1, 2: 1}
+        assert await strategy.count() == {0: 1, 1: 0, 2: 1}
 
     @pytest.mark.asyncio()
     async def test_count_after_guild_leave_event_for_known_guild(self):
@@ -327,7 +333,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=2))
+        mock_shards = mock.AsyncMock(shard_count=2, shards={0: mock.Mock(), 1: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
         await event_manager.dispatch(available_event)
         available_event.guild.id = hikari.Snowflake(546534)
@@ -338,7 +345,7 @@ class TestEventStrategy:
         )
         await event_manager.dispatch(leave_event)
 
-        assert await strategy.count() == {0: 1}
+        assert await strategy.count() == {0: 1, 1: 0}
 
     @pytest.mark.asyncio()
     async def test_count_after_guild_leave_event_for_unknown_guild(self):
@@ -361,7 +368,10 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=8))
+        mock_shards = mock.AsyncMock(
+            shard_count=8, shards={0: mock.Mock(), 1: mock.Mock(), 2: mock.Mock(), 3: mock.Mock()}
+        )
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
         await event_manager.dispatch(available_event)
 
@@ -369,7 +379,7 @@ class TestEventStrategy:
         leave_event.guild_id = hikari.Snowflake(3412123)
         await event_manager.dispatch(leave_event)
 
-        assert await strategy.count() == {2: 1}
+        assert await strategy.count() == {0: 0, 1: 0, 2: 1, 3: 0}
 
     @pytest.mark.asyncio()
     async def test_count_after_guild_update_event_for_known_guild(self):
@@ -379,7 +389,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=4))
+        mock_shards = mock.AsyncMock(shard_count=4, shards={1: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
         await event_manager.dispatch(guild_update_event)
 
@@ -395,7 +406,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=2))
+        mock_shards = mock.AsyncMock(shard_count=2, shards={0: mock.Mock(), 1: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
 
         await event_manager.dispatch(guild_update_event)
@@ -435,7 +447,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=1))
+        mock_shards = mock.AsyncMock(shard_count=1, shards={0: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
@@ -444,7 +457,7 @@ class TestEventStrategy:
 
         await event_manager.dispatch(hikari.StartingEvent(app=mock.AsyncMock()))
 
-        assert await strategy.count() == {}
+        assert await strategy.count() == {0: 0}
 
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
@@ -483,7 +496,8 @@ class TestEventStrategy:
         event_manager = hikari.impl.EventManagerImpl(
             mock.Mock(), mock.Mock(), hikari.Intents.ALL, auto_chunk_members=False
         )
-        strategy = list_status.EventStrategy(event_manager, mock.AsyncMock(shard_count=2))
+        mock_shards = mock.AsyncMock(shard_count=2, shards={0: mock.Mock(), 1: mock.Mock()})
+        strategy = list_status.EventStrategy(event_manager, mock_shards)
         await strategy.open()
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
@@ -492,13 +506,13 @@ class TestEventStrategy:
 
         await strategy.close()
 
-        assert await strategy.count() == {}
+        assert await strategy.count() == {0: 0, 1: 0}
 
         await event_manager.dispatch(ready_event)
         await event_manager.dispatch(guild_available_event)
         await event_manager.dispatch(guild_update_event)
 
-        assert await strategy.count() == {}
+        assert await strategy.count() == {0: 0, 1: 0}
 
     def test_spawn(self):
         mock_manager = mock.Mock()

@@ -355,7 +355,7 @@ class EventStrategy(_LoadableStrategy):
 
 
 def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: typing.Iterable[hikari.Snowflake], /) -> dict[int, int]:
-    counts: typing.Dict[int, int] = {}
+    counts = {shard_id: 0 for shard_id in shards.shards.keys()}
 
     for guild_id in guild_ids:
         shard_id = hikari.snowflakes.calculate_shard_id(shards.shard_count, guild_id)
