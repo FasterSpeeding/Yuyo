@@ -60,16 +60,18 @@ class TestCacheStrategy:
     async def test_count(self):
         mock_cache = mock.Mock()
         mock_cache.get_guilds_view.return_value = {
-            123321: None,
-            651234: None,
-            321123312: None,
-            65453: None,
-            876432123: None,
+            342343242301298764: mock.Mock(),
+            745924312145647646: mock.Mock(),
+            234543645234123132: mock.Mock(),
+            45564353434245545: mock.Mock(),
+            97645665343455434: mock.Mock(),
         }
-        mock_shards = mock.AsyncMock(shard_count=4, shards={0: mock.Mock(), 1: mock.Mock()})
+        mock_shards = mock.AsyncMock(
+            shard_count=8, shards={0: mock.Mock(), 1: mock.Mock(), 2: mock.Mock(), 3: mock.Mock()}
+        )
         strategy = list_status.CacheStrategy(mock_cache, mock_shards)
 
-        assert await strategy.count() == {0: 5, 1: 0}
+        assert await strategy.count() == {0: 0, 1: 0, 2: 3, 3: 2}
 
     def test_spawn(self):
         mock_cache = mock.Mock()
