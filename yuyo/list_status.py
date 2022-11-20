@@ -56,6 +56,7 @@ import typing
 import aiohttp
 import hikari
 import hikari.api
+import hikari.snowflakes
 
 from . import backoff
 
@@ -169,10 +170,11 @@ class CacheStrategy(_LoadableStrategy):
         and the guild cache resource is enabled.
     """
 
-    __slots__ = ("_cache",)
+    __slots__ = ("_cache", "_shards")
 
-    def __init__(self, cache: hikari.api.Cache, /) -> None:
+    def __init__(self, shards: hikari.ShardAware, cache: hikari.api.Cache, /) -> None:
         self._cache = cache
+        self._shards = shards
 
     @property
     def is_shard_bound(self) -> bool:
@@ -184,8 +186,8 @@ class CacheStrategy(_LoadableStrategy):
     async def open(self) -> None:
         return None
 
-    async def count(self) -> int:
-        return len(self._cache.get_guilds_view())
+    async def count(self) -> typing.Mapping[int, int]:
+        return _shard_guild_ids(self._shards, self._cache.get_guilds_view().keys())
 
     @classmethod
     def spawn(cls, manager: AbstractManager, /) -> CacheStrategy:
@@ -197,7 +199,7 @@ class CacheStrategy(_LoadableStrategy):
         if not cache_enabled or not shard_enabled:
             raise _InvalidStrategyError
 
-        return cls(manager.cache)
+        return cls(manager.shards, manager.cache)
 
 
 class SakeStrategy(AbstractCountStrategy):
@@ -311,8 +313,8 @@ class EventStrategy(_LoadableStrategy):
         self._event_manager.subscribe(hikari.GuildLeaveEvent, self._on_guild_leave_event)
         self._event_manager.subscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
 
-    async def count(self) -> int:
-        return len(self._guild_ids)
+    async def count(self) -> typing.Mapping[int, int]:
+        return _shard_guild_ids(self._shards, self._guild_ids)
 
     @classmethod
     def spawn(cls, manager: AbstractManager, /) -> EventStrategy:
@@ -322,6 +324,20 @@ class EventStrategy(_LoadableStrategy):
             raise _InvalidStrategyError
 
         return cls(events, shards)
+
+
+def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: typing.Iterable[hikari.Snowflake], /) -> dict[int, int]:
+    counts: typing.Dict[int, int] = {}
+
+    for guild_id in guild_ids:
+        shard_id = hikari.snowflakes.calculate_shard_id(shards, guild_id)
+        try:
+            counts[shard_id] += 1
+
+        except KeyError:
+            counts[shard_id] = 1
+
+    return counts
 
 
 class AbstractManager(typing.Protocol):
