@@ -301,8 +301,7 @@ def type_check(session: nox.Session) -> None:
     install_requirements(session, ".[asgi, sake]", *_constrained(), *_dev_dep("nox", "tests", "type-checking"))
     _run_pyright(session)
     session.run("python", "-m", "mypy", "--version")
-    # Right now MyPy is allowed to fail without failing CI as the alternative is to let MyPy bugs block releases.
-    session.run("python", "-m", "mypy", "yuyo", "--show-error-codes", success_codes=[0, 1])
+    session.run("python", "-m", "mypy", "yuyo", "--show-error-codes")
 
 
 @nox.session(name="verify-types", reuse_venv=True)
