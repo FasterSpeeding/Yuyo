@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -756,10 +755,7 @@ class TestTopGGService:
         mock_session.post.assert_called_once_with(
             "https://top.gg/api/bots/4326543/stats",
             headers={"Authorization": "nommy took", "User-Agent": "aaaaaaaaaaaaaaaaa"},
-            json={
-                "shards": [0, 0, 0, 234123, 54123, 34123, 2399, 43123, 0, 0, 0, 0],
-                "shard_count": 12,
-            },
+            json={"shards": [0, 0, 0, 234123, 54123, 34123, 2399, 43123, 0, 0, 0, 0], "shard_count": 12},
         )
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -323,11 +322,7 @@ class ChunkTracker:
     )
 
     def __init__(
-        self,
-        event_manager: hikari.api.EventManager,
-        rest: hikari.RESTAware,
-        shards: hikari.ShardAware,
-        /,
+        self, event_manager: hikari.api.EventManager, rest: hikari.RESTAware, shards: hikari.ShardAware, /
     ) -> None:
         """Initialise a chunk tracker.
 

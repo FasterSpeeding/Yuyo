@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2021, Faster Speeding
@@ -295,10 +294,10 @@ class EventStrategy(_LoadableStrategy):
     async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._guild_ids.clear()
 
-    async def _on_guild_available_event(self, event: hikari.GuildAvailableEvent):
+    async def _on_guild_available_event(self, event: hikari.GuildAvailableEvent) -> None:
         self._guild_ids.add(event.guild_id)
 
-    async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent):
+    async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent) -> None:
         try:
             self._guild_ids.remove(event.guild_id)
         except KeyError:
@@ -775,10 +774,10 @@ class ServiceManager(AbstractManager):
         return self._me
 
     def get_session(self) -> aiohttp.ClientSession:
-        # Asserts that this is only called within a running event loop.
         if not self._session:
             raise RuntimeError("Client is currently inactive")
 
+        # Asserts that this is only called within a running event loop.
         asyncio.get_running_loop()
         if self._session.closed:
             self._session = aiohttp.ClientSession()

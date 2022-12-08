@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -57,30 +56,21 @@ async def test_backwards_compat_aiter_():
 
 @pytest.mark.asyncio()
 async def test_backwards_compat_anext_():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __anext__=mock.AsyncMock(return_value=554433),
-    )
+    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(return_value=554433))
 
     assert await _internal.anext_(mock_iterator, 432) == 554433
 
 
 @pytest.mark.asyncio()
 async def test_backwards_compat_anext__when_exhausted():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
-    )
+    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(side_effect=StopAsyncIteration))
 
     assert await _internal.anext_(mock_iterator, 659595) == 659595
 
 
 @pytest.mark.asyncio()
 async def test_backwards_compat_anext__when_exhausted_and_no_default():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
-    )
+    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(side_effect=StopAsyncIteration))
 
     with pytest.raises(StopAsyncIteration):
         await _internal.anext_(mock_iterator)
@@ -111,33 +101,21 @@ async def test_collect_iterable_with_async_iterator(value: typing.AsyncIterable[
 
 
 @pytest.mark.asyncio()
-@pytest.mark.parametrize(
-    ("value", "result"),
-    [
-        (iter((1, 2, 3, 4, 4, 4)), [1, 2, 3, 4, 4, 4]),
-        (iter([]), []),
-    ],
-)
+@pytest.mark.parametrize(("value", "result"), [(iter((1, 2, 3, 4, 4, 4)), [1, 2, 3, 4, 4, 4]), (iter([]), [])])
 async def test_collect_iterable_with_sync_iterator(value: typing.Iterator[int], result: typing.List[int]):
     assert await _internal.collect_iterable(value) == result
 
 
 @pytest.mark.asyncio()
 async def test_seek_iterator_with_async_iterator():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __anext__=mock.AsyncMock(return_value=4321234),
-    )
+    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(return_value=4321234))
 
     assert await _internal.seek_iterator(mock_iterator, default=123) == 4321234
 
 
 @pytest.mark.asyncio()
 async def test_seek_iterator_with_depleted_async_iterator():
-    mock_iterator = mock.Mock(
-        collections.AsyncIterator,
-        __anext__=mock.AsyncMock(side_effect=StopAsyncIteration),
-    )
+    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(side_effect=StopAsyncIteration))
 
     assert await _internal.seek_iterator(mock_iterator, default=323423) == 323423
 

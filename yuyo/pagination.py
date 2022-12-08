@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -149,11 +148,7 @@ async def async_paginate_string(
 
 
 def sync_paginate_string(
-    lines: typing.Iterable[str],
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    lines: typing.Iterable[str], *, char_limit: int = 2000, line_limit: int = 25, wrapper: typing.Optional[str] = None
 ) -> typing.Iterator[str]:
     """Lazily paginate an iterator of lines.
 
@@ -205,8 +200,7 @@ def sync_paginate_string(
                 page.append(sub_line)
 
             # yield all the sub-lines at once.
-            for sub_line in map(wrapper.format, sub_pages) if wrapper else sub_pages:
-                yield sub_line
+            yield from map(wrapper.format, sub_pages) if wrapper else sub_pages
 
         # Otherwise it should be added to the next page.
         else:
@@ -231,11 +225,7 @@ def paginate_string(
 
 @typing.overload
 def paginate_string(
-    lines: typing.Iterator[str],
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    lines: typing.Iterator[str], *, char_limit: int = 2000, line_limit: int = 25, wrapper: typing.Optional[str] = None
 ) -> typing.Iterator[str]:
     ...
 

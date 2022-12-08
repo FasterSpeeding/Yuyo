@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -1489,10 +1488,8 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-        # executor = self._executors
         self._executors = {}
-        # for executor in executor.values():  # TODO: finish
-        #     executor.close()
+        # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
         """Startup the component client."""
@@ -2044,21 +2041,13 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     @typing.overload
     def add_button(
-        self,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
+        self, style: hikari.InteractiveButtonTypesT, callback: CallbackSig, /, *, custom_id: typing.Optional[str] = None
     ) -> InteractiveButtonBuilder[Self]:
         ...
 
     @typing.overload
     def add_button(
-        self,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
-        url: str,
-        /,
+        self, style: typing.Literal[hikari.ButtonStyle.LINK, 5], url: str, /
     ) -> hikari.impl.LinkButtonBuilder[Self]:
         ...
 
@@ -2084,7 +2073,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         # Pyright doesn't properly support _ attrs kwargs
         if not isinstance(callback_or_url, str):
-            raise ValueError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
+            raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
         return hikari.impl.LinkButtonBuilder(
             container=self, style=style, url=callback_or_url  # pyright: ignore reportGeneralTypeIssues
@@ -2145,10 +2134,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
 
     def __init__(
-        self,
-        *,
-        load_from_attributes: bool = False,
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        self, *, load_from_attributes: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
     ) -> None:
         """Initialise a multi-component executor.
 
@@ -2310,7 +2296,7 @@ class ComponentPaginator(ActionRowExecutor):
         if not isinstance(
             iterator, (typing.Iterator, typing.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance
-            raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
@@ -2439,7 +2425,7 @@ class ComponentPaginator(ActionRowExecutor):
         if self._iterator:
             # TODO: option to not lock on last
             loading_component = (
-                ctx.interaction.app.rest.build_action_row()
+                ctx.interaction.app.rest.build_message_action_row()
                 .add_button(hikari.ButtonStyle.SECONDARY, "loading")
                 .set_is_disabled(True)
                 .set_emoji(878377505344614461)

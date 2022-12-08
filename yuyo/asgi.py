@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -109,15 +108,11 @@ class AsgiAdapter:
         self._server = server
 
     @property
-    def on_shutdown(
-        self,
-    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+    def on_shutdown(self) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_shutdown
 
     @property
-    def on_startup(
-        self,
-    ) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+    def on_startup(self) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_startup
 
     @property

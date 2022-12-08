@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -208,10 +207,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._message = None
 
     def add_callback(
-        self,
-        emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]],
-        callback: CallbackSig,
-        /,
+        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], callback: CallbackSig, /
     ) -> Self:
         """Add a callback to this reaction handler.
 
@@ -368,7 +364,7 @@ class ReactionPaginator(ReactionHandler):
         if not isinstance(
             iterator, (typing.Iterator, typing.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance
-            raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
         self._buffer: typing.List[pagination.EntryT] = []
@@ -492,13 +488,7 @@ class ReactionPaginator(ReactionHandler):
         except KeyError:
             pass
 
-    async def close(
-        self,
-        *,
-        remove_reactions: bool = False,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
-    ) -> None:
+    async def close(self, *, remove_reactions: bool = False, max_retries: int = 5, max_backoff: float = 2.0) -> None:
         """Close this handler and deregister any previously registered message.
 
         Parameters
@@ -533,13 +523,7 @@ class ReactionPaginator(ReactionHandler):
                         break
 
     async def open(
-        self,
-        message: hikari.Message,
-        /,
-        *,
-        add_reactions: bool = True,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
+        self, message: hikari.Message, /, *, add_reactions: bool = True, max_retries: int = 5, max_backoff: float = 2.0
     ) -> None:
         await super().open(message)
         if not add_reactions:
@@ -753,10 +737,7 @@ class ReactionClient:
         return self._gc_task is None
 
     def add_handler(
-        self,
-        message: hikari.SnowflakeishOr[hikari.Message],
-        /,
-        paginator: AbstractReactionHandler,
+        self, message: hikari.SnowflakeishOr[hikari.Message], /, paginator: AbstractReactionHandler
     ) -> Self:
         """Add a reaction handler to this reaction client.
 
@@ -814,9 +795,7 @@ class ReactionClient:
         return self._handlers.pop(hikari.Snowflake(message))
 
     def _try_unsubscribe(
-        self,
-        event_type: typing.Type[_EventT],
-        callback: event_manager_api.CallbackT[_EventT],
+        self, event_type: typing.Type[_EventT], callback: event_manager_api.CallbackT[_EventT]
     ) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)

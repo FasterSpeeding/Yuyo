@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -535,20 +534,8 @@ class TestAsgiAdapter:
                         "more_body": True,
                     }
                 ),
-                mock.call(
-                    {
-                        "type": "http.response.body",
-                        "body": (b"chunk\n22\n\n\nyeet"),
-                        "more_body": True,
-                    }
-                ),
-                mock.call(
-                    {
-                        "type": "http.response.body",
-                        "body": (b"chunketh 3 ok"),
-                        "more_body": True,
-                    }
-                ),
+                mock.call({"type": "http.response.body", "body": (b"chunk\n22\n\n\nyeet"), "more_body": True}),
+                mock.call({"type": "http.response.body", "body": (b"chunketh 3 ok"), "more_body": True}),
                 mock.call(
                     {
                         "type": "http.response.body",
@@ -968,13 +955,7 @@ class TestAsgiAdapter:
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
                     }
                 ),
-                mock.call(
-                    {
-                        "type": "http.response.body",
-                        "body": b"Internal Server Error",
-                        "more_body": False,
-                    }
-                ),
+                mock.call({"type": "http.response.body", "body": b"Internal Server Error", "more_body": False}),
             ]
         )
         mock_receive.assert_awaited_once_with()
@@ -1012,13 +993,7 @@ class TestAsgiAdapter:
                         "headers": [],
                     }
                 ),
-                mock.call(
-                    {
-                        "type": "http.response.body",
-                        "body": b"",
-                        "more_body": False,
-                    }
-                ),
+                mock.call({"type": "http.response.body", "body": b"", "more_body": False}),
             ]
         )
         mock_receive.assert_has_awaits([mock.call(), mock.call()])
