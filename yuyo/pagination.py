@@ -35,14 +35,13 @@ __all__: list[str] = ["aenumerate", "async_paginate_string", "paginate_string", 
 
 import textwrap
 import typing
+from collections import abc as collections
 
 import hikari
 
 from . import _internal
 
 if typing.TYPE_CHECKING:
-    from collections import abc as collections
-
     _T = typing.TypeVar("_T")
 
 
