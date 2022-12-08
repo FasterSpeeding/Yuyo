@@ -1186,7 +1186,7 @@
   </span>
 
 <a href="#yuyo.list_status.ServiceSig" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">ServiceSig</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="s1">&#39;AbstractManager&#39;</span><span class="p">],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Coroutine</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span>
+<div class="highlight"><pre><span></span><code><span class="n">ServiceSig</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="s1">&#39;AbstractManager&#39;</span><span class="p">],</span> <span class="n">collections</span><span class="o">.</span><span class="n">Coroutine</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -1238,8 +1238,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.list_status.AbstractCountStrategy.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1263,8 +1263,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.list_status.AbstractCountStrategy.count" class="headerlink" title="Permanent link">#</a></h3>
@@ -1357,8 +1357,8 @@ If this is a mapping then this is shard-specific counts.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.list_status.AbstractCountStrategy.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -1497,8 +1497,8 @@ If this is a mapping then this is shard-specific counts.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.list_status.AbstractManager.get_me" class="headerlink" title="Permanent link">#</a></h3>
@@ -2836,7 +2836,7 @@ when <code>strategy</code> was left as <a class="autorefs autorefs-external" hre
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Callable" href="https://docs.python.org/3.9/library/typing.html#typing.Callable">Callable</a>[[<a class="autorefs autorefs-internal" title="yuyo.list_status.ServiceSig" href="#yuyo.list_status.ServiceSig">ServiceSig</a>], <a class="autorefs autorefs-internal" title="yuyo.list_status.ServiceSig" href="#yuyo.list_status.ServiceSig">ServiceSig</a>]</code>
+                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<a class="autorefs autorefs-internal" title="yuyo.list_status.ServiceSig" href="#yuyo.list_status.ServiceSig">ServiceSig</a>], <a class="autorefs autorefs-internal" title="yuyo.list_status.ServiceSig" href="#yuyo.list_status.ServiceSig">ServiceSig</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">

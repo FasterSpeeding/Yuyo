@@ -737,7 +737,7 @@
   </span>
 
 <a href="#yuyo.pagination.EntryT" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">EntryT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Embed</span><span class="p">]]</span>
+<div class="highlight"><pre><span></span><code><span class="n">EntryT</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Embed</span><span class="p">]]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -901,7 +901,7 @@ to the message's embed if set else [hikari.undefined.UNDEFINED][].</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.AsyncIterable" href="https://docs.python.org/3.9/library/typing.html#typing.AsyncIterable">AsyncIterable</a>[<span title="yuyo.pagination._T">_T</span>]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterable">AsyncIterable</a>[<span title="yuyo.pagination._T">_T</span>]</code>
                 </span>
             </p>
           </td>
@@ -920,7 +920,7 @@ to the message's embed if set else [hikari.undefined.UNDEFINED][].</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.AsyncIterator" href="https://docs.python.org/3.9/library/typing.html#typing.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <span title="yuyo.pagination._T">_T</span>]]</code>
+                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <span title="yuyo.pagination._T">_T</span>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -969,7 +969,7 @@ to the message's embed if set else [hikari.undefined.UNDEFINED][].</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.AsyncIterable" href="https://docs.python.org/3.9/library/typing.html#typing.AsyncIterable">AsyncIterable</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterable">AsyncIterable</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
                 </span>
             </p>
           </td>
@@ -1082,7 +1082,7 @@ to be replaced by the page's content.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Iterator" href="https://docs.python.org/3.9/library/typing.html#typing.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>] | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.AsyncIterator" href="https://docs.python.org/3.9/library/typing.html#typing.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Iterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>] | <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
                 </span>
             </p>
           </td>
@@ -1150,7 +1150,7 @@ to be replaced by the page's content.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code>AsyncIterator[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]] | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Iterator" href="https://docs.python.org/3.9/library/typing.html#typing.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]]</code>
+                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]] | <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Iterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -1195,7 +1195,7 @@ to be replaced by the page's content.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Iterable" href="https://docs.python.org/3.9/library/typing.html#typing.Iterable">Iterable</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterable">Iterable</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
                 </span>
             </p>
           </td>
@@ -1263,7 +1263,7 @@ to be replaced by the page's content.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Iterator" href="https://docs.python.org/3.9/library/typing.html#typing.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]]</code>
+                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Iterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterator">Iterator</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]]</code>
               </span>
           </td>
           <td class="doc-returns-details">
