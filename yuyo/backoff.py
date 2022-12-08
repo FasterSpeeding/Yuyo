@@ -271,7 +271,9 @@ class ErrorManager:
 
     def __init__(
         self,
-        *rules: tuple[collections.Iterable[type[Exception]], collections.Callable[[typing.Any], typing.Optional[bool]]],
+        *rules: tuple[
+            collections.Iterable[type[BaseException]], collections.Callable[[typing.Any], typing.Optional[bool]]
+        ],
     ) -> None:
         """Initialise an error manager instance.
 
@@ -297,8 +299,8 @@ class ErrorManager:
 
     def __exit__(
         self,
-        exception_type: typing.Optional[type[Exception]],
-        exception: typing.Optional[Exception],
+        exception_type: typing.Optional[type[BaseException]],
+        exception: typing.Optional[BaseException],
         exception_traceback: typing.Optional[types.TracebackType],
     ) -> typing.Optional[bool]:
         if exception_type is None:
@@ -320,7 +322,7 @@ class ErrorManager:
 
     def with_rule(
         self,
-        exceptions: collections.Iterable[type[Exception]],
+        exceptions: collections.Iterable[type[BaseException]],
         result: collections.Callable[[typing.Any], typing.Optional[bool]],
     ) -> Self:
         """Add a rule to this exception context manager.
