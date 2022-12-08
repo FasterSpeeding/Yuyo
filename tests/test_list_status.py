@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -35,7 +34,6 @@
 # This leads to too many false-positives around mocks.
 
 import datetime
-import typing
 from unittest import mock
 
 import hikari
@@ -190,7 +188,7 @@ class TestEventStrategy:
         ],
     )
     @pytest.mark.asyncio()
-    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: typing.Type[Exception]):
+    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: type[Exception]):
         mock_event_manager = mock.Mock()
         mock_event_manager.unsubscribe.side_effect = [None] * error_on + [error] + [None] * (4 - error_on)
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
@@ -756,10 +754,7 @@ class TestTopGGService:
         mock_session.post.assert_called_once_with(
             "https://top.gg/api/bots/4326543/stats",
             headers={"Authorization": "nommy took", "User-Agent": "aaaaaaaaaaaaaaaaa"},
-            json={
-                "shards": [0, 0, 0, 234123, 54123, 34123, 2399, 43123, 0, 0, 0, 0],
-                "shard_count": 12,
-            },
+            json={"shards": [0, 0, 0, 234123, 54123, 34123, 2399, 43123, 0, 0, 0, 0], "shard_count": 12},
         )
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)

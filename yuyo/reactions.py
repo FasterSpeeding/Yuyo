@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -33,13 +32,14 @@
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["AbstractReactionHandler", "ReactionClient", "ReactionHandler", "ReactionPaginator"]
+__all__: list[str] = ["AbstractReactionHandler", "ReactionClient", "ReactionHandler", "ReactionPaginator"]
 
 import abc
 import asyncio
 import datetime
 import inspect
 import typing
+from collections import abc as collections
 
 import alluka as alluka_
 import hikari
@@ -56,7 +56,7 @@ if typing.TYPE_CHECKING:
 
 
 EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
-CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 
 
@@ -122,7 +122,7 @@ class AbstractReactionHandler(abc.ABC):
 
 def as_reaction_callback(  # noqa: D103
     emoji_identifier: typing.Union[hikari.SnowflakeishOr[hikari.CustomEmoji], str], /
-) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+) -> collections.Callable[[CallbackSigT], CallbackSigT]:
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         nonlocal emoji_identifier
         if isinstance(emoji_identifier, hikari.CustomEmoji):
@@ -142,7 +142,7 @@ class ReactionHandler(AbstractReactionHandler):
     def __init__(
         self,
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
         load_from_attributes: bool = True,
     ) -> None:
@@ -158,7 +158,7 @@ class ReactionHandler(AbstractReactionHandler):
             How long it should take for this paginator to timeout.
         """
         self._authors = set(map(hikari.Snowflake, authors))
-        self._callbacks: typing.Dict[typing.Union[str, int], CallbackSig] = {}
+        self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._message: typing.Optional[hikari.Message] = None
@@ -176,7 +176,7 @@ class ReactionHandler(AbstractReactionHandler):
                     self._callbacks[identifier] = value
 
     @property
-    def authors(self) -> typing.AbstractSet[hikari.Snowflake]:
+    def authors(self) -> collections.Set[hikari.Snowflake]:
         """Set of the authors/owner of a enabled handler.
 
         !!! note
@@ -208,10 +208,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._message = None
 
     def add_callback(
-        self,
-        emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]],
-        callback: CallbackSig,
-        /,
+        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], callback: CallbackSig, /
     ) -> Self:
         """Add a callback to this reaction handler.
 
@@ -254,7 +251,7 @@ class ReactionHandler(AbstractReactionHandler):
 
     def with_callback(
         self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
-    ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+    ) -> collections.Callable[[CallbackSigT], CallbackSigT]:
         """Add a callback to this reaction handler through a decorator call.
 
         Parameters
@@ -267,7 +264,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Returns
         -------
-        typing.Callabke[[CallbackSigT], CallbackSigT]
+        collections.abc.Callabke[[CallbackSigT], CallbackSigT]
             A decorator to add a callback to this reaction handler.
         """
 
@@ -339,8 +336,8 @@ class ReactionPaginator(ReactionHandler):
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
         *,
-        authors: typing.Iterable[hikari.SnowflakeishOr[hikari.User]],
-        triggers: typing.Collection[str] = (
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        triggers: collections.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
@@ -351,7 +348,7 @@ class ReactionPaginator(ReactionHandler):
 
         Parameters
         ----------
-        iterator : typing.Iterator[yuyo.pagination.EntryT] | typing.AsyncIterator[yuyo.pagination.EntryT]
+        iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
             `entry[0]` represents the message's possible content and can either be
@@ -366,12 +363,12 @@ class ReactionPaginator(ReactionHandler):
             How long it should take for this paginator to timeout.
         """
         if not isinstance(
-            iterator, (typing.Iterator, typing.AsyncIterator)
+            iterator, (collections.Iterator, collections.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance
-            raise ValueError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
-        self._buffer: typing.List[pagination.EntryT] = []
+        self._buffer: list[pagination.EntryT] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
@@ -492,13 +489,7 @@ class ReactionPaginator(ReactionHandler):
         except KeyError:
             pass
 
-    async def close(
-        self,
-        *,
-        remove_reactions: bool = False,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
-    ) -> None:
+    async def close(self, *, remove_reactions: bool = False, max_retries: int = 5, max_backoff: float = 2.0) -> None:
         """Close this handler and deregister any previously registered message.
 
         Parameters
@@ -533,13 +524,7 @@ class ReactionPaginator(ReactionHandler):
                         break
 
     async def open(
-        self,
-        message: hikari.Message,
-        /,
-        *,
-        add_reactions: bool = True,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
+        self, message: hikari.Message, /, *, add_reactions: bool = True, max_retries: int = 5, max_backoff: float = 2.0
     ) -> None:
         await super().open(message)
         if not add_reactions:
@@ -683,10 +668,10 @@ class ReactionClient:
             closed based on the lifetime events dispatched by `event_managed`.
         """
         self._alluka = alluka or alluka_.Client()
-        self.blacklist: typing.List[hikari.Snowflake] = []
+        self.blacklist: list[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._handlers: typing.Dict[hikari.Snowflake, AbstractReactionHandler] = {}
+        self._handlers: dict[hikari.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
 
         if event_managed:
@@ -753,10 +738,7 @@ class ReactionClient:
         return self._gc_task is None
 
     def add_handler(
-        self,
-        message: hikari.SnowflakeishOr[hikari.Message],
-        /,
-        paginator: AbstractReactionHandler,
+        self, message: hikari.SnowflakeishOr[hikari.Message], /, paginator: AbstractReactionHandler
     ) -> Self:
         """Add a reaction handler to this reaction client.
 
@@ -813,11 +795,7 @@ class ReactionClient:
         """
         return self._handlers.pop(hikari.Snowflake(message))
 
-    def _try_unsubscribe(
-        self,
-        event_type: typing.Type[_EventT],
-        callback: event_manager_api.CallbackT[_EventT],
-    ) -> None:
+    def _try_unsubscribe(self, event_type: type[_EventT], callback: event_manager_api.CallbackT[_EventT]) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
         except (ValueError, LookupError):

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -90,7 +89,7 @@ async def test_aenumerate():
 
 @pytest.mark.asyncio()
 async def test_aenumerate_for_empty_iterator():
-    raw_iterator: typing.AsyncIterator[str] = (await fake_awake(value) for value in ())
+    raw_iterator: collections.AsyncIterator[str] = (await fake_awake(value) for value in ())
     iterator = pagination.aenumerate(raw_iterator)
 
     result = await _internal.collect_iterable(iterator)

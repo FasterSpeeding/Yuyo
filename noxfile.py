@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -33,24 +32,52 @@ from __future__ import annotations
 
 import itertools
 import pathlib
+import re
 import shutil
 from collections import abc as collections
 
 import nox
 
-nox.options.sessions = ["reformat", "flake8", "spell-check", "slot-check", "type-check", "test", "verify-types"]
+nox.options.sessions = [
+    "reformat",
+    "verify-markup",
+    "flake8",
+    "spell-check",
+    "slot-check",
+    "type-check",
+    "test",
+    "verify-types",
+]
 GENERAL_TARGETS = ["./noxfile.py", "./tests"]
-_BLACKLISTED_TARGETS = {"__pycache__"}
-for path in pathlib.Path("./yuyo").glob("*"):
-    if path.name not in _BLACKLISTED_TARGETS:
+TOP_LEVEL_TARGETS = ["./yuyo", "./tests", "./noxfile.py"]
+_BLACKLISTED_TARGETS = re.compile("^_internal/vendor/.*\\.py")
+for path in pathlib.Path("./yuyo").glob("**/*.py"):
+    if not _BLACKLISTED_TARGETS.match(str(path.relative_to("./yuyo")).replace("\\", "/")):
         GENERAL_TARGETS.append(str(path))
 
 
 _DEV_DEP_DIR = pathlib.Path("./dev-requirements")
 
 
+def _dev_path(value: str) -> str:
+    return str(_DEV_DEP_DIR / f"{value}.txt")
+
+
+def _constrained() -> list[str]:
+    return ["-c", _dev_path("constraints")]
+
+
 def _dev_dep(*values: str) -> collections.Iterator[str]:
-    return itertools.chain.from_iterable(("-r", str(_DEV_DEP_DIR / f"{value}.txt")) for value in values)
+    return itertools.chain.from_iterable(("-r", _dev_path(value)) for value in values)
+
+
+def _tracked_files(session: nox.Session) -> collections.Iterable[str]:
+    output = session.run("git", "ls-files", external=True, log=False, silent=True)
+    assert isinstance(output, str)
+    return output.splitlines()
+
+
+_SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
 def install_requirements(session: nox.Session, *requirements: str, first_call: bool = True) -> None:
@@ -62,7 +89,7 @@ def install_requirements(session: nox.Session, *requirements: str, first_call: b
 
         session.install("--upgrade", *map(str, requirements))
 
-    elif "." in requirements:
+    elif any(map(_SELF_INSTALL_REGEX.fullmatch, requirements)):
         session.install("--upgrade", "--force-reinstall", "--no-dependencies", ".")
 
 
@@ -105,29 +132,44 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
-def _pip_compile(session: nox.Session, /, *args: str) -> None:
-    install_requirements(session, *_dev_dep("publish"))
-    for path in pathlib.Path("./dev-requirements/").glob("*.in"):
-        session.run(
-            "pip-compile",
-            str(path),
-            "--output-file",
-            str(path.with_name(path.name[:-3] + ".txt")),
-            *args
-            # "--generate-hashes",
-        )
+def _to_valid_urls(session: nox.Session) -> set[pathlib.Path] | None:
+    if session.posargs:
+        return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
 
 
 @nox.session(name="freeze-dev-deps", reuse_venv=True)
 def freeze_dev_deps(session: nox.Session) -> None:
-    """Freeze the dev dependencies."""
-    _pip_compile(session)
-
-
-@nox.session(name="upgrade-dev-deps", reuse_venv=True)
-def upgrade_dev_deps(session: nox.Session) -> None:
     """Upgrade the dev dependencies."""
-    _pip_compile(session, "--upgrade")
+    import tomli
+
+    install_requirements(session, *_dev_dep("publish"))
+    valid_urls = _to_valid_urls(session)
+
+    if not valid_urls:
+        with pathlib.Path("./pyproject.toml").open("rb") as file:
+            project = tomli.load(file)["project"]
+            deps = project.get("dependencies") or []
+            if optional := project.get("optional-dependencies"):
+                deps.extend(itertools.chain(*optional.values()))
+
+        with pathlib.Path("./dev-requirements/constraints.in").open("w+") as file:
+            file.write("\n".join(deps) + "\n")
+
+    for path in pathlib.Path("./dev-requirements/").glob("*.in"):
+        if not valid_urls or path.resolve() in valid_urls:
+            target = path.with_name(path.name.removesuffix(".in") + ".txt")
+            target.unlink(missing_ok=True)
+            session.run("pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path))
+
+
+@nox.session(name="verify-dev-deps", reuse_venv=True)
+def verify_dev_deps(session: nox.Session) -> None:
+    """Verify the dev deps by installing them."""
+    valid_urls = _to_valid_urls(session)
+
+    for path in pathlib.Path("./dev-requirements/").glob("*.txt"):
+        if not valid_urls or path.resolve() in valid_urls:
+            session.install("--dry-run", "-r", str(path))
 
 
 @nox.session(name="generate-docs", reuse_venv=True)
@@ -144,35 +186,23 @@ def generate_docs(session: nox.Session) -> None:
 def flake8(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
     install_requirements(session, *_dev_dep("flake8"))
-    session.run("pflake8", *GENERAL_TARGETS)
+    session.log("Running flake8")
+    session.run("pflake8", *GENERAL_TARGETS, log=False)
 
 
 @nox.session(reuse_venv=True, name="slot-check")
 def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
-    install_requirements(session, ".[asgi, sake]", *_dev_dep("lint"))
+    install_requirements(session, ".[asgi, sake]", *_constrained(), *_dev_dep("lint"))
     session.run("slotscheck", "-m", "yuyo")
 
 
 @nox.session(reuse_venv=True, name="spell-check")
 def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
-    install_requirements(session, *_dev_dep("lint"))  # include_standard_requirements=False
-    session.run(
-        "codespell",
-        *GENERAL_TARGETS,
-        ".gitattributes",
-        ".gitignore",
-        "LICENSE",
-        "pyproject.toml",
-        "CHANGELOG.md",
-        "CODE_OF_CONDUCT.md",
-        "CONTRIBUTING.md",
-        "README.md",
-        "./github",
-        ".pre-commit-config.yaml",
-        "./docs",
-    )
+    install_requirements(session, *_dev_dep("lint"))
+    session.log("Running codespell")
+    session.run("codespell", *_tracked_files(session), log=False)
 
 
 @nox.session(reuse_venv=True)
@@ -183,11 +213,38 @@ def build(session: nox.Session) -> None:
     session.run("flit", "build")
 
 
+@nox.session(name="verify-markup", reuse_venv=True)
+def verify_markup(session: nox.Session):
+    """Verify the syntax of the repo's markup files."""
+    install_requirements(session, ".", *_constrained(), *_dev_dep("lint"))
+    tracked_files = list(_tracked_files(session))
+
+    session.log("Running pre_commit_hooks.check_toml")
+    session.run(
+        "python",
+        "-m",
+        "pre_commit_hooks.check_toml",
+        *(path for path in tracked_files if path.endswith(".toml")),
+        success_codes=[0, 1],
+        log=False,
+    )
+
+    session.log("Running pre_commit_hooks.check_yaml")
+    session.run(
+        "python",
+        "-m",
+        "pre_commit_hooks.check_yaml",
+        *(path for path in tracked_files if path.endswith(".yml") or path.endswith(".yaml")),
+        success_codes=[0, 1],
+        log=False,
+    )
+
+
 @nox.session(reuse_venv=True)
 def publish(session: nox.Session, env: dict[str, str] | None = None) -> None:
     """Publish this project to pypi."""
     install_requirements(session, *_dev_dep("publish"))
-    install_requirements(session, ".", first_call=False)
+    install_requirements(session, ".", *_constrained(), first_call=False)
     session.run("flit", "publish", env=env)
 
 
@@ -200,16 +257,30 @@ def test_publish(session: nox.Session) -> None:
 @nox.session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
-    install_requirements(session, *_dev_dep("reformat"))  # include_standard_requirements=False
-    session.run("black", *GENERAL_TARGETS)
-    session.run("isort", *GENERAL_TARGETS)
-    session.run("sort-all", *map(str, pathlib.Path("./yuyo/").glob("**/*.py")), success_codes=[0, 1])
+    install_requirements(session, *_dev_dep("reformat"))
+    session.run("black", *TOP_LEVEL_TARGETS)
+    session.run("isort", *TOP_LEVEL_TARGETS)
+    session.run("pycln", *TOP_LEVEL_TARGETS)
+
+    tracked_files = list(_tracked_files(session))
+    py_files = [path for path in tracked_files if re.fullmatch(r"^yuyo\/.+.pyi?$", path)]
+
+    session.log("Running sort-all")
+    session.run("sort-all", *py_files, success_codes=[0, 1], log=False)
+
+    session.log("Running pre_commit_hooks.end_of_file_fixer")
+    session.run("python", "-m", "pre_commit_hooks.end_of_file_fixer", *tracked_files, success_codes=[0, 1], log=False)
+
+    session.log("Running pre_commit_hooks.trailing_whitespace_fixer")
+    session.run(
+        "python", "-m", "pre_commit_hooks.trailing_whitespace_fixer", *tracked_files, success_codes=[0, 1], log=False
+    )
 
 
 @nox.session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    install_requirements(session, ".[asgi, sake]", *_dev_dep("tests"))
+    install_requirements(session, ".[asgi, sake]", *_constrained(), *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -217,7 +288,7 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
-    install_requirements(session, ".[asgi, sake]", *_dev_dep("tests"))
+    install_requirements(session, ".[asgi, sake]", *_constrained(), *_dev_dep("tests"))
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -226,12 +297,6 @@ def test_coverage(session: nox.Session) -> None:
 
 
 def _run_pyright(session: nox.Session, *args: str) -> None:
-    if _try_find_option(session, "--force-env", when_empty="True"):
-        session.env["PYRIGHT_PYTHON_GLOBAL_NODE"] = "off"
-
-    if version := _try_find_option(session, "--pyright-version"):
-        session.env["PYRIGHT_PYTHON_FORCE_VERSION"] = version
-
     session.run("python", "-m", "pyright", "--version")
     session.run("python", "-m", "pyright", *args)
 
@@ -239,7 +304,7 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 @nox.session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    install_requirements(session, ".[asgi, sake]", *_dev_dep("nox", "tests", "type-checking"))
+    install_requirements(session, ".[asgi, sake]", *_constrained(), *_dev_dep("nox", "tests", "type-checking"))
     _run_pyright(session)
     session.run("python", "-m", "mypy", "--version")
     # Right now MyPy is allowed to fail without failing CI as the alternative is to let MyPy bugs block releases.
@@ -249,5 +314,5 @@ def type_check(session: nox.Session) -> None:
 @nox.session(name="verify-types", reuse_venv=True)
 def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
-    install_requirements(session, ".", *_dev_dep("type-checking"))
+    install_requirements(session, ".", *_constrained(), *_dev_dep("type-checking"))
     _run_pyright(session, "--verifytypes", "yuyo", "--ignoreexternal")

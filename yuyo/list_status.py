@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2021, Faster Speeding
@@ -32,7 +31,7 @@
 """Utility classes for updating a bot's guild count on several bot list services."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [
+__all__: list[str] = [
     "AbstractCountStrategy",
     "AbstractManager",
     "BotsGGService",
@@ -52,6 +51,7 @@ import datetime
 import logging
 import time
 import typing
+from collections import abc as collections
 
 import aiohttp
 import hikari
@@ -72,14 +72,14 @@ if typing.TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger("hikari.yuyo")
-_strategies: typing.List[typing.Type[_LoadableStrategy]] = []
+_strategies: list[type[_LoadableStrategy]] = []
 _DEFAULT_USER_AGENT = "Yuyo.last_status"
 _RATE_LIMITED_STATUS = 429
 _RETRY_AFTER_KEY = "Retry-After"
 _RETRY_ERROR_CODES = frozenset((_RATE_LIMITED_STATUS, 500, 502, 503, 504))
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
-ServiceSig = typing.Callable[["AbstractManager"], typing.Coroutine[typing.Any, typing.Any, None]]
+ServiceSig = collections.Callable[["AbstractManager"], collections.Coroutine[typing.Any, typing.Any, None]]
 """Signature of a callback used to update a service."""
 
 
@@ -110,7 +110,7 @@ class AbstractCountStrategy(abc.ABC):
         """Open the counter."""
 
     @abc.abstractmethod
-    async def count(self) -> typing.Union[int, typing.Mapping[int, int]]:
+    async def count(self) -> typing.Union[int, collections.Mapping[int, int]]:
         """Get a possibly cached guild count from this counter.
 
         Returns
@@ -156,7 +156,7 @@ class _LoadableStrategy(AbstractCountStrategy, abc.ABC):
         """
 
 
-def _as_strategy(strategy: typing.Type[_LoadableStrategyT], /) -> typing.Type[_LoadableStrategyT]:
+def _as_strategy(strategy: type[_LoadableStrategyT], /) -> type[_LoadableStrategyT]:
     _strategies.append(strategy)
     return strategy
 
@@ -195,7 +195,7 @@ class CacheStrategy(_LoadableStrategy):
     async def open(self) -> None:
         return None
 
-    async def count(self) -> typing.Mapping[int, int]:
+    async def count(self) -> collections.Mapping[int, int]:
         return _shard_guild_ids(self._shards, self._cache.get_guilds_view().keys())
 
     @classmethod
@@ -280,7 +280,7 @@ class EventStrategy(_LoadableStrategy):
             The shard manager this should use to track shard guild counts.
         """
         self._event_manager = event_manager
-        self._guild_ids: typing.Set[hikari.Snowflake] = set()
+        self._guild_ids: set[hikari.Snowflake] = set()
         self._shards = shards
         self._started = False
 
@@ -295,10 +295,10 @@ class EventStrategy(_LoadableStrategy):
     async def _on_starting_event(self, _: hikari.StartingEvent, /) -> None:
         self._guild_ids.clear()
 
-    async def _on_guild_available_event(self, event: hikari.GuildAvailableEvent):
+    async def _on_guild_available_event(self, event: hikari.GuildAvailableEvent) -> None:
         self._guild_ids.add(event.guild_id)
 
-    async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent):
+    async def _on_guild_leave_event(self, event: hikari.GuildLeaveEvent) -> None:
         try:
             self._guild_ids.remove(event.guild_id)
         except KeyError:
@@ -309,8 +309,8 @@ class EventStrategy(_LoadableStrategy):
 
     def _try_unsubscribe(
         self,
-        event_type: typing.Type[_EventT],
-        callback: typing.Callable[[_EventT], typing.Coroutine[typing.Any, typing.Any, None]],
+        event_type: type[_EventT],
+        callback: collections.Callable[[_EventT], collections.Coroutine[typing.Any, typing.Any, None]],
     ) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
@@ -341,7 +341,7 @@ class EventStrategy(_LoadableStrategy):
         self._event_manager.subscribe(hikari.GuildLeaveEvent, self._on_guild_leave_event)
         self._event_manager.subscribe(hikari.GuildUpdateEvent, self._on_guild_update_event)
 
-    async def count(self) -> typing.Mapping[int, int]:
+    async def count(self) -> collections.Mapping[int, int]:
         return _shard_guild_ids(self._shards, self._guild_ids)
 
     @classmethod
@@ -354,7 +354,7 @@ class EventStrategy(_LoadableStrategy):
         return cls(events, shards)
 
 
-def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: typing.Iterable[hikari.Snowflake], /) -> dict[int, int]:
+def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: collections.Iterable[hikari.Snowflake], /) -> dict[int, int]:
     counts = {shard_id: 0 for shard_id in shards.shards.keys()}
 
     for guild_id in guild_ids:
@@ -506,7 +506,7 @@ class ServiceManager(AbstractManager):
         self._cache = cache
         self._event_manager = event_manager
         self._rest = rest
-        self._services: typing.List[_ServiceDescriptor] = []
+        self._services: list[_ServiceDescriptor] = []
         self._session: typing.Optional[aiohttp.ClientSession] = None
         self._shards = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
@@ -613,7 +613,7 @@ class ServiceManager(AbstractManager):
         return self._shards
 
     @property
-    def services(self) -> typing.Sequence[ServiceSig]:
+    def services(self) -> collections.Sequence[ServiceSig]:
         return [service.function for service in self._services]
 
     @property
@@ -697,7 +697,7 @@ class ServiceManager(AbstractManager):
 
     def with_service(
         self, *, repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1)
-    ) -> typing.Callable[[_ServiceSigT], _ServiceSigT]:
+    ) -> collections.Callable[[_ServiceSigT], _ServiceSigT]:
         """Add a service to this manager by decorating a function.
 
         Parameters
@@ -707,7 +707,7 @@ class ServiceManager(AbstractManager):
 
         Returns
         -------
-        typing.Callable[[ServiceSig], ServiceSig]
+        collections.abc.Callable[[ServiceSig], ServiceSig]
             Decorator callback used to add a service.
 
         Raises
@@ -775,10 +775,10 @@ class ServiceManager(AbstractManager):
         return self._me
 
     def get_session(self) -> aiohttp.ClientSession:
-        # Asserts that this is only called within a running event loop.
         if not self._session:
             raise RuntimeError("Client is currently inactive")
 
+        # Asserts that this is only called within a running event loop.
         asyncio.get_running_loop()
         if self._session.closed:
             self._session = aiohttp.ClientSession()
@@ -812,7 +812,7 @@ class ServiceManager(AbstractManager):
                 _queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
 
 
-def _queue_insert(sequence: typing.List[_T], check: typing.Callable[[_T], bool], value: _T, /) -> None:
+def _queue_insert(sequence: list[_T], check: collections.Callable[[_T], bool], value: _T, /) -> None:
     # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
     index: int = -1
     for index, sub_value in enumerate(sequence):
@@ -884,7 +884,7 @@ class TopGGService:
 
         if isinstance(counts, int):
             is_global = True
-            json: typing.Dict[str, typing.Union[int, typing.List[int]]] = {"server_count": counts}
+            json: dict[str, typing.Union[int, list[int]]] = {"server_count": counts}
 
         else:
             if not client.shards:
@@ -893,7 +893,7 @@ class TopGGService:
             _LOGGER.debug("Fetching stats from Top.GG")
             async with session.get(url, headers=headers) as response:
                 response.raise_for_status()
-                raw_shards: typing.Optional[typing.List[str]] = (await response.json()).get("shards")
+                raw_shards: typing.Optional[list[str]] = (await response.json()).get("shards")
 
             is_global = False
             shards = {index: int(count) for index, count in enumerate(raw_shards or ())}
@@ -929,7 +929,7 @@ class BotsGGService:
         session = client.get_session()
 
         if isinstance(counts, int):
-            json: typing.Dict[str, typing.Union[int, typing.List[typing.Dict[str, int]]]] = {"guildCount": counts}
+            json: dict[str, typing.Union[int, list[dict[str, int]]]] = {"guildCount": counts}
             is_global = True
 
         else:

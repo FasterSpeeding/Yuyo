@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2022, Faster Speeding
@@ -32,7 +31,7 @@
 """Utility class for tracking request guild member responses."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [
+__all__: list[str] = [
     "ChunkRequestFinishedEvent",
     "ChunkTracker",
     "FinishedChunkingEvent",
@@ -50,12 +49,14 @@ import typing
 import hikari
 
 if typing.TYPE_CHECKING:
+    from collections import abc as collections
+
     import typing_extensions
     from typing_extensions import Self
 
     _P = typing_extensions.ParamSpec("_P")
     _T = typing.TypeVar("_T")
-    _CoroT = typing.Coroutine[typing.Any, typing.Any, _T]
+    _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 
 _LOGGER = logging.getLogger("hikari.yuyo.chunk_trackers")
@@ -110,13 +111,13 @@ class ChunkRequestFinishedEvent(hikari.ShardEvent):
         return self._data.last_received_at
 
     @property
-    def missed_chunks(self) -> typing.Collection[int]:
+    def missed_chunks(self) -> collections.Collection[int]:
         """Collection of the chunk responses which were missed (if any)."""
         assert self._data.missing_chunks is not None
         return self._data.missing_chunks
 
     @property
-    def not_found_ids(self) -> typing.Collection[hikari.Snowflake]:
+    def not_found_ids(self) -> collections.Collection[hikari.Snowflake]:
         """Collection of the User IDs which weren't found.
 
         This is only relevant when `users` was specified while requesting the members.
@@ -166,8 +167,8 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
         shard: hikari.api.GatewayShard,
         /,
         *,
-        incomplete_guild_ids: typing.Sequence[hikari.Snowflake] = (),
-        missed_guild_ids: typing.Sequence[hikari.Snowflake] = (),
+        incomplete_guild_ids: collections.Sequence[hikari.Snowflake] = (),
+        missed_guild_ids: collections.Sequence[hikari.Snowflake] = (),
     ) -> None:
         """Initialise a shard chunking finished event.
 
@@ -189,22 +190,24 @@ class ShardFinishedChunkingEvent(hikari.ShardEvent):
         return self._shard
 
     @property
-    def incomplete_guild_ids(self) -> typing.Sequence[hikari.Snowflake]:
+    def incomplete_guild_ids(self) -> collections.Sequence[hikari.Snowflake]:
         """Sequence of the IDs of guilds some chunk responses were missed for."""
         return self._incomplete_guild_ids
 
     @property
-    def missed_guild_ids(self) -> typing.Sequence[hikari.Snowflake]:
+    def missed_guild_ids(self) -> collections.Sequence[hikari.Snowflake]:
         """Sequence of the IDs of guilds no chunk responses were received for."""
         return self._missed_guild_ids
 
 
 def _log_task_exc(
     message: str, /
-) -> typing.Callable[[typing.Callable[_P, typing.Awaitable[_T]]], typing.Callable[_P, _CoroT[_T]]]:
+) -> collections.Callable[[collections.Callable[_P, collections.Awaitable[_T]]], collections.Callable[_P, _CoroT[_T]]]:
     """Log the exception when a task raises instead of leaving it up to the gods."""
 
-    def decorator(callback: typing.Callable[_P, typing.Awaitable[_T]], /) -> typing.Callable[_P, _CoroT[_T]]:
+    def decorator(
+        callback: collections.Callable[_P, collections.Awaitable[_T]], /
+    ) -> collections.Callable[_P, _CoroT[_T]]:
         @functools.wraps(callback)
         async def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _T:
             try:
@@ -243,15 +246,15 @@ class _RequestData:
         chunk_count: typing.Optional[int] = None,
         first_received_at: datetime.datetime,
         last_received_at: datetime.datetime,
-        missing_chunks: typing.Optional[typing.Set[int]] = None,
-        not_found_ids: typing.Optional[typing.Set[hikari.Snowflake]] = None,
+        missing_chunks: typing.Optional[set[int]] = None,
+        not_found_ids: typing.Optional[set[hikari.Snowflake]] = None,
     ) -> None:
         self.chunk_count: typing.Optional[int] = chunk_count
         self.first_received_at: datetime.datetime = first_received_at
         self.guild_id: hikari.Snowflake = guild_id
         self.last_received_at: datetime.datetime = last_received_at
-        self.missing_chunks: typing.Optional[typing.Set[int]] = missing_chunks
-        self.not_found_ids: typing.Set[hikari.Snowflake] = not_found_ids or set()
+        self.missing_chunks: typing.Optional[set[int]] = missing_chunks
+        self.not_found_ids: set[hikari.Snowflake] = not_found_ids or set()
         self.shard: hikari.api.GatewayShard = shard
 
 
@@ -268,14 +271,14 @@ class _ShardInfo:
     def __init__(
         self,
         shard: hikari.api.GatewayShard,
-        guild_ids: typing.Sequence[hikari.Snowflake],
+        guild_ids: collections.Sequence[hikari.Snowflake],
         /,
-        known_nonces: typing.Optional[typing.Dict[hikari.Snowflake, str]] = None,
+        known_nonces: typing.Optional[dict[hikari.Snowflake, str]] = None,
     ) -> None:
         self.any_received = False
         self.guild_ids = set(guild_ids)
-        self.incomplete_guild_ids: typing.List[hikari.Snowflake] = []
-        self.known_nonces: typing.Dict[hikari.Snowflake, str] = known_nonces or {}
+        self.incomplete_guild_ids: list[hikari.Snowflake] = []
+        self.known_nonces: dict[hikari.Snowflake, str] = known_nonces or {}
         self.last_received_at = _now()
         self.shard = shard
 
@@ -323,11 +326,7 @@ class ChunkTracker:
     )
 
     def __init__(
-        self,
-        event_manager: hikari.api.EventManager,
-        rest: hikari.RESTAware,
-        shards: hikari.ShardAware,
-        /,
+        self, event_manager: hikari.api.EventManager, rest: hikari.RESTAware, shards: hikari.ShardAware, /
     ) -> None:
         """Initialise a chunk tracker.
 
@@ -345,11 +344,11 @@ class ChunkTracker:
         self._chunk_presences = False
         self._event_manager = event_manager
         self._is_starting: bool = False
-        self._requests: typing.Dict[str, _RequestData] = {}
+        self._requests: dict[str, _RequestData] = {}
         self._rest = rest
         self._shards = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
-        self._tracked_identifies: typing.Dict[int, _ShardInfo] = {}
+        self._tracked_identifies: dict[int, _ShardInfo] = {}
         event_manager.subscribe(hikari.ShardPayloadEvent, self._on_payload_event)
         event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
         event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
@@ -452,8 +451,8 @@ class ChunkTracker:
 
     @_log_task_exc("Chunk tracker crashed")
     async def _loop(self) -> None:
-        timed_out_requests: typing.List[_RequestData] = []
-        timed_out_shards: typing.List[_ShardInfo] = []
+        timed_out_requests: list[_RequestData] = []
+        timed_out_shards: list[_ShardInfo] = []
 
         while self._tracked_identifies or self._requests:
             await asyncio.sleep(1)
