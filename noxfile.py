@@ -49,7 +49,6 @@ nox.options.sessions = [
     "verify-types",
 ]
 TOP_LEVEL_TARGETS = ["./examples", "./noxfile.py", "./tests", "./yuyo"]
-_BLACKLISTED_TARGETS = re.compile("^_internal/vendor/.*\\.py")
 
 _DEV_DEP_DIR = pathlib.Path("./dev-requirements")
 
