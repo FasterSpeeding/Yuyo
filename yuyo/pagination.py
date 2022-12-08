@@ -31,7 +31,7 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
+__all__: list[str] = ["aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
 import textwrap
 import typing
@@ -41,10 +41,12 @@ import hikari
 from . import _internal
 
 if typing.TYPE_CHECKING:
+    from collections import abc as collections
+
     _T = typing.TypeVar("_T")
 
 
-EntryT = typing.Tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
+EntryT = tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
 """A type hint used to represent a paginator entry.
 
 This should be a tuple of the string message content or [hikari.undefined.UNDEFINED][]
@@ -78,12 +80,12 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 
 
 async def async_paginate_string(
-    lines: typing.AsyncIterable[str],
+    lines: collections.AsyncIterable[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.AsyncIterator[str]:
+) -> collections.AsyncIterator[str]:
     """Lazily paginate an iterator of lines.
 
     Parameters
@@ -108,7 +110,7 @@ async def async_paginate_string(
 
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_size = 0
-    page: typing.List[str] = []
+    page: list[str] = []
     lines = _internal.aiter_(lines)
 
     while (line := await _internal.anext_(lines, None)) is not None:
@@ -148,8 +150,12 @@ async def async_paginate_string(
 
 
 def sync_paginate_string(
-    lines: typing.Iterable[str], *, char_limit: int = 2000, line_limit: int = 25, wrapper: typing.Optional[str] = None
-) -> typing.Iterator[str]:
+    lines: collections.Iterable[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> collections.Iterator[str]:
     """Lazily paginate an iterator of lines.
 
     Parameters
@@ -166,7 +172,7 @@ def sync_paginate_string(
 
     Returns
     -------
-    typing.Iterator[tuple[str, int]]
+    collections.abc.Iterator[tuple[str, int]]
         An iterator of page tuples (string context to int zero-based index).
     """
     if wrapper:
@@ -174,7 +180,7 @@ def sync_paginate_string(
 
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_size = 0
-    page: typing.List[str] = []
+    page: list[str] = []
     lines = iter(lines)
 
     while (line := next(lines, None)) is not None:
@@ -214,19 +220,23 @@ def sync_paginate_string(
 
 @typing.overload
 def paginate_string(
-    lines: typing.AsyncIterator[str],
+    lines: collections.AsyncIterator[str],
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> typing.AsyncIterator[str]:
+) -> collections.AsyncIterator[str]:
     ...
 
 
 @typing.overload
 def paginate_string(
-    lines: typing.Iterator[str], *, char_limit: int = 2000, line_limit: int = 25, wrapper: typing.Optional[str] = None
-) -> typing.Iterator[str]:
+    lines: collections.Iterator[str],
+    *,
+    char_limit: int = 2000,
+    line_limit: int = 25,
+    wrapper: typing.Optional[str] = None,
+) -> collections.Iterator[str]:
     ...
 
 
@@ -241,7 +251,7 @@ def paginate_string(
 
     Parameters
     ----------
-    lines : typing.Iterator[str] | typing.AsyncIterator[str]
+    lines : collections.abc.Iterator[str] | collections.abc.AsyncIterator[str]
         The iterator of lines to paginate. This iterator may be asynchronous or synchronous.
     char_limit
         The limit for how many characters should be included per yielded page.
@@ -253,16 +263,16 @@ def paginate_string(
 
     Returns
     -------
-    AsyncIterator[tuple[str, int]] | typing.Iterator[tuple[str, int]]
+    collections.abc.AsyncIterator[tuple[str, int]] | collections.abc.Iterator[tuple[str, int]]
         An iterator of page tuples (string context to int zero-based index).
     """  # noqa: E501  - line too long
-    if isinstance(lines, typing.AsyncIterable):
+    if isinstance(lines, collections.AsyncIterable):
         return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
     return sync_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
 
-async def aenumerate(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[tuple[int, _T]]:
+async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[tuple[int, _T]]:
     """Async equivalent of [enumerate][].
 
     Parameters
@@ -272,7 +282,7 @@ async def aenumerate(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncItera
 
     Returns
     -------
-    typing.AsyncIterator[tuple[int, _T]]
+    collections.abc.AsyncIterator[tuple[int, _T]]
         The enumerated async iterator.
     """
     counter = -1

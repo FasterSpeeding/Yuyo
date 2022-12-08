@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "hikari-yuyo"
 version = "1.4.0a1.post1"
 readme = "README.md"
-requires-python = ">=3.8.0,<3.12"
+requires-python = ">=3.9.0,<3.12"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
 keywords= ["hikari"]
@@ -16,7 +16,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -27,7 +26,7 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = ["alluka~=0.1.2", "hikari~=2.0.0.dev112"]
+dependencies = ["alluka~=0.1.2", "hikari~=2.0.0.dev113"]
 dynamic = ["description"]
 
 [project.optional-dependencies]
@@ -102,7 +101,6 @@ ignore = [
     "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
     "E203",    # whitespace before ':'
     "E231",    # missing whitespace after ','
-    "PEA001",  # TODO: bring back once min ver is 3.9
 ]
 per-file-ignores = [
     "noxfile.py: D100, D101, D103, INP001",
@@ -117,7 +115,7 @@ force_single_line = true
 [tool.pyright]
 include = ["examples", "noxfile.py", "tests", "yuyo"]
 
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 typeCheckingMode = "strict"
 reportMissingModuleSource = "error"
 reportMissingTypeStubs = "error"

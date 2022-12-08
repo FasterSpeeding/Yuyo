@@ -32,7 +32,6 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from collections import abc as collections
 from unittest import mock
 
@@ -96,13 +95,13 @@ async def test_backwards_compat_anext__when_exhausted_and_no_default():
         ),
     ],
 )
-async def test_collect_iterable_with_async_iterator(value: typing.AsyncIterable[int], result: typing.List[int]):
+async def test_collect_iterable_with_async_iterator(value: collections.AsyncIterable[int], result: list[int]):
     assert await _internal.collect_iterable(value) == result
 
 
 @pytest.mark.asyncio()
 @pytest.mark.parametrize(("value", "result"), [(iter((1, 2, 3, 4, 4, 4)), [1, 2, 3, 4, 4, 4]), (iter([]), [])])
-async def test_collect_iterable_with_sync_iterator(value: typing.Iterator[int], result: typing.List[int]):
+async def test_collect_iterable_with_sync_iterator(value: collections.Iterator[int], result: list[int]):
     assert await _internal.collect_iterable(value) == result
 
 

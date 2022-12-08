@@ -31,7 +31,7 @@
 """ASGI/3 adapter for Hikari's interaction server."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["AsgiAdapter", "AsgiBot"]
+__all__: list[str] = ["AsgiAdapter", "AsgiBot"]
 
 import asyncio
 import traceback
@@ -45,6 +45,7 @@ from . import _internal
 
 if typing.TYPE_CHECKING:
     import concurrent.futures
+    from collections import abc as collections
 
     import asgiref.typing as asgiref
     from hikari.api import config as hikari_config
@@ -103,16 +104,20 @@ class AsgiAdapter:
             on using ProcessPoolExecutor implementations with this parameter.
         """
         self._executor = executor
-        self._on_shutdown: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
-        self._on_startup: typing.List[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_shutdown: list[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_startup: list[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]] = []
         self._server = server
 
     @property
-    def on_shutdown(self) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+    def on_shutdown(
+        self,
+    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_shutdown
 
     @property
-    def on_startup(self) -> typing.Sequence[typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]]]:
+    def on_startup(
+        self,
+    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_startup
 
     @property
@@ -154,7 +159,7 @@ class AsgiAdapter:
             raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
     ) -> None:
         """Add a callback to be called when the ASGI server shuts down.
 
@@ -170,7 +175,7 @@ class AsgiAdapter:
         self._on_shutdown.append(callback)
 
     def remove_shutdown_callback(
-        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
     ) -> None:
         """Remove a shutdown callback.
 
@@ -187,7 +192,7 @@ class AsgiAdapter:
         self._on_shutdown.remove(callback)
 
     def add_startup_callback(
-        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
     ) -> None:
         """Add a callback to be called when the ASGI server starts up.
 
@@ -203,7 +208,7 @@ class AsgiAdapter:
         self._on_startup.append(callback)
 
     def remove_startup_callback(
-        self, callback: typing.Callable[[Self], typing.Coroutine[typing.Any, typing.Any, None]], /
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
     ) -> None:
         """Remove a startup callback.
 
@@ -322,7 +327,7 @@ class AsgiAdapter:
             await _error_response(send, b"Internal Server Error", status_code=500)
             raise
 
-        headers: typing.List[typing.Tuple[bytes, bytes]] = []
+        headers: list[tuple[bytes, bytes]] = []
         if response.headers:
             headers.extend((key.encode(), value.encode()) for key, value in response.headers.items())
 
@@ -426,7 +431,7 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
     feature (e.g `python -m pip install hikari[server]`).
     """
 
-    __slots__: typing.Sequence[str] = (
+    __slots__: collections.Sequence[str] = (
         "_entity_factory",
         "_http_settings",
         "_is_alive",

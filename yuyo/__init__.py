@@ -32,7 +32,7 @@
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [
+__all__: list[str] = [
     "ActionRowExecutor",
     "AsgiAdapter",
     "AsgiBot",
@@ -67,8 +67,6 @@ __all__: typing.Sequence[str] = [
     "reactions",
     "sync_paginate_string",
 ]
-
-import typing
 
 from .asgi import AsgiAdapter
 from .asgi import AsgiBot

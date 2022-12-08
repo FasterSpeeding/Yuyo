@@ -31,7 +31,7 @@
 """Internal functions and types used in Yuyo."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = []
+__all__: list[str] = []
 
 import enum
 import sys
@@ -40,8 +40,8 @@ from collections import abc as collections
 
 _T = typing.TypeVar("_T")
 _DefaultT = typing.TypeVar("_DefaultT")
-IterableT = typing.Union[typing.AsyncIterable[_T], typing.Iterable[_T]]
-IteratorT = typing.Union[typing.AsyncIterator[_T], typing.Iterator[_T]]
+IterableT = typing.Union[collections.AsyncIterable[_T], collections.Iterable[_T]]
+IteratorT = typing.Union[collections.AsyncIterator[_T], collections.Iterator[_T]]
 
 
 class _NoDefaultEnum(enum.Enum):
@@ -61,20 +61,20 @@ if sys.version_info >= (3, 10):
 
 else:
 
-    def aiter_(iterable: typing.AsyncIterable[_T], /) -> typing.AsyncIterator[_T]:
+    def aiter_(iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[_T]:
         """Backwards compat impl of `aiter`."""
         return iterable.__aiter__()
 
     @typing.overload
-    async def anext_(iterator: typing.AsyncIterator[_T], /) -> _T:
+    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T:
         ...
 
     @typing.overload
-    async def anext_(iterator: typing.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]:
+    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]:
         ...
 
     async def anext_(
-        iterator: typing.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /
+        iterator: collections.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /
     ) -> typing.Union[_T, _DefaultT]:
         """Backwards compat impl of `anext`."""
         try:
@@ -86,7 +86,7 @@ else:
             return typing.cast("_T", default)
 
 
-async def collect_iterable(iterator: IterableT[_T], /) -> typing.List[_T]:
+async def collect_iterable(iterator: IterableT[_T], /) -> list[_T]:
     """Collect the rest of an async or sync iterator into a mutable sequence.
 
     Parameters

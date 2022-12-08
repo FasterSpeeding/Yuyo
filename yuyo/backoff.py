@@ -35,7 +35,7 @@ This can be used to cover cases such as hitting rate-limits and failed requests.
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ["Backoff", "ErrorManager"]
+__all__: list[str] = ["Backoff", "ErrorManager"]
 
 import asyncio
 import random
@@ -45,6 +45,7 @@ from hikari.impl import rate_limits
 
 if typing.TYPE_CHECKING:
     import types
+    from collections import abc as collections
 
     from typing_extensions import Self
 
@@ -270,9 +271,7 @@ class ErrorManager:
 
     def __init__(
         self,
-        *rules: typing.Tuple[
-            typing.Iterable[typing.Type[Exception]], typing.Callable[[typing.Any], typing.Optional[bool]]
-        ],
+        *rules: tuple[collections.Iterable[type[Exception]], collections.Callable[[typing.Any], typing.Optional[bool]]],
     ) -> None:
         """Initialise an error manager instance.
 
@@ -298,7 +297,7 @@ class ErrorManager:
 
     def __exit__(
         self,
-        exception_type: typing.Optional[typing.Type[Exception]],
+        exception_type: typing.Optional[type[Exception]],
         exception: typing.Optional[Exception],
         exception_traceback: typing.Optional[types.TracebackType],
     ) -> typing.Optional[bool]:
@@ -321,8 +320,8 @@ class ErrorManager:
 
     def with_rule(
         self,
-        exceptions: typing.Iterable[typing.Type[Exception]],
-        result: typing.Callable[[typing.Any], typing.Optional[bool]],
+        exceptions: collections.Iterable[type[Exception]],
+        result: collections.Callable[[typing.Any], typing.Optional[bool]],
     ) -> Self:
         """Add a rule to this exception context manager.
 

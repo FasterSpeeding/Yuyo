@@ -34,7 +34,6 @@
 # This leads to too many false-positives around mocks.
 
 import datetime
-import typing
 from unittest import mock
 
 import hikari
@@ -189,7 +188,7 @@ class TestEventStrategy:
         ],
     )
     @pytest.mark.asyncio()
-    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: typing.Type[Exception]):
+    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: type[Exception]):
         mock_event_manager = mock.Mock()
         mock_event_manager.unsubscribe.side_effect = [None] * error_on + [error] + [None] * (4 - error_on)
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())

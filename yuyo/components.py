@@ -31,7 +31,7 @@
 """Higher level client for callback based component execution."""
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = [
+__all__: list[str] = [
     "AbstractComponentExecutor",
     "ActionRowExecutor",
     "ChildActionRowExecutor",
@@ -56,6 +56,7 @@ import os
 import typing
 import uuid
 import warnings
+from collections import abc as collections
 
 import alluka as alluka_
 import hikari
@@ -90,7 +91,7 @@ _ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
 _ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
-CallbackSig = typing.Callable[..., typing.Coroutine[typing.Any, typing.Any, None]]
+CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
 CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
 ResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 
@@ -124,7 +125,7 @@ class ComponentContext:
         self,
         client: ComponentClient,
         interaction: hikari.ComponentInteraction,
-        register_task: typing.Callable[[asyncio.Task[typing.Any]], None],
+        register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[ResponseT]] = None,
@@ -276,11 +277,11 @@ class ComponentContext:
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -325,11 +326,11 @@ class ComponentContext:
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -470,11 +471,11 @@ class ComponentContext:
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -548,11 +549,11 @@ class ComponentContext:
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -746,11 +747,11 @@ class ComponentContext:
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedNoneOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedNoneOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedNoneOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedNoneOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -886,11 +887,11 @@ class ComponentContext:
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedNoneOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedNoneOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedNoneOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedNoneOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -1082,11 +1083,11 @@ class ComponentContext:
         ensure_result: typing.Literal[True],
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -1105,11 +1106,11 @@ class ComponentContext:
         ensure_result: bool = False,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -1127,11 +1128,11 @@ class ComponentContext:
         ensure_result: bool = False,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[typing.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[typing.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[typing.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -1306,7 +1307,7 @@ _ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikar
 
 def _to_list(
     singular: hikari.UndefinedOr[_T],
-    plural: hikari.UndefinedOr[typing.Sequence[_T]],
+    plural: hikari.UndefinedOr[collections.Sequence[_T]],
     other: typing.Any,
     type_: typing.Union[type[typing.Any], tuple[type[typing.Any], ...]],
     name: str,
@@ -1383,13 +1384,13 @@ class ComponentClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         self._alluka = alluka or alluka_.Client()
-        self._constant_ids: typing.Dict[str, CallbackSig] = {}
+        self._constant_ids: dict[str, CallbackSig] = {}
         self._event_manager = event_manager
-        self._executors: typing.Dict[int, AbstractComponentExecutor] = {}
+        self._executors: dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: typing.Dict[str, CallbackSig] = {}
+        self._prefix_ids: dict[str, CallbackSig] = {}
         self._server = server
-        self._tasks: typing.List[asyncio.Task[typing.Any]] = []
+        self._tasks: list[asyncio.Task[typing.Any]] = []
 
         if event_managed or event_managed is None and event_manager:
             if not event_manager:
@@ -1645,7 +1646,7 @@ class ComponentClient:
 
     def with_constant_id(
         self, custom_id: str, /, *, prefix_match: bool = False
-    ) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+    ) -> collections.Callable[[CallbackSigT], CallbackSigT]:
         """Add a constant "custom_id" callback through a decorator call.
 
         These are callbacks which'll always be called for a specific custom_id
@@ -1742,7 +1743,7 @@ class ComponentClient:
         return self
 
 
-def as_component_callback(custom_id: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:  # noqa: D103
+def as_component_callback(custom_id: str, /) -> collections.Callable[[CallbackSigT], CallbackSigT]:  # noqa: D103
     def decorator(callback: CallbackSigT, /) -> CallbackSigT:
         callback.__custom_id__ = custom_id  # type: ignore
         return callback
@@ -1757,7 +1758,7 @@ class AbstractComponentExecutor(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def custom_ids(self) -> typing.Collection[str]:
+    def custom_ids(self) -> collections.Collection[str]:
         """Collection of the custom IDs this executor is listening for."""
         raise NotImplementedError
 
@@ -1808,11 +1809,11 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
                     self._id_to_callback[custom_id] = value
 
     @property
-    def callbacks(self) -> typing.Mapping[str, CallbackSig]:
+    def callbacks(self) -> collections.Mapping[str, CallbackSig]:
         return self._id_to_callback.copy()
 
     @property
-    def custom_ids(self) -> typing.Collection[str]:
+    def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._id_to_callback.keys()
 
@@ -1831,7 +1832,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         self._id_to_callback[id_] = callback
         return self
 
-    def with_callback(self, id_: str, /) -> typing.Callable[[CallbackSigT], CallbackSigT]:
+    def with_callback(self, id_: str, /) -> collections.Callable[[CallbackSigT], CallbackSigT]:
         def decorator(callback: CallbackSigT, /) -> CallbackSigT:
             self.add_callback(id_, callback)
             return callback
@@ -1865,7 +1866,7 @@ class WaitForExecutor(AbstractComponentExecutor):
     def __init__(
         self,
         *,
-        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
         timeout: datetime.timedelta,
     ) -> None:
@@ -1893,7 +1894,7 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._timeout = timeout
 
     @property
-    def custom_ids(self) -> typing.Collection[str]:
+    def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
         return []
 
@@ -2022,11 +2023,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         super().__init__(
             ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
         )
-        self._components: typing.List[hikari.api.ComponentBuilder] = []
+        self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
     @property
-    def components(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+    def components(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         return self._components.copy()
 
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> None:
@@ -2088,7 +2089,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         return SelectMenuBuilder(callback=callback, container=self, custom_id=custom_id)
 
-    def build(self) -> typing.Dict[str, typing.Any]:
+    def build(self) -> dict[str, typing.Any]:
         return {
             "type": hikari.ComponentType.ACTION_ROW,
             "components": [component.build() for component in self._components],
@@ -2118,8 +2119,8 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentExecutorPr
 
 
 def as_child_executor(  # noqa: D103
-    executor: typing.Type[_AbstractComponentExecutorT], /
-) -> typing.Type[_AbstractComponentExecutorT]:
+    executor: type[_AbstractComponentExecutorT], /
+) -> type[_AbstractComponentExecutorT]:
     executor.__is_child_executor__ = True  # type: ignore
     return executor
 
@@ -2144,8 +2145,8 @@ class MultiComponentExecutor(AbstractComponentExecutor):
             The amount of time to wait after the component's last execution or creation
             until it times out.
         """
-        self._builders: typing.List[hikari.api.ComponentBuilder] = []
-        self._executors: typing.List[AbstractComponentExecutor] = []
+        self._builders: list[hikari.api.ComponentBuilder] = []
+        self._executors: list[AbstractComponentExecutor] = []
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._timeout = timeout
@@ -2159,17 +2160,17 @@ class MultiComponentExecutor(AbstractComponentExecutor):
                     pass
 
     @property
-    def builders(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+    def builders(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Sequence of the component builders within this executor."""
         return self._builders
 
     @property
-    def custom_ids(self) -> typing.Collection[str]:
+    def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
         return list(itertools.chain.from_iterable(component.custom_ids for component in self._executors))
 
     @property
-    def executors(self) -> typing.Sequence[AbstractComponentExecutor]:
+    def executors(self) -> collections.Sequence[AbstractComponentExecutor]:
         """Sequence of the child executors within this multi-executor."""
         return self._executors.copy()
 
@@ -2255,9 +2256,9 @@ class ComponentPaginator(ActionRowExecutor):
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
         *,
-        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
-        triggers: typing.Collection[str] = (
+        triggers: collections.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
@@ -2269,7 +2270,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         Parameters
         ----------
-        iterator : typing.Iterator[yuyo.pagination.EntryT] | typing.AsyncIterator[yuyo.pagination.EntryT]
+        iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
             This should be an iterator of tuples of `(hikari.UndefinedOr[str],
@@ -2294,7 +2295,7 @@ class ComponentPaginator(ActionRowExecutor):
             until it times out.
         """
         if not isinstance(
-            iterator, (typing.Iterator, typing.AsyncIterator)
+            iterator, (collections.Iterator, collections.AsyncIterator)
         ):  # pyright: ignore reportUnnecessaryIsInstance
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
@@ -2303,7 +2304,7 @@ class ComponentPaginator(ActionRowExecutor):
         )
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
-        self._buffer: typing.List[pagination.EntryT] = []
+        self._buffer: list[pagination.EntryT] = []
         self._ephemeral_default = ephemeral_default
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
@@ -2334,12 +2335,12 @@ class ComponentPaginator(ActionRowExecutor):
                 pagination.RIGHT_DOUBLE_TRIANGLE
             ).add_to_container()
 
-    def builder(self) -> typing.Sequence[hikari.api.ComponentBuilder]:
+    def builder(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Get a sequence of the component builders for this paginator.
 
         Returns
         -------
-        typing.Sequence[hikari.api.ComponentBuilder]
+        collections.abc.Sequence[hikari.api.ComponentBuilder]
             The component builders for this paginator.
         """
         return [self]
@@ -2394,7 +2395,7 @@ class ComponentPaginator(ActionRowExecutor):
         return None  # MyPy
 
     @staticmethod
-    def _noop(ctx: ComponentContext) -> typing.Coroutine[typing.Any, typing.Any, None]:
+    def _noop(ctx: ComponentContext) -> collections.Coroutine[typing.Any, typing.Any, None]:
         return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
 
     async def _on_first(self, ctx: ComponentContext, /) -> None:

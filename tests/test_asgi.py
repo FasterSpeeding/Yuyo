@@ -40,6 +40,7 @@ import traceback
 import types
 import typing
 import uuid
+from collections import abc as collections
 from unittest import mock
 
 import asgiref.typing
@@ -53,11 +54,11 @@ import yuyo
 class _ChunkedReader(hikari.files.AsyncReader):
     __slots__ = ("_chunks",)
 
-    def __init__(self, chunks: typing.List[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
         super().__init__(filename, mimetype)
         self._chunks = iter(chunks)
 
-    async def __aiter__(self) -> typing.AsyncGenerator[typing.Any, bytes]:
+    async def __aiter__(self) -> collections.AsyncGenerator[typing.Any, bytes]:
         for value in self._chunks:
             yield value
 
@@ -71,7 +72,7 @@ class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[typing.Type[Exception]],
+        exc_type: typing.Optional[type[Exception]],
         exc: typing.Optional[Exception],
         exc_tb: typing.Optional[types.TracebackType],
     ) -> None:
@@ -81,7 +82,7 @@ class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[
 class _ChunkedFile(hikari.files.Resource[_ChunkedReader]):
     __slots__ = ("_reader",)
 
-    def __init__(self, chunks: typing.List[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
         self._reader = _ChunkedReader(chunks, filename, mimetype=mimetype)
 
     @property
