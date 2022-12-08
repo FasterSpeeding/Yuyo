@@ -1404,8 +1404,8 @@ class ComponentClient:
 
     def __exit__(
         self,
-        exc_type: typing.Optional[type[Exception]],
-        exc: typing.Optional[Exception],
+        exc_type: typing.Optional[type[BaseException]],
+        exc: typing.Optional[BaseException],
         exc_traceback: typing.Optional[types.TracebackType],
     ) -> None:
         self.close()
