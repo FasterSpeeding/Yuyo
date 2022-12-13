@@ -262,7 +262,7 @@ hikari-sake==1.0.5a1 ; python_full_version >= "3.9.0" and python_version < "3.12
 hikari==2.0.0.dev113 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:3e37b13a2b76bbe5f46398d93d6e956adde451f63c6c020ce2f92ab898fa10b0 \
     --hash=sha256:89171590641bce6b1c990b970b702d738668b7f6656c6fd400129f109c6f9f68
-hikari[server]==2.0.0.dev113 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+hikari==2.0.0.dev113 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:3e37b13a2b76bbe5f46398d93d6e956adde451f63c6c020ce2f92ab898fa10b0 \
     --hash=sha256:89171590641bce6b1c990b970b702d738668b7f6656c6fd400129f109c6f9f68
 idna==3.4 ; python_full_version >= "3.9.0" and python_version < "3.12" \
