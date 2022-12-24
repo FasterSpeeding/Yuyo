@@ -67,7 +67,12 @@ async def _error_response(
     send: asgiref.ASGISendCallable, body: bytes, *, status_code: int = _BAD_REQUEST_STATUS
 ) -> None:
     await send(
-        {"type": "http.response.start", "status": status_code, "headers": [(_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE)]}
+        {
+            "headers": [(_CONTENT_TYPE_KEY, _TEXT_CONTENT_TYPE)],
+            "status": status_code,
+            "trailers": False,
+            "type": "http.response.start",
+        }
     )
     await send({"type": "http.response.body", "body": body, "more_body": False})
 
@@ -339,7 +344,9 @@ class AsgiAdapter:
         elif content_type := _content_type(response):
             headers.append((_CONTENT_TYPE_KEY, content_type))
 
-        await send({"type": "http.response.start", "status": response.status_code, "headers": headers})
+        await send(
+            {"headers": headers, "status": response.status_code, "trailers": False, "type": "http.response.start"}
+        )
 
         if boundary:
             await self._send_multipart(send, response, boundary)
