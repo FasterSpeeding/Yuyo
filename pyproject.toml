@@ -141,7 +141,7 @@ default_sessions = [
     "test",
     "verify-types",
 ]
-extra_test_installs = [".[asgi, sake]"]
+extra_test_installs = ["."]
 mypy_allowed_to_fail = true
 mypy_targets = ["yuyo"]
 project_name = "yuyo"
@@ -151,7 +151,6 @@ top_level_targets = ["./examples", "./noxfile.py", "./yuyo", "./tests"]
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.pr_docs]
 [tool.piped.github_actions.publish]
-[tool.piped.github_actions.py_lint]
 [tool.piped.github_actions.py_test]
 codeclimate_token = "ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933"
 python_versions = "[3.9, 3.10.5, 3.11]"
