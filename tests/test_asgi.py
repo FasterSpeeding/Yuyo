@@ -346,14 +346,15 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
                             (b"content-type", b"jazz hands; charset=nyaa"),
                         ],
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -406,14 +407,15 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
                             (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
                         ],
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -503,14 +505,15 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
                             (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
                         ],
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -598,14 +601,15 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [
                             (b"kill", b"me baby"),
                             (b"I am the milk man", b"my milk is delicious"),
                             (b"and the sea shall run white", b"with his rage"),
                             (b"content-type", b"multipart/form-data; boundary=" + boundary_uuid.hex.encode()),
                         ],
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -668,9 +672,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 404,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 404,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"Not found", "more_body": False}),
@@ -696,9 +701,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 404,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "trailers": False,
+                        "status": 404,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"Not found", "more_body": False}),
@@ -722,9 +728,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"POST request must have a body", "more_body": False}),
@@ -748,9 +755,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"POST request must have a body", "more_body": False}),
@@ -775,9 +783,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -804,9 +813,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -833,9 +843,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -866,9 +877,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -908,9 +920,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 400,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 400,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call(
@@ -951,9 +964,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": 500,
                         "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 500,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"Internal Server Error", "more_body": False}),
@@ -989,9 +1003,10 @@ class TestAsgiAdapter:
             [
                 mock.call(
                     {
-                        "type": "http.response.start",
-                        "status": stub_server.on_interaction.return_value.status_code,
                         "headers": [],
+                        "status": stub_server.on_interaction.return_value.status_code,
+                        "trailers": False,
+                        "type": "http.response.start",
                     }
                 ),
                 mock.call({"type": "http.response.body", "body": b"", "more_body": False}),
