@@ -153,7 +153,7 @@ top_level_targets = ["./examples", "./noxfile.py", "./yuyo", "./tests"]
 [tool.piped.github_actions.publish]
 [tool.piped.github_actions.py_test]
 codeclimate_token = "ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933"
-python_versions = "[3.9, 3.10.5, 3.11]"
+python_versions = ["3.9", "3.10.5", "3.11"]
 
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.release_docs]
