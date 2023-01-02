@@ -26,12 +26,12 @@ classifiers = [
     "Topic :: Utilities",
     "Typing :: Typed"
 ]
-dependencies = ["alluka>=0.1.2, <1", "hikari>=2.0.0.dev112, <1"]
+dependencies = ["alluka>=0.1.2, <1", "hikari>=2.0.0.dev112, <3"]
 dynamic = ["description"]
 
 [project.optional-dependencies]
 asgi = ["asgiref~=3.0", "hikari[server]"]
-sake = ["hikari-sake>=1.0.4a1, <2.0.0"]
+sake = ["hikari-sake>=1.0.4a1, <2"]
 
 [project.urls]
 Homepage = "https://github.com/FasterSpeeding/Yuyo"
