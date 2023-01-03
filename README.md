@@ -29,4 +29,4 @@ For usage see the the [documentation](https://yuyo.cursed.solutions/) and soon t
 
 Before contributing you should read through the
 [contributing guidelines](https://github.com/FasterSpeeding/Yuyo/blob/master/CONTRIBUTING.md) and
-the [code of conduct](https://github.com/FasterSpeeding/Yuyo/blob/master/CODE_OF_CONDUCT.md)
+the [code of conduct](https://github.com/FasterSpeeding/Yuyo/blob/master/CODE_OF_CONDUCT.md).
