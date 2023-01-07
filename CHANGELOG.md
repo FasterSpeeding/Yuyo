@@ -5,12 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Helper functions for converting some Hikrai models to builder objects in [yuyo.to_builder][].
+  Theses support application commands and message components.
+
 ## [1.5.0a1] - 2023-01-10
 ### Added
 - Add classes and functions for handling message, webhook, invite and template links.
 
 ### Changed
 - Officially drop support for Python 3.8.
+- Bumped minimum Hikari version to `v2.0.0.dev114`.
 
 ## [1.4.0a1.post1] - 2022-11-20
 ### Changed

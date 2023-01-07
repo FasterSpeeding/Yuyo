@@ -67,6 +67,9 @@ __all__: list[str] = [
     "pagination",
     "reactions",
     "sync_paginate_string",
+    "to_builder",
+    "to_cmd_builder",
+    "to_msg_action_row_builder",
 ]
 
 from . import links
@@ -97,5 +100,7 @@ from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
+from .to_builder import to_cmd_builder
+from .to_builder import to_msg_action_row_builder
 
 WaitForComponent = WaitForExecutor
