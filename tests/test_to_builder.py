@@ -452,3 +452,8 @@ def test_to_button_builder_for_inactavtive_button_when_emoji_is_custom(emoji: st
 @pytest.mark.skip(reason="TODO")
 def test_to_select_menu_builder():
     ...
+
+
+@pytest.mark.skip(reason="TODO")
+def test_to_select_menu_builder_when_sub_type_unknown():
+    ...
