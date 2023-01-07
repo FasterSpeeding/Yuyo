@@ -71,7 +71,8 @@ def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
     NotImplementedError
         If a unsupported command type is passed.
 
-        Currently [hikari.SlashCommand][] and [hikari.ContextMenuCommand][] are supported.
+        Currently [hikari.commands.SlashCommand][] and
+        [hikari.commands.ContextMenuCommand][] are supported.
     """
     try:
         builder = _COMMAND_BUILDERS[cmd.type]
@@ -148,8 +149,8 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
     NotImplementedError
         If a unsupported context menu type is passed.
 
-        Currently [hikari.CommandType.MESSAGE][] and
-        [hikari.CommandType.USER][] are supported.
+        Currently [hikari.commands.CommandType.MESSAGE][] and
+        [hikari.commands.CommandType.USER][] are supported.
     """
     return hikari.impl.ContextMenuCommandBuilder(
         name=cmd.name,
@@ -189,9 +190,9 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
         The following are currently supported:
 
-        * [hikari.ComponentType.ACTION_ROW][]
-        * [hikari.ComponentType.BUTTON][]
-        * [hikari.ComponentType.SELECT_MENU][]
+        * [hikari.components.ComponentType.ACTION_ROW][]
+        * [hikari.components.ComponentType.BUTTON][]
+        * [hikari.components.ComponentType.SELECT_MENU][]
     """
     return hikari.impl.MessageActionRowBuilder(
         components=[_to_sub_component(component) for component in action_row.components]
