@@ -79,7 +79,7 @@ def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
     except KeyError:
         raise NotImplementedError(cmd.type) from None
 
-    return builder(_COMMAND_BUILDERS)
+    return builder(cmd)
 
 
 def _to_cmd_opt(option: hikari.CommandOption, /) -> hikari.CommandOption:
@@ -125,8 +125,8 @@ def to_slash_cmd_builder(cmd: hikari.SlashCommand, /) -> hikari.api.SlashCommand
         default_member_permissions=cmd.default_member_permissions,
         is_dm_enabled=cmd.is_dm_enabled,
         is_nsfw=cmd.is_nsfw,
-        name_localizations=cmd.name_localizations,
-        description_localizations=cmd.description_localizations,
+        name_localizations=dict(cmd.name_localizations),
+        description_localizations=dict(cmd.description_localizations),
     )
 
 
@@ -158,7 +158,7 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
         default_member_permissions=cmd.default_member_permissions,
         is_dm_enabled=cmd.is_dm_enabled,
         is_nsfw=cmd.is_nsfw,
-        name_localizations=cmd.name_localizations,
+        name_localizations=dict(cmd.name_localizations),
     )
 
 
@@ -222,7 +222,7 @@ def to_button_builder(
     """
     emoji = button.emoji if button.emoji is not None else hikari.UNDEFINED
     label = button.label if button.label is not None else hikari.UNDEFINED
-    if button.type is hikari.ButtonStyle.LINK:
+    if button.style is hikari.ButtonStyle.LINK:
         assert button.url is not None
         return hikari.impl.LinkButtonBuilder(
             container=_DummyContainer(), style=button.style, url=button.url, label=label, is_disabled=button.is_disabled
