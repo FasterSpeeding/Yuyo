@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Helper functions for converting some Hikrai models to builder objects in [yuyo.to_builder][].
-  Theses support application commands and message components.
+  These support application commands and message components.
 
 ## [1.5.0a1] - 2023-01-10
 ### Added
