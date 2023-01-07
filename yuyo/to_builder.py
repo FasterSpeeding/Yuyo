@@ -32,12 +32,12 @@
 from __future__ import annotations
 
 __all__: list[str] = [
+    "to_button_builder",
     "to_cmd_builder",
-    "to_slash_cmd_builder",
     "to_context_menu_builder",
     "to_msg_action_row_builder",
-    "to_button_builder",
     "to_select_menu_builder",
+    "to_slash_cmd_builder",
 ]
 
 import copy
@@ -276,5 +276,6 @@ def _to_sub_component(component: hikari.PartialComponent, /) -> hikari.api.Compo
         raise NotImplementedError(component.type) from None
 
     return builder(component)
+
 
 # TODO: to_message_builder and to_guild_builder
