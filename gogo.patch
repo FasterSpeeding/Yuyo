@@ -1,0 +1,345 @@
+diff --git a/.github/workflows/freeze-for-pr.yml b/.github/workflows/freeze-for-pr.yml
+index f01fef9..3409e28 100644
+--- a/.github/workflows/freeze-for-pr.yml
++++ b/.github/workflows/freeze-for-pr.yml
+@@ -8,21 +8,21 @@ on:
+   pull_request:
+     branches:
+       - master
+-    paths: ["piped", "dev-requirements/*.in", "!dev-requirements/constraints.in"]
++    paths: ["piped", "pyproject.toml", "dev-requirements/*.in", "!dev-requirements/constraints.in"]
+ 
+ jobs:
+   freeze-pr-dep-changes:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           ref: ${{ github.event.pull_request.head.ref }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -34,7 +34,7 @@ jobs:
+       - name: Upgrade dependency locks
+         run: python -m nox -s freeze-locks bot-package-diff
+ 
+-      - uses: actions/upload-artifact@v3
++      - uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
+         with:
+           name: gogo.patch
+           path: gogo.patch
+diff --git a/.github/workflows/lint.yml b/.github/workflows/lint.yml
+index 2fceaf7..9471ef4 100644
+--- a/.github/workflows/lint.yml
++++ b/.github/workflows/lint.yml
+@@ -20,12 +20,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+diff --git a/.github/workflows/pr-docs.yml b/.github/workflows/pr-docs.yml
+index d2428c9..2bcc804 100644
+--- a/.github/workflows/pr-docs.yml
++++ b/.github/workflows/pr-docs.yml
+@@ -22,7 +22,7 @@ jobs:
+ 
+     steps:
+       - name: Fetch merge branch
+-        uses: actions/checkout@v3
++        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           ref: ${{ github.event.pull_request.head.sha }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
+@@ -30,7 +30,7 @@ jobs:
+ 
+       - name: Set up Python 3.9
+         if: github.event.action != 'closed'
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -47,7 +47,9 @@ jobs:
+           python -m nox -s generate-docs -- -o ./site
+ 
+       - name: Deploy preview
+-        uses: rossjrw/pr-preview-action@v1
++        uses: FasterSpeeding/pr-preview-action@task/override-committer
+         with:
+-          source-dir: ./site/
++          git-config-email: "120557446+always-on-duty[bot]@users.noreply.github.com"
++          git-config-name: "always-on-duty[bot]"
+           preview-branch: docs
++          source-dir: ./site/
+diff --git a/.github/workflows/publish.yml b/.github/workflows/publish.yml
+index f119a78..db03aa4 100644
+--- a/.github/workflows/publish.yml
++++ b/.github/workflows/publish.yml
+@@ -14,12 +14,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+diff --git a/.github/workflows/py-test.yml b/.github/workflows/py-test.yml
+index c9f6502..d02b232 100644
+--- a/.github/workflows/py-test.yml
++++ b/.github/workflows/py-test.yml
+@@ -26,12 +26,12 @@ jobs:
+     runs-on: ${{ matrix.os }}
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python ${{ matrix.python-version }}
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: ${{ matrix.python-version }}
+ 
+@@ -51,12 +51,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -70,14 +70,14 @@ jobs:
+           python -m nox -s test-coverage
+ 
+       - name: Upload coverage
+-        uses: paambaati/codeclimate-action@v3.2.0
++        uses: paambaati/codeclimate-action@ac3f177ece9928d220a8bd1c2f1957926fd3b67e
+         env:
+           CC_TEST_REPORTER_ID: ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933
+         with:
+           coverageLocations: .coverage.xml:coverage.py
+ 
+       - name: Archive coverage
+-        uses: actions/upload-artifact@v3
++        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
+         with:
+           name: coverage
+           path: ./coverage_html
+diff --git a/.github/workflows/reformat.yml b/.github/workflows/reformat.yml
+index 09ba5f5..be86e86 100644
+--- a/.github/workflows/reformat.yml
++++ b/.github/workflows/reformat.yml
+@@ -14,14 +14,14 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           ref: ${{ github.event.pull_request.head.ref }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -33,7 +33,7 @@ jobs:
+       - name: Reformat
+         run: python -m nox -s reformat bot-package-diff
+ 
+-      - uses: actions/upload-artifact@v3
++      - uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
+         with:
+           name: gogo.patch
+           path: gogo.patch
+diff --git a/.github/workflows/release-docs.yml b/.github/workflows/release-docs.yml
+index 120e16b..a80f8ae 100644
+--- a/.github/workflows/release-docs.yml
++++ b/.github/workflows/release-docs.yml
+@@ -9,12 +9,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -31,9 +31,11 @@ jobs:
+           echo "::set-output name=GIT_HASH::$(git rev-parse HEAD)"
+ 
+       - name: Push
+-        uses: JamesIves/github-pages-deploy-action@v4
++        uses: JamesIves/github-pages-deploy-action@2b011faafdcbc9ceb11414d64d0573f37c774b04
+         with:
+-          folder: ./site
+           branch: docs
+           commit-message: "${{ steps.doc_info.outputs.GIT_HASH }} docs (${{ github.event.release.tag_name || github.event.ref }})"
+           clean-exclude: pr-preview
++          folder: ./site
++          git-config-email: "120557446+always-on-duty[bot]@users.noreply.github.com"
++          git-config-name: "always-on-duty[bot]"
+diff --git a/.github/workflows/resync-piped.yml b/.github/workflows/resync-piped.yml
+index 5df41c8..7945653 100644
+--- a/.github/workflows/resync-piped.yml
++++ b/.github/workflows/resync-piped.yml
+@@ -15,14 +15,14 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           ref: ${{ github.event.pull_request.head.ref }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -34,7 +34,7 @@ jobs:
+       - name: Resync Piped
+         run: python -m nox -s copy-piped bot-package-diff
+ 
+-      - uses: actions/upload-artifact@v3
++      - uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
+         with:
+           name: gogo.patch
+           path: gogo.patch
+diff --git a/.github/workflows/type-check.yml b/.github/workflows/type-check.yml
+index d4d3a12..443774f 100644
+--- a/.github/workflows/type-check.yml
++++ b/.github/workflows/type-check.yml
+@@ -20,12 +20,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+diff --git a/.github/workflows/upgrade-locks.yml b/.github/workflows/upgrade-locks.yml
+index ed6f525..b94dcda 100644
+--- a/.github/workflows/upgrade-locks.yml
++++ b/.github/workflows/upgrade-locks.yml
+@@ -10,12 +10,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+@@ -28,9 +28,11 @@ jobs:
+         run: python -m nox -s freeze-locks
+ 
+       - name: Create Pull Request
+-        uses: peter-evans/create-pull-request@v4
++        uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04
+         with:
++          author: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
+           branch: task/upgrade-deps
+           commit-message: Upgrade dependency locks
++          committer: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
+           title: Upgrade dependency locks
+           token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
+diff --git a/.github/workflows/verify-locks.yml b/.github/workflows/verify-locks.yml
+index 3d76aa4..a91d67b 100644
+--- a/.github/workflows/verify-locks.yml
++++ b/.github/workflows/verify-locks.yml
+@@ -18,14 +18,14 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           ref: ${{ github.event.pull_request.head.ref }}
+           repository: ${{ github.event.pull_request.head.repo.full_name }}
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 
+diff --git a/.github/workflows/verify-types.yml b/.github/workflows/verify-types.yml
+index 0da0486..1a169be 100644
+--- a/.github/workflows/verify-types.yml
++++ b/.github/workflows/verify-types.yml
+@@ -20,12 +20,12 @@ jobs:
+     runs-on: ubuntu-latest
+ 
+     steps:
+-      - uses: actions/checkout@v3
++      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+         with:
+           submodules: "true"
+ 
+       - name: Set up Python 3.9
+-        uses: actions/setup-python@v4
++        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
+         with:
+           python-version: "3.9"
+ 

@@ -8,21 +8,21 @@ on:
   pull_request:
     branches:
       - master
-    paths: ["piped", "dev-requirements/*.in", "!dev-requirements/constraints.in"]
+    paths: ["piped", "pyproject.toml", "dev-requirements/*.in", "!dev-requirements/constraints.in"]
 
 jobs:
   freeze-pr-dep-changes:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           submodules: "true"
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           python-version: "3.9"
 
@@ -34,7 +34,7 @@ jobs:
       - name: Upgrade dependency locks
         run: python -m nox -s freeze-locks bot-package-diff
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: gogo.patch
           path: gogo.patch
