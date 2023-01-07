@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
         with:
           submodules: "true"
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           python-version: "3.9"
 
@@ -31,9 +31,11 @@ jobs:
           echo "::set-output name=GIT_HASH::$(git rev-parse HEAD)"
 
       - name: Push
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@2b011faafdcbc9ceb11414d64d0573f37c774b04
         with:
-          folder: ./site
           branch: docs
           commit-message: "${{ steps.doc_info.outputs.GIT_HASH }} docs (${{ github.event.release.tag_name || github.event.ref }})"
           clean-exclude: pr-preview
+          folder: ./site
+          git-config-email: "120557446+always-on-duty[bot]@users.noreply.github.com"
+          git-config-name: "always-on-duty[bot]"
