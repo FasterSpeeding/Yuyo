@@ -41,6 +41,7 @@ __all__: list[str] = [
 ]
 
 import copy
+import dataclasses
 import typing
 from collections import abc as collections
 
@@ -237,6 +238,83 @@ def to_button_builder(
     ).set_emoji(emoji)
 
 
+@dataclasses.dataclass()
+class _SelectOptionBuilder(hikari.api.SelectOptionBuilder[typing.Any]):
+    """Builder class for select menu options."""
+
+    __slots__ = ()
+
+    _label: str
+    _value: str
+    _description: hikari.UndefinedOr[str]
+    _is_default: bool
+    _emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED
+    _emoji_id: hikari.UndefinedOr[str] = hikari.UNDEFINED
+    _emoji_name: hikari.UndefinedOr[str] = hikari.UNDEFINED
+
+    @property
+    def label(self) -> str:
+        return self._label
+
+    @property
+    def value(self) -> str:
+        return self._value
+
+    @property
+    def description(self) -> hikari.UndefinedOr[str]:
+        return self._description
+
+    @property
+    def emoji(self) -> typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType]:
+        return self._emoji
+
+    @property
+    def is_default(self) -> bool:
+        return self._is_default
+
+    def set_description(self, value: hikari.UndefinedOr[str], /) -> Self:
+        self._description = value
+        return self
+
+    def set_emoji(self, emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType], /) -> Self:
+        self._emoji = emoji
+        self._emoji_id = hikari.UNDEFINED
+        self._emoji_name = hikari.UNDEFINED
+
+        if emoji is not hikari.UNDEFINED:
+            if isinstance(emoji, (int, hikari.CustomEmoji)):
+                self._emoji_id = str(int(emoji))
+
+            self._emoji_name = str(emoji)
+
+        return self
+
+    def set_is_default(self, state: bool, /) -> Self:
+        self._is_default = state
+        return self
+
+    def add_to_menu(self) -> typing.NoReturn:
+        raise NotImplementedError("Add to menu not supported")
+
+    def build(self) -> collections.MutableMapping[str, typing.Any]:
+        data: dict[str, typing.Union[str, bool, int, dict[str, typing.Union[str, int]]]] = {}
+
+        data["label"] = self._label
+        data["value"] = self._value
+        data["default"] = self._is_default
+
+        if self._description is not hikari.UNDEFINED:
+            data["description"] = self._description
+
+        if self._emoji_id is not hikari.UNDEFINED:
+            data["emoji"] = {"id": self._emoji_id}
+
+        elif self._emoji_name is not hikari.UNDEFINED:
+            data["emoji"] = {"name": self._emoji_name}
+
+        return data
+
+
 def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari.api.SelectMenuBuilder[typing.Any]:
     """Convert a select menu component to a builder.
 
@@ -250,10 +328,20 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
     hikari.api.SelectMenuBuilder
         The select menu builder.
     """
+    options: list[hikari.api.SelectOptionBuilder[typing.Any]] = [
+        _SelectOptionBuilder(
+            _label=opt.label,
+            _value=opt.value,
+            _description=opt.description if opt.description is not None else hikari.UNDEFINED,
+            _is_default=opt.is_default,
+        )
+        for opt in select_menu.options
+    ]
+
     return hikari.impl.SelectMenuBuilder(
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
-        options=[],
+        options=options,
         placeholder=select_menu.placeholder if select_menu.placeholder is not None else hikari.UNDEFINED,
         min_values=select_menu.min_values,
         max_values=select_menu.max_values,
