@@ -46,7 +46,13 @@ def mock_intable(integer: int) -> mock.Mock:
     return mock_str
 
 
-@pytest.mark.parametrize(("invite", "expected_str"), [])
+@pytest.mark.parametrize(
+    ("invite", "expected_str"),
+    [
+        ("TodoketeSetsuna.saniwa", "https://discord.gg/TodoketeSetsuna.saniwa"),
+        (mock.Mock(hikari.InviteCode, code="MakeAmerica_gay-again"), "https://discord.gg/MakeAmerica_gay-again"),
+    ],
+)
 def test_make_invite_link(invite: typing.Union[str, hikari.InviteCode], expected_str: str):
     invite_link = yuyo.links.make_invite_link(invite)
 
@@ -347,7 +353,13 @@ class TestMessageLink:
         assert result is None
 
 
-@pytest.mark.parametrize(("template", "expected_str"), [])
+@pytest.mark.parametrize(
+    ("template", "expected_str"),
+    [
+        ("trying_To-make.History", "https://discord.new/trying_To-make.History"),
+        (mock.Mock(hikari.Template, code="standingHere.iRealise"), "https://discord.new/standingHere.iRealise"),
+    ],
+)
 def test_make_template_link(template: typing.Union[str, hikari.Template], expected_str: str):
     template_link = yuyo.links.make_template_link(template)
 
