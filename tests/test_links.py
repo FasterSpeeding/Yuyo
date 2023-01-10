@@ -60,7 +60,7 @@ def test_make_invite_link(invite: typing.Union[str, hikari.InviteCode], expected
 
 
 _INVITE_LINKS = [
-    ("https://discord.gg/end_ofthe-world", "end_ofthe-world"),
+    (" https://discord.gg/end_ofthe-world ", "end_ofthe-world"),
     ("https://www.discord.gg/just-watching_from.afar", "just-watching_from.afar"),
     ("https://discord.com/invite/watching-from_afar", "watching-from_afar"),
     ("https://www.discordapp.com/invite/afraid_something-will-change", "afraid_something-will-change"),
@@ -172,7 +172,7 @@ def test_make_message_link(
 
 
 _MESSAGE_LINKS = [
-    ("https://discord.com/channels/654234/234765/8763245", 654234, 234765, 8763245),
+    (" https://discord.com/channels/654234/234765/8763245 ", 654234, 234765, 8763245),
     ("https://discord.com/channels/@me/6541234/123321", None, 6541234, 123321),
     ("https://www.discordapp.com/channels/65546323/1235423/12332123", 65546323, 1235423, 12332123),
     ("https://www.discordapp.com/channels/@me/65234/78657", None, 65234, 78657),
@@ -367,7 +367,7 @@ def test_make_template_link(template: typing.Union[str, hikari.Template], expect
 
 
 _TEMPLATE_LINKS = [
-    ("https://discord.new/i_didnt-hate.IT", "i_didnt-hate.IT"),
+    (" https://discord.new/i_didnt-hate.IT ", "i_didnt-hate.IT"),
     ("https://www.discord.new/UnlessIjust_had-to_do.something-bout-it", "UnlessIjust_had-to_do.something-bout-it"),
     ("https://discord.com/template/I-Didnt_not-even_like-it", "I-Didnt_not-even_like-it"),
     ("https://www.discordapp.com/template/I-know_who.you-are", "I-know_who.you-are"),
@@ -460,7 +460,7 @@ def test_make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook]
 
 
 _WEBHOOK_LINKS = [
-    ("https://discord.com/api/webhooks/123432/My_withoutme-imthe1.2blame", 123432, "My_withoutme-imthe1.2blame"),
+    (" https://discord.com/api/webhooks/123432/My_withoutme-imthe1.2blame ", 123432, "My_withoutme-imthe1.2blame"),
     ("https://www.discordapp.com/api/v69/webhooks/5623123/boom-boom", 5623123, "boom-boom"),
     (
         "https://discordapp.com/api/v96/webhooks/123122/everyones_voice.-nowhere-to-go",
