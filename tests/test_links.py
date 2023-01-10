@@ -46,12 +46,103 @@ def mock_intable(integer: int) -> mock.Mock:
     return mock_str
 
 
-def test_make_invite_link():
-    ...
+@pytest.mark.parametrize(("invite", "expected_str"), [])
+def test_make_invite_link(invite: typing.Union[str, hikari.InviteCode], expected_str: str):
+    invite_link = yuyo.links.make_invite_link(invite)
+
+    assert invite_link == expected_str
+
+
+_INVITE_LINKS = [
+    ("https://discord.gg/end_ofthe-world", "end_ofthe-world"),
+    ("https://www.discord.gg/just-watching_from.afar", "just-watching_from.afar"),
+    ("https://discord.com/invite/watching-from_afar", "watching-from_afar"),
+    ("https://www.discordapp.com/invite/afraid_something-will-change", "afraid_something-will-change"),
+    ("https://www.discord.com/invite/Im_out-Of.patience", "Im_out-Of.patience"),
+    ("https://discordapp.com/invite/My-body.Is_mine", "My-body.Is_mine"),
+]
 
 
 class TestInviteLink:
-    ...
+    @pytest.mark.parametrize(("link", "invite_code"), _INVITE_LINKS)
+    def test_find(self, link: str, invite_code: str):
+        mock_app = mock.AsyncMock()
+
+        invite_link = yuyo.links.InviteLink.find(
+            mock_app, f"g;lll;l1;32asdsa {link} https://discord.gg/okok https://www.discordapp.com/invite/ok"
+        )
+
+        assert invite_link
+        assert invite_link.code == invite_code
+
+    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    def test_find_when_none(self, string: str):
+        assert yuyo.links.InviteLink.find(mock.AsyncMock(), string) is None
+
+    def test_find_iter(self):
+        mock_app = mock.AsyncMock()
+        string = (
+            "hg4po34123 https://discord.gg/cute_egg.meow 341123dsa"
+            "https://discord.new/okokoko https://www.discord.com/invite/socialist_estrogen"
+        )
+
+        links = list(yuyo.links.InviteLink.find_iter(mock_app, string))
+
+        assert len(links) == 2
+        link = links[0]
+        assert link.code == "cute_egg.meow"
+
+        link = links[1]
+        assert link.code == "socialist_estrogen"
+
+    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    def test_find_iter_when_none(self, string: str):
+        assert list(yuyo.links.InviteLink.find_iter(mock.AsyncMock(), string)) == []
+
+    @pytest.mark.parametrize(("link", "invite_code"), _INVITE_LINKS)
+    def test_from_link(self, link: str, invite_code: str):
+        mock_app = mock.AsyncMock()
+
+        invite_link = yuyo.links.InviteLink.from_link(mock_app, link)
+
+        assert invite_link.code == invite_code
+
+    @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
+    def test_from_link_when_invalid_link(self, string: str):
+        with pytest.raises(ValueError, match="Link doesn't match pattern"):
+            yuyo.links.InviteLink.from_link(mock.AsyncMock(), string)
+
+    def test_code_property(self):
+        link = yuyo.links.InviteLink(_app=mock.AsyncMock(), _code="Brisket")
+
+        assert link.code == "Brisket"
+
+    @pytest.mark.asyncio()
+    async def test_fetch(self):
+        mock_app = mock.AsyncMock()
+        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
+
+        result = await link.fetch()
+
+        assert result is mock_app.rest.fetch_invite.return_value
+        mock_app.rest.fetch_invite.assert_awaited_once_with("Brisket")
+
+    def test_get(self):
+        mock_app = mock.Mock()
+        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
+
+        result = link.get()
+
+        assert result is mock_app.cache.get_invite.return_value
+        mock_app.cache.get_invite.assert_called_once_with("Brisket")
+
+    def test_get_when_cacheless(self):
+        mock_app = mock.Mock(hikari.RESTAware)
+        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
+
+        result = link.get()
+
+        assert result is None
 
 
 @pytest.mark.parametrize(
@@ -242,7 +333,7 @@ class TestMessageLink:
         assert result is mock_app.cache.get_message.return_value
         mock_app.cache.get_message.assert_called_once_with(541123123)
 
-    def test_get_when_no_cache(self):
+    def test_get_when_cacheless(self):
         mock_app = mock.Mock(hikari.RESTAware)
         webhook = yuyo.links.MessageLink(
             _app=mock_app,
@@ -256,12 +347,91 @@ class TestMessageLink:
         assert result is None
 
 
-def test_make_template_link():
-    ...
+@pytest.mark.parametrize(("template", "expected_str"), [])
+def test_make_template_link(template: typing.Union[str, hikari.Template], expected_str: str):
+    template_link = yuyo.links.make_template_link(template)
+
+    assert template_link == expected_str
+
+
+_TEMPLATE_LINKS = [
+    ("https://discord.new/i_didnt-hate.IT", "i_didnt-hate.IT"),
+    ("https://www.discord.new/UnlessIjust_had-to_do.something-bout-it", "UnlessIjust_had-to_do.something-bout-it"),
+    ("https://discord.com/template/I-Didnt_not-even_like-it", "I-Didnt_not-even_like-it"),
+    ("https://www.discordapp.com/template/I-know_who.you-are", "I-know_who.you-are"),
+    ("https://www.discord.com/template/Im-not_leaving.youagain", "Im-not_leaving.youagain"),
+    ("https://discordapp.com/template/Thereis_no-where-to.go-back", "Thereis_no-where-to.go-back"),
+]
 
 
 class TestTemplateLink:
-    ...
+    @pytest.mark.parametrize(("link", "template_code"), _TEMPLATE_LINKS)
+    def test_find(self, link: str, template_code: str):
+        mock_app = mock.AsyncMock()
+
+        template_link = yuyo.links.TemplateLink.find(
+            mock_app, f"g;lll;l1;32asdsa {link} https://discord.new/flint https://www.discordapp.com/template/aaa"
+        )
+
+        assert template_link
+        assert template_link.code == template_code
+
+    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    def test_find_when_none(self, string: str):
+        assert yuyo.links.TemplateLink.find(mock.AsyncMock(), string) is None
+
+    def test_find_iter(self):
+        mock_app = mock.AsyncMock()
+        string = (
+            "hg4po34123 https://discord.new/motivated_egg.nyaa 341123dsa"
+            "https://discord.gg/okokoko https://www.discord.com/invite/free-estrogen_for.all"
+        )
+
+        links = list(yuyo.links.TemplateLink.find_iter(mock_app, string))
+
+        assert len(links) == 2
+        link = links[0]
+        assert link.code == "motivated_egg.nyaa"
+
+        link = links[1]
+        assert link.code == "free-estrogen_for.all"
+
+    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    def test_find_iter_when_none(self, string: str):
+        assert list(yuyo.links.TemplateLink.find_iter(mock.AsyncMock(), string)) == []
+
+    @pytest.mark.parametrize(("link", "template_code"), _TEMPLATE_LINKS)
+    def test_from_link(self, link: str, template_code: str):
+        mock_app = mock.AsyncMock()
+
+        template_link = yuyo.links.TemplateLink.from_link(mock_app, link)
+
+        assert template_link.code == template_code
+
+    @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
+    def test_from_link_when_invalid_link(self, string: str):
+        with pytest.raises(ValueError, match="Link doesn't match pattern"):
+            yuyo.links.TemplateLink.from_link(mock.AsyncMock(), string)
+
+    def test_str_cast(self):
+        link = yuyo.links.TemplateLink(_app=mock.AsyncMock(), _code="Turn-the_grey.haze-into_sky-blue")
+
+        assert str(link) == "https://discord.new/Turn-the_grey.haze-into_sky-blue"
+
+    def test_code_property(self):
+        link = yuyo.links.TemplateLink(_app=mock.AsyncMock(), _code="I_could-go.home")
+
+        assert link.code == "I_could-go.home"
+
+    @pytest.mark.asyncio()
+    async def test_fetch(self):
+        mock_app = mock.AsyncMock()
+        link = yuyo.links.TemplateLink(_app=mock_app, _code="Brisket")
+
+        result = await link.fetch()
+
+        assert result is mock_app.rest.fetch_template.return_value
+        mock_app.rest.fetch_template.assert_awaited_once_with("Brisket")
 
 
 @pytest.mark.parametrize(

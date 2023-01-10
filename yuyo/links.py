@@ -57,10 +57,10 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 
-_INVITE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.gg|(?:app)?\.com/invite)/(\w+)")
+_INVITE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.gg|(?:app)?\.com/invite)/([^\s]+)")
 _MESSAGE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
-_TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/(\w+)")
-_WEBHOOK_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([\w\d\.\-]+)")
+_TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/([^\s]+)")
+_WEBHOOK_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([^\s]+)")
 
 
 class BaseLink(abc.ABC):
@@ -189,7 +189,7 @@ class InviteLink(hikari.InviteCode, BaseLink):
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        return cls(_app=app, _code=match.group())
+        return cls(_app=app, _code=match.groups()[0])
 
     async def fetch(self) -> hikari.Invite:
         return await self._app.rest.fetch_invite(self._code)
@@ -344,7 +344,7 @@ class TemplateLink(BaseLink):
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        return cls(_app=app, _code=match.group())
+        return cls(_app=app, _code=match.groups()[0])
 
     async def fetch(self) -> hikari.Template:
         return await self._app.rest.fetch_template(self._code)
