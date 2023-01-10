@@ -384,7 +384,7 @@ class TestTemplateLink:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.new/motivated_egg.nyaa 341123dsa"
-            "https://discord.gg/okokoko https://www.discord.com/invite/free-estrogen_for.all"
+            "https://discord.gg/okokoko https://www.discord.com/template/free-estrogen_for.all"
         )
 
         links = list(yuyo.links.TemplateLink.find_iter(mock_app, string))
