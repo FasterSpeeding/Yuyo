@@ -192,9 +192,44 @@ class InviteLink(hikari.InviteCode, BaseLink):
         return cls(_app=app, _code=match.groups()[0])
 
     async def fetch(self) -> hikari.Invite:
+        """Fetch the invite this links to.
+
+        Returns
+        -------
+        hikari.invites.Invite
+            Object of the invite this links to.
+
+        Raises
+        ------
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.NotFoundError
+            If the invite is not found.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         return await self._app.rest.fetch_invite(self._code)
 
     def get(self) -> typing.Optional[hikari.InviteWithMetadata]:
+        """Get the invite this links to from the cache.
+
+
+        Returns
+        -------
+        hikari.invites.InviteWithMetadata | None
+            The object of the invite that was found in the cache or [None][].
+        """
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_invite(self._code)
 
@@ -289,9 +324,47 @@ class MessageLink(BaseLink):
         return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
 
     async def fetch(self) -> hikari.Message:
+        """Fetch a the message this links to.
+
+        Returns
+        -------
+        hikari.messages.Message
+            Object of the message this links to.
+
+        Raises
+        ------
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.ForbiddenError
+            If you are missing the `READ_MESSAGE_HISTORY` in the channel.
+        hikari.errors.NotFoundError
+            If the channel is not found or the message is not found in the
+            given text channel.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         return await self._app.rest.fetch_message(self._channel_id, self._message_id)
 
     def get(self) -> typing.Optional[hikari.Message]:
+        """Get the message this links to from the cache.
+
+
+        Returns
+        -------
+        hikari.messages.Message | None
+            The object of the message that was found in the cache or [None][].
+        """
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_message(self._message_id)
 
@@ -347,6 +420,33 @@ class TemplateLink(BaseLink):
         return cls(_app=app, _code=match.groups()[0])
 
     async def fetch(self) -> hikari.Template:
+        """Fetch the guild template this links to.
+
+        Returns
+        -------
+        hikari.templates.Template
+            Object of the guild template this links to.
+
+        Raises
+        ------
+        hikari.errors.NotFoundError
+            If the template was not found.
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         return await self._app.rest.fetch_template(self._code)
 
 
@@ -412,6 +512,33 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         return cls(_app=app, _webhook_id=hikari.Snowflake(webhook_id), _token=token)
 
     async def fetch(self) -> hikari.IncomingWebhook:
+        """Fetch the incoming webhook this links to.
+
+        Returns
+        -------
+        hikari.webhooks.IncomingWebhook
+            Object of the incoming webhook this links to.
+
+        Raises
+        ------
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.NotFoundError
+            If the webhook is not found.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.RateLimitedError
+            Usually, Hikari will handle and retry on hitting
+            rate-limits automatically. This includes most bucket-specific
+            rate-limits and global rate-limits. In some rare edge cases,
+            however, Discord implements other undocumented rules for
+            rate-limiting, such as limits per attribute. These cannot be
+            detected or handled normally by Hikari due to their undocumented
+            nature, and will trigger this exception if they occur.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
         webhook = await self._app.rest.fetch_webhook(self._webhook_id, token=self._token)
         assert isinstance(webhook, hikari.IncomingWebhook)
         return webhook
