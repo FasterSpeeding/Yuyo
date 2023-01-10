@@ -224,11 +224,10 @@ class InviteLink(hikari.InviteCode, BaseLink):
     def get(self) -> typing.Optional[hikari.InviteWithMetadata]:
         """Get the invite this links to from the cache.
 
-
         Returns
         -------
         hikari.invites.InviteWithMetadata | None
-            The object of the invite that was found in the cache or [None][].
+            Object of the invite that was found in the cache or [None][].
         """
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_invite(self._code)
@@ -359,11 +358,10 @@ class MessageLink(BaseLink):
     def get(self) -> typing.Optional[hikari.Message]:
         """Get the message this links to from the cache.
 
-
         Returns
         -------
         hikari.messages.Message | None
-            The object of the message that was found in the cache or [None][].
+            Object of the message that was found in the cache or [None][].
         """
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_message(self._message_id)
