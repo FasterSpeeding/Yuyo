@@ -304,12 +304,12 @@ class TestWebhookLink:
         link = links[0]
         assert link.app is mock_app
         assert link.webhook_id == 5431231
-        assert link.token == "i-am_the.catgirl"
+        assert link.token == "i-am_the.catgirl"  # noqa: S105
 
         link = links[1]
         assert link.app is mock_app
         assert link.webhook_id == 3123123
-        assert link.token == "welcome-my.friend"
+        assert link.token == "welcome-my.friend"  # noqa: S105
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
     def test_find_iter_when_none(self, string: str):
