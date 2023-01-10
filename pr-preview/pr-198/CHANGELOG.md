@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helper functions for converting some Hikrai models to builder objects in [yuyo.to_builder][].
   These support application commands and message components.
 
+## [1.5.0a1] - 2023-01-10
+### Added
+- Add classes and functions for handling message, webhook, invite and template links.
+
 ### Changed
 - Officially drop support for Python 3.8.
 - Bumped minimum Hikari version to `v2.0.0.dev114`.
@@ -203,7 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...HEAD
+[1.5.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...v1.5.0a1
 [1.4.0a1.post1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1...v1.4.0a1.post1
 [1.4.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.3.1a1...v1.4.0a1
 [1.3.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.2.1a1...v1.3.1a1
