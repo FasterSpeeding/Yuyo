@@ -46,6 +46,14 @@ def mock_intable(integer: int) -> mock.Mock:
     return mock_str
 
 
+def test_make_invite_link():
+    ...
+
+
+class TestInviteLink:
+    ...
+
+
 @pytest.mark.parametrize(
     ("guild", "channel", "message", "expected_str"),
     [
