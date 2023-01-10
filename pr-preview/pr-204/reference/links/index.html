@@ -484,6 +484,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#yuyo.links.InviteLink.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.InviteLink.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -525,6 +539,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#yuyo.links.MessageLink.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.MessageLink.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -541,6 +569,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.links.TemplateLink.code" class="md-nav__link">
     code
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.TemplateLink.fetch" class="md-nav__link">
+    fetch()
   </a>
   
 </li>
@@ -575,6 +610,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.links.WebhookLink.webhook_id" class="md-nav__link">
     webhook_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.WebhookLink.fetch" class="md-nav__link">
+    fetch()
   </a>
   
 </li>
@@ -751,6 +793,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#yuyo.links.InviteLink.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.InviteLink.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -792,6 +848,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#yuyo.links.MessageLink.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.MessageLink.get" class="md-nav__link">
+    get()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -808,6 +878,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.links.TemplateLink.code" class="md-nav__link">
     code
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.TemplateLink.fetch" class="md-nav__link">
+    fetch()
   </a>
   
 </li>
@@ -842,6 +919,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.links.WebhookLink.webhook_id" class="md-nav__link">
     webhook_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.links.WebhookLink.fetch" class="md-nav__link">
+    fetch()
   </a>
   
 </li>
@@ -1279,6 +1363,160 @@
 
 
 
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.InviteLink.fetch" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">fetch</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.links.InviteLink.fetch" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">fetch</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the invite this links to.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.invites">invites</span>.<a class="autorefs autorefs-external" title="hikari.invites.Invite" href="https://docs.hikari-py.dev/en/latest/reference/hikari/invites/#hikari.invites.Invite">Invite</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>Object of the invite this links to.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.UnauthorizedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.UnauthorizedError">UnauthorizedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If you are unauthorized to make the request (invalid/missing token).</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.NotFoundError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">NotFoundError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the invite is not found.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitTooLongError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitTooLongError">RateLimitTooLongError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Raised in the event that a rate limit occurs that is
+longer than <code>max_rate_limit</code> when making a request.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitedError">RateLimitedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Usually, Hikari will handle and retry on hitting
+rate-limits automatically. This includes most bucket-specific
+rate-limits and global rate-limits. In some rare edge cases,
+however, Discord implements other undocumented rules for
+rate-limiting, such as limits per attribute. These cannot be
+detected or handled normally by Hikari due to their undocumented
+nature, and will trigger this exception if they occur.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.InternalServerError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.InternalServerError">InternalServerError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If an internal error occurs on Discord while handling the request.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.InviteLink.get" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">get</span>
+
+
+<a href="#yuyo.links.InviteLink.get" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">get</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the invite this links to from the cache.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.invites">invites</span>.<a class="autorefs autorefs-external" title="hikari.invites.InviteWithMetadata" href="https://docs.hikari-py.dev/en/latest/reference/hikari/invites/#hikari.invites.InviteWithMetadata">InviteWithMetadata</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The object of the invite that was found in the cache or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
 
 
   </div>
@@ -1419,6 +1657,171 @@
 
 
 
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.MessageLink.fetch" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">fetch</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.links.MessageLink.fetch" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">fetch</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch a the message this links to.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.messages">messages</span>.<a class="autorefs autorefs-external" title="hikari.messages.Message" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.Message">Message</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>Object of the message this links to.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.UnauthorizedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.UnauthorizedError">UnauthorizedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If you are unauthorized to make the request (invalid/missing token).</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.ForbiddenError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.ForbiddenError">ForbiddenError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If you are missing the <code>READ_MESSAGE_HISTORY</code> in the channel.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.NotFoundError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">NotFoundError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the channel is not found or the message is not found in the
+given text channel.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitTooLongError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitTooLongError">RateLimitTooLongError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Raised in the event that a rate limit occurs that is
+longer than <code>max_rate_limit</code> when making a request.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitedError">RateLimitedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Usually, Hikari will handle and retry on hitting
+rate-limits automatically. This includes most bucket-specific
+rate-limits and global rate-limits. In some rare edge cases,
+however, Discord implements other undocumented rules for
+rate-limiting, such as limits per attribute. These cannot be
+detected or handled normally by Hikari due to their undocumented
+nature, and will trigger this exception if they occur.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.InternalServerError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.InternalServerError">InternalServerError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If an internal error occurs on Discord while handling the request.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.MessageLink.get" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">get</span>
+
+
+<a href="#yuyo.links.MessageLink.get" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">get</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the message this links to from the cache.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.messages">messages</span>.<a class="autorefs autorefs-external" title="hikari.messages.Message" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.Message">Message</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The object of the message that was found in the cache or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
 
 
   </div>
@@ -1488,6 +1891,119 @@
 </div>
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.TemplateLink.fetch" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">fetch</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.links.TemplateLink.fetch" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">fetch</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the guild template this links to.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.templates">templates</span>.<a class="autorefs autorefs-external" title="hikari.templates.Template" href="https://docs.hikari-py.dev/en/latest/reference/hikari/templates/#hikari.templates.Template">Template</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>Object of the guild template this links to.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.NotFoundError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">NotFoundError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the template was not found.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.UnauthorizedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.UnauthorizedError">UnauthorizedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If you are unauthorized to make the request (invalid/missing token).</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitTooLongError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitTooLongError">RateLimitTooLongError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Raised in the event that a rate limit occurs that is
+longer than <code>max_rate_limit</code> when making a request.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitedError">RateLimitedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Usually, Hikari will handle and retry on hitting
+rate-limits automatically. This includes most bucket-specific
+rate-limits and global rate-limits. In some rare edge cases,
+however, Discord implements other undocumented rules for
+rate-limiting, such as limits per attribute. These cannot be
+detected or handled normally by Hikari due to their undocumented
+nature, and will trigger this exception if they occur.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.InternalServerError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.InternalServerError">InternalServerError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If an internal error occurs on Discord while handling the request.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
@@ -1604,6 +2120,119 @@
 </div>
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.links.WebhookLink.fetch" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">fetch</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.links.WebhookLink.fetch" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">fetch</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Fetch the incoming webhook this links to.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.webhooks">webhooks</span>.<a class="autorefs autorefs-external" title="hikari.webhooks.IncomingWebhook" href="https://docs.hikari-py.dev/en/latest/reference/hikari/webhooks/#hikari.webhooks.IncomingWebhook">IncomingWebhook</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>Object of the incoming webhook this links to.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.UnauthorizedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.UnauthorizedError">UnauthorizedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If you are unauthorized to make the request (invalid/missing token).</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.NotFoundError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">NotFoundError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the webhook is not found.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitTooLongError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitTooLongError">RateLimitTooLongError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Raised in the event that a rate limit occurs that is
+longer than <code>max_rate_limit</code> when making a request.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitedError">RateLimitedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>Usually, Hikari will handle and retry on hitting
+rate-limits automatically. This includes most bucket-specific
+rate-limits and global rate-limits. In some rare edge cases,
+however, Discord implements other undocumented rules for
+rate-limiting, such as limits per attribute. These cannot be
+detected or handled normally by Hikari due to their undocumented
+nature, and will trigger this exception if they occur.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.errors">errors</span>.<a class="autorefs autorefs-external" title="hikari.errors.InternalServerError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.InternalServerError">InternalServerError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If an internal error occurs on Discord while handling the request.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
