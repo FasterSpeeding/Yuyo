@@ -1321,10 +1321,16 @@
         Bases: <code><a class="autorefs autorefs-external" title="hikari.urls" href="https://docs.hikari-py.dev/en/latest/reference/hikari/urls/#module-hikari.urls">hikari</a>.<span title="hikari.urls.InviteCode">InviteCode</span></code>, <code><a class="autorefs autorefs-internal" title="yuyo.links.BaseLink" href="#yuyo.links.BaseLink">BaseLink</a></code></p>
 
   
-      <p>Represents a link to a Discord invite.</p>
-<p>These should be created using <a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">InviteLink.from_link</a>,
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">InviteLink.find</a>, or
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">InviteLink.find_iter</a>.</p>
+      <p>Represents a Discord invite link.</p>
+<p>The following class methods are used to initialise this:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">InviteLink.from_link</a> to create this from
+  a raw invite link.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">InviteLink.find</a> to find the first invite link
+  in a string.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">InviteLink.find_iter</a> to iterate over the
+  invite links in a string.</li>
+</ul>
 
 
 
@@ -1546,9 +1552,15 @@ nature, and will trigger this exception if they occur.</p>
 
   
       <p>Represents a link to a message on Discord.</p>
-<p>These should be created using <a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">MessageLink.from_link</a>,
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">MessageLink.find</a>, or
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">MessageLink.find_iter</a>.</p>
+<p>The following class methods are used to initialise this:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">MessageLink.from_link</a> to create this
+  from a raw message link.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">MessageLink.find</a> to find the first invite
+  link in a string.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">MessageLink.find_iter</a> to iterate over
+  the message links in a string.</li>
+</ul>
 
 
 
@@ -1851,9 +1863,15 @@ nature, and will trigger this exception if they occur.</p>
 
   
       <p>Represents a link to a guild template.</p>
-<p>These should be created using <a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">TemplateLink.from_link</a>,
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">TemplateLink.find</a>, or
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">TemplateLink.find_iter</a>.</p>
+<p>The following class methods are used to initialise this:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">TemplateLink.from_link</a> to create this
+  from a raw template link.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">TemplateLink.find</a> to find the first template
+  link in a string.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">TemplateLink.find_iter</a> to iterate over
+  the template links in a string.</li>
+</ul>
 
 
 
@@ -2034,9 +2052,15 @@ nature, and will trigger this exception if they occur.</p>
 
   
       <p>Represents a link to an incoming webhook.</p>
-<p>These should be created using <a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">WebhookLink.from_link</a>,
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">WebhookLink.find</a>, or
-<a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">WebhookLink.find_iter</a>.</p>
+<p>The following class methods are used to initialise this:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.from_link">WebhookLink.from_link</a> to create this
+  from a raw webhook link.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find">WebhookLink.find</a> to find the first webhook
+  link in a string.</li>
+<li><a class="autorefs autorefs-internal" href="#yuyo.links.BaseLink.find_iter">WebhookLink.find_iter</a> to iterate over
+  the webhook links in a string.</li>
+</ul>
 
 
 
