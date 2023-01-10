@@ -62,12 +62,14 @@ __all__: list[str] = [
     "backoff",
     "chunk_tracker",
     "components",
+    "links",
     "paginate_string",
     "pagination",
     "reactions",
     "sync_paginate_string",
 ]
 
+from . import links
 from .asgi import AsgiAdapter
 from .asgi import AsgiBot
 from .backoff import Backoff

@@ -1,0 +1,3 @@
+# yuyo.links
+
+::: yuyo.links
