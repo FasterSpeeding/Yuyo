@@ -165,11 +165,16 @@ def make_invite_link(invite: typing.Union[str, hikari.InviteCode], /) -> str:
 
 @dataclasses.dataclass
 class InviteLink(hikari.InviteCode, BaseLink):
-    """Represents a link to a Discord invite.
+    """Represents a Discord invite link.
 
-    These should be created using [InviteLink.from_link][yuyo.links.BaseLink.from_link],
-    [InviteLink.find][yuyo.links.BaseLink.find], or
-    [InviteLink.find_iter][yuyo.links.BaseLink.find_iter].
+    The following class methods are used to initialise this:
+
+    * [InviteLink.from_link][yuyo.links.BaseLink.from_link] to create this from
+      a raw invite link.
+    * [InviteLink.find][yuyo.links.BaseLink.find] to find the first invite link
+      in a string.
+    * [InviteLink.find_iter][yuyo.links.BaseLink.find_iter] to iterate over the
+      invite links in a string.
     """
 
     __slots__ = ("_app", "_code")
@@ -268,9 +273,14 @@ def make_message_link(
 class MessageLink(BaseLink):
     """Represents a link to a message on Discord.
 
-    These should be created using [MessageLink.from_link][yuyo.links.BaseLink.from_link],
-    [MessageLink.find][yuyo.links.BaseLink.find], or
-    [MessageLink.find_iter][yuyo.links.BaseLink.find_iter].
+    The following class methods are used to initialise this:
+
+    * [MessageLink.from_link][yuyo.links.BaseLink.from_link] to create this
+      from a raw message link.
+    * [MessageLink.find][yuyo.links.BaseLink.find] to find the first invite
+      link in a string.
+    * [MessageLink.find_iter][yuyo.links.BaseLink.find_iter] to iterate over
+      the message links in a string.
     """
 
     __slots__ = ("_app", "_channel_id", "_guild_id", "_message_id")
@@ -390,9 +400,14 @@ def make_template_link(template: typing.Union[hikari.Template, str], /) -> str:
 class TemplateLink(BaseLink):
     """Represents a link to a guild template.
 
-    These should be created using [TemplateLink.from_link][yuyo.links.BaseLink.from_link],
-    [TemplateLink.find][yuyo.links.BaseLink.find], or
-    [TemplateLink.find_iter][yuyo.links.BaseLink.find_iter].
+    The following class methods are used to initialise this:
+
+    * [TemplateLink.from_link][yuyo.links.BaseLink.from_link] to create this
+      from a raw template link.
+    * [TemplateLink.find][yuyo.links.BaseLink.find] to find the first template
+      link in a string.
+    * [TemplateLink.find_iter][yuyo.links.BaseLink.find_iter] to iterate over
+      the template links in a string.
     """
 
     __slots__ = ("_app", "_code")
@@ -470,9 +485,14 @@ def make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], tok
 class WebhookLink(hikari.ExecutableWebhook, BaseLink):
     """Represents a link to an incoming webhook.
 
-    These should be created using [WebhookLink.from_link][yuyo.links.BaseLink.from_link],
-    [WebhookLink.find][yuyo.links.BaseLink.find], or
-    [WebhookLink.find_iter][yuyo.links.BaseLink.find_iter].
+    The following class methods are used to initialise this:
+
+    * [WebhookLink.from_link][yuyo.links.BaseLink.from_link] to create this
+      from a raw webhook link.
+    * [WebhookLink.find][yuyo.links.BaseLink.find] to find the first webhook
+      link in a string.
+    * [WebhookLink.find_iter][yuyo.links.BaseLink.find_iter] to iterate over
+      the webhook links in a string.
     """
 
     __slots__ = ("_app", "_token", "_webhook_id")
