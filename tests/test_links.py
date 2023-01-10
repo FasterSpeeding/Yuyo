@@ -256,6 +256,14 @@ class TestMessageLink:
         assert result is None
 
 
+def test_make_template_link():
+    ...
+
+
+class TestTemplateLink:
+    ...
+
+
 @pytest.mark.parametrize(
     ("webhook", "token", "expected_str"),
     [

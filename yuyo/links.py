@@ -57,6 +57,12 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 
+_INVITE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.gg|(?:app)?\.com/invite)/(\w+)")
+_MESSAGE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
+_TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/(\w+)")
+_WEBHOOK_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([\w\d\.\-]+)")
+
+
 class BaseLink(abc.ABC):
     """Base class for all link objects."""
 
@@ -157,9 +163,6 @@ def make_invite_link(invite: typing.Union[str, hikari.InviteCode], /) -> str:
     return f"https://discord.gg/{invite_code}"
 
 
-_INVITE_PATTERN = re.compile(r"https://(?:www\.)?(?:discord\.gg|discord(?:app)?\.com/invite)/(\w+)")
-
-
 @dataclasses.dataclass
 class InviteLink(hikari.InviteCode, BaseLink):
     """Represents a link to a Discord invite.
@@ -225,9 +228,6 @@ def make_message_link(
     """
     guild_ = "@me" if guild is None else int(guild)
     return f"{hikari.urls.BASE_URL}/channels/{guild_}/{int(channel)}/{int(message)}"
-
-
-_MESSAGE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
 
 
 @dataclasses.dataclass
@@ -315,9 +315,6 @@ def make_template_link(template: typing.Union[hikari.Template, str], /) -> str:
     return f"https://discord.new/{template_code}"
 
 
-_TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/(\w+)")
-
-
 @dataclasses.dataclass
 class TemplateLink(BaseLink):
     """Represents a link to a guild template.
@@ -351,9 +348,6 @@ class TemplateLink(BaseLink):
 
     async def fetch(self) -> hikari.Template:
         return await self._app.rest.fetch_template(self._code)
-
-
-_WEBHOOK_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([\w\d\.\-]+)")
 
 
 def make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], token: str, /) -> str:
