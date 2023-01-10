@@ -29,10 +29,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Classes and functions for handling Discord Links."""
-
 from __future__ import annotations
 
 __all__: list[str] = [
+    "BaseLink",
     "InviteLink",
     "MessageLink",
     "TemplateLink",
@@ -43,6 +43,7 @@ __all__: list[str] = [
     "make_webhook_link",
 ]
 
+import abc
 import dataclasses
 import re
 import typing
@@ -56,13 +57,96 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 
+class BaseLink(abc.ABC):
+    """Base class for all link objects."""
+
+    __slots__ = ()
+
+    @classmethod
+    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
+        """Find the first link in a string.
+
+        Parameters
+        ----------
+        app
+            The Hikari bot or REST app this should be bound to.
+        content
+            The string to searh in.
+
+        Returns
+        -------
+        Self | None
+            Object of the found link or [None][].
+        """
+        if result := next(cls.find_iter(app, content), None):
+            return result
+
+        return None  # MyPy compat
+
+    @classmethod
+    def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
+        """Iterate over the links in a string.
+
+        Parameters
+        ----------
+        app
+            The Hikari bot or REST app this should be bound to.
+        content
+            The string to searh in.
+
+        Returns
+        -------
+        collections.abc.Iterator[Self]
+            Iterator of the link objects in the passed string.
+        """
+        for match in cls._pattern.finditer(content):
+            yield cls._from_match(app, match)
+
+    @classmethod
+    def from_link(cls, app: hikari.RESTAware, link: str, /) -> Self:
+        """Create a link object from a raw link.
+
+        Parameters
+        ----------
+        app
+            The Hikari bot or REST app this should be bound to.
+        link
+            The string link to use.
+
+        Returns
+        -------
+        Self
+            The created link object.
+
+        Raises
+        ------
+        ValueError
+            If the string doesn't match the expected link format.
+        """
+        if match := cls._pattern.fullmatch(link.strip()):
+            return cls._from_match(app, match)
+
+        raise ValueError("Link doesn't match pattern")
+
+    @classmethod
+    @property
+    @abc.abstractmethod
+    def _pattern(cls) -> re.Pattern[str]:
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        raise NotImplementedError
+
+
 def make_invite_link(invite: typing.Union[str, hikari.InviteCode], /) -> str:
     """Make a raw link for an invite.
 
     Parameters
     ----------
-    invite_code
-        Object or string codw of the invite to make a raw link for.
+    invite
+        Object or string code of the invite to make a raw link for.
 
     Returns
     -------
@@ -77,12 +161,12 @@ _INVITE_PATTERN = re.compile(r"https://(?:www\.)?(?:discord\.gg|discord(?:app)?\
 
 
 @dataclasses.dataclass
-class InviteLink(hikari.InviteCode):
+class InviteLink(hikari.InviteCode, BaseLink):
     """Represents a link to a Discord invite.
 
-    These should be created using [InviteLink.from_link][InviteLink.links.InviteLink.from_link],
-    [InviteLink.find][yuyo.links.InviteLink.find], or
-    [InviteLink.find_iter][yuyo.links.InviteLink.find_iter].
+    These should be created using [InviteLink.from_link][yuyo.links.BaseLink.from_link],
+    [InviteLink.find][yuyo.links.BaseLink.find], or
+    [InviteLink.find_iter][yuyo.links.BaseLink.find_iter].
     """
 
     __slots__ = ("_app", "_code")
@@ -90,80 +174,19 @@ class InviteLink(hikari.InviteCode):
     _app: hikari.RESTAware
     _code: str
 
-    @classmethod
-    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
-        """Find the first invite link in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        Self | None
-            The found invite link or [None][].
-        """
-        if result := next(cls.find_iter(app, content), None):
-            return result
-
-        return None  # MyPy compat
-
-    @classmethod
-    def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
-        """Iterate over the invite links in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        collections.abc.Iterator[Self]
-            Iterator of the invite links in a invite.
-        """
-        for match in _INVITE_PATTERN.finditer(content):
-            yield cls._from_match(app, match)
-
-    @classmethod
-    def from_link(cls, app: hikari.RESTAware, link: str, /) -> Self:
-        """Create a [InviteLink][yuyo.links.InviteLink] from a raw link.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        link
-            The string link to use.
-
-        Returns
-        -------
-        Self
-            The created invite link.
-
-        Raises
-        ------
-        ValueError
-            If the string doesn't match the expected invite link format.
-        """
-        if match := _INVITE_PATTERN.fullmatch(link.strip()):
-            return cls._from_match(app, match)
-
-        raise ValueError("Link doesn't match pattern")
-
-    @classmethod
-    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        return cls(_app=app, _code=match.group())
-
     @property
     def code(self) -> str:
         """The invite's code."""
         return self._code
+
+    @classmethod
+    @property
+    def _pattern(cls) -> re.Pattern[str]:
+        return _INVITE_PATTERN
+
+    @classmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        return cls(_app=app, _code=match.group())
 
     async def fetch(self) -> hikari.Invite:
         return await self._app.rest.fetch_invite(self._code)
@@ -208,12 +231,12 @@ _MESSAGE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/channels/
 
 
 @dataclasses.dataclass
-class MessageLink:
+class MessageLink(BaseLink):
     """Represents a link to a message on Discord.
 
-    These should be created using [MessageLink.from_link][yuyo.links.MessageLink.from_link],
-    [MessageLink.find][yuyo.links.MessageLink.find], or
-    [MessageLink.find_iter][yuyo.links.MessageLink.find_iter].
+    These should be created using [MessageLink.from_link][yuyo.links.BaseLink.from_link],
+    [MessageLink.find][yuyo.links.BaseLink.find], or
+    [MessageLink.find_iter][yuyo.links.BaseLink.find_iter].
     """
 
     __slots__ = ("_app", "_channel_id", "_guild_id", "_message_id")
@@ -222,86 +245,6 @@ class MessageLink:
     _channel_id: hikari.Snowflake
     _guild_id: typing.Optional[hikari.Snowflake]
     _message_id: hikari.Snowflake
-
-    @classmethod
-    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
-        """Find the first message link in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        Self | None
-            The found message link or [None][].
-        """
-        if result := next(cls.find_iter(app, content), None):
-            return result
-
-        return None  # MyPy compat
-
-    @classmethod
-    def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
-        """Iterate over the message links in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        collections.abc.Iterator[Self]
-            Iterator of the message links in a message.
-        """
-        for match in _MESSAGE_PATTERN.finditer(content):
-            yield cls._from_match(app, match)
-
-    @classmethod
-    def from_link(cls, app: hikari.RESTAware, link: str, /) -> Self:
-        """Create a [MessageLink][yuyo.links.MessageLink] from a raw link.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        link
-            The string link to use.
-
-        Returns
-        -------
-        Self
-            The created message link.
-
-        Raises
-        ------
-        ValueError
-            If the string doesn't match the expected message link format.
-        """
-        if match := _MESSAGE_PATTERN.fullmatch(link.strip()):
-            return cls._from_match(app, match)
-
-        raise ValueError("Link doesn't match pattern")
-
-    @classmethod
-    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        guild_id, channel_id, message_id = match.groups()
-        guild_id = None if guild_id == "@me" else hikari.Snowflake(guild_id)
-        return cls(
-            _app=app,
-            _channel_id=hikari.Snowflake(channel_id),
-            _guild_id=guild_id,
-            _message_id=hikari.Snowflake(message_id),
-        )
-
-    def __str__(self) -> str:
-        return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
 
     @property
     def channel_id(self) -> hikari.Snowflake:
@@ -325,6 +268,25 @@ class MessageLink:
     def message_id(self) -> hikari.Snowflake:
         """ID of the message this links to."""
         return self._message_id
+
+    @classmethod
+    @property
+    def _pattern(cls) -> re.Pattern[str]:
+        return _MESSAGE_PATTERN
+
+    @classmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        guild_id, channel_id, message_id = match.groups()
+        guild_id = None if guild_id == "@me" else hikari.Snowflake(guild_id)
+        return cls(
+            _app=app,
+            _channel_id=hikari.Snowflake(channel_id),
+            _guild_id=guild_id,
+            _message_id=hikari.Snowflake(message_id),
+        )
+
+    def __str__(self) -> str:
+        return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
 
     async def fetch(self) -> hikari.Message:
         return await self._app.rest.fetch_message(self._channel_id, self._message_id)
@@ -357,88 +319,18 @@ _TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com
 
 
 @dataclasses.dataclass
-class TemplateLink:
+class TemplateLink(BaseLink):
     """Represents a link to a guild template.
 
-    These should be created using [TemplateLink.from_link][yuyo.links.TemplateLink.from_link],
-    [TemplateLink.find][yuyo.links.TemplateLink.find], or
-    [TemplateLink.find_iter][yuyo.links.TemplateLink.find_iter].
+    These should be created using [TemplateLink.from_link][yuyo.links.BaseLink.from_link],
+    [TemplateLink.find][yuyo.links.BaseLink.find], or
+    [TemplateLink.find_iter][yuyo.links.BaseLink.find_iter].
     """
 
     __slots__ = ("_app", "_code")
 
     _app: hikari.RESTAware
     _code: str
-
-    @classmethod
-    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
-        """Find the first template link in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        Self | None
-            The found template link or [None][].
-        """
-        if result := next(cls.find_iter(app, content), None):
-            return result
-
-        return None  # MyPy compat
-
-    @classmethod
-    def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
-        """Iterate over the template links in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        collections.abc.Iterator[Self]
-            Iterator of the template links in a message.
-        """
-        for match in _TEMPLATE_PATTERN.finditer(content):
-            yield cls._from_match(app, match)
-
-    @classmethod
-    def from_link(cls, app: hikari.RESTAware, link: str, /) -> Self:
-        """Create a [TemplateLink][yuyo.links.TemplateLink] from a raw link.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        link
-            The string link to use.
-
-        Returns
-        -------
-        Self
-            The created template link.
-
-        Raises
-        ------
-        ValueError
-            If the string doesn't match the expected template link format.
-        """
-        if match := _TEMPLATE_PATTERN.fullmatch(link.strip()):
-            return cls._from_match(app, match)
-
-        raise ValueError("Link doesn't match pattern")
-
-    @classmethod
-    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        return cls(_app=app, _code=match.group())
 
     def __str__(self) -> str:
         return make_template_link(self._code)
@@ -447,6 +339,15 @@ class TemplateLink:
     def code(self) -> str:
         """The template's code."""
         return self._code
+
+    @classmethod
+    @property
+    def _pattern(cls) -> re.Pattern[str]:
+        return _TEMPLATE_PATTERN
+
+    @classmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        return cls(_app=app, _code=match.group())
 
     async def fetch(self) -> hikari.Template:
         return await self._app.rest.fetch_template(self._code)
@@ -474,12 +375,12 @@ def make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], tok
 
 
 @dataclasses.dataclass
-class WebhookLink(hikari.ExecutableWebhook):
+class WebhookLink(hikari.ExecutableWebhook, BaseLink):
     """Represents a link to an incoming webhook.
 
-    These should be created using [WebhookLink.from_link][yuyo.links.WebhookLink.from_link],
-    [WebhookLink.find][yuyo.links.WebhookLink.find], or
-    [WebhookLink.find_iter][yuyo.links.WebhookLink.find_iter].
+    These should be created using [WebhookLink.from_link][yuyo.links.BaseLink.from_link],
+    [WebhookLink.find][yuyo.links.BaseLink.find], or
+    [WebhookLink.find_iter][yuyo.links.BaseLink.find_iter].
     """
 
     __slots__ = ("_app", "_token", "_webhook_id")
@@ -487,77 +388,6 @@ class WebhookLink(hikari.ExecutableWebhook):
     _app: hikari.RESTAware
     _token: str
     _webhook_id: hikari.Snowflake
-
-    @classmethod
-    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
-        """Find the first webhook link in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        Self | None
-            The found webhook link or [None][].
-        """
-        if result := next(cls.find_iter(app, content), None):
-            return result
-
-        return None  # MyPy compat
-
-    @classmethod
-    def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
-        """Iterate over the webhook links in a string.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        content
-            The string to searh in.
-
-        Returns
-        -------
-        collections.abc.Iterator[Self]
-            Iterator of the webhook links in a message.
-        """
-        for match in _WEBHOOK_PATTERN.finditer(content):
-            yield cls._from_match(app, match)
-
-    @classmethod
-    def from_link(cls, app: hikari.RESTAware, link: str, /) -> Self:
-        """Create a [WebhookLink][yuyo.links.WebhookLink] from a raw link.
-
-        Parameters
-        ----------
-        app
-            The Hikari bot or REST app this should be bound to.
-        link
-            The string link to use.
-
-        Returns
-        -------
-        Self
-            The created webhook link.
-
-        Raises
-        ------
-        ValueError
-            If the string doesn't match the expected webhook link format.
-        """
-        if match := _WEBHOOK_PATTERN.fullmatch(link.strip()):
-            return cls._from_match(app, match)
-
-        raise ValueError("Link doesn't match pattern")
-
-    @classmethod
-    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
-        webhook_id, token = match.groups()
-        return cls(_app=app, _webhook_id=hikari.Snowflake(webhook_id), _token=token)
 
     def __str__(self) -> str:
         return make_webhook_link(self._webhook_id, self._token)
@@ -576,6 +406,16 @@ class WebhookLink(hikari.ExecutableWebhook):
     def token(self) -> str:
         """The webhook's token."""
         return self._token
+
+    @classmethod
+    @property
+    def _pattern(cls) -> re.Pattern[str]:
+        return _WEBHOOK_PATTERN
+
+    @classmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        webhook_id, token = match.groups()
+        return cls(_app=app, _webhook_id=hikari.Snowflake(webhook_id), _token=token)
 
     async def fetch(self) -> hikari.IncomingWebhook:
         webhook = await self._app.rest.fetch_webhook(self._webhook_id, token=self._token)
