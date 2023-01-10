@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add classes and functions for handling message and webhook links.
+- Add classes and functions for handling message, webhook, invite and template links.
 
 ### Changed
 - Officially drop support for Python 3.8.
