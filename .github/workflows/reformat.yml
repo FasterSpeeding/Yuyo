@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -33,7 +33,7 @@ jobs:
       - name: Reformat
         run: python -m nox -s reformat bot-package-diff
 
-      - uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
         with:
           name: gogo.patch
           path: gogo.patch
