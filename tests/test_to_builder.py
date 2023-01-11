@@ -47,7 +47,7 @@ import yuyo
     ],
 )
 def test_to_cmd_builder(cmd_type: hikari.CommandType, expected_cls: type[hikari.api.CommandBuilder]):
-    result = yuyo.to_cmd_builder(
+    result = yuyo.to_builder.to_cmd_builder(
         mock.Mock(type=cmd_type, name_localizations={}, description_localizations={}, options=[])
     )
 
@@ -58,7 +58,7 @@ def test_to_cmd_builder_with_unknown_cmd_type():
     mock_cmd = mock.Mock(type=123321123)
 
     with pytest.raises(NotImplementedError, match="123321123"):
-        yuyo.to_cmd_builder(mock_cmd)
+        yuyo.to_builder.to_cmd_builder(mock_cmd)
 
 
 def test_to_slash_cmd_builder():
