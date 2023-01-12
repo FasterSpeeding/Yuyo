@@ -64,13 +64,21 @@ def test_to_cmd_builder_with_unknown_cmd_type():
 
 
 def test_to_slash_cmd_builder():
-    mock_slash_cmd = typing.cast(
-        hikari.SlashCommand,
-        mock.Mock(
-            options=None,
-            name_localizations={hikari.Locale.BG: "sa", hikari.Locale.PT_BR: "42342sdsaasd"},
-            description_localizations={hikari.Locale.DE: "dsjjqwe", hikari.Locale: "roikweioji"},
-        ),
+    mock_slash_cmd = hikari.SlashCommand(
+        app=mock.Mock(),
+        id=hikari.Snowflake(54123),
+        type=hikari.CommandType.SLASH,
+        application_id=hikari.Snowflake(675234),
+        name="adsaasd",
+        default_member_permissions=hikari.Permissions(341),
+        is_dm_enabled=mock.Mock(),
+        is_nsfw=mock.Mock(),
+        guild_id=hikari.Snowflake(6541234123),
+        version=hikari.Snowflake(54123),
+        name_localizations={hikari.Locale.BG: "sa", hikari.Locale.PT_BR: "42342sdsaasd"},
+        description="56234123432123",
+        description_localizations={hikari.Locale.DE: "dsjjqwe", hikari.Locale.EN_GB: "roikweioji"},
+        options=None,
     )
 
     result = yuyo.to_builder.to_slash_cmd_builder(mock_slash_cmd)
@@ -89,29 +97,35 @@ def test_to_slash_cmd_builder():
 
 
 def test_to_slash_cmd_builder_with_options():
-    mock_option_1 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.JA: "jajaja"},
-            channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
-            choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
-            name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
-            options=None,
-        ),
+    mock_option_1 = hikari.CommandOption(
+        type=hikari.OptionType.USER,
+        name="polgfokpfgdokdsfokp",
+        description="546142sadasd",
+        description_localizations={hikari.Locale.JA: "jajaja"},
+        channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
+        choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
+        name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
     )
-    mock_option_2 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
-            channel_types=None,
-            choices=None,
-            name_localizations={hikari.Locale.CS: "Cope"},
-            options=None,
-        ),
+    mock_option_2 = hikari.CommandOption(
+        type=hikari.OptionType.MENTIONABLE,
+        name="ldfslkfdskldsf",
+        description="dflokdfpiqwe3",
+        description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
+        name_localizations={hikari.Locale.CS: "Cope"},
     )
-    mock_slash_cmd = typing.cast(
-        hikari.SlashCommand,
-        mock.Mock(options=[mock_option_1, mock_option_2], name_localizations={}, description_localizations={}),
+    mock_slash_cmd = hikari.SlashCommand(
+        app=mock.Mock(),
+        id=hikari.Snowflake(123321123),
+        type=hikari.CommandType.SLASH,
+        application_id=hikari.Snowflake(12345123123),
+        default_member_permissions=hikari.Permissions(123321),
+        is_dm_enabled=mock.Mock(),
+        is_nsfw=mock.Mock(),
+        guild_id=hikari.Snowflake(67234123),
+        version=hikari.Snowflake(123321123),
+        name="tdfdsdfasd",
+        description="gfdfsfdsfd",
+        options=[mock_option_1, mock_option_2],
     )
 
     result = yuyo.to_builder.to_slash_cmd_builder(mock_slash_cmd)
@@ -161,35 +175,41 @@ def test_to_slash_cmd_builder_with_options():
 
 
 def test_to_slash_cmd_builder_with_nested_options():
-    mock_option_1 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.JA: "jajaja"},
-            channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
-            choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
-            name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
-            options=None,
-        ),
+    mock_option_1 = hikari.CommandOption(
+        type=hikari.OptionType.CHANNEL,
+        name="fdkklfd",
+        description="adsdsasd",
+        description_localizations={hikari.Locale.JA: "jajaja"},
+        channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
+        choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
+        name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
     )
-    mock_option_2 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
-            channel_types=None,
-            choices=None,
-            name_localizations={hikari.Locale.CS: "Cope"},
-            options=None,
-        ),
+    mock_option_2 = hikari.CommandOption(
+        type=hikari.OptionType.USER,
+        name="asddsaasd",
+        description="£gl;f;lfgdlk;",
+        description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
+        name_localizations={hikari.Locale.CS: "Cope"},
     )
-    mock_cmd_option = mock.Mock(
-        description_localizations={},
-        channel_types=None,
-        choices=None,
-        name_localizations={},
+    mock_cmd_option = hikari.CommandOption(
+        type=hikari.OptionType.SUB_COMMAND,
+        name="fddfasd",
+        description="p[342pol34po123",
         options=[mock_option_1, mock_option_2],
     )
-    mock_slash_cmd = typing.cast(
-        hikari.SlashCommand, mock.Mock(options=[mock_cmd_option], name_localizations={}, description_localizations={})
+    mock_slash_cmd = hikari.SlashCommand(
+        app=mock.Mock(),
+        id=hikari.Snowflake(123321123),
+        type=hikari.CommandType.SLASH,
+        application_id=hikari.Snowflake(43123123123),
+        name="43123123123",
+        default_member_permissions=hikari.Permissions(341213123),
+        is_dm_enabled=mock.Mock(),
+        is_nsfw=mock.Mock(),
+        guild_id=hikari.Snowflake(12332123123),
+        version=hikari.Snowflake(54123123123),
+        description="3412312132123132312ewaadsdsa",
+        options=[mock_cmd_option],
     )
 
     result = yuyo.to_builder.to_slash_cmd_builder(mock_slash_cmd)
@@ -242,42 +262,44 @@ def test_to_slash_cmd_builder_with_nested_options():
 
 
 def test_to_slash_cmd_builder_with_double_nested_options():
-    mock_option_1 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.JA: "jajaja"},
-            channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
-            choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
-            name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
-            options=None,
-        ),
+    mock_option_1 = hikari.CommandOption(
+        type=hikari.OptionType.MENTIONABLE,
+        name="fdfgkfgjdiowoieroiroqoqwoeewq",
+        description="gffgkldgfdlksdjfkqweieuwqio",
+        description_localizations={hikari.Locale.JA: "jajaja"},
+        channel_types=[hikari.ChannelType.GUILD_FORUM, hikari.ChannelType.GUILD_NEWS_THREAD],
+        choices=[hikari.CommandChoice(name="hi", value="bye"), hikari.CommandChoice(name="x", value="d")],
+        name_localizations={hikari.Locale.FI: "finished", hikari.Locale.BG: "background"},
     )
-    mock_option_2 = typing.cast(
-        hikari.CommandOption,
-        mock.Mock(
-            description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
-            channel_types=None,
-            choices=None,
-            name_localizations={hikari.Locale.CS: "Cope"},
-            options=None,
-        ),
+    mock_option_2 = hikari.CommandOption(
+        name="fdfddsasdasddsfeqwe",
+        description="grffghgfdssads",
+        type=hikari.OptionType.FLOAT,
+        description_localizations={hikari.Locale.HR: "sheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeera"},
+        name_localizations={hikari.Locale.CS: "Cope"},
     )
-    mock_nested_cmd_option = mock.Mock(
-        description_localizations={},
-        channel_types=None,
-        choices=None,
-        name_localizations={},
+    mock_nested_cmd_option = hikari.CommandOption(
+        type=hikari.OptionType.SUB_COMMAND,
+        name="hhsaddsa",
+        description="gffgsdsf",
         options=[mock_option_1, mock_option_2],
     )
-    mock_cmd_option = mock.Mock(
-        description_localizations={},
-        channel_types=None,
-        choices=None,
-        name_localizations={},
-        options=[mock_nested_cmd_option],
+    mock_cmd_option = hikari.CommandOption(
+        type=hikari.OptionType.SUB_COMMAND_GROUP, name="gfdgasd", description="asddsa", options=[mock_nested_cmd_option]
     )
-    mock_slash_cmd = typing.cast(
-        hikari.SlashCommand, mock.Mock(options=[mock_cmd_option], name_localizations={}, description_localizations={})
+    mock_slash_cmd = hikari.SlashCommand(
+        app=mock.Mock(),
+        id=hikari.Snowflake(3412123123),
+        application_id=hikari.Snowflake(543123123),
+        type=hikari.CommandType.SLASH,
+        default_member_permissions=hikari.Permissions(43512),
+        is_dm_enabled=mock.Mock(),
+        is_nsfw=mock.Mock(),
+        guild_id=hikari.Snowflake(123123321),
+        version=hikari.Snowflake(123321123321),
+        name="dffsdasd",
+        description="gf';l';re-pewp[r",
+        options=[mock_cmd_option],
     )
 
     result = yuyo.to_builder.to_slash_cmd_builder(mock_slash_cmd)
@@ -332,11 +354,18 @@ def test_to_slash_cmd_builder_with_double_nested_options():
 
 
 def test_to_context_menu_builder():
-    mock_cmd = typing.cast(
-        hikari.ContextMenuCommand,
-        mock.Mock(
-            hikari.ContextMenuCommand, name_localizations={hikari.Locale.CS: "gasdas", hikari.Locale.DE: "hgfdasd"}
-        ),
+    mock_cmd = hikari.ContextMenuCommand(
+        app=mock.Mock(),
+        type=hikari.CommandType.MESSAGE,
+        id=hikari.Snowflake(123321123),
+        application_id=hikari.Snowflake(12332112),
+        name="l435o;ldfl';",
+        default_member_permissions=hikari.Permissions(123323434),
+        is_dm_enabled=mock.Mock(),
+        is_nsfw=mock.Mock(),
+        guild_id=hikari.Snowflake(3123312),
+        version=hikari.Snowflake(123321),
+        name_localizations={hikari.Locale.CS: "gasdas", hikari.Locale.DE: "hgfdasd"},
     )
 
     result = yuyo.to_builder.to_context_menu_builder(mock_cmd)
@@ -352,14 +381,32 @@ def test_to_context_menu_builder():
 
 
 def test_to_msg_action_row_builder():
-    mock_interactive_button = typing.cast(
-        hikari.ButtonComponent, mock.Mock(style=hikari.ButtonStyle.DANGER, type=hikari.ComponentType.BUTTON)
+    mock_interactive_button = hikari.ButtonComponent(
+        style=hikari.ButtonStyle.DANGER,
+        type=hikari.ComponentType.BUTTON,
+        label="fddfasd",
+        emoji=mock.Mock(),
+        custom_id="tgrfsdfsdfads",
+        url=None,
+        is_disabled=mock.Mock(),
     )
-    mock_link_button = typing.cast(
-        hikari.ButtonComponent, mock.Mock(style=hikari.ButtonStyle.LINK, type=hikari.ComponentType.BUTTON)
+    mock_link_button = hikari.ButtonComponent(
+        style=hikari.ButtonStyle.LINK,
+        type=hikari.ComponentType.BUTTON,
+        label="ffddfsadsa",
+        emoji=mock.Mock(),
+        custom_id=None,
+        url="htgtppdsps",
+        is_disabled=mock.Mock(),
     )
-    mock_select_menu = typing.cast(
-        hikari.SelectMenuComponent, mock.Mock(options=[mock.Mock()], type=hikari.ComponentType.SELECT_MENU)
+    mock_select_menu = hikari.SelectMenuComponent(
+        custom_id="fdkldfkllkdfs",
+        placeholder="sdkjjkads",
+        min_values=1,
+        max_values=22,
+        is_disabled=mock.Mock(),
+        options=[mock.Mock()],
+        type=hikari.ComponentType.SELECT_MENU,
     )
     action_row = hikari.MessageActionRowComponent(
         components=[mock_interactive_button, mock_link_button, mock_select_menu], type=hikari.ComponentType.ACTION_ROW
@@ -415,8 +462,14 @@ class TestDummyContainer:
 
 
 def test_to_button_builder_for_link_button():
-    mock_button = typing.cast(
-        hikari.ButtonComponent, mock.Mock(custom_id=None, emoji=None, label=None, style=hikari.ButtonStyle.LINK)
+    mock_button = hikari.ButtonComponent(
+        custom_id=None,
+        type=hikari.ComponentType.BUTTON,
+        url="hpdfpsdpadsp",
+        is_disabled=mock.Mock(),
+        emoji=None,
+        label=None,
+        style=hikari.ButtonStyle.LINK,
     )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
@@ -430,13 +483,14 @@ def test_to_button_builder_for_link_button():
 
 
 def test_to_button_builder_for_link_button_when_all_fields_set():
-    mock_button = typing.cast(
-        hikari.ButtonComponent,
-        mock.Mock(
-            custom_id=None,
-            emoji=hikari.CustomEmoji(id=hikari.Snowflake(65234), name="kon'nichiwa", is_animated=True),
-            style=hikari.ButtonStyle.LINK,
-        ),
+    mock_button = hikari.ButtonComponent(
+        type=hikari.ComponentType.BUTTON,
+        label="gkflfgklfgklfgkl",
+        url="fdsaasddsa",
+        is_disabled=mock.Mock(),
+        custom_id=None,
+        emoji=hikari.CustomEmoji(id=hikari.Snowflake(65234), name="kon'nichiwa", is_animated=True),
+        style=hikari.ButtonStyle.LINK,
     )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
@@ -450,9 +504,14 @@ def test_to_button_builder_for_link_button_when_all_fields_set():
 
 
 def test_to_button_builder_for_link_button_when_emoji_is_custom():
-    mock_button = typing.cast(
-        hikari.ButtonComponent,
-        mock.Mock(custom_id=None, emoji=hikari.UnicodeEmoji("bin"), style=hikari.ButtonStyle.LINK),
+    mock_button = hikari.ButtonComponent(
+        type=hikari.ComponentType.BUTTON,
+        label="fdlkdflkfdl",
+        url="kfdkfdjfdkj",
+        is_disabled=mock.Mock(),
+        custom_id=None,
+        emoji=hikari.UnicodeEmoji("bin"),
+        style=hikari.ButtonStyle.LINK,
     )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
@@ -463,8 +522,16 @@ def test_to_button_builder_for_link_button_when_emoji_is_custom():
 
 
 @pytest.mark.parametrize("button_style", set(hikari.ButtonStyle).difference({hikari.ButtonStyle.LINK}))
-def test_to_button_builder_for_inactavtive_button(button_style: hikari.ButtonStyle):
-    mock_button = typing.cast(hikari.ButtonComponent, mock.Mock(emoji=None, label=None, style=button_style, url=None))
+def test_to_button_builder_for_interactive_button(button_style: hikari.ButtonStyle):
+    mock_button = hikari.ButtonComponent(
+        type=hikari.ComponentType.BUTTON,
+        custom_id="fdkdfkllksd",
+        is_disabled=mock.Mock(),
+        emoji=None,
+        label=None,
+        style=button_style,
+        url=None,
+    )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
 
@@ -477,14 +544,15 @@ def test_to_button_builder_for_inactavtive_button(button_style: hikari.ButtonSty
     assert "emoji" not in result.build()
 
 
-def test_to_button_builder_for_inactavtive_button_when_all_fields_set():
-    mock_button = typing.cast(
-        hikari.ButtonComponent,
-        mock.Mock(
-            emoji=hikari.CustomEmoji(id=hikari.Snowflake(123321), name="hi", is_animated=True),
-            style=hikari.ButtonStyle.PRIMARY,
-            url=None,
-        ),
+def test_to_button_builder_for_interactive_button_when_all_fields_set():
+    mock_button = hikari.ButtonComponent(
+        type=hikari.ComponentType.BUTTON,
+        custom_id="gklfgklfgkl",
+        label="gjgjjg",
+        is_disabled=mock.Mock(),
+        emoji=hikari.CustomEmoji(id=hikari.Snowflake(123321), name="hi", is_animated=True),
+        style=hikari.ButtonStyle.PRIMARY,
+        url=None,
     )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
@@ -498,15 +566,22 @@ def test_to_button_builder_for_inactavtive_button_when_all_fields_set():
     assert result.build()["emoji"] == {"id": "123321"}
 
 
-@pytest.mark.parametrize("emoji", ["hi", hikari.UnicodeEmoji("meow")])
-def test_to_button_builder_for_inactavtive_button_when_emoji_is_custom(emoji: str):
-    mock_button = typing.cast(hikari.ButtonComponent, mock.Mock(emoji=emoji, style=hikari.ButtonStyle.SECONDARY))
+def test_to_button_builder_for_interactive_button_when_emoji_is_custom():
+    mock_button = hikari.ButtonComponent(
+        type=hikari.ComponentType.BUTTON,
+        label="hohohoho",
+        url=None,
+        custom_id="kfdlkfdkfdkjl",
+        is_disabled=mock.Mock(),
+        emoji=hikari.UnicodeEmoji("meow"),
+        style=hikari.ButtonStyle.SECONDARY,
+    )
 
     result = yuyo.to_builder.to_button_builder(mock_button)
 
     assert isinstance(result, hikari.api.InteractiveButtonBuilder)
     assert result.emoji is mock_button.emoji
-    assert result.build()["emoji"] == {"name": emoji}
+    assert result.build()["emoji"] == {"name": "hi"}
 
 
 class TestSelectOptionBuilder:
@@ -633,9 +708,25 @@ class TestSelectOptionBuilder:
 
 
 def test_to_select_menu_builder():
-    mock_opt_1 = typing.cast(hikari.SelectMenuOption, mock.Mock())
-    mock_opt_2 = typing.cast(hikari.SelectMenuOption, mock.Mock(description=None))
-    mock_menu = typing.cast(hikari.SelectMenuComponent, mock.Mock(options=[mock_opt_1, mock_opt_2]))
+    mock_opt_1 = hikari.SelectMenuOption(
+        label="kfdkldfkldfs",
+        value="fdldkfjlkjfdsklj",
+        description="askldsdlkdas",
+        emoji=mock.Mock(),
+        is_default=mock.Mock(),
+    )
+    mock_opt_2 = hikari.SelectMenuOption(
+        label="kldfslksdlkds", value="fdkldfkldfslk", description=None, emoji=mock.Mock(), is_default=mock.Mock()
+    )
+    mock_menu = hikari.SelectMenuComponent(
+        type=hikari.ComponentType.SELECT_MENU,
+        custom_id="kdsfllkdslkslkda",
+        options=[mock_opt_1, mock_opt_2],
+        placeholder="fdkldls;ksld",
+        min_values=4,
+        max_values=22,
+        is_disabled=mock.Mock(),
+    )
 
     builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
 
