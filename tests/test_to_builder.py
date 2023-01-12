@@ -581,7 +581,7 @@ def test_to_button_builder_for_interactive_button_when_emoji_is_custom():
 
     assert isinstance(result, hikari.api.InteractiveButtonBuilder)
     assert result.emoji is mock_button.emoji
-    assert result.build()["emoji"] == {"name": "hi"}
+    assert result.build()["emoji"] == {"name": "meow"}
 
 
 class TestSelectOptionBuilder:
