@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   These support application commands and message components.
 
 ### Changed
-- Bumped minimum Hikari version to `v2.0.0.dev116`.
+- Bumped minimum Hikari version to `v2.0.0.dev114`.
 
 ## [1.5.0a1] - 2023-01-10
 ### Added
