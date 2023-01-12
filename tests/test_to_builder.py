@@ -29,6 +29,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# pyright: reportPrivateUsage=none
+
 import typing
 from unittest import mock
 
@@ -349,9 +351,67 @@ def test_to_context_menu_builder():
     assert result.name_localizations is not mock_cmd.name_localizations
 
 
-@pytest.mark.skip(reason="TODO")
 def test_to_msg_action_row_builder():
-    ...
+    mock_interactive_button = typing.cast(
+        hikari.ButtonComponent, mock.Mock(style=hikari.ButtonStyle.DANGER, type=hikari.ComponentType.BUTTON)
+    )
+    mock_link_button = typing.cast(
+        hikari.ButtonComponent, mock.Mock(style=hikari.ButtonStyle.LINK, type=hikari.ComponentType.BUTTON)
+    )
+    mock_select_menu = typing.cast(
+        hikari.SelectMenuComponent, mock.Mock(options=[mock.Mock()], type=hikari.ComponentType.SELECT_MENU)
+    )
+    action_row = hikari.MessageActionRowComponent(
+        components=[mock_interactive_button, mock_link_button, mock_select_menu], type=hikari.ComponentType.ACTION_ROW
+    )
+
+    builder = yuyo.to_builder.to_msg_action_row_builder(action_row)
+
+    assert len(builder.components) == 3
+    component = builder.components[0]
+    assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+    assert component.style is mock_interactive_button.style
+    assert component.emoji is mock_interactive_button.emoji
+    assert component.label is mock_interactive_button.label
+    assert component.is_disabled is mock_interactive_button.is_disabled
+    assert component.custom_id is mock_interactive_button.custom_id
+
+    component = builder.components[1]
+    assert isinstance(component, hikari.api.LinkButtonBuilder)
+    assert component.style is mock_link_button.style
+    assert component.emoji is mock_link_button.emoji
+    assert component.label is mock_link_button.label
+    assert component.is_disabled is mock_link_button.is_disabled
+    assert component.url is mock_link_button.url
+
+    component = builder.components[2]
+    assert isinstance(component, hikari.api.SelectMenuBuilder)
+    assert component.custom_id is mock_select_menu.custom_id
+    assert component.is_disabled is mock_select_menu.is_disabled
+    assert len(component.options) == 1
+    assert component.options[0].label is mock_select_menu.options[0].label
+    assert component.options[0].value is mock_select_menu.options[0].value
+    assert component.options[0].description is mock_select_menu.options[0].description
+    assert component.options[0].emoji is mock_select_menu.options[0].emoji
+    assert component.options[0].is_default is mock_select_menu.options[0].is_default
+    assert component.placeholder is mock_select_menu.placeholder
+    assert component.min_values is mock_select_menu.min_values
+    assert component.max_values is mock_select_menu.max_values
+
+
+def test_to_msg_action_row_builder_when_sub_type_unknown():
+    select_menu = mock.Mock(components=[mock.Mock(type=543123)])
+
+    with pytest.raises(NotImplementedError, match="543123"):
+        yuyo.to_builder.to_msg_action_row_builder(select_menu)
+
+
+class TestDummyContainer:
+    def test_add_component(self):
+        dummy = yuyo.to_builder._DummyContainer()
+
+        with pytest.raises(RuntimeError):
+            dummy.add_component(mock.Mock())
 
 
 def test_to_button_builder_for_link_button():
@@ -449,11 +509,160 @@ def test_to_button_builder_for_inactavtive_button_when_emoji_is_custom(emoji: st
     assert result.build()["emoji"] == {"name": emoji}
 
 
-@pytest.mark.skip(reason="TODO")
+class TestSelectOptionBuilder:
+    def test_set_description(self):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0]
+
+        result = builder.set_description("a meow description")
+
+        assert result is builder
+        assert builder.description == "a meow description"
+
+    def test_set_description_when_undefined(self):
+        builder = (
+            yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0].set_description("eep")
+        )
+
+        result = builder.set_description(hikari.UNDEFINED)
+
+        assert result is builder
+        assert builder.description is hikari.UNDEFINED
+
+    @pytest.mark.parametrize("emoji", ["hihi", hikari.UnicodeEmoji("eep")])
+    def test_set_emoji_when_unicode_emoji(self, emoji: str):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0]
+
+        builder.set_emoji(emoji)
+
+        assert builder.emoji is emoji
+        assert builder.build()["emoji"] == {"name": emoji}
+
+    @pytest.mark.parametrize(
+        ("emoji", "emoji_id"),
+        [
+            (hikari.CustomEmoji(id=hikari.Snowflake(4312123), name="h", is_animated=False), "4312123"),
+            (56431123, "56431123"),
+        ],
+    )
+    def test_set_emoji_when_custom_emoji(self, emoji: typing.Union[hikari.CustomEmoji, int], emoji_id: str):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0]
+
+        builder.set_emoji(emoji)
+
+        assert builder.emoji is emoji
+        assert builder.build()["emoji"] == {"id": emoji_id}
+
+    def test_set_emoji_when_undefined(self):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0].set_emoji("hi")
+
+        builder.set_emoji(hikari.UNDEFINED)
+
+        assert builder.emoji is hikari.UNDEFINED
+
+    def test_set_is_default(self):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0]
+
+        builder.set_is_default(True)
+
+        assert builder.is_default is True
+
+    def test_add_to_menu(self):
+        builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[mock.Mock()])).options[0]
+
+        with pytest.raises(NotImplementedError):
+            builder.add_to_menu()
+
+    def test_build(self):
+        builder = yuyo.to_builder.to_select_menu_builder(
+            mock.Mock(
+                options=[
+                    hikari.SelectMenuOption(label="meow", value="extra", description=None, emoji=None, is_default=False)
+                ]
+            )
+        ).options[0]
+
+        result = builder.build()
+
+        assert result["label"] == "meow"
+        assert result["value"] == "extra"
+        assert result["default"] is False
+        assert "description" not in result
+        assert "emoji" not in result
+
+    def test_build_with_all_fields(self):
+        builder = yuyo.to_builder.to_select_menu_builder(
+            mock.Mock(
+                options=[
+                    hikari.SelectMenuOption(
+                        label="nyaa",
+                        value="ners",
+                        description="meowy catgirl",
+                        emoji=hikari.UnicodeEmoji("x3 nuzzles"),
+                        is_default=True,
+                    )
+                ]
+            )
+        ).options[0]
+
+        result = builder.build()
+
+        assert result["label"] == "nyaa"
+        assert result["value"] == "ners"
+        assert result["default"] is True
+        assert result["description"] == "meowy catgirl"
+        assert result["emoji"] == {"name": "x3 nuzzles"}
+
+    def test_build_with_custom_emoji(self):
+        builder = yuyo.to_builder.to_select_menu_builder(
+            mock.Mock(
+                options=[
+                    hikari.SelectMenuOption(
+                        label="nyaa",
+                        value="ners",
+                        description=None,
+                        emoji=hikari.CustomEmoji(id=hikari.Snowflake(43123), name="e", is_animated=True),
+                        is_default=True,
+                    )
+                ]
+            )
+        ).options[0]
+
+        result = builder.build()
+
+        assert result["emoji"] == {"id": "43123"}
+
+
 def test_to_select_menu_builder():
-    ...
+    mock_opt_1 = typing.cast(hikari.SelectMenuOption, mock.Mock())
+    mock_opt_2 = typing.cast(hikari.SelectMenuOption, mock.Mock(description=None))
+    mock_menu = typing.cast(hikari.SelectMenuComponent, mock.Mock(options=[mock_opt_1, mock_opt_2]))
+
+    builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
+
+    assert builder.custom_id is mock_menu.custom_id
+    assert len(builder.options) == 2
+
+    opt = builder.options[0]
+    assert opt.label is mock_opt_1.label
+    assert opt.value is mock_opt_1.value
+    assert opt.description is mock_opt_1.description
+    assert opt.emoji is mock_opt_1.emoji
+    assert opt.is_default is mock_opt_1.is_default
+
+    opt = builder.options[1]
+    assert opt.label is mock_opt_2.label
+    assert opt.value is mock_opt_2.value
+    assert opt.description is hikari.UNDEFINED
+    assert opt.emoji is mock_opt_2.emoji
+    assert opt.is_default is mock_opt_2.is_default
+
+    assert builder.placeholder is mock_menu.placeholder
+    assert builder.min_values is mock_menu.min_values
+    assert builder.max_values is mock_menu.max_values
 
 
-@pytest.mark.skip(reason="TODO")
-def test_to_select_menu_builder_when_sub_type_unknown():
-    ...
+def test_to_select_menu_builder_when_placeholder_is_none():
+    builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(options=[], placeholder=None))
+
+    assert len(builder.options) == 0
+    assert builder.placeholder is hikari.UNDEFINED

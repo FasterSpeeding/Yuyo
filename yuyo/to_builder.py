@@ -243,15 +243,15 @@ def to_button_builder(
 class _SelectOptionBuilder(hikari.api.SelectOptionBuilder[typing.Any]):
     """Builder class for select menu options."""
 
-    __slots__ = ()
+    __slots__ = ("_label", "_value", "_description", "_is_default", "_emoji", "_emoji_id", "_emoji_name")
 
     _label: str
     _value: str
     _description: hikari.UndefinedOr[str]
     _is_default: bool
-    _emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED
-    _emoji_id: hikari.UndefinedOr[str] = hikari.UNDEFINED
-    _emoji_name: hikari.UndefinedOr[str] = hikari.UNDEFINED
+    _emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType]
+    _emoji_id: hikari.UndefinedOr[str]
+    _emoji_name: hikari.UndefinedOr[str]
 
     @property
     def label(self) -> str:
@@ -335,7 +335,10 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
             _value=opt.value,
             _description=opt.description if opt.description is not None else hikari.UNDEFINED,
             _is_default=opt.is_default,
-        )
+            _emoji=hikari.UNDEFINED,
+            _emoji_id=hikari.UNDEFINED,
+            _emoji_name=hikari.UNDEFINED,
+        ).set_emoji(opt.emoji or hikari.UNDEFINED)
         for opt in select_menu.options
     ]
 
@@ -351,7 +354,6 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
 
 
 _SUB_COMPONENTS: dict[hikari.ComponentType, collections.Callable[[typing.Any], hikari.api.ComponentBuilder]] = {
-    hikari.ComponentType.ACTION_ROW: to_msg_action_row_builder,
     hikari.ComponentType.BUTTON: to_button_builder,
     hikari.ComponentType.SELECT_MENU: to_select_menu_builder,
 }
@@ -365,6 +367,3 @@ def _to_sub_component(component: hikari.PartialComponent, /) -> hikari.api.Compo
         raise NotImplementedError(component.type) from None
 
     return builder(component)
-
-
-# TODO: to_message_builder and to_guild_builder
