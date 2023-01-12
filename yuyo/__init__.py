@@ -67,9 +67,11 @@ __all__: list[str] = [
     "pagination",
     "reactions",
     "sync_paginate_string",
+    "to_builder",
 ]
 
 from . import links
+from . import to_builder
 from .asgi import AsgiAdapter
 from .asgi import AsgiBot
 from .backoff import Backoff
