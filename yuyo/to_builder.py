@@ -322,7 +322,7 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
     Parameters
     ----------
     select_menu
-        The selectmenu to convert to a builder.
+        The select menu to convert to a builder.
 
     Returns
     -------
