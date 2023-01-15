@@ -127,7 +127,7 @@ async def async_paginate_string(
                 line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
             )
 
-            # If the last page could possible fit into a page with other lines then we add it to the next page
+            # If the last page could possibly fit into a page with other lines then we add it to the next page
             # to avoid sending small terraced pages.
             if len(sub_pages[-1]) < char_limit:
                 sub_line = sub_pages.pop(-1)
@@ -197,7 +197,7 @@ def sync_paginate_string(
                 line, width=char_limit, drop_whitespace=False, break_on_hyphens=False, expand_tabs=False
             )
 
-            # If the last page could possible fit into a page with other lines then we add it to the next page
+            # If the last page could possibly fit into a page with other lines then we add it to the next page
             # to avoid sending small terraced pages.
             if len(sub_pages[-1]) < char_limit:
                 sub_line = sub_pages.pop(-1)
