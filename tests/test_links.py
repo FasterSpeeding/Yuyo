@@ -66,6 +66,9 @@ _INVITE_LINKS = [
     ("https://www.discordapp.com/invite/afraid_something-will-change", "afraid_something-will-change"),
     ("https://www.discord.com/invite/Im_out-Of.patience", "Im_out-Of.patience"),
     ("https://discordapp.com/invite/My-body.Is_mine", "My-body.Is_mine"),
+    ("discordapp.com/invite/meowmeow", "meowmeow"),
+    ("discord.com/invite/konnichiwa", "konnichiwa"),
+    ("discord.gg/birdy", "birdy"),
 ]
 
 
@@ -221,7 +224,10 @@ class TestMessageLink:
         assert link.channel_id == 123
         assert link.message_id == 321
 
-    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    @pytest.mark.parametrize(
+        "string",
+        ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123", "discord.com/channels/341123/43213/43212"],
+    )
     def test_find_iter_when_none(self, string: str):
         assert list(yuyo.links.MessageLink.find_iter(mock.AsyncMock(), string)) == []
 
@@ -235,7 +241,9 @@ class TestMessageLink:
         assert message_link.channel_id == channel_id
         assert message_link.message_id == message_id
 
-    @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
+    @pytest.mark.parametrize(
+        "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.com/channels/341123/43213/43212"]
+    )
     def test_from_link_when_invalid_link(self, string: str):
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.MessageLink.from_link(mock.AsyncMock(), string)
@@ -408,7 +416,14 @@ class TestTemplateLink:
         link = links[1]
         assert link.code == "free-estrogen_for.all"
 
-    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    @pytest.mark.parametrize(
+        "string",
+        [
+            "lkdfoklfdspo32409324",
+            "https://discord.com/api/v9/users/o123123",
+            "discord.new/Turn-the_grey.haze-into_sky-blue",
+        ],
+    )
     def test_find_iter_when_none(self, string: str):
         assert list(yuyo.links.TemplateLink.find_iter(mock.AsyncMock(), string)) == []
 
@@ -420,7 +435,9 @@ class TestTemplateLink:
 
         assert template_link.code == template_code
 
-    @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
+    @pytest.mark.parametrize(
+        "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.new/Turn-the_grey.haze-into_sky-blue"]
+    )
     def test_from_link_when_invalid_link(self, string: str):
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.TemplateLink.from_link(mock.AsyncMock(), string)
@@ -513,7 +530,14 @@ class TestWebhookLink:
         assert link.webhook_id == 3123123
         assert link.token == "welcome-my.friend"  # noqa: S105
 
-    @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
+    @pytest.mark.parametrize(
+        "string",
+        [
+            "lkdfoklfdspo32409324",
+            "https://discord.com/api/v9/users/o123123",
+            "discord.com/api/v420/webhooks/65434/lie_lie-lie",
+        ],
+    )
     def test_find_iter_when_none(self, string: str):
         assert list(yuyo.links.WebhookLink.find_iter(mock.AsyncMock(), string)) == []
 
@@ -527,7 +551,9 @@ class TestWebhookLink:
         assert webhook.webhook_id == webhook_id
         assert webhook.token == token
 
-    @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
+    @pytest.mark.parametrize(
+        "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.com/api/v420/webhooks/65434/lie_lie-lie"]
+    )
     def test_from_link_when_invalid_link(self, string: str):
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.WebhookLink.from_link(mock.AsyncMock(), string)

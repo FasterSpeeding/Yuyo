@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Detect/allow invite links which aren't prefixed by `https://` or `https://www.` in
+  [InviteLink.find][yuyo.links.BaseLink.find],
+  [InviteLink.find_iter][yuyo.links.BaseLink.find_iter], and
+  [InviteLink.from_link][yuyo.links.BaseLink.from_link] to better match Discord's special invite
+  embedding logic.
+
 ## [1.6.0a1] - 2023-01-12
 ### Added
 - Helper functions for converting some Hikrai models to builder objects in [yuyo.to_builder][].
