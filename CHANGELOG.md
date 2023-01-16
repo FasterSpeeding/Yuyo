@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [InviteLink.find_iter][yuyo.links.BaseLink.find_iter], and
   [InviteLink.from_link][yuyo.links.BaseLink.from_link] to better match Discord's special invite
   embedding logic.
+- All link parsers now allow `http://` links.
 
 ## [1.6.0a1] - 2023-01-12
 ### Added

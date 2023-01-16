@@ -60,10 +60,10 @@ if typing.TYPE_CHECKING:
 # The logic which embeds invites is special and doesn't require
 # `https://(?:www\.)?` so we match this behaviour even though the client still
 # isn't actually treating it as a link.
-_INVITE_PATTERN = re.compile(r"(?:https://(?:www\.)?)?discord(?:\.gg|(?:app)?\.com/invite)/([^\s/]+)")
-_MESSAGE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
-_TEMPLATE_PATTERN = re.compile(r"https://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/([^\s/]+)")
-_WEBHOOK_PATTERN = re.compile(r"https://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([^\s/]+)")
+_INVITE_PATTERN = re.compile(r"(?:https?://(?:www\.)?)?discord(?:\.gg|(?:app)?\.com/invite)/([^\s/]+)")
+_MESSAGE_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
+_TEMPLATE_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/([^\s/]+)")
+_WEBHOOK_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([^\s/]+)")
 
 
 class BaseLink(abc.ABC):
