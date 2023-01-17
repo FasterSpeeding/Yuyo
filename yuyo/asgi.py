@@ -165,7 +165,7 @@ class AsgiAdapter:
 
     def add_shutdown_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+    ) -> Self:
         """Add a callback to be called when the ASGI server shuts down.
 
         !!! warning
@@ -176,12 +176,18 @@ class AsgiAdapter:
         ----------
         callback
             The shutdown callback to add.
+
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
         """
         self._on_shutdown.append(callback)
+        return self
 
     def remove_shutdown_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+    ) -> Self:
         """Remove a shutdown callback.
 
         Parameters
@@ -189,16 +195,22 @@ class AsgiAdapter:
         callback
             The shutdown callback to remove.
 
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
+
         Raises
         ------
         ValueError
             If the callback was not registered.
         """
         self._on_shutdown.remove(callback)
+        return self
 
     def add_startup_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+    ) -> Self:
         """Add a callback to be called when the ASGI server starts up.
 
         !!! warning
@@ -209,12 +221,18 @@ class AsgiAdapter:
         ----------
         callback
             The startup callback to add.
+
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
         """
         self._on_startup.append(callback)
+        return self
 
     def remove_startup_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+    ) -> Self:
         """Remove a startup callback.
 
         Parameters
@@ -222,12 +240,18 @@ class AsgiAdapter:
         callback
             The startup callback to remove.
 
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
+
         Raises
         ------
         ValueError
             If the callback was not registered.
         """
         self._on_startup.remove(callback)
+        return self
 
     async def _process_lifespan_event(
         self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
@@ -794,6 +818,7 @@ class AsgiBot(hikari.RESTBotAware):
             await callback(self)
 
         self._on_shutdown[callback] = shutdown_callback
+        self._adapter.add_shutdown_callback(shutdown_callback)
 
     def remove_shutdown_callback(
         self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -840,6 +865,7 @@ class AsgiBot(hikari.RESTBotAware):
             await callback(self)
 
         self._on_startup[callback] = startup_callback
+        self._adapter.add_startup_callback(startup_callback)
 
     def remove_startup_callback(
         self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
