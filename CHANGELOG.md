@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.6.1a1] - 2023-01-17
 ### Changed
 - Detect/allow invite links which aren't prefixed by `https://` or `https://www.` in
   [InviteLink.find][yuyo.links.BaseLink.find],
@@ -201,7 +202,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ComponentClient's gc task not being started when its opened.
 - Handling of access errors in the component client.
 - MultiComponentExecutor slots.
-
 ## [1.0.1a1] - 2021-09-21
 ### Added
 - Higher level component execution client and a pagination specific implementation of its
@@ -218,7 +218,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...HEAD
+[1.6.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...v1.6.1a1
 [1.6.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...v1.6.0a1
 [1.5.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...v1.5.0a1
 [1.4.0a1.post1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1...v1.4.0a1.post1
