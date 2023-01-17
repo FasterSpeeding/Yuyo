@@ -700,7 +700,7 @@ class AsgiBot(hikari.RESTBotAware):
         RuntimeError
             If an invalid scope event is passed.
         """
-        return await self.__call__(scope, receive, send)
+        return await self._adapter(scope, receive, send)
 
     def run(self) -> None:
         r"""Start the bot's REST client and wait until the bot's closed.

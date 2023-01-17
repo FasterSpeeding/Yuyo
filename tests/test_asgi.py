@@ -1153,6 +1153,20 @@ class TestAsgiBot:
             )
             assert bot.rest is mock_rest_client_impl.return_value
 
+    @pytest.mark.asyncio()
+    async def test_call_dunder_method(self):
+        mock_send = mock.AsyncMock()
+        mock_recv = mock.AsyncMock()
+        mock_scope = mock.Mock()
+        mock_adapter = mock.AsyncMock(yuyo.asgi.AsgiAdapter)
+
+        with mock.patch.object(yuyo.asgi, "AsgiAdapter", return_value=mock_adapter):
+            bot = yuyo.AsgiBot("token", "Bot")
+
+        await bot(mock_scope, mock_recv, mock_send)
+
+        mock_adapter.assert_awaited_once_with(mock_scope, mock_recv, mock_send)
+
     def test_run(self):
         stack = contextlib.ExitStack()
         mock_get_running_loop = stack.enter_context(mock.patch.object(asyncio, "get_running_loop"))
