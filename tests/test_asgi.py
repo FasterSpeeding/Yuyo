@@ -1356,6 +1356,7 @@ class TestAsgiBot:
 
         bot.add_shutdown_callback(mock_callback)
 
+        assert bot.on_shutdown == [mock_callback]
         assert len(bot._adapter.on_shutdown) == 2
         mock_callback.assert_not_called()
         await bot._adapter.on_shutdown[1]()
@@ -1369,6 +1370,7 @@ class TestAsgiBot:
         bot.add_shutdown_callback(mock_callback)
         bot.add_shutdown_callback(mock_callback)
 
+        assert bot.on_shutdown == [mock_callback]
         assert len(bot._adapter.on_shutdown) == 2
 
     @pytest.mark.asyncio()
@@ -1376,14 +1378,17 @@ class TestAsgiBot:
         mock_callback = mock.AsyncMock()
         bot = yuyo.AsgiBot("yeet", "Bot")
         bot.add_shutdown_callback(mock_callback)
+        assert bot.on_shutdown == [mock_callback]
         assert len(bot._adapter.on_shutdown) == 2
 
         bot.remove_shutdown_callback(mock_callback)
 
+        assert bot.on_shutdown == []
         assert len(bot._adapter.on_shutdown) == 1
 
         bot.add_shutdown_callback(mock_callback)
 
+        assert bot.on_shutdown == [mock_callback]
         assert len(bot._adapter.on_shutdown) == 2
 
     @pytest.mark.asyncio()
@@ -1393,6 +1398,7 @@ class TestAsgiBot:
 
         bot.remove_shutdown_callback(mock_callback)
 
+        assert bot.on_shutdown == []
         assert len(bot._adapter.on_shutdown) == 1
 
     @pytest.mark.asyncio()
@@ -1402,6 +1408,7 @@ class TestAsgiBot:
 
         bot.add_startup_callback(mock_callback)
 
+        assert bot.on_startup == [mock_callback]
         assert len(bot._adapter.on_startup) == 2
         mock_callback.assert_not_called()
         await bot._adapter.on_startup[1]()
@@ -1415,6 +1422,7 @@ class TestAsgiBot:
         bot.add_startup_callback(mock_callback)
         bot.add_startup_callback(mock_callback)
 
+        assert bot.on_startup == [mock_callback]
         assert len(bot._adapter.on_startup) == 2
 
     @pytest.mark.asyncio()
@@ -1422,14 +1430,17 @@ class TestAsgiBot:
         mock_callback = mock.AsyncMock()
         bot = yuyo.AsgiBot("yeet", "Bot")
         bot.add_startup_callback(mock_callback)
+        assert bot.on_startup == [mock_callback]
         assert len(bot._adapter.on_startup) == 2
 
         bot.remove_startup_callback(mock_callback)
 
+        assert bot.on_startup == []
         assert len(bot._adapter.on_startup) == 1
 
         bot.add_startup_callback(mock_callback)
 
+        assert bot.on_startup == [mock_callback]
         assert len(bot._adapter.on_startup) == 2
 
     @pytest.mark.asyncio()
@@ -1439,4 +1450,5 @@ class TestAsgiBot:
 
         bot.remove_startup_callback(mock_callback)
 
+        assert bot.on_startup == []
         assert len(bot._adapter.on_startup) == 1

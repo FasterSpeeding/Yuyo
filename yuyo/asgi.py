@@ -659,13 +659,13 @@ class AsgiBot(hikari.RESTBotAware):
     def on_shutdown(
         self,
     ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
-        return tuple(self._on_shutdown)
+        return list(self._on_shutdown)
 
     @property
     def on_startup(
         self,
     ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
-        return tuple(self._on_startup)
+        return list(self._on_startup)
 
     @property
     def proxy_settings(self) -> hikari_config.ProxySettings:
