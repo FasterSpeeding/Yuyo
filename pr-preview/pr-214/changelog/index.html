@@ -1521,6 +1521,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
+<li>Detect/allow invite links which aren't prefixed by <code>https://</code> or <code>https://www.</code> in
+  <a class="autorefs autorefs-internal" href="../reference/links/#yuyo.links.BaseLink.find">InviteLink.find</a>,
+  <a class="autorefs autorefs-internal" href="../reference/links/#yuyo.links.BaseLink.find_iter">InviteLink.find_iter</a>, and
+  <a class="autorefs autorefs-internal" href="../reference/links/#yuyo.links.BaseLink.from_link">InviteLink.from_link</a> to better match Discord's special invite
+  embedding logic.</li>
+<li>All link parsers now allow <code>http://</code> links.</li>
 <li>The startup and shutdown callbacks on <a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiAdapter">yuyo.asgi.AsgiAdapter</a> now take no arguments.
   This change does <strong>not</strong> effect the startup and shutdown callbacks on <a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiBot">yuyo.asgi.AsgiBot</a>.</li>
 </ul>
