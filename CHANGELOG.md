@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][].
 - [InteractiveButtonBuilder.\_\_init\_\_][yuyo.components.InteractiveButtonBuilder.__init__]'s
   args are now all positional only.
-- [SelectMenuBuilder.\_\_init\_\_][yuyo.components.SelectMenuBuilder.__init__]'sargs are now all
+- [SelectMenuBuilder.\_\_init\_\_][yuyo.components.SelectMenuBuilder.__init__]'s args are now all
   positional only.
 - `parent` is now positional only in
   [ChildActionRowExecutor.\_\_init\_\_][yuyo.components.ChildActionRowExecutor.__init__].
