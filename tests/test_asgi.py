@@ -130,7 +130,7 @@ class TestAsgiAdapter:
         )
 
     @pytest.mark.asyncio()
-    async def test___call___when_http(
+    async def test_call_dunder_method_when_http(
         self, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ) -> None:
         mock_process_request = mock.AsyncMock()
@@ -138,7 +138,7 @@ class TestAsgiAdapter:
         mock_send = mock.Mock()
 
         class StubAdapter(yuyo.AsgiAdapter):
-            process_request = mock_process_request
+            _process_request = mock_process_request
 
         stub_adapter = StubAdapter(stub_server)
 
@@ -147,7 +147,7 @@ class TestAsgiAdapter:
         mock_process_request.assert_awaited_once_with(http_scope, mock_receive, mock_send)
 
     @pytest.mark.asyncio()
-    async def test___call___when_lifespan(self, stub_server: hikari.api.InteractionServer):
+    async def test_call_dunder_method_when_lifespan(self, stub_server: hikari.api.InteractionServer):
         mock_process_lifespan_event = mock.AsyncMock()
         mock_receive = mock.Mock()
         mock_send = mock.Mock()
@@ -156,7 +156,7 @@ class TestAsgiAdapter:
         )
 
         class StubAdapter(yuyo.AsgiAdapter):
-            process_lifespan_event = mock_process_lifespan_event
+            _process_lifespan_event = mock_process_lifespan_event
 
         stub_adapter = StubAdapter(stub_server)
 
@@ -165,7 +165,7 @@ class TestAsgiAdapter:
         mock_process_lifespan_event.assert_awaited_once_with(mock_receive, mock_send)
 
     @pytest.mark.asyncio()
-    async def test___call___when_webhook(self, adapter: yuyo.AsgiAdapter):
+    async def test_call_dunder_method_when_webhook(self, adapter: yuyo.AsgiAdapter):
         with pytest.raises(NotImplementedError, match="Websocket operations are not supported"):
             await adapter(
                 asgiref.typing.WebSocketScope(
@@ -226,68 +226,68 @@ class TestAsgiAdapter:
         assert adapter.on_startup == [mock_other_callback]
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_startup(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_startup(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
         mock_send = mock.AsyncMock()
 
-        await adapter.process_lifespan_event(mock_receive, mock_send)
+        await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.startup.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_startup_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_startup_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
         mock_send = mock.AsyncMock()
         mock_startup_callback = mock.AsyncMock()
         adapter.add_startup_callback(mock_startup_callback)
 
-        await adapter.process_lifespan_event(mock_receive, mock_send)
+        await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_startup_callback.assert_awaited_once_with(adapter)
+        mock_startup_callback.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.startup.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_startup_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_startup_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.startup"})
         mock_send = mock.AsyncMock()
         mock_startup_callback = mock.AsyncMock(side_effect=Exception("test"))
         adapter.add_startup_callback(mock_startup_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
-            await adapter.process_lifespan_event(mock_receive, mock_send)
+            await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_startup_callback.assert_awaited_once_with(adapter)
+        mock_startup_callback.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.startup.failed", "message": format_exc.return_value})
         format_exc.assert_called_once_with()
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_shutdown(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_shutdown(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
         mock_send = mock.AsyncMock()
 
-        await adapter.process_lifespan_event(mock_receive, mock_send)
+        await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_shutdown_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_shutdown_with_callbacks(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
         mock_send = mock.AsyncMock()
         mock_shutdown_callback = mock.AsyncMock()
         adapter.add_shutdown_callback(mock_shutdown_callback)
 
-        await adapter.process_lifespan_event(mock_receive, mock_send)
+        await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_shutdown_callback.assert_awaited_once_with(adapter)
+        mock_shutdown_callback.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.complete"})
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_shutdown_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_shutdown_when_callback_fails(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.shutdown"})
         mock_send = mock.AsyncMock()
         mock_shutdown_callback = mock.AsyncMock()
@@ -296,27 +296,27 @@ class TestAsgiAdapter:
         adapter.add_shutdown_callback(mock_startup_callback)
 
         with mock.patch.object(traceback, "format_exc") as format_exc:
-            await adapter.process_lifespan_event(mock_receive, mock_send)
+            await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
-        mock_shutdown_callback.assert_awaited_once_with(adapter)
-        mock_startup_callback.assert_awaited_once_with(adapter)
+        mock_shutdown_callback.assert_awaited_once_with()
+        mock_startup_callback.assert_awaited_once_with()
         mock_send.assert_awaited_once_with({"type": "lifespan.shutdown.failed", "message": format_exc.return_value})
         format_exc.assert_called_once_with()
 
     @pytest.mark.asyncio()
-    async def test_process_lifespan_event_on_invalid_lifespan_type(self, adapter: yuyo.AsgiAdapter) -> None:
+    async def test__process_lifespan_event_on_invalid_lifespan_type(self, adapter: yuyo.AsgiAdapter) -> None:
         mock_receive = mock.AsyncMock(return_value={"type": "lifespan.idk"})
         mock_send = mock.AsyncMock()
 
         with pytest.raises(RuntimeError, match="Unknown lifespan event lifespan.idk"):
-            await adapter.process_lifespan_event(mock_receive, mock_send)
+            await adapter._process_lifespan_event(mock_receive, mock_send)
 
         mock_receive.assert_awaited_once_with()
         mock_send.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request(
+    async def test__process_request(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -340,7 +340,7 @@ class TestAsgiAdapter:
             "and the sea shall run white": "with his rage",
         }
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -370,7 +370,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_multipart_response(
+    async def test__process_request_when_multipart_response(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -400,7 +400,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.return_value.payload = b'{"ok": "no", "byebye": "boomer"}'
 
         with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
-            await adapter.process_request(http_scope, mock_receive, mock_send)
+            await adapter._process_request(http_scope, mock_receive, mock_send)
 
         patched_uuid4.assert_called_once_with()
         mock_send.assert_has_awaits(
@@ -464,7 +464,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_chunked_file(
+    async def test__process_request_when_chunked_file(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -498,7 +498,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.return_value.payload = b'{"ok": "no", "bye": "boom"}'
 
         with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
-            await adapter.process_request(http_scope, mock_receive, mock_send)
+            await adapter._process_request(http_scope, mock_receive, mock_send)
 
         patched_uuid4.assert_called_once_with()
         mock_send.assert_has_awaits(
@@ -564,7 +564,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_empty_file(
+    async def test__process_request_when_empty_file(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -594,7 +594,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.return_value.payload = b'{"ok": "yes", "yeet the": "boomer"}'
 
         with mock.patch.object(uuid, "uuid4", return_value=boundary_uuid) as patched_uuid4:
-            await adapter.process_request(http_scope, mock_receive, mock_send)
+            await adapter._process_request(http_scope, mock_receive, mock_send)
 
         patched_uuid4.assert_called_once_with()
         mock_send.assert_has_awaits(
@@ -657,7 +657,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_awaited_once_with(bytearray(b"catgirls"), b"nyaa", b"321123")
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_not_post(
+    async def test__process_request_when_not_post(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["method"] = "GET"
@@ -666,7 +666,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -686,7 +686,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_not_base_route(
+    async def test__process_request_when_not_base_route(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["method"] = "POST"
@@ -695,7 +695,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -715,14 +715,14 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_no_body(
+    async def test__process_request_when_no_body(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         mock_receive = mock.AsyncMock(return_value={"body": b"", "more_body": False})
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -742,14 +742,14 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_no_body_and_receive_empty(
+    async def test__process_request_when_no_body_and_receive_empty(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         mock_receive = mock.AsyncMock(return_value={})
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -769,7 +769,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_no_content_type(
+    async def test__process_request_when_no_content_type(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = []
@@ -777,7 +777,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -799,7 +799,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_not_json_content_type(
+    async def test__process_request_when_not_json_content_type(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [(b"Content-Type", b"NOT JSON")]
@@ -807,7 +807,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -829,7 +829,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_missing_timestamp_header(
+    async def test__process_request_when_missing_timestamp_header(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [(b"Content-Type", b"application/json"), (b"x-signature-ed25519", b"676179")]
@@ -837,7 +837,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -863,7 +863,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_missing_ed25519_header(
+    async def test__process_request_when_missing_ed25519_header(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [(b"Content-Type", b"application/json"), (b"x-signature-timestamp", b"87")]
@@ -871,7 +871,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -898,7 +898,7 @@ class TestAsgiAdapter:
 
     @pytest.mark.parametrize("header_value", ["🇯🇵".encode(), b"trans"])
     @pytest.mark.asyncio()
-    async def test_process_request_when_ed_25519_header_not_valid(
+    async def test__process_request_when_ed_25519_header_not_valid(
         self,
         adapter: yuyo.AsgiAdapter,
         stub_server: hikari.api.InteractionServer,
@@ -914,7 +914,7 @@ class TestAsgiAdapter:
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -940,7 +940,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_on_interaction_raises(
+    async def test__process_request_when_on_interaction_raises(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -957,7 +957,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.side_effect = stub_error
 
         with pytest.raises(Exception, match=".*") as exc_info:
-            await adapter.process_request(http_scope, mock_receive, mock_send)
+            await adapter._process_request(http_scope, mock_receive, mock_send)
 
         assert exc_info.value is stub_error
         mock_send.assert_has_awaits(
@@ -977,7 +977,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_awaited_once_with(b"transive", b"trans", b"653245")
 
     @pytest.mark.asyncio()
-    async def test_process_request_when_no_response_headers_or_body(
+    async def test__process_request_when_no_response_headers_or_body(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
         http_scope["headers"] = [
@@ -997,7 +997,7 @@ class TestAsgiAdapter:
         stub_server.on_interaction.return_value.payload = None
         stub_server.on_interaction.return_value.headers = None
 
-        await adapter.process_request(http_scope, mock_receive, mock_send)
+        await adapter._process_request(http_scope, mock_receive, mock_send)
 
         mock_send.assert_has_awaits(
             [
@@ -1018,38 +1018,24 @@ class TestAsgiAdapter:
 
 class TestAsgiBot:
     def test___init___when_asgi_managed(self) -> None:
-        mock_add_startup_callback = mock.Mock()
-        mock_add_shutdown_callback = mock.Mock()
-
-        class StubBot(yuyo.AsgiBot):
-            add_startup_callback = mock_add_startup_callback
-            add_shutdown_callback = mock_add_shutdown_callback
-
         with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
-            bot = StubBot("token", "Bot")
+            bot = yuyo.AsgiBot("token", "Bot")
 
             assert bot.entity_factory is mock_entity_factory_impl.return_value
             mock_entity_factory_impl.assert_called_once_with(bot)
 
-            mock_add_startup_callback.assert_called_once_with(bot._start)
-            mock_add_shutdown_callback.assert_called_once_with(bot._close)
+            assert bot._start in bot._adapter.on_startup
+            assert bot._close in bot._adapter.on_shutdown
 
     def test___init___when_not_asgi_managed(self) -> None:
-        mock_add_startup_callback = mock.Mock()
-        mock_add_shutdown_callback = mock.Mock()
-
-        class StubBot(yuyo.AsgiBot):
-            add_startup_callback = mock_add_startup_callback
-            add_shutdown_callback = mock_add_shutdown_callback
-
         with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
-            bot = StubBot("token", "Bot", asgi_managed=False)
+            bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
 
             assert bot.entity_factory is mock_entity_factory_impl.return_value
             mock_entity_factory_impl.assert_called_once_with(bot)
 
-            mock_add_startup_callback.assert_not_called()
-            mock_add_shutdown_callback.assert_not_called()
+            assert bot._start not in bot._adapter.on_startup
+            assert bot._close not in bot._adapter.on_shutdown
 
     def test_entity_factory_property(self):
         with mock.patch.object(hikari.impl, "EntityFactoryImpl") as mock_entity_factory_impl:
@@ -1166,6 +1152,22 @@ class TestAsgiBot:
                 max_retries=3,
             )
             assert bot.rest is mock_rest_client_impl.return_value
+
+    @pytest.mark.asyncio()
+    async def test_call_dunder_method(self):
+        mock_send = mock.AsyncMock()
+        mock_recv = mock.AsyncMock()
+        mock_scope = mock.Mock()
+        # I'd rather just use spec here but that doesn't work cause of
+        # https://github.com/python/cpython/issues/71902
+        mock_adapter = mock.AsyncMock(add_shutdown_callback=mock.Mock(), add_startup_callback=mock.Mock())
+
+        with mock.patch.object(yuyo.asgi, "AsgiAdapter", return_value=mock_adapter):
+            bot = yuyo.AsgiBot("token", "Bot")
+
+        await bot(mock_scope, mock_recv, mock_send)
+
+        mock_adapter.assert_awaited_once_with(mock_scope, mock_recv, mock_send)
 
     def test_run(self):
         stack = contextlib.ExitStack()
@@ -1346,3 +1348,107 @@ class TestAsgiBot:
 
         with pytest.raises(RuntimeError, match="The client is not running"):
             await bot.join()
+
+    @pytest.mark.asyncio()
+    async def test_add_shutdown_callback(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.add_shutdown_callback(mock_callback)
+
+        assert bot.on_shutdown == [mock_callback]
+        assert len(bot._adapter.on_shutdown) == 2
+        mock_callback.assert_not_called()
+        await bot._adapter.on_shutdown[1]()
+        mock_callback.assert_awaited_once_with(bot)
+
+    @pytest.mark.asyncio()
+    async def test_add_shutdown_callback_when_callback_already_registered(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.add_shutdown_callback(mock_callback)
+        bot.add_shutdown_callback(mock_callback)
+
+        assert bot.on_shutdown == [mock_callback]
+        assert len(bot._adapter.on_shutdown) == 2
+
+    @pytest.mark.asyncio()
+    async def test_remove_shutdown_callback(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+        bot.add_shutdown_callback(mock_callback)
+        assert bot.on_shutdown == [mock_callback]
+        assert len(bot._adapter.on_shutdown) == 2
+
+        bot.remove_shutdown_callback(mock_callback)
+
+        assert bot.on_shutdown == []
+        assert len(bot._adapter.on_shutdown) == 1
+
+        bot.add_shutdown_callback(mock_callback)
+
+        assert bot.on_shutdown == [mock_callback]
+        assert len(bot._adapter.on_shutdown) == 2
+
+    @pytest.mark.asyncio()
+    async def test_remove_shutdown_callback_when_callback_not_registered(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.remove_shutdown_callback(mock_callback)
+
+        assert bot.on_shutdown == []
+        assert len(bot._adapter.on_shutdown) == 1
+
+    @pytest.mark.asyncio()
+    async def test_add_startup_callback(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.add_startup_callback(mock_callback)
+
+        assert bot.on_startup == [mock_callback]
+        assert len(bot._adapter.on_startup) == 2
+        mock_callback.assert_not_called()
+        await bot._adapter.on_startup[1]()
+        mock_callback.assert_awaited_once_with(bot)
+
+    @pytest.mark.asyncio()
+    async def test_add_startup_callback_when_callback_already_registered(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.add_startup_callback(mock_callback)
+        bot.add_startup_callback(mock_callback)
+
+        assert bot.on_startup == [mock_callback]
+        assert len(bot._adapter.on_startup) == 2
+
+    @pytest.mark.asyncio()
+    async def test_remove_startup_callback(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+        bot.add_startup_callback(mock_callback)
+        assert bot.on_startup == [mock_callback]
+        assert len(bot._adapter.on_startup) == 2
+
+        bot.remove_startup_callback(mock_callback)
+
+        assert bot.on_startup == []
+        assert len(bot._adapter.on_startup) == 1
+
+        bot.add_startup_callback(mock_callback)
+
+        assert bot.on_startup == [mock_callback]
+        assert len(bot._adapter.on_startup) == 2
+
+    @pytest.mark.asyncio()
+    async def test_remove_startup_callback_when_callback_not_registered(self):
+        mock_callback = mock.AsyncMock()
+        bot = yuyo.AsgiBot("yeet", "Bot")
+
+        bot.remove_startup_callback(mock_callback)
+
+        assert bot.on_startup == []
+        assert len(bot._adapter.on_startup) == 1

@@ -109,20 +109,20 @@ class AsgiAdapter:
             on using ProcessPoolExecutor implementations with this parameter.
         """
         self._executor = executor
-        self._on_shutdown: list[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]] = []
-        self._on_startup: list[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_shutdown: list[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]] = []
+        self._on_startup: list[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]] = []
         self._server = server
 
     @property
     def on_shutdown(
         self,
-    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
+    ) -> collections.Sequence[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_shutdown
 
     @property
     def on_startup(
         self,
-    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
+    ) -> collections.Sequence[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]]:
         return self._on_startup
 
     @property
@@ -155,17 +155,17 @@ class AsgiAdapter:
             If an invalid scope event is passed.
         """
         if scope["type"] == "http":
-            await self.process_request(scope, receive, send)
+            await self._process_request(scope, receive, send)
 
         elif scope["type"] == "lifespan":
-            await self.process_lifespan_event(receive, send)
+            await self._process_lifespan_event(receive, send)
 
         else:
             raise NotImplementedError("Websocket operations are not supported")
 
     def add_shutdown_callback(
-        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+        self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> Self:
         """Add a callback to be called when the ASGI server shuts down.
 
         !!! warning
@@ -176,12 +176,18 @@ class AsgiAdapter:
         ----------
         callback
             The shutdown callback to add.
+
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
         """
         self._on_shutdown.append(callback)
+        return self
 
     def remove_shutdown_callback(
-        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+        self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> Self:
         """Remove a shutdown callback.
 
         Parameters
@@ -189,16 +195,22 @@ class AsgiAdapter:
         callback
             The shutdown callback to remove.
 
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
+
         Raises
         ------
         ValueError
             If the callback was not registered.
         """
         self._on_shutdown.remove(callback)
+        return self
 
     def add_startup_callback(
-        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+        self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> Self:
         """Add a callback to be called when the ASGI server starts up.
 
         !!! warning
@@ -209,12 +221,18 @@ class AsgiAdapter:
         ----------
         callback
             The startup callback to add.
+
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
         """
         self._on_startup.append(callback)
+        return self
 
     def remove_startup_callback(
-        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
-    ) -> None:
+        self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> Self:
         """Remove a startup callback.
 
         Parameters
@@ -222,14 +240,20 @@ class AsgiAdapter:
         callback
             The startup callback to remove.
 
+        Returns
+        -------
+        Self
+            The adapter to enable chained calls.
+
         Raises
         ------
         ValueError
             If the callback was not registered.
         """
         self._on_startup.remove(callback)
+        return self
 
-    async def process_lifespan_event(
+    async def _process_lifespan_event(
         self, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
         """Process a lifespan ASGI event.
@@ -254,7 +278,7 @@ class AsgiAdapter:
 
         if message_type == "lifespan.startup":
             try:
-                await asyncio.gather(*(callback(self) for callback in self._on_startup))
+                await asyncio.gather(*(callback() for callback in self._on_startup))
 
             except BaseException:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
@@ -264,7 +288,7 @@ class AsgiAdapter:
 
         elif message_type == "lifespan.shutdown":
             try:
-                await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
+                await asyncio.gather(*(callback() for callback in self._on_shutdown))
 
             except BaseException:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
@@ -275,7 +299,7 @@ class AsgiAdapter:
         else:
             raise RuntimeError(f"Unknown lifespan event {message_type}")
 
-    async def process_request(
+    async def _process_request(
         self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
         """Process an HTTP request.
@@ -427,8 +451,7 @@ def _find_headers(
     return content_type, signature, timestamp
 
 
-# pyright seemingly gets the type var equality wrong here
-class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportIncompatibleMethodOverride ]
+class AsgiBot(hikari.RESTBotAware):
     """Bot implementation which acts as an ASGI adapter.
 
     This bot doesn't initiate a server internally but instead
@@ -439,11 +462,15 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
     """
 
     __slots__: collections.Sequence[str] = (
+        "_adapter",
         "_entity_factory",
+        "_executor",
         "_http_settings",
         "_is_alive",
         "_is_asgi_managed",
         "_join_event",
+        "_on_shutdown",
+        "_on_startup",
         "_proxy_settings",
         "_rest",
     )
@@ -572,9 +599,18 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
             public_key = bytes.fromhex(public_key)
 
         self._entity_factory = hikari.impl.EntityFactoryImpl(self)
+        self._executor = executor
         self._http_settings = http_settings or hikari.impl.HTTPSettings()
         self._is_alive = False
         self._join_event: typing.Optional[asyncio.Event] = None
+        self._on_shutdown: dict[
+            collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
+            collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
+        ] = {}
+        self._on_startup: dict[
+            collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
+            collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
+        ] = {}
         self._proxy_settings = proxy_settings or hikari.impl.ProxySettings()
         self._rest = hikari.impl.RESTClientImpl(
             cache=None,
@@ -588,17 +624,16 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
             token_type=token_type,
             max_retries=max_retries,
         )
-        super().__init__(
+        self._adapter = AsgiAdapter(
             hikari.impl.InteractionServer(
                 entity_factory=self._entity_factory, rest_client=self._rest, public_key=public_key
-            ),
-            executor=executor,
+            )
         )
 
         self._is_asgi_managed = asgi_managed
         if asgi_managed:
-            self.add_startup_callback(self._start)
-            self.add_shutdown_callback(self._close)
+            self._adapter.add_startup_callback(self._start)
+            self._adapter.add_shutdown_callback(self._close)
 
     @property
     def entity_factory(self) -> hikari.api.EntityFactory:
@@ -614,11 +649,23 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
 
     @property
     def interaction_server(self) -> hikari.api.InteractionServer:
-        return self.server
+        return self._adapter.server
 
     @property
     def is_alive(self) -> bool:
         return self._is_alive
+
+    @property
+    def on_shutdown(
+        self,
+    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
+        return list(self._on_shutdown)
+
+    @property
+    def on_startup(
+        self,
+    ) -> collections.Sequence[collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]]]:
+        return list(self._on_startup)
 
     @property
     def proxy_settings(self) -> hikari_config.ProxySettings:
@@ -628,14 +675,41 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
     def rest(self) -> hikari.api.RESTClient:
         return self._rest
 
+    async def __call__(
+        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+    ) -> None:
+        """Call the bot with an ASGI event.
+
+        !!! note
+            This method is called by the ASGI server and allows the bot to
+            function like [AsgiAdapter][yuyo.asgi.AsgiAdapter].
+
+        Parameters
+        ----------
+        scope
+            The scope of the request.
+        receive
+            The receive function to use.
+        send
+            The send function to use.
+
+        Raises
+        ------
+        NotImplementedError
+            If this is called with a websocket scope.
+        RuntimeError
+            If an invalid scope event is passed.
+        """
+        return await self._adapter(scope, receive, send)
+
     def run(self) -> None:
-        """Start the bot's REST client and wait until the bot's closed.
+        r"""Start the bot's REST client and wait until the bot's closed.
 
         !!! warning
-            Unless `asgi_managed=False` is passed to [yuyo.asgi.AsgiBot.__init__][],
-            the bot will be automatically started and closed based on the ASGI
-            lifespan events and any other calls to this function will raise a
-            [RuntimeError][].
+            Unless `asgi_managed=False` is passed to
+            [AsgiBot.\_\_init\_\_][yuyo.asgi.AsgiBot.__init__], the bot will be
+            automatically started and closed based on the ASGI lifespan events
+            and any other calls to this function will raise a [RuntimeError][].
 
         Raises
         ------
@@ -659,19 +733,19 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
         loop.run_until_complete(self.start())
         loop.run_until_complete(self.join())
 
-    async def _start(self, _: Self) -> None:
+    async def _start(self) -> None:
         self._join_event = asyncio.Event()
         self._is_alive = True
         self._rest.start()
 
     async def start(self) -> None:
-        """Start the bot's REST client.
+        r"""Start the bot's REST client.
 
         !!! warning
-            Unless `asgi_managed=False` is passed to [yuyo.asgi.AsgiBot.__init__][],
-            the bot will be automatically started based on the ASGI
-            lifespan events and any other calls to this function will
-            raise a [RuntimeError][].
+            Unless `asgi_managed=False` is passed to
+            [AsgiBot.\_\_init\_\_][yuyo.asgi.AsgiBot.__init__], the bot will be
+            automatically started based on the ASGI lifespan events and any
+            other calls to this function will raise a [RuntimeError][].
 
         Raises
         ------
@@ -685,9 +759,9 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
-        await self._start(self)
+        await self._start()
 
-    async def _close(self, _: Self) -> None:
+    async def _close(self) -> None:
         assert self._join_event is not None
         self._is_alive = False
         await self._rest.close()
@@ -715,10 +789,104 @@ class AsgiBot(AsgiAdapter, hikari.RESTBotAware):  # pyright: ignore [ reportInco
         if not self._is_alive or not self._join_event:
             raise RuntimeError("The client is not running")
 
-        await self._close(self)
+        await self._close()
 
     async def join(self) -> None:
         if self._join_event is None:
             raise RuntimeError("The client is not running")
 
         await self._join_event.wait()
+
+    def add_shutdown_callback(
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Add a callback to be called when the bot shuts down.
+
+        !!! warning
+            These callbacks will block the bot from shutting down until
+            they complete and any raised errors will lead to a failed shutdown.
+
+        Parameters
+        ----------
+        callback
+            The shutdown callback to add.
+        """
+        if callback in self._on_shutdown:
+            return
+
+        async def shutdown_callback() -> None:
+            await callback(self)
+
+        self._on_shutdown[callback] = shutdown_callback
+        self._adapter.add_shutdown_callback(shutdown_callback)
+
+    def remove_shutdown_callback(
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a shutdown callback.
+
+        Parameters
+        ----------
+        callback
+            The shutdown callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        try:
+            registered_callback = self._on_shutdown.pop(callback)
+
+        except KeyError:
+            pass
+
+        else:
+            self._adapter.remove_shutdown_callback(registered_callback)
+
+    def add_startup_callback(
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Add a callback to be called when the bot starts up.
+
+        !!! warning
+            These callbacks will block the bot from starting until they
+            complete and any raised errors will lead to a failed startup.
+
+        Parameters
+        ----------
+        callback
+            The startup callback to add.
+        """
+        if callback in self._on_startup:
+            return
+
+        async def startup_callback() -> None:
+            await callback(self)
+
+        self._on_startup[callback] = startup_callback
+        self._adapter.add_startup_callback(startup_callback)
+
+    def remove_startup_callback(
+        self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
+    ) -> None:
+        """Remove a startup callback.
+
+        Parameters
+        ----------
+        callback
+            The startup callback to remove.
+
+        Raises
+        ------
+        ValueError
+            If the callback was not registered.
+        """
+        try:
+            registered_callback = self._on_startup.pop(callback)
+
+        except KeyError:
+            pass
+
+        else:
+            self._adapter.remove_startup_callback(registered_callback)

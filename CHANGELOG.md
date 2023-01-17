@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [InviteLink.from_link][yuyo.links.BaseLink.from_link] to better match Discord's special invite
   embedding logic.
 - All link parsers now allow `http://` links.
+- The startup and shutdown callbacks on [yuyo.asgi.AsgiAdapter][] now take no arguments.
+  This change does **not** effect startup and shutdown callbacks on [yuyo.asgi.AsgiBot][].
+
+### Removed
+- The `process_lifespan_event` and `process_request` methods from [yuyo.asgi.AsgiAdapter][].
+- [yuyo.asgi.AsgiBot][] no-longer inherits from [yuyo.asgi.AsgiAdapter][] directly but still
+  functions as one.
 
 ## [1.6.0a1] - 2023-01-12
 ### Added
@@ -30,8 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0a1.post1] - 2022-11-20
 ### Changed
-- [CacheStrategy.__init__][yuyo.list_status.CacheStrategy.__init__] now takes two arguments
-  `(hikari.api.Cache, hikari.ShardAware)`.
+- [CacheStrategy.\_\_init\_\_][yuyo.list_status.CacheStrategy.__init__] now
+  takes two arguments `(hikari.api.Cache, hikari.ShardAware)`.
 
 ### Fixed
 - [yuyo.list_status.DiscordBotListService][]'s logging when declaring per-shard stats.

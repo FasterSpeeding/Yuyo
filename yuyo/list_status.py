@@ -220,11 +220,11 @@ class SakeStrategy(AbstractCountStrategy):
     __slots__ = ("_cache", "_is_shard_bound")
 
     def __init__(self, cache: sake.abc.GuildCache, /) -> None:
-        """Initialise a Sake strategy.
+        r"""Initialise a Sake strategy.
 
         Unlike [CacheStrategy][yuyo.list_status.CacheStrategy] and
         [EventStrategy][yuyo.list_status.EventStrategy] this strategy must be
-        directly initialised and passed to [ServiceManager.__init__][yuyo.list_status.ServiceManager]
+        directly initialised and passed to [ServiceManager.\_\_init\_\_][yuyo.list_status.ServiceManager]
         as `strategy=`.
 
         Parameters
