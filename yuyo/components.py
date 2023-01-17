@@ -523,8 +523,6 @@ class ComponentContext:
             embeds, content = _to_list(embed, embeds, content, hikari.Embed, "embed")
 
             content = str(content) if content is not hikari.UNDEFINED else hikari.UNDEFINED
-            # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
-            # pre-fix in init.
             result = hikari.impl.InteractionMessageBuilder(
                 response_type,
                 content,
