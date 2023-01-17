@@ -130,7 +130,7 @@ class TestAsgiAdapter:
         )
 
     @pytest.mark.asyncio()
-    async def test___call___when_http(
+    async def test_call_dunder_method_when_http(
         self, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ) -> None:
         mock_process_request = mock.AsyncMock()
@@ -147,7 +147,7 @@ class TestAsgiAdapter:
         mock_process_request.assert_awaited_once_with(http_scope, mock_receive, mock_send)
 
     @pytest.mark.asyncio()
-    async def test___call___when_lifespan(self, stub_server: hikari.api.InteractionServer):
+    async def test_call_dunder_method_when_lifespan(self, stub_server: hikari.api.InteractionServer):
         mock_process_lifespan_event = mock.AsyncMock()
         mock_receive = mock.Mock()
         mock_send = mock.Mock()
@@ -165,7 +165,7 @@ class TestAsgiAdapter:
         mock_process_lifespan_event.assert_awaited_once_with(mock_receive, mock_send)
 
     @pytest.mark.asyncio()
-    async def test___call___when_webhook(self, adapter: yuyo.AsgiAdapter):
+    async def test_call_dunder_method_when_webhook(self, adapter: yuyo.AsgiAdapter):
         with pytest.raises(NotImplementedError, match="Websocket operations are not supported"):
             await adapter(
                 asgiref.typing.WebSocketScope(
@@ -1158,7 +1158,9 @@ class TestAsgiBot:
         mock_send = mock.AsyncMock()
         mock_recv = mock.AsyncMock()
         mock_scope = mock.Mock()
-        mock_adapter = mock.AsyncMock(yuyo.asgi.AsgiAdapter)
+        # I'd rather just use spec here but that doesn't work cause of
+        # https://github.com/python/cpython/issues/71902
+        mock_adapter = mock.AsyncMock(add_shutdown_callback=mock.Mock(), add_startup_callback=mock.Mock())
 
         with mock.patch.object(yuyo.asgi, "AsgiAdapter", return_value=mock_adapter):
             bot = yuyo.AsgiBot("token", "Bot")

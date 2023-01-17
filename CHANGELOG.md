@@ -12,8 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [InviteLink.from_link][yuyo.links.BaseLink.from_link] to better match Discord's special invite
   embedding logic.
 - All link parsers now allow `http://` links.
-- The startup and shutdown callbacks on [yuyo.asgi.AsgiAdapter][] now take no arguments.
-  This change does **not** effect the startup and shutdown callbacks on [yuyo.asgi.AsgiBot][].
+- The startup and shutdown callbacks on [yuyo.asgi.AsgiAdapter][] now take no arguments and return
+  Self. This change does **not** effect the startup and shutdown callbacks on
+  [yuyo.asgi.AsgiBot][].
 
 ### Removed
 - The `process_lifespan_event` and `process_request` methods from [yuyo.asgi.AsgiAdapter][].
