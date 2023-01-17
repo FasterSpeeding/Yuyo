@@ -423,20 +423,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.asgi.AsgiAdapter.process_lifespan_event" class="md-nav__link">
-    process_lifespan_event()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.asgi.AsgiAdapter.process_request" class="md-nav__link">
-    process_request()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiAdapter.remove_shutdown_callback" class="md-nav__link">
     remove_shutdown_callback()
   </a>
@@ -464,6 +450,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiBot.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -471,8 +464,36 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.add_shutdown_callback" class="md-nav__link">
+    add_shutdown_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.add_startup_callback" class="md-nav__link">
+    add_startup_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiBot.close" class="md-nav__link">
     close()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.remove_shutdown_callback" class="md-nav__link">
+    remove_shutdown_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.remove_startup_callback" class="md-nav__link">
+    remove_startup_callback()
   </a>
   
 </li>
@@ -700,20 +721,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.asgi.AsgiAdapter.process_lifespan_event" class="md-nav__link">
-    process_lifespan_event()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.asgi.AsgiAdapter.process_request" class="md-nav__link">
-    process_request()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiAdapter.remove_shutdown_callback" class="md-nav__link">
     remove_shutdown_callback()
   </a>
@@ -741,6 +748,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiBot.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -748,8 +762,36 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.add_shutdown_callback" class="md-nav__link">
+    add_shutdown_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.add_startup_callback" class="md-nav__link">
+    add_startup_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.asgi.AsgiBot.close" class="md-nav__link">
     close()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.remove_shutdown_callback" class="md-nav__link">
+    remove_shutdown_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.asgi.AsgiBot.remove_startup_callback" class="md-nav__link">
+    remove_startup_callback()
   </a>
   
 </li>
@@ -1075,9 +1117,30 @@ they complete and any raised errors will lead to a failed shutdown.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
                 </span>
             </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The adapter to enable chained calls.</p>
           </td>
         </tr>
     </tbody>
@@ -1123,70 +1186,7 @@ they complete and any raised errors will lead to a failed startup.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="yuyo.asgi.AsgiAdapter.process_lifespan_event" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">process_lifespan_event</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#yuyo.asgi.AsgiAdapter.process_lifespan_event" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">process_lifespan_event</span><span class="p">(</span><span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Process a lifespan ASGI event.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function is used internally by the adapter.</p>
-</div>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>receive</code></td>
-          <td class="doc-param-details">
-            <p>The receive function to use.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGIReceiveCallable">ASGIReceiveCallable</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>send</code></td>
-          <td class="doc-param-details">
-            <p>The send function to use.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGISendCallable">ASGISendCallable</span></code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
                 </span>
             </p>
           </td>
@@ -1197,94 +1197,19 @@ they complete and any raised errors will lead to a failed startup.</p>
   <table>
     <thead>
       <tr>
-        <th><b>RAISES</b></th>
+        <th><b>RETURNS</b></th>
         <th><b>DESCRIPTION</b></th>
       </tr>
     </thead>
     <tbody>
         <tr>
           <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
-            </span>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
           </td>
-          <td class="doc-raises-details">
-            <p>If an invalid lifespan event is passed.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="yuyo.asgi.AsgiAdapter.process_request" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">process_request</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
-  </span>
-
-<a href="#yuyo.asgi.AsgiAdapter.process_request" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">process_request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Process an HTTP request.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function is used internally by the adapter.</p>
-</div>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>scope</code></td>
-          <td class="doc-param-details">
-            <p>The scope of the request.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.HTTPScope">HTTPScope</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>receive</code></td>
-          <td class="doc-param-details">
-            <p>The receive function to use.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGIReceiveCallable">ASGIReceiveCallable</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>send</code></td>
-          <td class="doc-param-details">
-            <p>The send function to use.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGISendCallable">ASGISendCallable</span></code>
-                </span>
-            </p>
+          <td class="doc-returns-details">
+            <p>The adapter to enable chained calls.</p>
           </td>
         </tr>
     </tbody>
@@ -1325,9 +1250,30 @@ they complete and any raised errors will lead to a failed startup.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
                 </span>
             </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The adapter to enable chained calls.</p>
           </td>
         </tr>
     </tbody>
@@ -1389,9 +1335,30 @@ they complete and any raised errors will lead to a failed startup.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
                 </span>
             </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The adapter to enable chained calls.</p>
           </td>
         </tr>
     </tbody>
@@ -1443,7 +1410,7 @@ they complete and any raised errors will lead to a failed startup.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.asgi.AsgiAdapter" href="#yuyo.asgi.AsgiAdapter">AsgiAdapter</a></code>, <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RESTBotAware">RESTBotAware</span></code></p>
+        Bases: <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RESTBotAware">RESTBotAware</span></code></p>
 
   
       <p>Bot implementation which acts as an ASGI adapter.</p>
@@ -1465,6 +1432,113 @@ feature (e.g <code>python -m pip install hikari[server]</code>).</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.asgi.AsgiBot.__call__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__call__</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.asgi.AsgiBot.__call__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__call__</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Call the bot with an ASGI event.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method is called by the ASGI server and allows the bot to
+function like <a class="autorefs autorefs-internal" href="#yuyo.asgi.AsgiAdapter">AsgiAdapter</a>.</p>
+</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>scope</code></td>
+          <td class="doc-param-details">
+            <p>The scope of the request.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.Scope">Scope</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>receive</code></td>
+          <td class="doc-param-details">
+            <p>The receive function to use.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGIReceiveCallable">ASGIReceiveCallable</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>send</code></td>
+          <td class="doc-param-details">
+            <p>The send function to use.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><span title="asgiref.typing">asgiref</span>.<span title="asgiref.typing.ASGISendCallable">ASGISendCallable</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If this is called with a websocket scope.</p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If an invalid scope event is passed.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -1716,6 +1790,102 @@ if you are attempting to mock/stub the Discord API for any reason.</p>
 
 
 
+<h3 id="yuyo.asgi.AsgiBot.add_shutdown_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">add_shutdown_callback</span>
+
+
+<a href="#yuyo.asgi.AsgiBot.add_shutdown_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">add_shutdown_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a callback to be called when the bot shuts down.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>These callbacks will block the bot from shutting down until
+they complete and any raised errors will lead to a failed shutdown.</p>
+</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td class="doc-param-details">
+            <p>The shutdown callback to add.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.asgi.AsgiBot.add_startup_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">add_startup_callback</span>
+
+
+<a href="#yuyo.asgi.AsgiBot.add_startup_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">add_startup_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a callback to be called when the bot starts up.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>These callbacks will block the bot from starting until they
+complete and any raised errors will lead to a failed startup.</p>
+</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td class="doc-param-details">
+            <p>The startup callback to add.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="yuyo.asgi.AsgiBot.close" class="doc doc-heading">
         <span class="doc doc-object-name doc-function-name">close</span>
 
@@ -1769,6 +1939,134 @@ If the client is ASGI managed.</p>
 
 
 
+<h3 id="yuyo.asgi.AsgiBot.remove_shutdown_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">remove_shutdown_callback</span>
+
+
+<a href="#yuyo.asgi.AsgiBot.remove_shutdown_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">remove_shutdown_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove a shutdown callback.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td class="doc-param-details">
+            <p>The shutdown callback to remove.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the callback was not registered.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.asgi.AsgiBot.remove_startup_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">remove_startup_callback</span>
+
+
+<a href="#yuyo.asgi.AsgiBot.remove_startup_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">remove_startup_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove a startup callback.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback</code></td>
+          <td class="doc-param-details">
+            <p>The startup callback to remove.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="typing_extensions.Self">Self</span>], <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Coroutine" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Coroutine">Coroutine</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, None]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the callback was not registered.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="yuyo.asgi.AsgiBot.run" class="doc doc-heading">
         <span class="doc doc-object-name doc-function-name">run</span>
 
@@ -1782,10 +2080,10 @@ If the client is ASGI managed.</p>
       <p>Start the bot's REST client and wait until the bot's closed.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Unless <code>asgi_managed=False</code> is passed to <a class="autorefs autorefs-internal" href="#yuyo.asgi.AsgiBot.__init__">yuyo.asgi.AsgiBot.<strong>init</strong></a>,
-the bot will be automatically started and closed based on the ASGI
-lifespan events and any other calls to this function will raise a
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a>.</p>
+<p>Unless <code>asgi_managed=False</code> is passed to
+<a class="autorefs autorefs-internal" href="#yuyo.asgi.AsgiBot.__init__">AsgiBot.__init__</a>, the bot will be
+automatically started and closed based on the ASGI lifespan events
+and any other calls to this function will raise a <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a>.</p>
 </div>
 
   <table>
@@ -1835,10 +2133,10 @@ If the client is ASGI managed.</p>
       <p>Start the bot's REST client.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Unless <code>asgi_managed=False</code> is passed to <a class="autorefs autorefs-internal" href="#yuyo.asgi.AsgiBot.__init__">yuyo.asgi.AsgiBot.<strong>init</strong></a>,
-the bot will be automatically started based on the ASGI
-lifespan events and any other calls to this function will
-raise a <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a>.</p>
+<p>Unless <code>asgi_managed=False</code> is passed to
+<a class="autorefs autorefs-internal" href="#yuyo.asgi.AsgiBot.__init__">AsgiBot.__init__</a>, the bot will be
+automatically started based on the ASGI lifespan events and any
+other calls to this function will raise a <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a>.</p>
 </div>
 
   <table>
