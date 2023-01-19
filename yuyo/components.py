@@ -1416,12 +1416,12 @@ class ComponentClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ComponentClient:
+    def from_gateway_bot(cls, bot: _internal.GatewayBotProto, /, *, event_managed: bool = True) -> ComponentClient:
         """Build a component client froma Gateway Bot.
 
         Parameters
         ----------
-        bot
+        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
             The Gateway bot this component client should be bound to.
         event_managed
             Whether the component client should be automatically opened and

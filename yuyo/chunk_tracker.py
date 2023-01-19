@@ -48,6 +48,8 @@ import typing
 
 import hikari
 
+from . import _internal
+
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
@@ -354,12 +356,12 @@ class ChunkTracker:
         event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /) -> Self:
+    def from_gateway_bot(cls, bot: _internal.GatewayBotProto, /) -> Self:
         """Initialise a chunk tracker from a gateway bot.
 
         Parameters
         ----------
-        bot
+        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
             The gateway bot this chunk tracker should use.
         """
         return cls(bot.event_manager, bot, bot)

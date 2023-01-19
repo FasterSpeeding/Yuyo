@@ -684,12 +684,12 @@ class ReactionClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
+    def from_gateway_bot(cls, bot: _internal.GatewayBotProto, /, *, event_managed: bool = True) -> ReactionClient:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters
         ----------
-        bot
+        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
             The bot to build a reaction client for.
         event_managed
             Whether the reaction client should be automatically opened and
