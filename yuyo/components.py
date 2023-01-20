@@ -1664,7 +1664,7 @@ class ComponentClient:
 
         Returns
         -------
-        Callable[[CallbackSigT], CallbackSigT]
+        collections.abc.Callable[[CallbackSigT], CallbackSigT]
             A decorator to register the callback.
 
         Raises

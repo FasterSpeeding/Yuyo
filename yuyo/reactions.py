@@ -264,7 +264,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         Returns
         -------
-        collections.abc.Callabke[[CallbackSigT], CallbackSigT]
+        collections.abc.Callback[[CallbackSigT], CallbackSigT]
             A decorator to add a callback to this reaction handler.
         """
 

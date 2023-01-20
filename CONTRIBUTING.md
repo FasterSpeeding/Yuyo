@@ -37,6 +37,8 @@ A few examples of pdoc style would be:
   for types in the current module (e.g. `` `Class.attribute` ``.
 * Documenting fluent methods: The return type for fluent methods should be given as `Self` with the description for it
   following the lines of something like "the {x} instance to enable chained calls".
+* Documented types (such as for parameters and return types) which are unions should be documented using `|` style
+  and `T | None`/`T | hikari.UndefinedType` are preferred over `typing.Optional[T]`/`hikari.UndefinedOr[T]`
 
 ### CHANGELOG.md
 
@@ -62,9 +64,10 @@ good references for how projects should be type-hinted to be `type-complete`.
 ---
 **NOTES**
 
-* This project deviates from the symbolic python standard of importing types from the typing module and instead
+* This project deviates from the common convention of importing types from the typing module and instead
   imports the typing module itself to use generics and types in it like `typing.Union` and `typing.Optional`.
 * The standard way for using `collections.abc` types within this project is to `import collections.abc as collections`.
+* All exported symbols should have docstrings.
 ---
 
 ### Versioning
@@ -76,14 +79,22 @@ This project follows [semantic versioning 2.0.0](https://semver.org/) and [PEP 4
 * All modules present in Yuyo should start with the commented out licence (including the source encoding and cython
  languave level declarations), a relevant component documentation string, `from __future__ import annotations`, an
  `__all__` declaration and then imports. For an example see any of Yuyo's current components.
-* Public type variables (e.g. `CommandCallbackSig = collections.Callable[..., collections.Awaitable[None]]` should be
-  included in the `__all__` of the module they're declared in but not included in the `__all__` of any parent modules
-  and should also be documented.
+* Only callback type variables (e.g. `CommandCallbackSig = collections.Callable[..., collections.Awaitable[None]]`) should
+  public, meaning that they should also be included in the `__all__` of the module they're declared in and should also be
+  documented but should not included in the `__all__` of any parent module(s). Any other type variables should be protected
+  (prefixed with `_`).
 * [pep8](https://www.python.org/dev/peps/pep-0008/) should be followed as much as possible with notable cases where its
   ignored being that [black](https://github.com/psf/black) style may override this.
 * The maximum character count for a line is 120 characters and this may only ever be ignored for docstrings where types
   go over this count, in which case a `# noqa: E501 - Line too long` should be added after the doc-string (on the same
   line as its trailing `"""`.
-* All top-level modules should be included explicitly imported into `yuyo.__init__` and included in
+* All public top-level modules should be explicitly imported into `yuyo.__init__` and included in `yuyo.__init__.__all__`.
   `yuyo.__init__.__all__` for type-completness with only the most important of their contents needing to be included in
   `yuyo.__init__.__all__`.
+  Note here that star imports should not be used; import each entry you want to re-export explicitly and let isort reformat
+  the imports.
+* When an abstract class is defined outside of `yuyo.abc` (meaning that its not a part of the standard interface),
+  its name should be prefixed with `Abstract`.
+* `collections.abc.Coroutine` is generally preferred over `collections.abc.Awaitable` for interfaces and types.
+* Explicit `|` unions are preferred over using generic union shorthands (e.g. `UndefinedOr`, `Optional`, `SnowflakeishOr`)
+  in documentation.
