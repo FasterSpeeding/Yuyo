@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
+
 ## [1.6.1a1] - 2023-01-17
 ### Changed
 - Detect/allow invite links which aren't prefixed by `https://` or `https://www.` in

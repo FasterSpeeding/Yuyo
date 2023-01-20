@@ -38,10 +38,16 @@ import sys
 import typing
 from collections import abc as collections
 
+import hikari
+
 _T = typing.TypeVar("_T")
 _DefaultT = typing.TypeVar("_DefaultT")
 IterableT = typing.Union[collections.AsyncIterable[_T], collections.Iterable[_T]]
 IteratorT = typing.Union[collections.AsyncIterator[_T], collections.Iterator[_T]]
+
+
+class GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, hikari.ShardAware, typing.Protocol):
+    """Protocol of a cacheless Hikari Gateway bot."""
 
 
 class _NoDefaultEnum(enum.Enum):

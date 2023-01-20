@@ -54,6 +54,10 @@ if typing.TYPE_CHECKING:
 
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
 
+    # This doesn't enforce ShardAware (unlike yuyo._internal.GatewayBotProto)
+    class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
+        """Protocol of a cacheless Hikari Gateway bot."""
+
 
 EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
@@ -684,12 +688,12 @@ class ReactionClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.GatewayBotAware, /, *, event_managed: bool = True) -> ReactionClient:
+    def from_gateway_bot(cls, bot: _GatewayBotProto, /, *, event_managed: bool = True) -> ReactionClient:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters
         ----------
-        bot
+        bot : hikari.traits.EventManagerAware & hikari.traits.RESTAware
             The bot to build a reaction client for.
         event_managed
             Whether the reaction client should be automatically opened and

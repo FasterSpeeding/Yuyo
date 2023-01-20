@@ -58,6 +58,7 @@ import hikari
 import hikari.api
 import hikari.snowflakes
 
+from . import _internal
 from . import backoff
 
 if typing.TYPE_CHECKING:
@@ -542,7 +543,7 @@ class ServiceManager(AbstractManager):
     @classmethod
     def from_gateway_bot(
         cls,
-        bot: traits.GatewayBotAware,
+        bot: _internal.GatewayBotProto,
         /,
         *,
         event_managed: bool = True,
@@ -553,7 +554,7 @@ class ServiceManager(AbstractManager):
 
         Parameters
         ----------
-        bot
+        bot : hikari.traits.ShardAware & hikari.traits.RESTAware & hikari.traits.EventManagerAware
             The gateway bot to build a service manager from.
         event_managed
             Whether this client should be automatically opened and closed based
@@ -579,7 +580,7 @@ class ServiceManager(AbstractManager):
         """
         return cls(
             bot.rest,
-            cache=bot.cache,
+            cache=bot.cache if isinstance(bot, hikari.CacheAware) else None,
             event_manager=bot.event_manager,
             event_managed=event_managed,
             shards=bot,
