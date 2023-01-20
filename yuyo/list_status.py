@@ -554,7 +554,7 @@ class ServiceManager(AbstractManager):
 
         Parameters
         ----------
-        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
+        bot : hikari.traits.ShardAware & hikari.traits.GatewayBot
             The gateway bot to build a service manager from.
         event_managed
             Whether this client should be automatically opened and closed based

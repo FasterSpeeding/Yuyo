@@ -1416,12 +1416,12 @@ class ComponentClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: _internal.GatewayBotProto, /, *, event_managed: bool = True) -> ComponentClient:
+    def from_gateway_bot(cls, bot: hikari.EventManagerAware, /, *, event_managed: bool = True) -> ComponentClient:
         """Build a component client froma Gateway Bot.
 
         Parameters
         ----------
-        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
+        bot
             The Gateway bot this component client should be bound to.
         event_managed
             Whether the component client should be automatically opened and
@@ -1435,7 +1435,7 @@ class ComponentClient:
         return cls(event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
-    def from_rest_bot(cls, bot: hikari.RESTBotAware, /) -> ComponentClient:
+    def from_rest_bot(cls, bot: hikari.InteractionServerAware, /) -> ComponentClient:
         """Build a component client froma REST Bot.
 
         Parameters

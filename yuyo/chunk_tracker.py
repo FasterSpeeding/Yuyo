@@ -361,7 +361,7 @@ class ChunkTracker:
 
         Parameters
         ----------
-        bot : hikari.shards.ShardAware & hikari.shards.GatewayBot
+        bot : hikari.traits.ShardAware & hikari.traits.GatewayBot
             The gateway bot this chunk tracker should use.
         """
         return cls(bot.event_manager, bot, bot)
