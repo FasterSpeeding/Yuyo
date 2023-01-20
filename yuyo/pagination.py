@@ -101,7 +101,7 @@ async def async_paginate_string(
 
     Returns
     -------
-    typing.AsyncIterator[tuple[str, int]]
+    collections.abc.AsyncIterator[tuple[str, int]]
         An async iterator of page tuples (string context to int zero-based index).
     """
     if wrapper:

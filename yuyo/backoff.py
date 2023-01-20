@@ -90,7 +90,7 @@ class Backoff:
 
     ```py
     backoff = Backoff()
-    message: typing.Optional[messages.Message] = None
+    message: messages.Message | None = None
     while not message:
         try:
             message = await bot.rest.fetch_message(channel_id, message_id)
