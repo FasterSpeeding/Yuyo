@@ -570,24 +570,21 @@ pynacl==1.5.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
 pyright==1.1.290 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:956d8efc70eb5a54da54c82feef842affd3a81719c8864769cd196e211961e3a \
     --hash=sha256:c1a57ad812f740fc7fb6bb416cd7e3f46f4e88384c723192402a77e2e756b550
-pytest-asyncio==0.20.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:07e0abf9e6e6b95894a39f688a4a875d63c2128f76c02d03d16ccbc35bcc0f8a \
-    --hash=sha256:32a87a9836298a881c0ec637ebcc952cfe23a56436bdc0d09d1511941dd8a812
+pytest-asyncio==0.20.3 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:83cbf01169ce3e8eb71c6c278ccb0574d1a7a3bb8eaaf5e50e0ad342afb33b36 \
+    --hash=sha256:f129998b209d04fcc65c96fc85c11e5316738358909a8399e93be553d7656442
 pytest-cov==4.0.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:2feb1b751d66a8bd934e5edfa2e961d11309dc37b73b0eabe73b5945fee20f6b \
     --hash=sha256:996b79efde6433cdbd0088872dbc5fb3ed7fe1578b68cdbba634f14bb8dd0470
 pytest-sugar==0.9.6 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:30e5225ed2b3cc988a8a672f8bda0fc37bcd92d62e9273937f061112b3f2186d \
     --hash=sha256:c4793495f3c32e114f0f5416290946c316eb96ad5a3684dcdadda9267e59b2b8
-pytest-timeout==2.1.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:c07ca07404c612f8abbe22294b23c368e2e5104b521c1790195561f37e1ac3d9 \
-    --hash=sha256:f6f50101443ce70ad325ceb4473c4255e9d74e3c7cd0ef827309dfa4c0d975c6
 pytest-xdist==3.1.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:40fdb8f3544921c5dfcd486ac080ce22870e71d82ced6d2e78fa97c2addd480c \
     --hash=sha256:70a76f191d8a1d2d6be69fc440cdf85f3e4c03c08b520fd5dc5d338d6cf07d89
-pytest==7.2.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71 \
-    --hash=sha256:c4014eb40e10f11f355ad4e3c2fb2c6c6d1919c73f3b5a433de4708202cade59
+pytest==7.2.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:c7c6ca206e93355074ae32f7403e8ea12163b1163c976fee7d4d84027c162be5 \
+    --hash=sha256:d45e0952f3727241918b8fd0f376f5ff6b301cc0777c6f9a556935c92d8a7d42
 redis==4.4.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:a010f6cb7378065040a02839c3f75c7e0fb37a87116fb4a95be82a95552776c7 \
     --hash=sha256:e6206448e2f8a432871d07d432c13ed6c2abcf6b74edb436c99752b1371be387
