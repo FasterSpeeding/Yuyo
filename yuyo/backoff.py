@@ -70,15 +70,18 @@ class Backoff:
     # variable we allow ourself to provide a specific backoff time in some cases.
     backoff = Backoff()
     async for _ in backoff:
-        try:
-            message = await bot.rest.fetch_message(channel_id, message_id)
-        except errors.RateLimitedError as exc:
+        response = await client.fetch(f"https://example.com/{resource_id}")
+        if response.status_code == 403:  # Ratelimited
             # If we have a specific backoff time then set it for the next iteration
-            backoff.set_next_backoff(exc.retry_after)
-        except errors.InternalServerError:
+            backoff.set_next_backoff(response.headers.get("Retry-After"))
+
+        elif response.status_code >= 500:  # Internal server error
             # Else let the iterator calculate an exponential backoff before the next loop.
             pass
+
         else:
+            response.raise_for_status()
+            resource = response.json()
             # We need to break out of the iterator to make sure it doesn't backoff again.
             # Alternatively `Backoff.finish()` can be called to break out of the loop.
             break
@@ -90,16 +93,21 @@ class Backoff:
 
     ```py
     backoff = Backoff()
-    message: messages.Message | None = None
-    while not message:
-        try:
-            message = await bot.rest.fetch_message(channel_id, message_id)
-        except errors.RateLimitedError as exc:
+    resource = None
+    while not resource:
+        response = await client.fetch(f"https://example.com/{resource_id}")
+        if response == 403  # Ratelimited
             # If we have a specific backoff time then set it for the next iteration.
-            await backoff.backoff(exc.retry_after)
-        except errors.InternalServerError:
-            # Else let the iterator calculate an exponential backoff before the next loop.
+            backoff.set_next_backoff(response.headers.get("Retry-After"))
+            await backoff.backoff()  # We must explicitly backoff in this flow.
+
+        elif response >= 500:  # Internal server error
+            # Else let the iterator calculate an exponential backoff and explicitly backoff.
             await backoff.backoff()
+
+        else:
+            response.raise_for_status()
+            resource = response.json()
     ```
     """
 
@@ -217,7 +225,7 @@ class Backoff:
         self._retries = 0
         self._started = False
 
-    def set_next_backoff(self, backoff_: float, /) -> None:
+    def set_next_backoff(self, backoff_: typing.Union[float, int, None], /) -> None:
         """Specify a backoff time for the next iteration or [yuyo.backoff.Backoff.backoff][] call.
 
         If this is called then the exponent won't be increased for this iteration.
@@ -225,9 +233,16 @@ class Backoff:
         !!! note
             Calling this multiple times in a single iteration will overwrite any
             previously set next backoff.
+
+        Parameters
+        ----------
+        backoff_
+            The amount of time to backoff for in seconds.
+
+            If this is [None][] then any previously set next backoff will be unset.
         """
         # TODO: maximum?
-        self._next_backoff = backoff_
+        self._next_backoff = None if backoff_ is None else float(backoff_)
 
 
 class ErrorManager:
@@ -247,21 +262,21 @@ class ErrorManager:
         # For the 1st rule we catch two errors which would indicate the bot
         # no-longer has access to the target channel and break out of the
         # retry loop using `Backoff.retry`.
-        ErrorManager(((errors.NotFoundError, errors.ForbiddenError), lambda _: retry.finish()))
+        ErrorManager(((NotFoundError, ForbiddenError), lambda _: retry.finish()))
             # For the 2nd rule we catch rate limited errors and set their
             # `retry` value as the next backoff time before suppressing the
             # error to allow this to retry the request.
-            .with_rule((errors.RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
+            .with_rule((RateLimitedError,), lambda exc: retry.set_next_backoff(exc.retry_after))
             # For the 3rd rule we suppress the internal server error to allow
             # backoff to reach the next retry and exponentially backoff as we
             # don't have any specific retry time for this error.
-            .with_rule((errors.InternalServerError,), lambda _: False)
+            .with_rule((InternalServerError,), lambda _: False)
     )
     async for _ in retry:
         # We entre this context manager each iteration to catch errors before
         # they cause us to break out of the `Backoff` loop.
         with error_handler:
-            await message.respond("General Kenobi")
+            await post(f"https://example.com/{resource_id}", json={"content": "General Kenobi"})
             # We need to break out of `retry` if this request succeeds.
             break
     ```
@@ -301,7 +316,7 @@ class ErrorManager:
         self,
         exception_type: typing.Optional[type[BaseException]],
         exception: typing.Optional[BaseException],
-        exception_traceback: typing.Optional[types.TracebackType],
+        _: typing.Optional[types.TracebackType],
     ) -> typing.Optional[bool]:
         if exception_type is None:
             return None
