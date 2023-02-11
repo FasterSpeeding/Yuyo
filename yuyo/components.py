@@ -1941,7 +1941,6 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
         self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
     ) -> None:
         self._callback = callback
-        # pyright doesn't support attrs _ kwargs
         super().__init__(container=container, custom_id=custom_id, style=style)
 
     @property
@@ -1963,7 +1962,6 @@ class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_Con
         custom_id: str,
     ) -> None:
         self._callback = callback
-        # pyright doesn't support attrs _ kwargs
         super().__init__(container=container, custom_id=custom_id)
 
     @property
