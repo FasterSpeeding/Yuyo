@@ -1961,9 +1961,6 @@ class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_Con
         callback: CallbackSig,
         container: _ContainerProtoT,
         custom_id: str,
-        *,
-        # TODO: better approach
-        type: hikari.components.SelectMenuTypesT = hikari.ComponentType.TEXT_SELECT_MENU,  # noqa: A002
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
