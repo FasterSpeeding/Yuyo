@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
-- Rename `ErrorManager.with_rule` to [ErrorManager.add_rule][yuyo.backoff.ErrorManager.add_rule]
+- Renamed `ErrorManager.with_rule` to [ErrorManager.add_rule][yuyo.backoff.ErrorManager.add_rule]
   and make its arguments positional only.
 - The `guild` argument for [yuyo.chunk_tracker.ChunkTracker.request_guild_members][] is now
   positional only.
