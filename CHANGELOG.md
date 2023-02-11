@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
 
+### Fixed
+- `Context.create_initial_response` (and by extension `Context.respond` for the initial
+  response specifically) will no-longer try to pass the attachment, component or embed as
+  the actual message content when passed for the `content` argument for REST-based
+  interaction commands.
+
 ## [1.6.1a1] - 2023-01-17
 ### Changed
 - Detect/allow invite links which aren't prefixed by `https://` or `https://www.` in
