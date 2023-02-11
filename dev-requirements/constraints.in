@@ -1,5 +1,5 @@
 alluka>=0.1.2, <1
-hikari>=2.0.0.dev114, <3
+hikari>=2.0.0.dev116, <3
 asgiref~=3.0
 hikari[server]
 hikari-sake>=1.0.4a1, <2
