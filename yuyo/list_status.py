@@ -1001,7 +1001,6 @@ class DiscordBotListService:
         ) as response:
             if shard_id is None:
                 await _log_response("Discordbotlist.com", response, is_global=False)
-                return
 
             if response.status in _RETRY_ERROR_CODES:
                 if retry_after := response.headers.get(_RETRY_AFTER_KEY):
@@ -1010,3 +1009,5 @@ class DiscordBotListService:
                 return -1
 
             response.raise_for_status()
+
+        return None  # MyPy compatibility

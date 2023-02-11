@@ -873,8 +873,33 @@ def test_to_select_menu_builder_when_placeholder_is_none():
 
 
 def test_to_select_menu_builder_when_channel():
-    ...
+    mock_menu = hikari.components.ChannelSelectMenuComponent(
+        type=hikari.ComponentType.CHANNEL_SELECT_MENU,
+        custom_id="123321432",
+        channel_types=[],
+        placeholder="43123",
+        min_values=5,
+        max_values=11,
+        is_disabled=mock.Mock(),
+    )
+
+    builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
+
+    assert isinstance(builder, hikari.api.special_endpoints.ChannelSelectMenuBuilder)
+    # assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU  # TODO: missing in hikari
 
 
 def test_to_select_menu_builder_when_text():
-    ...
+    mock_menu = hikari.components.TextSelectMenuComponent(
+        type=hikari.ComponentType.TEXT_SELECT_MENU,
+        custom_id="123321432",
+        options=[],
+        placeholder="43123",
+        min_values=5,
+        max_values=11,
+        is_disabled=mock.Mock(),
+    )
+    builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
+
+    assert isinstance(builder, hikari.api.special_endpoints.TextSelectMenuBuilder)
+    # assert builder.type is hikari.ComponentType.TEXT_SELECT_MENU  # TODO: missing in hikari
