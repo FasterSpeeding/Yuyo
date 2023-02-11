@@ -60,6 +60,8 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
+import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
+import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
 
 from . import _internal
 from . import pagination
@@ -67,6 +69,7 @@ from . import pagination
 if typing.TYPE_CHECKING:
     import types
 
+    import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
@@ -1939,9 +1942,7 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(
-            container=container, custom_id=custom_id, style=style  # pyright: ignore reportGeneralTypeIssues
-        )
+        super().__init__(container=container, custom_id=custom_id, style=style)
 
     @property
     def callback(self) -> CallbackSig:
@@ -1952,13 +1953,21 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
+class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
+    def __init__(
+        self,
+        callback: CallbackSig,
+        container: _ContainerProtoT,
+        custom_id: str,
+        *,
+        # TODO: better approach
+        type: hikari.components.SelectMenuTypesT = hikari.ComponentType.TEXT_SELECT_MENU,  # noqa: A002
+    ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id)  # pyright: ignore reportGeneralTypeIssues
+        super().__init__(container=container, custom_id=custom_id)
 
     @property
     def callback(self) -> CallbackSig:
@@ -2046,9 +2055,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return hikari.impl.LinkButtonBuilder(
-            container=self, style=style, url=callback_or_url  # pyright: ignore reportGeneralTypeIssues
-        )
+        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)
 
     def add_select_menu(
         self, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
