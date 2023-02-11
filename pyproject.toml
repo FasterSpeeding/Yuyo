@@ -105,7 +105,7 @@ ignore = [
 per-file-ignores = [
     "examples/*.py: D103, FA101",
     "noxfile.py: D100, FA101, F401, F403, INP001",
-    "tests/*.py: CCE002, D100, D101, D103, D104, FA100, FA101",
+    "tests/*.py: CCE002, CFQ001, D100, D101, D103, D104, FA100, FA101",
     "yuyo/py.typed: D100",
 ]
 

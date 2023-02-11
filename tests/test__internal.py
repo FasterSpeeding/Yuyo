@@ -32,6 +32,7 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
+import typing
 from collections import abc as collections
 from unittest import mock
 
@@ -47,7 +48,7 @@ async def test_backwards_compat_aiter_():
         __aiter__=mock.Mock(return_value=mock.AsyncMock(collections.AsyncIterator, __anext__=mock.AsyncMock())),
     )
 
-    result = _internal.aiter_(mock_iterable)
+    result: typing.Any = _internal.aiter_(mock_iterable)
 
     assert result is mock_iterable.__aiter__.return_value
     mock_iterable.__aiter__.assert_called_once_with()

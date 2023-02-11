@@ -788,7 +788,7 @@ class ServiceManager(AbstractManager):
 
     async def _loop(self) -> None:
         # This acts as a priority queue.
-        queue = [(service.repeat, service) for service in self._services]
+        queue: list[tuple[float, _ServiceDescriptor]] = [(service.repeat, service) for service in self._services]
         while True:
             await asyncio.sleep(sleep := queue[0][0])
             queue = [(time_ - sleep, service) for time_, service in queue]

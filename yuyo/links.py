@@ -108,7 +108,7 @@ class BaseLink(abc.ABC):
         collections.abc.Iterator[Self]
             Iterator of the link objects in the passed string.
         """
-        for match in cls._pattern.finditer(content):
+        for match in cls._pattern().finditer(content):
             yield cls._from_match(app, match)
 
     @classmethod
@@ -132,14 +132,12 @@ class BaseLink(abc.ABC):
         ValueError
             If the string doesn't match the expected link format.
         """
-        if match := cls._pattern.fullmatch(link.strip()):
+        if match := cls._pattern().fullmatch(link.strip()):
             return cls._from_match(app, match)
 
         raise ValueError("Link doesn't match pattern")
 
     @classmethod
-    @property
-    @abc.abstractmethod
     def _pattern(cls) -> re.Pattern[str]:
         raise NotImplementedError
 
@@ -191,7 +189,6 @@ class InviteLink(hikari.InviteCode, BaseLink):
         return self._code
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _INVITE_PATTERN
 
@@ -309,7 +306,6 @@ class MessageLink(BaseLink):
         return self._message_id
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _MESSAGE_PATTERN
 
@@ -411,7 +407,6 @@ class TemplateLink(BaseLink):
         return self._code
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _TEMPLATE_PATTERN
 
@@ -499,7 +494,6 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         return self._token
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _WEBHOOK_PATTERN
 
