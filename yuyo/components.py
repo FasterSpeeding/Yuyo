@@ -1952,7 +1952,7 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
 class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
+    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, /) -> None:
         self._callback = callback
         super().__init__(container=container, custom_id=custom_id)
 
