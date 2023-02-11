@@ -46,8 +46,13 @@ import typing
 from collections import abc as collections
 
 import hikari
+import hikari.components  # TODO: import temporarily needed due to hikari not exporting TL.
+import hikari.impl.special_endpoints  # TODO: import temporarily needed to missing impl exports.
 
 if typing.TYPE_CHECKING:
+    import hikari.api  # TODO: import temporarily needed to missing api exports.
+    import hikari.api.special_endpoints  # TODO: import temporarily needed to missing impl exports.
+    import hikari.impl  # TODO: import temporarily needed to missing impl exports.
     from typing_extensions import Self
 
 
@@ -192,7 +197,11 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
         * [hikari.components.ComponentType.ACTION_ROW][]
         * [hikari.components.ComponentType.BUTTON][]
-        * [hikari.components.ComponentType.SELECT_MENU][]
+        * [hikari.components.ComponentType.TEXT_SELECT_MENU][]
+        * [hikari.components.ComponentType.USER_SELECT_MENU][]
+        * [hikari.components.ComponentType.ROLE_SELECT_MENU][]
+        * [hikari.components.ComponentType.MENTIONABLE_SELECT_MENU][]
+        * [hikari.components.ComponentType.CHANNEL_SELECT_MENU][]
     """
     return hikari.impl.MessageActionRowBuilder(
         components=[_to_sub_component(component) for component in action_row.components]
@@ -316,8 +325,10 @@ class _SelectOptionBuilder(hikari.api.SelectOptionBuilder[typing.Any]):
         return data
 
 
-def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari.api.SelectMenuBuilder[typing.Any]:
-    """Convert a select menu component to a builder.
+def to_channel_select_menu_builder(
+    select_menu: hikari.components.ChannelSelectMenuComponent,
+) -> hikari.api.special_endpoints.ChannelSelectMenuBuilder[typing.Any]:
+    """Convert a channel select menu component to a builder.
 
     Parameters
     ----------
@@ -326,7 +337,33 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
 
     Returns
     -------
-    hikari.api.SelectMenuBuilder
+    hikari.api.ChannelSelectMenuBuilder
+        The select menu builder.
+    """
+    return hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+        channel_types=[hikari.ChannelType(channel_type) for channel_type in select_menu.channel_types],
+        container=_DummyContainer(),
+        custom_id=select_menu.custom_id,
+        placeholder=select_menu.placeholder if select_menu.placeholder is not None else hikari.UNDEFINED,
+        min_values=select_menu.min_values,
+        max_values=select_menu.max_values,
+        is_disabled=select_menu.is_disabled,
+    )
+
+
+def to_text_select_menu_builder(
+    select_menu: hikari.components.TextSelectMenuComponent,
+) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.Any]:
+    """Convert a text select menu component to a builder.
+
+    Parameters
+    ----------
+    select_menu
+        The select menu to convert to a builder.
+
+    Returns
+    -------
+    hikari.api.TextSelectMenuBuilder
         The select menu builder.
     """
     options: list[hikari.api.SelectOptionBuilder[typing.Any]] = [
@@ -342,7 +379,7 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
         for opt in select_menu.options
     ]
 
-    return hikari.impl.SelectMenuBuilder(
+    return hikari.impl.special_endpoints.TextSelectMenuBuilder(
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
         options=options,
@@ -353,9 +390,46 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
     )
 
 
+_SELECT_MENU_BUILDERS: dict[int, collections.Callable[[typing.Any], hikari.api.SelectMenuBuilder[typing.Any]]] = {
+    hikari.ComponentType.CHANNEL_SELECT_MENU: to_channel_select_menu_builder,
+    hikari.ComponentType.TEXT_SELECT_MENU: to_text_select_menu_builder,
+}
+
+
+def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari.api.SelectMenuBuilder[typing.Any]:
+    """Convert a select menu component to a builder.
+
+    Parameters
+    ----------
+    select_menu
+        The select menu to convert to a builder.
+
+    Returns
+    -------
+    hikari.api.SelectMenuBuilder
+        The select menu builder.
+    """
+    if cast := _SELECT_MENU_BUILDERS.get(select_menu.type):
+        return cast(select_menu)
+
+    return hikari.impl.SelectMenuBuilder(
+        container=_DummyContainer(),
+        custom_id=select_menu.custom_id,
+        type=select_menu.type,
+        placeholder=select_menu.placeholder if select_menu.placeholder is not None else hikari.UNDEFINED,
+        min_values=select_menu.min_values,
+        max_values=select_menu.max_values,
+        is_disabled=select_menu.is_disabled,
+    )
+
+
 _SUB_COMPONENTS: dict[hikari.ComponentType, collections.Callable[[typing.Any], hikari.api.ComponentBuilder]] = {
     hikari.ComponentType.BUTTON: to_button_builder,
-    hikari.ComponentType.SELECT_MENU: to_select_menu_builder,
+    hikari.ComponentType.TEXT_SELECT_MENU: to_text_select_menu_builder,
+    hikari.ComponentType.USER_SELECT_MENU: to_select_menu_builder,
+    hikari.ComponentType.ROLE_SELECT_MENU: to_select_menu_builder,
+    hikari.ComponentType.MENTIONABLE_SELECT_MENU: to_select_menu_builder,
+    hikari.ComponentType.CHANNEL_SELECT_MENU: to_channel_select_menu_builder,
 }
 
 

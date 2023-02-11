@@ -5,8 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for new select menu types to `yuyo.to_builder`.
+
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
+- Bumped minimum Hikari version to `2.0.0.dev116`.
+
+### Fixed
+- `Context.create_initial_response` (and by extension `Context.respond` for the initial
+  response specifically) will no-longer try to pass the attachment, component or embed as
+  the actual message content when passed for the `content` argument for REST-based
+  interaction commands.
 
 ## [1.6.1a1] - 2023-01-17
 ### Changed

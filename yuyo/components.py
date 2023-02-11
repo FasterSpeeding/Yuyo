@@ -60,6 +60,8 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
+import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
+import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
 
 from . import _internal
 from . import pagination
@@ -67,9 +69,11 @@ from . import pagination
 if typing.TYPE_CHECKING:
     import types
 
+    import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
+    _OtherT = typing.TypeVar("_OtherT")
     _AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 
     class _ContainerProto(typing.Protocol):
@@ -514,9 +518,9 @@ class ComponentContext:
             )
 
         else:
-            attachments = _to_list(attachment, attachments, content, _ATTACHMENT_TYPES, "attachment")
-            components = _to_list(component, components, content, hikari.api.ComponentBuilder, "component")
-            embeds = _to_list(embed, embeds, content, hikari.Embed, "embed")
+            attachments, content = _to_list(attachment, attachments, content, _ATTACHMENT_TYPES, "attachment")
+            components, content = _to_list(component, components, content, hikari.api.ComponentBuilder, "component")
+            embeds, content = _to_list(embed, embeds, content, hikari.Embed, "embed")
 
             content = str(content) if content is not hikari.UNDEFINED else hikari.UNDEFINED
             # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
@@ -524,14 +528,14 @@ class ComponentContext:
             result = hikari.impl.InteractionMessageBuilder(
                 response_type,
                 content,
-                attachments=attachments,  # pyright: ignore [ reportGeneralTypeIssues ]
-                components=components,  # pyright: ignore [ reportGeneralTypeIssues ]
-                embeds=embeds,  # pyright: ignore [ reportGeneralTypeIssues ]
-                flags=flags,  # pyright: ignore [ reportGeneralTypeIssues ]
-                is_tts=tts,  # pyright: ignore [ reportGeneralTypeIssues ]
-                mentions_everyone=mentions_everyone,  # pyright: ignore [ reportGeneralTypeIssues ]
-                user_mentions=user_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]
-                role_mentions=role_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]
+                attachments=attachments,
+                components=components,
+                embeds=embeds,
+                flags=flags,
+                is_tts=tts,
+                mentions_everyone=mentions_everyone,
+                user_mentions=user_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]  # TODO: fix on mypy
+                role_mentions=role_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]  # TODO: fix on mypy
             )
 
             self._response_future.set_result(result)
@@ -676,14 +680,6 @@ class ComponentContext:
         hikari.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -849,14 +845,6 @@ class ComponentContext:
         hikari.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -991,14 +979,6 @@ class ComponentContext:
         hikari.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -1239,14 +1219,6 @@ class ComponentContext:
         hikari.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -1308,23 +1280,24 @@ _ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikar
 def _to_list(
     singular: hikari.UndefinedOr[_T],
     plural: hikari.UndefinedOr[collections.Sequence[_T]],
-    other: typing.Any,
-    type_: typing.Union[type[typing.Any], tuple[type[typing.Any], ...]],
+    other: _OtherT,
+    type_: typing.Union[type[_T], tuple[type[_T], ...]],
     name: str,
-) -> list[_T]:
+    /,
+) -> tuple[hikari.UndefinedOr[list[_T]], hikari.UndefinedOr[_OtherT]]:
     if singular is not hikari.UNDEFINED and plural is not hikari.UNDEFINED:
         raise ValueError(f"Only one of {name} or {name}s may be passed")
 
-    if singular:
-        return [singular]
+    if singular is not hikari.UNDEFINED:
+        return [singular], other
 
-    if plural:
-        return list(plural)
+    if plural is not hikari.UNDEFINED:
+        return list(plural), other
 
     if other and isinstance(other, type_):
-        return [other]
+        return [other], hikari.UNDEFINED
 
-    return []
+    return hikari.UNDEFINED, other
 
 
 class ExecutorClosed(Exception):
@@ -1969,9 +1942,7 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
     ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(
-            container=container, custom_id=custom_id, style=style  # pyright: ignore reportGeneralTypeIssues
-        )
+        super().__init__(container=container, custom_id=custom_id, style=style)
 
     @property
     def callback(self) -> CallbackSig:
@@ -1982,13 +1953,21 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
         return super().add_to_container()
 
 
-class SelectMenuBuilder(hikari.impl.SelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
+class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
+    def __init__(
+        self,
+        callback: CallbackSig,
+        container: _ContainerProtoT,
+        custom_id: str,
+        *,
+        # TODO: better approach
+        type: hikari.components.SelectMenuTypesT = hikari.ComponentType.TEXT_SELECT_MENU,  # noqa: A002
+    ) -> None:
         self._callback = callback
         # pyright doesn't support attrs _ kwargs
-        super().__init__(container=container, custom_id=custom_id)  # pyright: ignore reportGeneralTypeIssues
+        super().__init__(container=container, custom_id=custom_id)
 
     @property
     def callback(self) -> CallbackSig:
@@ -2076,9 +2055,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return hikari.impl.LinkButtonBuilder(
-            container=self, style=style, url=callback_or_url  # pyright: ignore reportGeneralTypeIssues
-        )
+        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)
 
     def add_select_menu(
         self, callback: CallbackSig, /, custom_id: typing.Optional[str] = None

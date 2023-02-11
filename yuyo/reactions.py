@@ -45,7 +45,6 @@ import alluka as alluka_
 import hikari
 
 from . import _internal
-from . import backoff
 from . import pagination
 
 if typing.TYPE_CHECKING:
@@ -311,26 +310,6 @@ class ReactionHandler(AbstractReactionHandler):
             self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
-async def _delete_message(message: hikari.Message, /) -> None:
-    retry = backoff.Backoff()
-
-    async for _ in retry:
-        try:
-            await message.delete()
-
-        except (hikari.NotFoundError, hikari.ForbiddenError):  # TODO: attempt to check permissions first
-            return
-
-        except hikari.InternalServerError:
-            continue
-
-        except hikari.RateLimitedError as exc:
-            retry.set_next_backoff(exc.retry_after)
-
-        else:
-            break
-
-
 class ReactionPaginator(ReactionHandler):
     """Standard implementation of a reaction handler for pagination."""
 
@@ -395,34 +374,21 @@ class ReactionPaginator(ReactionHandler):
     async def _edit_message(
         self, *, content: hikari.UndefinedNoneOr[str], embed: hikari.UndefinedNoneOr[hikari.Embed]
     ) -> None:
-        retry = backoff.Backoff()
+        if self._message is None:
+            return
 
-        async for _ in retry:
-            # Mypy makes the false assumption that this value will stay as None while this function yields.
-            if self._message is None:
-                break  # type: ignore[unreachable]
+        try:
+            await self._message.edit(content=content, embed=embed)
 
-            try:
-                await self._message.edit(content=content, embed=embed)
-
-            except hikari.InternalServerError:
-                continue
-
-            except hikari.RateLimitedError as exc:
-                retry.set_next_backoff(exc.retry_after)
-
-            except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
-                raise HandlerClosed() from exc
-
-            else:
-                break
+        except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
+            raise HandlerClosed() from exc
 
     async def _on_disable(self, _: EventT, /) -> None:
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
             # possible.
-            asyncio.create_task(_delete_message(message))
+            asyncio.create_task(message.delete())
 
         raise HandlerClosed
 
@@ -507,25 +473,13 @@ class ReactionPaginator(ReactionHandler):
             if not remove_reactions:
                 return
 
-            retry = backoff.Backoff(max_retries=max_retries, maximum=max_backoff)
             # TODO: check if we can just clear the reactions before doing this using the cache.
             for emoji_name in self._triggers:
-                retry.reset()
-                async for _ in retry:
-                    try:
-                        await message.remove_reaction(emoji_name)
+                try:
+                    await message.remove_reaction(emoji_name)
 
-                    except (hikari.NotFoundError, hikari.ForbiddenError):
-                        return
-
-                    except hikari.RateLimitedError as exc:
-                        retry.set_next_backoff(exc.retry_after)
-
-                    except hikari.InternalServerError:
-                        continue
-
-                    else:
-                        break
+                except (hikari.NotFoundError, hikari.ForbiddenError):
+                    return
 
     async def open(
         self, message: hikari.Message, /, *, add_reactions: bool = True, max_retries: int = 5, max_backoff: float = 2.0
@@ -534,35 +488,17 @@ class ReactionPaginator(ReactionHandler):
         if not add_reactions:
             return
 
-        retry = backoff.Backoff(max_retries=max_retries - 1, maximum=max_backoff)
         for emoji_name in self._triggers:
-            retry.reset()
-            async for _ in retry:
-                try:
-                    await message.add_reaction(emoji_name)
-
-                except hikari.NotFoundError:
-                    self._message = None
-                    raise
-
-                except hikari.ForbiddenError:  # TODO: attempt to check permissions first
-                    # If this is reached then we just don't have reaction permissions in the channel.
-                    return
-
-                except hikari.RateLimitedError as exc:
-                    if exc.retry_after > max_backoff:
-                        raise
-
-                    retry.set_next_backoff(exc.retry_after)
-
-                except hikari.InternalServerError:
-                    continue
-
-                else:
-                    break
-
-            else:
+            try:
                 await message.add_reaction(emoji_name)
+
+            except hikari.NotFoundError:
+                self._message = None
+                raise
+
+            except hikari.ForbiddenError:  # TODO: attempt to check permissions first
+                # If this is reached then we just don't have reaction permissions in the channel.
+                return
 
     async def create_message(
         self,
@@ -610,31 +546,12 @@ class ReactionPaginator(ReactionHandler):
         if self._message is not None:
             raise RuntimeError("ReactionPaginator is already running")
 
-        retry = backoff.Backoff(max_retries=max_retries - 1, maximum=max_backoff)
         entry = await self.get_next_entry()
 
         if entry is None:
             raise ValueError("ReactionPaginator iterator yielded no pages.")
 
-        async for _ in retry:
-            try:
-                message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
-
-            except hikari.RateLimitedError as exc:
-                if exc.retry_after > max_backoff:
-                    raise
-
-                retry.set_next_backoff(exc.retry_after)
-
-            except hikari.InternalServerError:
-                continue
-
-            else:
-                break
-
-        else:
-            message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
-
+        message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
         await self.open(message, add_reactions=add_reactions, max_retries=max_retries, max_backoff=max_backoff)
         return message
 

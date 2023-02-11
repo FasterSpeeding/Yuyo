@@ -108,7 +108,7 @@ class BaseLink(abc.ABC):
         collections.abc.Iterator[Self]
             Iterator of the link objects in the passed string.
         """
-        for match in cls._pattern.finditer(content):
+        for match in cls._pattern().finditer(content):
             yield cls._from_match(app, match)
 
     @classmethod
@@ -132,14 +132,12 @@ class BaseLink(abc.ABC):
         ValueError
             If the string doesn't match the expected link format.
         """
-        if match := cls._pattern.fullmatch(link.strip()):
+        if match := cls._pattern().fullmatch(link.strip()):
             return cls._from_match(app, match)
 
         raise ValueError("Link doesn't match pattern")
 
     @classmethod
-    @property
-    @abc.abstractmethod
     def _pattern(cls) -> re.Pattern[str]:
         raise NotImplementedError
 
@@ -191,7 +189,6 @@ class InviteLink(hikari.InviteCode, BaseLink):
         return self._code
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _INVITE_PATTERN
 
@@ -216,14 +213,6 @@ class InviteLink(hikari.InviteCode, BaseLink):
         hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.errors.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -317,7 +306,6 @@ class MessageLink(BaseLink):
         return self._message_id
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _MESSAGE_PATTERN
 
@@ -355,14 +343,6 @@ class MessageLink(BaseLink):
         hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.errors.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -427,7 +407,6 @@ class TemplateLink(BaseLink):
         return self._code
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _TEMPLATE_PATTERN
 
@@ -452,14 +431,6 @@ class TemplateLink(BaseLink):
         hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.errors.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
@@ -523,7 +494,6 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         return self._token
 
     @classmethod
-    @property
     def _pattern(cls) -> re.Pattern[str]:
         return _WEBHOOK_PATTERN
 
@@ -549,14 +519,6 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.errors.RateLimitedError
-            Usually, Hikari will handle and retry on hitting
-            rate-limits automatically. This includes most bucket-specific
-            rate-limits and global rate-limits. In some rare edge cases,
-            however, Discord implements other undocumented rules for
-            rate-limiting, such as limits per attribute. These cannot be
-            detected or handled normally by Hikari due to their undocumented
-            nature, and will trigger this exception if they occur.
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """

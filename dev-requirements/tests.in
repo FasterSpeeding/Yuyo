@@ -1,5 +1,5 @@
 -r ../piped/python/base-requirements/tests.in
 -r ./constraints.in
 
-pytest-asyncio>=0.20.2, <1
-pytest-xdist>=3.1, <4
+pytest-asyncio>=0.20.2
+pytest-xdist>=3.1

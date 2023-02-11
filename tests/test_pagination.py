@@ -89,7 +89,7 @@ async def test_aenumerate():
 
 @pytest.mark.asyncio()
 async def test_aenumerate_for_empty_iterator():
-    raw_iterator: collections.AsyncIterator[str] = (await fake_awake(value) for value in ())
+    raw_iterator = (await fake_awake(value) for value in iter(()))
     iterator = pagination.aenumerate(raw_iterator)
 
     result = await _internal.collect_iterable(iterator)
