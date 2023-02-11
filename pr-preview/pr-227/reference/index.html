@@ -4241,15 +4241,18 @@ the following</p>
 <span class="c1"># variable we allow ourself to provide a specific backoff time in some cases.</span>
 <span class="n">backoff</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
 <span class="k">async</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">backoff</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">fetch_message</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">message_id</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">RateLimitedError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://example.com/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>  <span class="c1"># Ratelimited</span>
         <span class="c1"># If we have a specific backoff time then set it for the next iteration</span>
-        <span class="n">backoff</span><span class="o">.</span><span class="n">set_next_backoff</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">retry_after</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">InternalServerError</span><span class="p">:</span>
+        <span class="n">backoff</span><span class="o">.</span><span class="n">set_next_backoff</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Retry-After&quot;</span><span class="p">))</span>
+
+    <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">:</span>  <span class="c1"># Internal server error</span>
         <span class="c1"># Else let the iterator calculate an exponential backoff before the next loop.</span>
         <span class="k">pass</span>
+
     <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="n">resource</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="c1"># We need to break out of the iterator to make sure it doesn&#39;t backoff again.</span>
         <span class="c1"># Alternatively `Backoff.finish()` can be called to break out of the loop.</span>
         <span class="k">break</span>
@@ -4258,16 +4261,21 @@ the following</p>
 alternative of the previous example which uses <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a>
 may look like the following</p>
 <div class="highlight"><pre><span></span><code><span class="n">backoff</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
-<span class="n">message</span><span class="p">:</span> <span class="n">messages</span><span class="o">.</span><span class="n">Message</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">while</span> <span class="ow">not</span> <span class="n">message</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">fetch_message</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">message_id</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">RateLimitedError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<span class="n">resource</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">resource</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://example.com/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">response</span> <span class="o">==</span> <span class="mi">403</span>  <span class="c1"># Ratelimited</span>
         <span class="c1"># If we have a specific backoff time then set it for the next iteration.</span>
-        <span class="k">await</span> <span class="n">backoff</span><span class="o">.</span><span class="n">backoff</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">retry_after</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">InternalServerError</span><span class="p">:</span>
-        <span class="c1"># Else let the iterator calculate an exponential backoff before the next loop.</span>
+        <span class="n">backoff</span><span class="o">.</span><span class="n">set_next_backoff</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Retry-After&quot;</span><span class="p">))</span>
+        <span class="k">await</span> <span class="n">backoff</span><span class="o">.</span><span class="n">backoff</span><span class="p">()</span>  <span class="c1"># We must explicitly backoff in this flow.</span>
+
+    <span class="k">elif</span> <span class="n">response</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">:</span>  <span class="c1"># Internal server error</span>
+        <span class="c1"># Else let the iterator calculate an exponential backoff and explicitly backoff.</span>
         <span class="k">await</span> <span class="n">backoff</span><span class="o">.</span><span class="n">backoff</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="n">resource</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </code></pre></div>
 
 
@@ -4556,6 +4564,30 @@ been marked as finished or has reached the max retries.</p>
 <p>Calling this multiple times in a single iteration will overwrite any
 previously set next backoff.</p>
 </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>backoff_</code></td>
+          <td class="doc-param-details">
+            <p>The amount of time to backoff for in seconds.</p>
+<p>If this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> then any previously set next backoff will be unset.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, None]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
@@ -7115,22 +7147,6 @@ longer than <code>max_rate_limit</code> when making a request.</p>
         <tr>
           <td>
             <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RateLimitedError">RateLimitedError</span></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>Usually, Hikari will handle and retry on hitting
-rate-limits automatically. This includes most bucket-specific
-rate-limits and global rate-limits. In some rare edge cases,
-however, Discord implements other undocumented rules for
-rate-limiting, such as limits per attribute. These cannot be
-detected or handled normally by Hikari due to their undocumented
-nature, and will trigger this exception if they occur.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
                 <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.InternalServerError">InternalServerError</span></code>
             </span>
           </td>
@@ -7666,22 +7682,6 @@ longer than <code>max_rate_limit</code> when making a request.</p>
         <tr>
           <td>
             <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RateLimitedError">RateLimitedError</span></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>Usually, Hikari will handle and retry on hitting
-rate-limits automatically. This includes most bucket-specific
-rate-limits and global rate-limits. In some rare edge cases,
-however, Discord implements other undocumented rules for
-rate-limiting, such as limits per attribute. These cannot be
-detected or handled normally by Hikari due to their undocumented
-nature, and will trigger this exception if they occur.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
                 <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.InternalServerError">InternalServerError</span></code>
             </span>
           </td>
@@ -8027,22 +8027,6 @@ person you are trying to message has the DM's disabled.</p>
           <td class="doc-raises-details">
             <p>Raised in the event that a rate limit occurs that is
 longer than <code>max_rate_limit</code> when making a request.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RateLimitedError">RateLimitedError</span></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>Usually, Hikari will handle and retry on hitting
-rate-limits automatically. This includes most bucket-specific
-rate-limits and global rate-limits. In some rare edge cases,
-however, Discord implements other undocumented rules for
-rate-limiting, such as limits per attribute. These cannot be
-detected or handled normally by Hikari due to their undocumented
-nature, and will trigger this exception if they occur.</p>
           </td>
         </tr>
         <tr>
@@ -8544,22 +8528,6 @@ person you are trying to message has the DM's disabled.</p>
           <td class="doc-raises-details">
             <p>Raised in the event that a rate limit occurs that is
 longer than <code>max_rate_limit</code> when making a request.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RateLimitedError">RateLimitedError</span></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>Usually, Hikari will handle and retry on hitting
-rate-limits automatically. This includes most bucket-specific
-rate-limits and global rate-limits. In some rare edge cases,
-however, Discord implements other undocumented rules for
-rate-limiting, such as limits per attribute. These cannot be
-detected or handled normally by Hikari due to their undocumented
-nature, and will trigger this exception if they occur.</p>
           </td>
         </tr>
         <tr>
@@ -9097,21 +9065,21 @@ while trying to reply to a message.</p>
     <span class="c1"># For the 1st rule we catch two errors which would indicate the bot</span>
     <span class="c1"># no-longer has access to the target channel and break out of the</span>
     <span class="c1"># retry loop using `Backoff.retry`.</span>
-    <span class="n">ErrorManager</span><span class="p">(((</span><span class="n">errors</span><span class="o">.</span><span class="n">NotFoundError</span><span class="p">,</span> <span class="n">errors</span><span class="o">.</span><span class="n">ForbiddenError</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">retry</span><span class="o">.</span><span class="n">finish</span><span class="p">()))</span>
+    <span class="n">ErrorManager</span><span class="p">(((</span><span class="n">NotFoundError</span><span class="p">,</span> <span class="n">ForbiddenError</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="n">retry</span><span class="o">.</span><span class="n">finish</span><span class="p">()))</span>
         <span class="c1"># For the 2nd rule we catch rate limited errors and set their</span>
         <span class="c1"># `retry` value as the next backoff time before suppressing the</span>
         <span class="c1"># error to allow this to retry the request.</span>
-        <span class="o">.</span><span class="n">with_rule</span><span class="p">((</span><span class="n">errors</span><span class="o">.</span><span class="n">RateLimitedError</span><span class="p">,),</span> <span class="k">lambda</span> <span class="n">exc</span><span class="p">:</span> <span class="n">retry</span><span class="o">.</span><span class="n">set_next_backoff</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">retry_after</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">with_rule</span><span class="p">((</span><span class="n">RateLimitedError</span><span class="p">,),</span> <span class="k">lambda</span> <span class="n">exc</span><span class="p">:</span> <span class="n">retry</span><span class="o">.</span><span class="n">set_next_backoff</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">retry_after</span><span class="p">))</span>
         <span class="c1"># For the 3rd rule we suppress the internal server error to allow</span>
         <span class="c1"># backoff to reach the next retry and exponentially backoff as we</span>
         <span class="c1"># don&#39;t have any specific retry time for this error.</span>
-        <span class="o">.</span><span class="n">with_rule</span><span class="p">((</span><span class="n">errors</span><span class="o">.</span><span class="n">InternalServerError</span><span class="p">,),</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_rule</span><span class="p">((</span><span class="n">InternalServerError</span><span class="p">,),</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="kc">False</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="k">async</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">retry</span><span class="p">:</span>
     <span class="c1"># We entre this context manager each iteration to catch errors before</span>
     <span class="c1"># they cause us to break out of the `Backoff` loop.</span>
     <span class="k">with</span> <span class="n">error_handler</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">message</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;General Kenobi&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://example.com/</span><span class="si">{</span><span class="n">resource_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;General Kenobi&quot;</span><span class="p">})</span>
         <span class="c1"># We need to break out of `retry` if this request succeeds.</span>
         <span class="k">break</span>
 </code></pre></div>
