@@ -2489,19 +2489,74 @@ class ComponentPaginator(ActionRowExecutor):
         self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_first, emoji=pagination.LEFT_DOUBLE_TRIANGLE)
+            self.add_left_double_button()
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_previous, emoji=pagination.LEFT_TRIANGLE)
+            self.add_left_button()
 
         if pagination.STOP_SQUARE in triggers:
-            self.add_button(hikari.ButtonStyle.DANGER, self._on_disable, emoji=pagination.BLACK_CROSS)
+            self.add_stop_button()
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_next, emoji=pagination.RIGHT_TRIANGLE)
+            self.add_right_button()
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last, emoji=pagination.RIGHT_DOUBLE_TRIANGLE)
+            self.add_right_double_button()
+
+    def add_left_double_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_DOUBLE_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        return self.add_button(style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+
+    def add_left_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        return self.add_button(style, self._on_previous, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+
+    def add_stop_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.BLACK_CROSS,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        return self.add_button(style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+
+    def add_right_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        return self.add_button(style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+
+    def add_right_double_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        return self.add_button(style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
 
     def builder(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Get a sequence of the component builders for this paginator.
