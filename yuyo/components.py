@@ -2628,4 +2628,3 @@ class ComponentPaginator(ActionRowExecutor):
 def _noop(ctx: ComponentContext, /) -> collections.Coroutine[typing.Any, typing.Any, None]:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
-

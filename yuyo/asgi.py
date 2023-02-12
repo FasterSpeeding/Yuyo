@@ -64,7 +64,7 @@ _TEXT_CONTENT_TYPE: typing.Final[bytes] = b"text/plain; charset=UTF-8"
 
 
 async def _error_response(
-    send: asgiref.ASGISendCallable, body: bytes,/, *, status_code: int = _BAD_REQUEST_STATUS
+    send: asgiref.ASGISendCallable, body: bytes, /, *, status_code: int = _BAD_REQUEST_STATUS
 ) -> None:
     await send(
         {
