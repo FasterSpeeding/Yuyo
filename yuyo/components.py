@@ -2489,19 +2489,19 @@ class ComponentPaginator(ActionRowExecutor):
         self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_left_double_button()
+            self.add_first_button()
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_left_button()
+            self.add_previous_button()
 
         if pagination.STOP_SQUARE in triggers:
             self.add_stop_button()
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_right_button()
+            self.add_next_button()
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_right_double_button()
+            self.add_last_button()
 
     def add_first_button(
         self,
