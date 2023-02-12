@@ -326,24 +326,19 @@ class ReactionPaginator(ReactionHandler):
         self._reactions: list[typing.Union[hikari.CustomEmoji, str]] = []
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.set_callback(pagination.LEFT_DOUBLE_TRIANGLE, self._on_first)
-            self._reactions.append(pagination.LEFT_DOUBLE_TRIANGLE)
+            self.add_first_button()
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.set_callback(pagination.LEFT_TRIANGLE, self._on_previous)
-            self._reactions.append(pagination.LEFT_TRIANGLE)
+            self.add_previous_button()
 
         if pagination.STOP_SQUARE in triggers:
-            self.set_callback(pagination.STOP_SQUARE, self._on_disable)
-            self._reactions.append(pagination.STOP_SQUARE)
+            self.add_stop_button()
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.set_callback(pagination.RIGHT_TRIANGLE, self._on_next)
-            self._reactions.append(pagination.RIGHT_TRIANGLE)
+            self.add_next_button()
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.set_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
-            self._reactions.append(pagination.RIGHT_DOUBLE_TRIANGLE)
+            self.add_last_button()
 
     def _add_button(
         self, callback: CallbackSig, emoji: typing.Union[hikari.CustomEmoji, str], add_reaction: bool, /

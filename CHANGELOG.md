@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   adding the other new select menu types to an action row.
 - [yuyo.pagination.Page][] type which can be used to represent a response page in the paginator.
   This allows configuring attachments and multiple embeds for a page.
+- Methods for manually setting the buttons for [yuyo.components.ComponentPaginator][] and
+  [yuyo.reactions.ReactionPaginator][] which allow manually overriding the config for each button
+  or reaction.
 
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
