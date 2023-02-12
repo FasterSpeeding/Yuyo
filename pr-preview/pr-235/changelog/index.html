@@ -1606,13 +1606,16 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
 <ul>
-<li>Support for new select menu types to <code>yuyo.to_builder</code>.</li>
+<li>Support for the new select menu types to <code>yuyo.to_builder</code>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_channel_select">ActionRowExecutor.add_channel_select</a>
   for adding channel select menus to an action row.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_select_menu">ActionRowExecutor.add_select_menu</a> for
   adding the other new select menu types to an action row.</li>
-<li><a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a> type which can be used to represent a response page in the paginator.
+<li><a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a> type which can be used to represent a response page in the paginators.
   This allows configuring attachments and multiple embeds for a page.</li>
+<li>Methods for manually setting the buttons for <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator">yuyo.components.ComponentPaginator</a> and
+  <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator">yuyo.reactions.ReactionPaginator</a> which allow manually overriding the config for each button
+  or reaction.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
@@ -1650,6 +1653,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the <code>content</code> argument for REST-based
   interaction commands.</li>
+<li><code>BLACK_CROSS</code> can now be passed to
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a> and
+  <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
+  in the <code>triggers</code> array to enable the stop button.</li>
 <li><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/asyncio-sync.html#asyncio.Lock">asyncio.Lock</a>s are no-longer built in the inits of component executors and reaction
   handlers.</li>
 </ul>
