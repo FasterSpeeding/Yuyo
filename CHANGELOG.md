@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the `triggers` array to enable the stop button.
 - The configured executor is now used for handling attachments when creating the initial responses
   with the ASGI bot.
-- Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessarily hold up
+- Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessary hold up
   on bad requests.
 
 ### Removed
