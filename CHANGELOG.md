@@ -60,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with the ASGI bot.
 - Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessary hold up
   on bad requests.
+- [asyncio.Lock][]s are no-longer built in the inits of component executors and reaction
+  handlers.
 
 ### Removed
 - `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and

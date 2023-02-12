@@ -2325,7 +2325,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     view.
     """
 
-    __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
+    __slots__ = ("_builders", "_executors", "_last_triggered",  "_timeout")
 
     def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
         """Initialise a multi-component executor.
@@ -2339,7 +2339,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._builders: list[hikari.api.ComponentBuilder] = []
         self._executors: list[AbstractComponentExecutor] = []
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._lock = asyncio.Lock()
         self._timeout = timeout
 
     @property
@@ -2430,7 +2429,7 @@ class ComponentPaginator(ActionRowExecutor):
     This is a convenience class that allows you to easily implement a paginator.
     """
 
-    __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
+    __slots__ = ("_authors", "_buffer", "_index", "_iterator")
 
     def __init__(
         self,
@@ -2486,7 +2485,6 @@ class ComponentPaginator(ActionRowExecutor):
         self._ephemeral_default = ephemeral_default
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
-        self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
             self.add_first_button()
