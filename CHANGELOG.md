@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed the old `ActionRowExecutor.add_select_menu` to
   [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select]
   and added the other select menu's config as keyword-arguments.
+- Renamed `add_handler` to [ReactionClient.set_handler][yuyo.reactions.ReactionClient.set_handler].
 
 ### Fixed
 - `Context.create_initial_response` (and by extension `Context.respond` for the initial
