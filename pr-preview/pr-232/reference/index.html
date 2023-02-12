@@ -3084,7 +3084,7 @@
 
 
 <a href="#yuyo.components.ActionRowExecutor.add_button" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11186,7 +11186,7 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
 
 
 <a href="#yuyo.reactions.ReactionClient.set_handler" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">set_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="n">paginator</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">set_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">paginator</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11736,7 +11736,7 @@ paginator.</p>
   </span>
 
 <a href="#yuyo.reactions.ReactionPaginator.close" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">remove_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_backoff</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">remove_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11788,7 +11788,7 @@ paginate through this from the previously registered message.</p>
   </span>
 
 <a href="#yuyo.reactions.ReactionPaginator.create_message" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">create_message</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">add_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_backoff</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">create_message</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">add_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11844,40 +11844,6 @@ after responding.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>True</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_retries</code></td>
-          <td class="doc-param-details">
-            <p>How many times this should retry to respond if Hikari raises
-any ratelimit errors.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>5</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_backoff</code></td>
-          <td class="doc-param-details">
-            <p>The maximum time this should backoff for before trying if Hikari
-raises any ratelimit errors.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>2.0</code>
                 </span>
             </p>
           </td>
