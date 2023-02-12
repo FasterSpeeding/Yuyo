@@ -39,9 +39,7 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "InteractiveButtonBuilder",
     "MultiComponentExecutor",
-    "SelectMenuBuilder",
     "WaitFor",
     "WaitForExecutor",
 ]
@@ -76,16 +74,8 @@ if typing.TYPE_CHECKING:
     _OtherT = typing.TypeVar("_OtherT")
     _AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 
-    class _ParentExecutorProto(typing.Protocol):
-        def add_builder(self, _: hikari.api.ComponentBuilder, /) -> Self:
-            raise NotImplementedError
-
-        def add_executor(self, _: AbstractComponentExecutor, /) -> Self:
-            raise NotImplementedError
-
 
 _ParentT = typing.TypeVar("_ParentT")
-_ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
@@ -1924,174 +1914,6 @@ WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[typing.NoReturn]):
-    __slots__ = ("_callback",)
-
-    def __init__(
-        self,
-        callback: CallbackSig,
-        custom_id: str,
-        style: hikari.ButtonStyle,
-        /,
-        *,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> None:
-        self._callback = callback
-        super().__init__(
-            container=NotImplemented,
-            custom_id=custom_id,
-            style=style,
-            label=label,
-            is_disabled=is_disabled,
-        )
-        self.set_emoji(emoji)
-
-    @property
-    def callback(self) -> CallbackSig:
-        return self._callback
-
-    def add_to_container(self) -> typing.NoReturn:
-        raise NotImplementedError
-
-
-class SelectMenuBuilder(hikari.impl.special_endpoints.SelectMenuBuilder[typing.NoReturn]):
-    """"""
-
-    __slots__ = ("_callback",)
-
-    def __init__(
-        self,
-        callback: CallbackSig,
-        custom_id: str,
-        type: typing.Union[hikari.ComponentType, int],
-        /,
-        *,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> None:
-        self._callback = callback
-        super().__init__(
-            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
-            custom_id=custom_id,
-            type=type,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
-    def add_to_container(self) -> typing.NoReturn:
-        raise NotImplementedError
-
-
-class TextSelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn], typing.Generic[_ParentT]):
-    """"""
-
-    __slots__ = ("_callback", "__container")
-
-    @typing.overload
-    def __init__(
-        self,
-        callback: CallbackSig,
-        custom_id: str,
-        /,
-        *,
-        container: _ParentT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> None:
-        ...
-
-    @typing.overload
-    def __init__(
-        self: TextSelectMenuBuilder[typing.NoReturn],
-        callback: CallbackSig,
-        custom_id: str,
-        /,
-        *,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> None:
-        ...
-
-    def __init__(
-        self,
-        callback: CallbackSig,
-        custom_id: str,
-        /,
-        *,
-        container: typing.Optional[_ParentT] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> None:
-        self._callback = callback
-        self.__container = container
-        super().__init__(
-            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
-    @property
-    def callback(self) -> CallbackSig:
-        return self._callback
-
-    @property
-    def parent(self) -> _ParentT:
-        if self.__container is None:
-            raise NotImplementedError
-
-        return self.__container
-
-    def add_to_container(self) -> typing.NoReturn:
-        raise NotImplementedError
-
-
-class ChannelSelectMenuBuilder(hikari.impl.special_endpoints.ChannelSelectMenuBuilder[typing.NoReturn]):
-    """"""
-
-    __slots__ = ("_callback",)
-
-    def __init__(
-        self,
-        callback: CallbackSig,
-        custom_id: str,
-        /,
-        *,
-        channel_types: typing.Optional[collections.Sequence[hikari.ChannelType]] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> None:
-        self._callback = callback
-        super().__init__(
-            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
-            channel_types=list(channel_types) if channel_types else [],
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
-    def add_to_container(self) -> typing.NoReturn:
-        raise NotImplementedError
-
-
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row."""
 
@@ -2178,9 +2000,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
+            self.add_callback(custom_id, callback_or_url)
             self.add_component(
-                InteractiveButtonBuilder(
-                    callback_or_url, custom_id, hikari.ButtonStyle(style), label=label, is_disabled=is_disabled
+                hikari.impl.InteractiveButtonBuilder(
+                    container=NotImplemented,
+                    custom_id=custom_id,
+                    style=hikari.ButtonStyle(style),
+                    label=label,
+                    is_disabled=is_disabled,
                 ).set_emoji(emoji)
             )
             return self
@@ -2198,7 +2025,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     def add_select_menu(
         self,
         callback: CallbackSig,
-        type: typing.Union[hikari.ComponentType, int],
+        type_: typing.Union[hikari.ComponentType, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2207,14 +2034,23 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> Self:
-        type = hikari.ComponentType(type)
-        self._assert_can_add_type(type)
-        self.add_component(SelectMenuBuilder(
-            callback, custom_id or _random_id(), type, placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled
-        ))
+        if custom_id is None:
+            custom_id = _random_id()
+
+        type_ = hikari.ComponentType(type_)
+        self._assert_can_add_type(type_)
+        self.add_callback(custom_id, callback)
+        self.add_component(
+            hikari.impl.special_endpoints.SelectMenuBuilder(
+                container=NotImplemented,
+                custom_id=custom_id,
+                type=type_,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+        )
         return self
 
     def add_channel_select(
@@ -2229,12 +2065,16 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> Self:
+        if custom_id is None:
+            custom_id = _random_id()
+
         self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
+        self.add_callback(custom_id, callback)
         self.add_component(
-            ChannelSelectMenuBuilder(
-                callback,
-                custom_id or _random_id(),
-                channel_types=channel_types,
+            hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+                container=NotImplemented,
+                custom_id=custom_id,
+                channel_types=list(channel_types) if channel_types else [],
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
@@ -2253,16 +2093,20 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> TextSelectMenuBuilder[Self]:
+    ) -> hikari.impl.special_endpoints.TextSelectMenuBuilder[Self]:
+        if custom_id is None:
+            custom_id = _random_id()
+
         self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
-        component = TextSelectMenuBuilder(
-            callback,
-            custom_id or _random_id(),
+        component = hikari.impl.special_endpoints.TextSelectMenuBuilder(
+            container=self,
+            custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
+        self.add_callback(custom_id, callback)
         self.add_component(component)
         return component
 
@@ -2273,26 +2117,21 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         }
 
 
-class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentExecutorProtoT]):
+class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
     """Extended action row implementation which can be tied to a multi-component executor."""
 
     __slots__ = ("_parent",)
 
     def __init__(
-        self, parent: _ParentExecutorProtoT, /, *, ephemeral_default: bool = False, load_from_attributes: bool = False
+        self, parent: _ParentT, /, *, ephemeral_default: bool = False, load_from_attributes: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes)
         self._parent = parent
 
-    def add_to_parent(self) -> _ParentExecutorProtoT:
-        """Add this action row to its parent executor.
-
-        Returns
-        -------
-        _ParentExecutorProtoT
-            The parent executor this action row was added to.
-        """
-        return self._parent.add_executor(self).add_builder(self)
+    @property
+    def parent(self) -> _ParentT:
+        """The parent executor."""
+        return self._parent
 
 
 def as_child_executor(  # noqa: D103
@@ -2377,21 +2216,18 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     def add_action_row(self) -> ChildActionRowExecutor[Self]:
         """Create a builder class to add an action row to this executor.
 
-        For the most part this follows the same implementation as
-        [yuyo.components.ActionRowExecutor][] except with the added detail that
-        [yuyo.components.ChildActionRowExecutor.add_to_parent][] must be called
-        to add the action row to the parent executor.
-
         Returns
         -------
         ChildActionRowExecutor[Self]
             A builder class to add an action row to this executor.
 
-            [yuyo.components.ChildActionRowExecutor.add_to_parent][] should be
-            called to finalise the action row and will return the parent executor
-            for chained calls.
+            This functions exactly like [yuyo.components.ActionRowExecutor][] but comes
+            with the property [ChildActionRowExecutor.parent][yuyo.components.ChildActionRowExecutor.parent]
+            which can be used to get back to this multi-component executor.
         """
-        return ChildActionRowExecutor(self)
+        child = ChildActionRowExecutor(self)
+        self.add_executor(child).add_builder(child)
+        return child
 
     def add_executor(self, executor: AbstractComponentExecutor, /) -> Self:
         """Add a component executor to this multi-component executor.
