@@ -826,7 +826,7 @@ def _queue_insert(sequence: list[_T], check: collections.Callable[[_T], bool], v
     sequence.insert(index, value)
 
 
-async def _log_response(service_name: str, response: aiohttp.ClientResponse, /, is_global: bool = True) -> None:
+async def _log_response(service_name: str, response: aiohttp.ClientResponse, /, *, is_global: bool = True) -> None:
     if response.status < 300:
         _LOGGER.info("Posted bot's stats to %s for the ", service_name, "whole bot" if is_global else "local shards")
         return

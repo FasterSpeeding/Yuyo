@@ -88,7 +88,7 @@ def _random_id() -> str:
     return str(uuid.uuid4())
 
 
-def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int]) -> float:
+def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int], /) -> float:
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
@@ -182,7 +182,7 @@ class ComponentContext:
         self._ephemeral_default = state
         return self
 
-    def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta]) -> float:
+    def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta], /) -> float:
         delete_after = _delete_after_to_float(delete_after)
         time_left = (
             _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.timezone.utc) - self._interaction.created_at)
@@ -192,7 +192,7 @@ class ComponentContext:
 
         return delete_after
 
-    def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag]) -> int:
+    def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag], /) -> int:
         if flags is not hikari.UNDEFINED:
             assert isinstance(flags, int)
             return flags
@@ -251,7 +251,7 @@ class ComponentContext:
             else:
                 await self._interaction.create_initial_response(defer_type, flags=flags)
 
-    async def _delete_followup_after(self, delete_after: float, message: hikari.Message) -> None:
+    async def _delete_followup_after(self, delete_after: float, message: hikari.Message, /) -> None:
         await asyncio.sleep(delete_after)
         try:
             await self._interaction.delete_message(message)
@@ -443,7 +443,7 @@ class ComponentContext:
                 flags=flags,
             )
 
-    async def _delete_initial_response_after(self, delete_after: float) -> None:
+    async def _delete_initial_response_after(self, delete_after: float, /) -> None:
         await asyncio.sleep(delete_after)
         try:
             await self.delete_initial_response()
@@ -1469,6 +1469,7 @@ class ComponentClient:
         executor: AbstractComponentExecutor,
         interaction: hikari.ComponentInteraction,
         /,
+        *,
         future: typing.Optional[asyncio.Future[ResponseT]] = None,
     ) -> None:
         try:
@@ -2020,6 +2021,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self,
         style: typing.Union[int, hikari.ButtonStyle],
         callback_or_url: typing.Union[CallbackSig, str],
+        /,
         *,
         custom_id: typing.Optional[str] = None,
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
@@ -2521,7 +2523,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
+    async def get_next_entry(self) -> typing.Optional[pagination.EntryT]:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
@@ -2559,10 +2561,6 @@ class ComponentPaginator(ActionRowExecutor):
 
         return None  # MyPy
 
-    @staticmethod
-    def _noop(ctx: ComponentContext) -> collections.Coroutine[typing.Any, typing.Any, None]:
-        return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
-
     async def _on_first(self, ctx: ComponentContext, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
             self._index = 0
@@ -2570,7 +2568,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await self._noop(ctx)
+            await _noop(ctx)
 
     async def _on_previous(self, ctx: ComponentContext, /) -> None:
         if self._index > 0:
@@ -2579,7 +2577,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await self._noop(ctx)
+            await _noop(ctx)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
         self._iterator = None
@@ -2615,7 +2613,7 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
 
         else:
-            await self._noop(ctx)
+            await _noop(ctx)
 
     async def _on_next(self, ctx: ComponentContext, /) -> None:
         if entry := await self.get_next_entry():
@@ -2624,4 +2622,10 @@ class ComponentPaginator(ActionRowExecutor):
             await ctx.edit_initial_response(content=content, embed=embed)
 
         else:
-            await self._noop(ctx)
+            await _noop(ctx)
+
+
+def _noop(ctx: ComponentContext, /) -> collections.Coroutine[typing.Any, typing.Any, None]:
+    """Create a noop initial response to a component context."""
+    return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+

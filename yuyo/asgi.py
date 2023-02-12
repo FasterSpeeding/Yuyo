@@ -64,7 +64,7 @@ _TEXT_CONTENT_TYPE: typing.Final[bytes] = b"text/plain; charset=UTF-8"
 
 
 async def _error_response(
-    send: asgiref.ASGISendCallable, body: bytes, *, status_code: int = _BAD_REQUEST_STATUS
+    send: asgiref.ASGISendCallable, body: bytes,/, *, status_code: int = _BAD_REQUEST_STATUS
 ) -> None:
     await send(
         {
@@ -131,7 +131,7 @@ class AsgiAdapter:
         return self._server
 
     async def __call__(
-        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
         """Call the adapter.
 
@@ -413,7 +413,7 @@ class AsgiAdapter:
         await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
 
 
-def _content_type(response: hikari.api.Response) -> typing.Optional[bytes]:
+def _content_type(response: hikari.api.Response, /) -> typing.Optional[bytes]:
     if response.content_type:
         if response.charset:
             return f"{response.content_type}; charset={response.charset}".encode()
@@ -424,7 +424,7 @@ def _content_type(response: hikari.api.Response) -> typing.Optional[bytes]:
 
 
 def _find_headers(
-    scope: asgiref.HTTPScope,
+    scope: asgiref.HTTPScope, /
 ) -> tuple[typing.Optional[bytes], typing.Optional[bytes], typing.Optional[bytes]]:
     content_type: typing.Optional[bytes] = None
     signature: typing.Optional[bytes] = None
@@ -676,7 +676,7 @@ class AsgiBot(hikari.RESTBotAware):
         return self._rest
 
     async def __call__(
-        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
     ) -> None:
         """Call the bot with an ASGI event.
 

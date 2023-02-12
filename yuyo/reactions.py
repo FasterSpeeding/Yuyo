@@ -375,7 +375,7 @@ class ReactionPaginator(ReactionHandler):
             content, embed = self._buffer[-1]
             await self._edit_message(content=content, embed=embed)
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
+    async def get_next_entry(self) -> typing.Optional[pagination.EntryT]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
@@ -618,7 +618,7 @@ class ReactionClient:
         return self._gc_task is None
 
     def set_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], /, paginator: AbstractReactionHandler
+        self, message: hikari.SnowflakeishOr[hikari.Message], paginator: AbstractReactionHandler, /
     ) -> Self:
         """Add a reaction handler to this reaction client.
 
@@ -675,7 +675,7 @@ class ReactionClient:
         """
         return self._handlers.pop(hikari.Snowflake(message))
 
-    def _try_unsubscribe(self, event_type: type[_EventT], callback: event_manager_api.CallbackT[_EventT]) -> None:
+    def _try_unsubscribe(self, event_type: type[_EventT], callback: event_manager_api.CallbackT[_EventT], /) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
         except (ValueError, LookupError):
