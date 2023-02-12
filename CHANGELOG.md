@@ -6,12 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Support for new select menu types to `yuyo.to_builder`.
+- Support for the new select menu types to `yuyo.to_builder`.
 - [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
   for adding channel select menus to an action row.
 - [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
   adding the other new select menu types to an action row.
-- [yuyo.pagination.Page][] type which can be used to represent a response page in the paginator.
+- [yuyo.pagination.Page][] type which can be used to represent a response page in the paginators.
   This allows configuring attachments and multiple embeds for a page.
 - Methods for manually setting the buttons for [yuyo.components.ComponentPaginator][] and
   [yuyo.reactions.ReactionPaginator][] which allow manually overriding the config for each button
