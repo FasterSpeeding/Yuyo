@@ -337,6 +337,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    Security
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1090,6 +1097,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    Security
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1622,7 +1636,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li><code>from_gateway_bot</code> classmethods can now also take cache-less <code>ShardAware</code> bots.</li>
 <li>Bumped minimum Hikari version to <code>2.0.0.dev116</code>.</li>
 <li>Renamed <code>ErrorManager.with_rule</code> to <a class="autorefs autorefs-internal" href="../reference/backoff/#yuyo.backoff.ErrorManager.add_rule">ErrorManager.add_rule</a>
-  and make its arguments positional only.</li>
+  and made its arguments positional only.</li>
 <li>The <code>guild</code> argument for <a class="autorefs autorefs-internal" href="../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkTracker.request_guild_members">yuyo.chunk_tracker.ChunkTracker.request_guild_members</a> is now
   positional only.</li>
 <li><code>iterator</code> is now positional only in
@@ -1645,7 +1659,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator.get_next_entry">ReactionPaginator.get_next_entry</a> now both
   return <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a> rather than a tuple.
   This can be used to create a response easily by passing the result of
-  <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page.to_kwargs">Page.to_kwargs</a> to the create message or execute webhook REST method.</li>
+  <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page.to_kwargs">Page.to_kwargs</a> to the create message or execute webhook REST method as <code>**kwargs</code>.</li>
 </ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">#</a></h3>
 <ul>
@@ -1657,6 +1671,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a> and
   <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
   in the <code>triggers</code> array to enable the stop button.</li>
+<li>The configured executor is now used for handling attachments when creating the initial responses
+  with the ASGI bot.</li>
+<li>Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessary hold up
+  on bad requests.</li>
 <li><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/asyncio-sync.html#asyncio.Lock">asyncio.Lock</a>s are no-longer built in the inits of component executors and reaction
   handlers.</li>
 </ul>
@@ -1668,6 +1686,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>The deprecated <code>load_from_attributes</code> arguments and the relevant deprecated <code>as_reaction_callback</code>
   and <code>as_component_callback</code> functions.</li>
 <li>The deprecated <code>WaitForComponent</code> alias of <code>WaitForExecutor</code>.</li>
+</ul>
+<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">#</a></h3>
+<ul>
+<li>The <a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiAdapter">yuyo.asgi.AsgiAdapter</a> and <a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiBot">yuyo.asgi.AsgiBot</a> both now have a max body size limit to avoid
+  potential DoS and memory issues. This is configurable using <code>max_body_size</code> in the <code>__init__</code>s.</li>
 </ul>
 <h2 id="161a1-2023-01-17"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...v1.6.1a1">1.6.1a1</a> - 2023-01-17<a class="headerlink" href="#161a1-2023-01-17" title="Permanent link">#</a></h2>
 <h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">#</a></h3>

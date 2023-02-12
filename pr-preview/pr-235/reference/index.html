@@ -4059,7 +4059,7 @@ feature (e.g <code>python -m pip install hikari[server]</code>).</p>
 
 
 <a href="#yuyo.asgi.AsgiAdapter.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_body_size</span><span class="o">=</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4107,6 +4107,23 @@ on using ProcessPoolExecutor implementations with this parameter.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_body_size</code></td>
+          <td class="doc-param-details">
+            <p>The maximum body size this should allow received request bodies to be
+in bytes before failing the request with a 413 - Content Too Large.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>1024 ** 2</code>
                 </span>
             </p>
           </td>
@@ -4586,7 +4603,7 @@ function like <a class="autorefs autorefs-internal" href="asgi/#yuyo.asgi.AsgiAd
 
 
 <a href="#yuyo.asgi.AsgiBot.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">token_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rate_limit</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rest_url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">token_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">public_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">http_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_body_size</span><span class="o">=</span><span class="mi">1024</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">max_rate_limit</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rest_url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4692,6 +4709,23 @@ regarding HTTP-redirects.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_body_size</code></td>
+          <td class="doc-param-details">
+            <p>The maximum body size this should allow received request bodies to be
+in bytes before failing the request with a 413 - Content Too Large.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>1024 ** 2</code>
                 </span>
             </p>
           </td>
