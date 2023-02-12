@@ -2248,7 +2248,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[Self]:
+    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a channel select menu to this action row.
 
         Parameters
@@ -2273,14 +2273,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             should be used to add options to this select menu.
 
             And the parent action row can be accessed by calling
-            [TextSelectMenuBuilder.add_to_parent][hikari.api.special_endpoints.TextSelectMenuBuilder.add_to_parent].
+            [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
             custom_id = _random_id()
 
         self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
-        component = hikari.impl.special_endpoints.TextSelectMenuBuilder(
-            container=self,
+        component = hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn](
+            container=NotImplemented,  # type: ignore
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
