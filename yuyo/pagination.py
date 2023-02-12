@@ -31,7 +31,7 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: list[str] = ["aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
+__all__: list[str] = ["Page", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
 import textwrap
 import typing
@@ -44,12 +44,17 @@ from . import _internal
 if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
 
+    class _ResponseKwargs(typing.TypedDict):
+        content: hikari.UndefinedOr[str]
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
 
-EntryT = tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]
+
+EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
 """A type hint used to represent a paginator entry.
 
-This should be a tuple of the string message content or [hikari.undefined.UNDEFINED][]
-to the message's embed if set else [hikari.undefined.UNDEFINED][].
+This may be either [Page][] or `tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]`
+where the tuple[0] is the message content and tuple[1] is an embed to send.
 """
 
 LEFT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
@@ -293,3 +298,62 @@ async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.
     async for value in iterable:
         counter += 1
         yield (counter, value)
+
+
+class Page:
+    """Represents a pagianted response."""
+
+    __slots__ = ("_attachments", "_content", "_embeds")
+
+    def __init__(
+        self,
+        content: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        *,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        # TODO: come up with a system for passing other components per-response.
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+    ) -> None:
+        """Initialise a response page.
+
+        Parameters
+        ----------
+        content
+            The message content to send.
+        attachments
+            Up to 10 attachments to include in the response..
+        embeds
+            Up to 10 embeds to include in the response.
+        """
+        self._attachments = attachments
+        self._content = content
+        self._embeds = embeds
+
+    @classmethod
+    def from_entry(cls, entry: EntryT, /) -> Page:
+        """Create a Page from a [yuyo.pagination.EntryT][].
+
+        Parameters
+        ----------
+        entry
+            The [yuyo.pagination.EntryT][] to make a page from.
+
+        Returns
+        -------
+        Page
+            The created page.
+        """
+        if isinstance(entry, tuple):
+            content, embed = entry
+            return cls(content=content, embeds=[embed] if embed else hikari.UNDEFINED)
+
+        return entry
+
+    def to_kwargs(self) -> _ResponseKwargs:
+        """Form create message `**kwargs` for this page.
+
+        Returns
+        -------
+        dict[str, Any]
+            The create message kwargs for this page.
+        """
+        return {"attachments": self._attachments, "content": self._content, "embeds": self._embeds}

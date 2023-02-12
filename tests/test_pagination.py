@@ -36,6 +36,7 @@ import typing
 from collections import abc as collections
 from unittest import mock
 
+import hikari
 import pytest
 
 from yuyo import _internal
@@ -95,3 +96,72 @@ async def test_aenumerate_for_empty_iterator():
     result = await _internal.collect_iterable(iterator)
 
     assert result == []
+
+
+class TestPage:
+    def test_from_entry(self):
+        original_page = pagination.Page(content="a", attachments=[mock.Mock()], embeds=[mock.Mock()])
+
+        page = pagination.Page.from_entry(original_page)
+
+        assert page is original_page
+
+    def test_from_entry_when_tuple(self):
+        mock_embed = mock.Mock()
+
+        page = pagination.Page.from_entry(("meow", mock_embed))
+
+        assert page.to_kwargs() == {"attachments": hikari.UNDEFINED, "content": "meow", "embeds": [mock_embed]}
+
+    def test_from_entry_when_tuple_and_both_undefined(self):
+        page = pagination.Page.from_entry((hikari.UNDEFINED, hikari.UNDEFINED))
+
+        assert page.to_kwargs() == {
+            "attachments": hikari.UNDEFINED,
+            "content": hikari.UNDEFINED,
+            "embeds": hikari.UNDEFINED,
+        }
+
+    def test_from_entry_when_tuple_and_content_undefined(self):
+        mock_embed = mock.Mock()
+
+        page = pagination.Page.from_entry((hikari.UNDEFINED, mock_embed))
+
+        assert page.to_kwargs() == {
+            "attachments": hikari.UNDEFINED,
+            "content": hikari.UNDEFINED,
+            "embeds": [mock_embed],
+        }
+
+    def test_from_entry_when_tuple_and_embed_undefined(self):
+        page = pagination.Page.from_entry(("very special content", hikari.UNDEFINED))
+
+        assert page.to_kwargs() == {
+            "attachments": hikari.UNDEFINED,
+            "content": "very special content",
+            "embeds": hikari.UNDEFINED,
+        }
+
+    def test_to_kwargs(self):
+        mock_attachment_1 = mock.Mock()
+        mock_attachment_2 = mock.Mock()
+        mock_embed_1 = mock.Mock()
+        mock_embed_2 = mock.Mock()
+        page = pagination.Page(
+            content="himeowmeow",
+            attachments=[mock_attachment_1, mock_attachment_2],
+            embeds=[mock_embed_1, mock_embed_2],
+        )
+
+        result = page.to_kwargs()
+
+        assert result == {
+            "content": "himeowmeow",
+            "attachments": [mock_attachment_1, mock_attachment_2],
+            "embeds": [mock_embed_1, mock_embed_2],
+        }
+
+    def test_to_kwargs_when_all_undefined(self):
+        result = pagination.Page().to_kwargs()
+
+        assert result == {"attachments": hikari.UNDEFINED, "content": hikari.UNDEFINED, "embeds": hikari.UNDEFINED}
