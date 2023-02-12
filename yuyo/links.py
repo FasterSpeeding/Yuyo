@@ -321,6 +321,7 @@ class MessageLink(BaseLink):
         )
 
     def __str__(self) -> str:
+        """Create a raw string representation of this link."""
         return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
 
     async def fetch(self) -> hikari.Message:
@@ -399,6 +400,7 @@ class TemplateLink(BaseLink):
     _code: str
 
     def __str__(self) -> str:
+        """Create a raw string representation of this link."""
         return make_template_link(self._code)
 
     @property
@@ -476,6 +478,7 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
     _webhook_id: hikari.Snowflake
 
     def __str__(self) -> str:
+        """Create a raw string representation of this link."""
         return make_webhook_link(self._webhook_id, self._token)
 
     @property

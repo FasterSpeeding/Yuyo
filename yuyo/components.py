@@ -523,8 +523,6 @@ class ComponentContext:
             embeds, content = _to_list(embed, embeds, content, hikari.Embed, "embed")
 
             content = str(content) if content is not hikari.UNDEFINED else hikari.UNDEFINED
-            # Pyright doesn't properly support attrs and doesn't account for _ being removed from field
-            # pre-fix in init.
             result = hikari.impl.InteractionMessageBuilder(
                 response_type,
                 content,
@@ -1377,9 +1375,9 @@ class ComponentClient:
 
     def __exit__(
         self,
-        exc_type: typing.Optional[type[BaseException]],
-        exc: typing.Optional[BaseException],
-        exc_traceback: typing.Optional[types.TracebackType],
+        _: typing.Optional[type[BaseException]],
+        __: typing.Optional[BaseException],
+        ___: typing.Optional[types.TracebackType],
     ) -> None:
         self.close()
 
@@ -1733,7 +1731,6 @@ class AbstractComponentExecutor(abc.ABC):
     @abc.abstractmethod
     def custom_ids(self) -> collections.Collection[str]:
         """Collection of the custom IDs this executor is listening for."""
-        raise NotImplementedError
 
     @property
     @abc.abstractmethod
@@ -1938,7 +1935,7 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
     __slots__ = ("_callback",)
 
     def __init__(
-        self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle
+        self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle, /
     ) -> None:
         self._callback = callback
         super().__init__(container=container, custom_id=custom_id, style=style)
@@ -1955,7 +1952,7 @@ class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerPr
 class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str) -> None:
+    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, /) -> None:
         self._callback = callback
         super().__init__(container=container, custom_id=custom_id)
 
@@ -2037,11 +2034,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
-            return InteractiveButtonBuilder(
-                callback=callback_or_url, container=self, style=hikari.ButtonStyle(style), custom_id=custom_id
-            )
+            return InteractiveButtonBuilder(callback_or_url, self, custom_id, hikari.ButtonStyle(style))
 
-        # Pyright doesn't properly support _ attrs kwargs
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
@@ -2054,7 +2048,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if custom_id is None:
             custom_id = _random_id()
 
-        return SelectMenuBuilder(callback=callback, container=self, custom_id=custom_id)
+        return SelectMenuBuilder(callback, self, custom_id)
 
     def build(self) -> dict[str, typing.Any]:
         return {
@@ -2069,7 +2063,7 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentExecutorPr
     __slots__ = ("_parent",)
 
     def __init__(
-        self, parent: _ParentExecutorProtoT, *, ephemeral_default: bool = False, load_from_attributes: bool = False
+        self, parent: _ParentExecutorProtoT, /, *, ephemeral_default: bool = False, load_from_attributes: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes)
         self._parent = parent
@@ -2222,6 +2216,7 @@ class ComponentPaginator(ActionRowExecutor):
     def __init__(
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
+        /,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,

@@ -80,6 +80,7 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 
 async def async_paginate_string(
     lines: collections.AsyncIterable[str],
+    /,
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
@@ -150,6 +151,7 @@ async def async_paginate_string(
 
 def sync_paginate_string(
     lines: collections.Iterable[str],
+    /,
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
@@ -220,6 +222,7 @@ def sync_paginate_string(
 @typing.overload
 def paginate_string(
     lines: collections.AsyncIterator[str],
+    /,
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
@@ -231,6 +234,7 @@ def paginate_string(
 @typing.overload
 def paginate_string(
     lines: collections.Iterator[str],
+    /,
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
@@ -241,6 +245,7 @@ def paginate_string(
 
 def paginate_string(
     lines: _internal.IterableT[str],
+    /,
     *,
     char_limit: int = 2000,
     line_limit: int = 25,

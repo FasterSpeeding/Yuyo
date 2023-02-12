@@ -369,6 +369,7 @@ class ChunkTracker:
     async def request_guild_members(
         self,
         guild: hikari.SnowflakeishOr[hikari.PartialGuild],
+        /,
         *,
         include_presences: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         query: str = "",

@@ -76,7 +76,6 @@ class AbstractReactionHandler(abc.ABC):
     @abc.abstractmethod
     def has_expired(self) -> bool:
         """Whether this handler has ended."""
-        raise NotImplementedError
 
     @property
     @abc.abstractmethod
@@ -86,12 +85,10 @@ class AbstractReactionHandler(abc.ABC):
         !!! note
             If it hasn't ever been triggered then this will be when it was created.
         """
-        raise NotImplementedError
 
     @abc.abstractmethod
     async def close(self) -> None:
         """Close this handler."""
-        raise NotImplementedError
 
     @abc.abstractmethod
     async def open(self, message: hikari.Message, /) -> None:
@@ -102,7 +99,6 @@ class AbstractReactionHandler(abc.ABC):
         message
             The message to bind this handler to.
         """
-        raise NotImplementedError
 
     @abc.abstractmethod
     async def on_reaction_event(self, event: EventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
@@ -120,7 +116,6 @@ class AbstractReactionHandler(abc.ABC):
         HandlerClosed
             If this reaction handler has been closed.
         """
-        raise NotImplementedError
 
 
 def as_reaction_callback(  # noqa: D103
@@ -318,6 +313,7 @@ class ReactionPaginator(ReactionHandler):
     def __init__(
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
+        /,
         *,
         authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]],
         triggers: collections.Collection[str] = (

@@ -335,10 +335,11 @@ class ErrorManager:
         """Clear the rules registered with this handler."""
         self._rules.clear()
 
-    def with_rule(
+    def add_rule(
         self,
         exceptions: collections.Iterable[type[BaseException]],
         result: collections.Callable[[typing.Any], typing.Optional[bool]],
+        /,
     ) -> Self:
         """Add a rule to this exception context manager.
 
