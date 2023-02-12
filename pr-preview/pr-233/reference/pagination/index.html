@@ -515,6 +515,40 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page" class="md-nav__link">
+    Page
+  </a>
+  
+    <nav class="md-nav" aria-label="Page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.from_entry" class="md-nav__link">
+    from_entry()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.to_kwargs" class="md-nav__link">
+    to_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.pagination.aenumerate" class="md-nav__link">
     aenumerate()
   </a>
@@ -668,6 +702,40 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page" class="md-nav__link">
+    Page
+  </a>
+  
+    <nav class="md-nav" aria-label="Page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.from_entry" class="md-nav__link">
+    from_entry()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Page.to_kwargs" class="md-nav__link">
+    to_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.pagination.aenumerate" class="md-nav__link">
     aenumerate()
   </a>
@@ -768,14 +836,15 @@
   </span>
 
 <a href="#yuyo.pagination.EntryT" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">EntryT</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Embed</span><span class="p">]]</span>
+<div class="highlight"><pre><span></span><code><span class="n">EntryT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">hikari</span><span class="o">.</span><span class="n">UndefinedOr</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Embed</span><span class="p">]],</span> <span class="s1">&#39;Page&#39;</span><span class="p">]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
       <p>A type hint used to represent a paginator entry.</p>
-<p>This should be a tuple of the string message content or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>
-to the message's embed if set else <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>.</p>
+<p>This may be either <a class="autorefs autorefs-internal" href="#yuyo.pagination.Page">Page</a> or
+<code>tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]</code> where tuple[0]
+is the message content and tuple[1] is an embed to send.</p>
   </div>
 
 </div>
@@ -895,6 +964,232 @@ to the message's embed if set else <a class="autorefs autorefs-external" href="h
 
 </div>
 
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="yuyo.pagination.Page" class="doc doc-heading">
+        <span class="doc doc-object-name doc-class-name">Page</span>
+
+
+<a href="#yuyo.pagination.Page" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Represents a pagianted response.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Page.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.pagination.Page.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">embeds</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise a response page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>content</code></td>
+          <td class="doc-param-details">
+            <p>The message content to send.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attachments</code></td>
+          <td class="doc-param-details">
+            <p>Up to 10 attachments to include in the response..</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Sequence" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Sequence">Sequence</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.Resourceish">Resourceish</span>]]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>embeds</code></td>
+          <td class="doc-param-details">
+            <p>Up to 10 embeds to include in the response.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Sequence" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Sequence">Sequence</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.Embed">Embed</span>]]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Page.from_entry" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">from_entry</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#yuyo.pagination.Page.from_entry" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">from_entry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a Page from a <a class="autorefs autorefs-internal" href="#yuyo.pagination.EntryT">yuyo.pagination.EntryT</a>.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>entry</code></td>
+          <td class="doc-param-details">
+            <p>The <a class="autorefs autorefs-internal" href="#yuyo.pagination.EntryT">yuyo.pagination.EntryT</a> to make a page from.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.pagination.EntryT" href="#yuyo.pagination.EntryT">EntryT</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="#yuyo.pagination.Page">Page</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The created page.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Page.to_kwargs" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">to_kwargs</span>
+
+
+<a href="#yuyo.pagination.Page.to_kwargs" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">to_kwargs</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Form create message <code>**kwargs</code> for this page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, Any]</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The create message kwargs for this page.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
 
 
 <div class="doc doc-object doc-function">
