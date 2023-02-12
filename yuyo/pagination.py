@@ -49,8 +49,6 @@ if typing.TYPE_CHECKING:
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
         mentions_everyone: hikari.UndefinedOr[bool]
-        user_mentions: typing.Union[hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType]
-        role_mentions: typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType]
 
 
 EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
@@ -306,7 +304,7 @@ async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.
 class Page:
     """Represents a pagianted response."""
 
-    __slots__ = ("_attachments", "_content", "_embeds", "_mentions_everyone", "_role_mentions", "_user_mentions")
+    __slots__ = ("_attachments", "_content", "_embeds", "_mentions_everyone")
 
     def __init__(
         self,
@@ -316,12 +314,6 @@ class Page:
         # TODO: come up with a system for passing other components per-response.
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
     ) -> None:
         """Initialise a response page.
 
@@ -333,27 +325,11 @@ class Page:
             Up to 10 attachments to include in the response..
         embeds
             Up to 10 embeds to include in the response.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
-            derivatives to enforce mentioning specific roles.
         """
         self._attachments = attachments
         self._content = content
         self._embeds = embeds
         self._mentions_everyone = mentions_everyone
-        self._role_mentions = role_mentions
-        self._user_mentions = user_mentions
 
     @classmethod
     def from_entry(cls, entry: EntryT, /) -> Page:
@@ -388,6 +364,4 @@ class Page:
             "content": self._content,
             "embeds": self._embeds,
             "mentions_everyone": self._mentions_everyone,
-            "user_mentions": self._user_mentions,
-            "role_mentions": self._role_mentions,
         }

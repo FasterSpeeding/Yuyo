@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for adding channel select menus to an action row.
 - [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
   adding the other new select menu types to an action row.
+- [yuyo.pagination.Page][] type which can be used to represent a response page in the paginator.
+  This allows configuring attachments and multiple embeds for a page.
 
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
@@ -35,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `add_handler` to [ReactionClient.set_handler][yuyo.reactions.ReactionClient.set_handler].
 - [ReactionClient.set_handler][yuyo.reactions.ReactionClient.set_handler]'s arguments are now all
   positional-only.
+- [ComponentPaginator.get_next_entry][yuyo.components.ComponentPaginator.get_next_entry] and
+  [ReactionPaginator.get_next_entry][yuyo.reactions.ReactionPaginator.get_next_entry] now both
+  return [yuyo.pagination.Page][] rather than a tuple.
+  This can be used to create a response easily by passing the result of
+  [Page.to_kwargs][][yuyo.pagination.to_kwargs] to the create message or execute webhook REST method.
 
 ### Fixed
 - `Context.create_initial_response` (and by extension `Context.respond` for the initial
