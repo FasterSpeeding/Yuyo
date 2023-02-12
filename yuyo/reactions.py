@@ -371,7 +371,7 @@ class ReactionPaginator(ReactionHandler):
             self._index = len(self._buffer) - 1
             await self._edit_message(self._buffer[-1])
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.Page]:
+    async def get_next_entry(self) -> typing.Optional[pagination.Page]:
         """Get the next entry in this paginator.
 
         Returns

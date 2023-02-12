@@ -2524,7 +2524,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.Page]:
+    async def get_next_entry(self) -> typing.Optional[pagination.Page]:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
