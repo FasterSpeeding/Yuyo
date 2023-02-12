@@ -640,15 +640,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.add_callback" class="md-nav__link">
-    add_callback()
+  <a href="#yuyo.reactions.ReactionHandler.remove_callback" class="md-nav__link">
+    remove_callback()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.remove_callback" class="md-nav__link">
-    remove_callback()
+  <a href="#yuyo.reactions.ReactionHandler.set_callback" class="md-nav__link">
+    set_callback()
   </a>
   
 </li>
@@ -936,15 +936,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.add_callback" class="md-nav__link">
-    add_callback()
+  <a href="#yuyo.reactions.ReactionHandler.remove_callback" class="md-nav__link">
+    remove_callback()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.remove_callback" class="md-nav__link">
-    remove_callback()
+  <a href="#yuyo.reactions.ReactionHandler.set_callback" class="md-nav__link">
+    set_callback()
   </a>
   
 </li>
@@ -1140,8 +1140,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1165,8 +1165,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.on_reaction_event" class="headerlink" title="Permanent link">#</a></h3>
@@ -1250,8 +1250,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -1978,12 +1978,57 @@ paginator.</p>
 
 
 
-<h3 id="yuyo.reactions.ReactionHandler.add_callback" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">add_callback</span>
+<h3 id="yuyo.reactions.ReactionHandler.remove_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">remove_callback</span>
 
 
-<a href="#yuyo.reactions.ReactionHandler.add_callback" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_callback</span><span class="p">(</span><span class="n">emoji_identifier</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+<a href="#yuyo.reactions.ReactionHandler.remove_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">remove_callback</span><span class="p">(</span><span class="n">emoji_identifier</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove a callback from this reaction handler.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>emoji_identifier</code></td>
+          <td class="doc-param-details">
+            <p>Identifier of the emoji the callback to remove is for.</p>
+<p>This should be a snowfake if this is for a custom emoji or a string
+if this is for a unicode emoji.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.CustomEmoji">CustomEmoji</span>]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.reactions.ReactionHandler.set_callback" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">set_callback</span>
+
+
+<a href="#yuyo.reactions.ReactionHandler.set_callback" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">set_callback</span><span class="p">(</span><span class="n">emoji_identifier</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2022,51 +2067,6 @@ which is the event that triggered this reaction.</p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><span title="yuyo.reactions.CallbackSig">CallbackSig</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="yuyo.reactions.ReactionHandler.remove_callback" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">remove_callback</span>
-
-
-<a href="#yuyo.reactions.ReactionHandler.remove_callback" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">remove_callback</span><span class="p">(</span><span class="n">emoji_identifier</span><span class="p">)</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Remove a callback from this reaction handler.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>emoji_identifier</code></td>
-          <td class="doc-param-details">
-            <p>Identifier of the emoji the callback to remove is for.</p>
-<p>This should be a snowfake if this is for a custom emoji or a string
-if this is for a unicode emoji.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.CustomEmoji">CustomEmoji</span>]]</code>
                 </span>
             </p>
           </td>
