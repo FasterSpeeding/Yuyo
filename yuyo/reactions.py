@@ -375,7 +375,7 @@ class ReactionPaginator(ReactionHandler):
             content, embed = self._buffer[-1]
             await self._edit_message(content=content, embed=embed)
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.EntryT]:
+    async def get_next_entry(self) -> typing.Optional[pagination.EntryT]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
@@ -428,7 +428,7 @@ class ReactionPaginator(ReactionHandler):
         except KeyError:
             pass
 
-    async def close(self, *, remove_reactions: bool = False, max_retries: int = 5, max_backoff: float = 2.0) -> None:
+    async def close(self, *, remove_reactions: bool = False) -> None:
         """Close this handler and deregister any previously registered message.
 
         Parameters
@@ -450,9 +450,7 @@ class ReactionPaginator(ReactionHandler):
                 except (hikari.NotFoundError, hikari.ForbiddenError):
                     return
 
-    async def open(
-        self, message: hikari.Message, /, *, add_reactions: bool = True, max_retries: int = 5, max_backoff: float = 2.0
-    ) -> None:
+    async def open(self, message: hikari.Message, /, *, add_reactions: bool = True) -> None:
         await super().open(message)
         if not add_reactions:
             return
@@ -476,8 +474,6 @@ class ReactionPaginator(ReactionHandler):
         /,
         *,
         add_reactions: bool = True,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
     ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
@@ -493,12 +489,6 @@ class ReactionPaginator(ReactionHandler):
         add_reactions
             Whether this should add the paginator's reactions to the message
             after responding.
-        max_retries
-            How many times this should retry to respond if Hikari raises
-            any ratelimit errors.
-        max_backoff
-            The maximum time this should backoff for before trying if Hikari
-            raises any ratelimit errors.
 
         Returns
         -------
@@ -521,7 +511,7 @@ class ReactionPaginator(ReactionHandler):
             raise ValueError("ReactionPaginator iterator yielded no pages.")
 
         message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
-        await self.open(message, add_reactions=add_reactions, max_retries=max_retries, max_backoff=max_backoff)
+        await self.open(message, add_reactions=add_reactions)
         return message
 
 
@@ -628,7 +618,7 @@ class ReactionClient:
         return self._gc_task is None
 
     def set_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], /, paginator: AbstractReactionHandler
+        self, message: hikari.SnowflakeishOr[hikari.Message], paginator: AbstractReactionHandler, /
     ) -> Self:
         """Add a reaction handler to this reaction client.
 
@@ -685,7 +675,7 @@ class ReactionClient:
         """
         return self._handlers.pop(hikari.Snowflake(message))
 
-    def _try_unsubscribe(self, event_type: type[_EventT], callback: event_manager_api.CallbackT[_EventT]) -> None:
+    def _try_unsubscribe(self, event_type: type[_EventT], callback: event_manager_api.CallbackT[_EventT], /) -> None:
         try:
             self._event_manager.unsubscribe(event_type, callback)
         except (ValueError, LookupError):

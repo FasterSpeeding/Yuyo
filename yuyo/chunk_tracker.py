@@ -275,6 +275,7 @@ class _ShardInfo:
         shard: hikari.api.GatewayShard,
         guild_ids: collections.Sequence[hikari.Snowflake],
         /,
+        *,
         known_nonces: typing.Optional[dict[hikari.Snowflake, str]] = None,
     ) -> None:
         self.any_received = False
@@ -449,7 +450,7 @@ class ChunkTracker:
             self._task = asyncio.get_running_loop().create_task(self._loop())
             self._task.add_done_callback(self._unset_task)
 
-    def _unset_task(self, task: asyncio.Task[None], /) -> None:
+    def _unset_task(self, _: asyncio.Task[None], /) -> None:
         self._task = None
 
     @_log_task_exc("Chunk tracker crashed")
