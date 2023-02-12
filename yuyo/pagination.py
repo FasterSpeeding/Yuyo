@@ -360,5 +360,4 @@ class Page:
             "attachments": self._attachments,
             "content": self._content,
             "embeds": self._embeds,
-            "mentions_everyone": self._mentions_everyone,
         }
