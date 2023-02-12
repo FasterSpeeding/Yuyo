@@ -1701,8 +1701,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -1725,8 +1725,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -1751,8 +1751,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1946,7 +1946,7 @@
 
 
 <a href="#yuyo.components.ActionRowExecutor.add_button" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4124,8 +4124,8 @@ derivatives to enforce mentioning specific users.</p>
           <td><code>role_mentions</code></td>
           <td class="doc-param-details">
             <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.
-Alternatively this may be a collection of
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
+<p>Alternatively this may be a collection of
 <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
             <p>
@@ -6564,8 +6564,7 @@ and will still internally store the entry and increment the position of the pagi
 <span class="p">)</span>
 <span class="n">first_response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response_paginator</span><span class="o">.</span><span class="n">get_next_entry</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">first_response</span>
-<span class="n">content</span><span class="p">,</span> <span class="n">embed</span> <span class="o">=</span> <span class="n">first_response</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">embed</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="o">**</span><span class="n">first_response</span><span class="o">.</span><span class="n">to_kwargs</span><span class="p">(),</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">response_paginator</span><span class="p">)</span>
 </code></pre></div>
 
@@ -6580,7 +6579,7 @@ and will still internally store the entry and increment the position of the pagi
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="../pagination/#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.EntryT" href="../pagination/#yuyo.pagination.EntryT">EntryT</a> | None</code>
+                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="../pagination/#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="../pagination/#yuyo.pagination.Page">Page</a> | None</code>
               </span>
           </td>
           <td class="doc-returns-details">

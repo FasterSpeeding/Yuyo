@@ -1222,13 +1222,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionClient.add_handler" class="md-nav__link">
-    add_handler()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionClient.close" class="md-nav__link">
     close()
   </a>
@@ -1259,6 +1252,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionClient.remove_handler" class="md-nav__link">
     remove_handler()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionClient.set_handler" class="md-nav__link">
+    set_handler()
   </a>
   
 </li>
@@ -1355,6 +1355,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionPaginator.create_message" class="md-nav__link">
     create_message()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionPaginator.get_next_entry" class="md-nav__link">
+    get_next_entry()
   </a>
   
 </li>
@@ -2578,13 +2585,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionClient.add_handler" class="md-nav__link">
-    add_handler()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionClient.close" class="md-nav__link">
     close()
   </a>
@@ -2615,6 +2615,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionClient.remove_handler" class="md-nav__link">
     remove_handler()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionClient.set_handler" class="md-nav__link">
+    set_handler()
   </a>
   
 </li>
@@ -2711,6 +2718,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionPaginator.create_message" class="md-nav__link">
     create_message()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionPaginator.get_next_entry" class="md-nav__link">
+    get_next_entry()
   </a>
   
 </li>
@@ -3070,7 +3084,7 @@
 
 
 <a href="#yuyo.components.ActionRowExecutor.add_button" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_button</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">callback_or_url</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -7568,8 +7582,8 @@ derivatives to enforce mentioning specific users.</p>
           <td><code>role_mentions</code></td>
           <td class="doc-param-details">
             <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.
-Alternatively this may be a collection of
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
+<p>Alternatively this may be a collection of
 <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
             <p>
@@ -10008,8 +10022,7 @@ and will still internally store the entry and increment the position of the pagi
 <span class="p">)</span>
 <span class="n">first_response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response_paginator</span><span class="o">.</span><span class="n">get_next_entry</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">first_response</span>
-<span class="n">content</span><span class="p">,</span> <span class="n">embed</span> <span class="o">=</span> <span class="n">first_response</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="n">embed</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="o">**</span><span class="n">first_response</span><span class="o">.</span><span class="n">to_kwargs</span><span class="p">(),</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">response_paginator</span><span class="p">)</span>
 </code></pre></div>
 
@@ -10024,7 +10037,7 @@ and will still internally store the entry and increment the position of the pagi
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="pagination/#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.EntryT" href="pagination/#yuyo.pagination.EntryT">EntryT</a> | None</code>
+                  <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="pagination/#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="pagination/#yuyo.pagination.Page">Page</a> | None</code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -10899,65 +10912,6 @@ closed based on the lifetime events dispatched by <code>event_managed</code>.</p
 
 
 
-<h3 id="yuyo.reactions.ReactionClient.add_handler" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">add_handler</span>
-
-
-<a href="#yuyo.reactions.ReactionClient.add_handler" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="n">paginator</span><span class="p">)</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Add a reaction handler to this reaction client.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.open">yuyo.reactions.AbstractReactionHandler.open</a>.</p>
-</div>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>message</code></td>
-          <td class="doc-param-details">
-            <p>The message ID to add register a reaction handler with.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.Message">Message</span>]</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>paginator</code></td>
-          <td class="doc-param-details">
-            <p>The object of the opened paginator to register in this reaction client.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="yuyo.reactions.AbstractReactionHandler" href="reactions/#yuyo.reactions.AbstractReactionHandler">AbstractReactionHandler</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h3 id="yuyo.reactions.ReactionClient.close" class="doc doc-heading">
         <span class="doc doc-object-name doc-function-name">close</span>
 
@@ -11214,6 +11168,65 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
           </td>
           <td class="doc-returns-details">
             <p>The object of the registered paginator if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.reactions.ReactionClient.set_handler" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">set_handler</span>
+
+
+<a href="#yuyo.reactions.ReactionClient.set_handler" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">set_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">paginator</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a reaction handler to this reaction client.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.open">yuyo.reactions.AbstractReactionHandler.open</a>.</p>
+</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>message</code></td>
+          <td class="doc-param-details">
+            <p>The message ID to add register a reaction handler with.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.Message">Message</span>]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>paginator</code></td>
+          <td class="doc-param-details">
+            <p>The object of the opened paginator to register in this reaction client.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.reactions.AbstractReactionHandler" href="reactions/#yuyo.reactions.AbstractReactionHandler">AbstractReactionHandler</a></code>
+                </span>
+            </p>
           </td>
         </tr>
     </tbody>
@@ -11723,7 +11736,7 @@ paginator.</p>
   </span>
 
 <a href="#yuyo.reactions.ReactionPaginator.close" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">remove_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_backoff</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">remove_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11775,7 +11788,7 @@ paginate through this from the previously registered message.</p>
   </span>
 
 <a href="#yuyo.reactions.ReactionPaginator.create_message" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">create_message</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">add_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_backoff</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">create_message</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">add_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -11835,40 +11848,6 @@ after responding.</p>
             </p>
           </td>
         </tr>
-        <tr>
-          <td><code>max_retries</code></td>
-          <td class="doc-param-details">
-            <p>How many times this should retry to respond if Hikari raises
-any ratelimit errors.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>5</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_backoff</code></td>
-          <td class="doc-param-details">
-            <p>The maximum time this should backoff for before trying if Hikari
-raises any ratelimit errors.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>2.0</code>
-                </span>
-            </p>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -11911,6 +11890,51 @@ message, otherwise this will be what was supplied as <code>message</code>.</p>
           </td>
           <td class="doc-raises-details">
             <p>If the provided iterator didn't yield any content for the first message.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.reactions.ReactionPaginator.get_next_entry" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">get_next_entry</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.reactions.ReactionPaginator.get_next_entry" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">get_next_entry</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the next entry in this paginator.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="pagination/#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="pagination/#yuyo.pagination.Page">Page</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The next entry in this paginator, or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if there are no more entries.</p>
           </td>
         </tr>
     </tbody>
