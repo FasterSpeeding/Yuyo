@@ -51,6 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the `content` argument for REST-based
   interaction commands.
+- `BLACK_CROSS` can now be passed to
+  [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__] and
+  [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
+  in the `triggers` array to enable the stop button.
 
 ### Removed
 - `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and
