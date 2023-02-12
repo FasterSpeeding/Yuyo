@@ -2494,7 +2494,7 @@ class ComponentPaginator(ActionRowExecutor):
         if pagination.LEFT_TRIANGLE in triggers:
             self.add_previous_button()
 
-        if pagination.STOP_SQUARE in triggers:
+        if pagination.STOP_SQUARE in triggers or pagination.BLACK_CROSS in triggers:
             self.add_stop_button()
 
         if pagination.RIGHT_TRIANGLE in triggers:

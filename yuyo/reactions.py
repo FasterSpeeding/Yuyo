@@ -281,7 +281,7 @@ class ReactionHandler(AbstractReactionHandler):
 class ReactionPaginator(ReactionHandler):
     """Standard implementation of a reaction handler for pagination."""
 
-    __slots__ = ("_buffer", "_index", "_iterator", "_triggers")
+    __slots__ = ("_buffer", "_index", "_iterator", "_reactions")
 
     def __init__(
         self,
@@ -323,22 +323,68 @@ class ReactionPaginator(ReactionHandler):
         self._buffer: list[pagination.Page] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
-        self._triggers = triggers
+        self._reactions: list[typing.Union[hikari.CustomEmoji, str]] = []
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
             self.set_callback(pagination.LEFT_DOUBLE_TRIANGLE, self._on_first)
+            self._reactions.append(pagination.LEFT_DOUBLE_TRIANGLE)
 
         if pagination.LEFT_TRIANGLE in triggers:
             self.set_callback(pagination.LEFT_TRIANGLE, self._on_previous)
+            self._reactions.append(pagination.LEFT_TRIANGLE)
 
         if pagination.STOP_SQUARE in triggers:
             self.set_callback(pagination.STOP_SQUARE, self._on_disable)
+            self._reactions.append(pagination.STOP_SQUARE)
 
         if pagination.RIGHT_TRIANGLE in triggers:
             self.set_callback(pagination.RIGHT_TRIANGLE, self._on_next)
+            self._reactions.append(pagination.RIGHT_TRIANGLE)
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.set_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
+            self._reactions.append(pagination.RIGHT_DOUBLE_TRIANGLE)
+
+    def _add_button(
+        self, callback: CallbackSig, emoji: typing.Union[hikari.CustomEmoji, str], add_reaction: bool, /
+    ) -> Self:
+        self.set_callback(emoji, callback)
+
+        if add_reaction:
+            self._reactions.append(emoji)
+
+        return self
+
+    def add_first_button(
+        self,
+        *,
+        emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_DOUBLE_TRIANGLE,
+        add_reaction: bool = True,
+    ) -> Self:
+        return self._add_button(self._on_first, emoji, add_reaction)
+
+    def add_previous_button(
+        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_TRIANGLE, add_reaction: bool = True
+    ) -> Self:
+        return self._add_button(self._on_previous, emoji, add_reaction)
+
+    def add_stop_button(
+        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.STOP_SQUARE, add_reaction: bool = True
+    ) -> Self:
+        return self._add_button(self._on_disable, emoji, add_reaction)
+
+    def add_next_button(
+        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_TRIANGLE, add_reaction: bool = True
+    ) -> Self:
+        return self._add_button(self._on_next, emoji, add_reaction)
+
+    def add_last_button(
+        self,
+        *,
+        emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        add_reaction: bool = True,
+    ) -> Self:
+        return self._add_button(self._on_last, emoji, add_reaction)
 
     async def _edit_message(self, response: pagination.Page, /) -> None:
         if self._message is None:
@@ -445,7 +491,7 @@ class ReactionPaginator(ReactionHandler):
                 return
 
             # TODO: check if we can just clear the reactions before doing this using the cache.
-            for emoji_name in self._triggers:
+            for emoji_name in self._reactions:
                 try:
                     await message.remove_reaction(emoji_name)
 
@@ -457,7 +503,7 @@ class ReactionPaginator(ReactionHandler):
         if not add_reactions:
             return
 
-        for emoji_name in self._triggers:
+        for emoji_name in self._reactions:
             try:
                 await message.add_reaction(emoji_name)
 
