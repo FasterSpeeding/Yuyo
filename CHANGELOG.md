@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
 - Renamed `ErrorManager.with_rule` to [ErrorManager.add_rule][yuyo.backoff.ErrorManager.add_rule]
-  and make its arguments positional only.
+  and made its arguments positional only.
 - The `guild` argument for [yuyo.chunk_tracker.ChunkTracker.request_guild_members][] is now
   positional only.
 - `iterator` is now positional only in
@@ -44,11 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ReactionPaginator.get_next_entry][yuyo.reactions.ReactionPaginator.get_next_entry] now both
   return [yuyo.pagination.Page][] rather than a tuple.
   This can be used to create a response easily by passing the result of
-  [Page.to_kwargs][yuyo.pagination.Page.to_kwargs] to the create message or execute webhook REST method.
+  [Page.to_kwargs][yuyo.pagination.Page.to_kwargs] to the create message or execute webhook REST method as `**kwargs`.
 
 ### Fixed
-- `Context.create_initial_response` (and by extension `Context.respond` for the initial
-  response specifically) will no-longer try to pass the attachment, component or embed as
+- `Context.create_initial_response` (and by extension `Context.respond` for the initial response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the `content` argument for REST-based
   interaction commands.
 - `BLACK_CROSS` can now be passed to
