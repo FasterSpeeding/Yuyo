@@ -2489,19 +2489,233 @@ class ComponentPaginator(ActionRowExecutor):
         self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_first, emoji=pagination.LEFT_DOUBLE_TRIANGLE)
+            self.add_first_button()
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_previous, emoji=pagination.LEFT_TRIANGLE)
+            self.add_previous_button()
 
-        if pagination.STOP_SQUARE in triggers:
-            self.add_button(hikari.ButtonStyle.DANGER, self._on_disable, emoji=pagination.BLACK_CROSS)
+        if pagination.STOP_SQUARE in triggers or pagination.BLACK_CROSS in triggers:
+            self.add_stop_button()
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_next, emoji=pagination.RIGHT_TRIANGLE)
+            self.add_next_button()
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last, emoji=pagination.RIGHT_DOUBLE_TRIANGLE)
+            self.add_last_button()
+
+    def add_first_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.LEFT_DOUBLE_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to first entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        return self.add_button(
+            style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_previous_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the previous entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        return self.add_button(
+            style, self._on_previous, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_stop_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.BLACK_CROSS,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the stop button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        return self.add_button(
+            style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_next_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the next entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        return self.add_button(
+            style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_last_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to last entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        return self.add_button(
+            style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
 
     def builder(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Get a sequence of the component builders for this paginator.

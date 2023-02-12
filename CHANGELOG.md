@@ -6,13 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Support for new select menu types to `yuyo.to_builder`.
+- Support for the new select menu types to `yuyo.to_builder`.
 - [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
   for adding channel select menus to an action row.
 - [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
   adding the other new select menu types to an action row.
-- [yuyo.pagination.Page][] type which can be used to represent a response page in the paginator.
+- [yuyo.pagination.Page][] type which can be used to represent a response page in the paginators.
   This allows configuring attachments and multiple embeds for a page.
+- Methods for manually setting the buttons for [yuyo.components.ComponentPaginator][] and
+  [yuyo.reactions.ReactionPaginator][] which allow manually overriding the config for each button
+  or reaction.
 
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
@@ -48,6 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the `content` argument for REST-based
   interaction commands.
+- `BLACK_CROSS` can now be passed to
+  [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__] and
+  [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
+  in the `triggers` array to enable the stop button.
 
 ### Removed
 - `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and
