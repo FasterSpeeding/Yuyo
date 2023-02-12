@@ -320,7 +320,7 @@ class ReactionPaginator(ReactionHandler):
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
-        self._buffer: list[pagination.Response] = []
+        self._buffer: list[pagination.Page] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
@@ -340,7 +340,7 @@ class ReactionPaginator(ReactionHandler):
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.set_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
 
-    async def _edit_message(self, response: pagination.Response, /) -> None:
+    async def _edit_message(self, response: pagination.Page, /) -> None:
         if self._message is None:
             return
 
@@ -365,13 +365,13 @@ class ReactionPaginator(ReactionHandler):
 
     async def _on_last(self, _: EventT, /) -> None:
         if self._iterator:
-            self._buffer.extend(map(pagination.Response.from_entry, await _internal.collect_iterable(self._iterator)))
+            self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
 
         if self._buffer:
             self._index = len(self._buffer) - 1
             await self._edit_message(self._buffer[-1])
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.Response]:
+    async def get_next_entry(self, /) -> typing.Optional[pagination.Page]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
@@ -379,7 +379,7 @@ class ReactionPaginator(ReactionHandler):
 
         # If entry is not None then the generator's position was pushed forwards.
         if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
-            entry = pagination.Response.from_entry(entry)
+            entry = pagination.Page.from_entry(entry)
             self._index += 1
             self._buffer.append(entry)
             return entry

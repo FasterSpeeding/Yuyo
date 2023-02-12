@@ -386,6 +386,7 @@ class ComponentContext:
         role_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
+
             Alternatively this may be a collection of
             [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
             derivatives to enforce mentioning specific roles.
@@ -2481,7 +2482,7 @@ class ComponentPaginator(ActionRowExecutor):
         super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
-        self._buffer: list[pagination.Response] = []
+        self._buffer: list[pagination.Page] = []
         self._ephemeral_default = ephemeral_default
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
@@ -2523,7 +2524,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self, /) -> typing.Optional[pagination.Response]:
+    async def get_next_entry(self, /) -> typing.Optional[pagination.Page]:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
@@ -2545,7 +2546,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         Returns
         -------
-        yuyo.pagination.Response | None
+        yuyo.pagination.Page | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
@@ -2555,7 +2556,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         # If entry is not None then the generator's position was pushed forwards.
         if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
-            entry = pagination.Response.from_entry(entry)
+            entry = pagination.Page.from_entry(entry)
             self._index += 1
             self._buffer.append(entry)
             return entry
@@ -2596,7 +2597,7 @@ class ComponentPaginator(ActionRowExecutor):
                 .add_to_container()
             )
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
-            self._buffer.extend(map(pagination.Response.from_entry, await _internal.collect_iterable(self._iterator)))
+            self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
             self._index = len(self._buffer) - 1
             self._iterator = None
 

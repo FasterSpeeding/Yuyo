@@ -31,7 +31,7 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: list[str] = ["Response", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
+__all__: list[str] = ["Page", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
 import textwrap
 import typing
@@ -53,10 +53,10 @@ if typing.TYPE_CHECKING:
         role_mentions: typing.Union[hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType]
 
 
-EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Response"]
+EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
 """A type hint used to represent a paginator entry.
 
-This may be either [Response][] or `tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]`
+This may be either [Page][] or `tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]`
 where the tuple[0] is the message content and tuple[1] is an embed to send.
 """
 
@@ -303,7 +303,7 @@ async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.
         yield (counter, value)
 
 
-class Response:
+class Page:
     """Represents a pagianted response."""
 
     __slots__ = ("_attachments", "_content", "_embeds", "_mentions_everyone", "_role_mentions", "_user_mentions")
@@ -323,6 +323,31 @@ class Response:
             hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
     ) -> None:
+        """Initialise a response page.
+
+        Parameters
+        ----------
+        content
+            The message content to send.
+        attachments
+            Up to 10 attachments to include in the response..
+        embeds
+            Up to 10 embeds to include in the response.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            derivatives to enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            derivatives to enforce mentioning specific roles.
+        """
         self._attachments = attachments
         self._content = content
         self._embeds = embeds
@@ -331,7 +356,19 @@ class Response:
         self._user_mentions = user_mentions
 
     @classmethod
-    def from_entry(cls, entry: EntryT, /) -> Response:
+    def from_entry(cls, entry: EntryT, /) -> Page:
+        """Create a Page from a [yuyo.pagination.EntryT][].
+
+        Parameters
+        ----------
+        entry
+            The [yuyo.pagination.EntryT][] to make a page from.
+
+        Returns
+        -------
+        Page
+            The created page.
+        """
         if isinstance(entry, tuple):
             content, embed = entry
             return cls(content=content, embeds=[embed] if embed else hikari.UNDEFINED)
@@ -339,6 +376,13 @@ class Response:
         return entry
 
     def to_kwargs(self) -> _ResponseKwargs:
+        """Form create message `**kwargs` for this page.
+
+        Returns
+        -------
+        dict[str, Any]
+            The create message kwargs for this page.
+        """
         return {
             "attachments": self._attachments,
             "content": self._content,
