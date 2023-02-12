@@ -36,5 +36,5 @@ async def add_paginator(event: hikari.MessageCreateEvent) -> None:
     # this paginator while also incrementing the paginator's internal index.
     first_page = await paginator.get_next_entry()
     assert first_page, "get_next_entry shouldn't ever return None here as we already know the amount of pages"
-    message = await event.message.respond(content=first_page[0], embed=first_page[1])
+    message = await event.message.respond(**first_page.to_kwargs())
     component_client.set_executor(message, paginator)
