@@ -113,7 +113,7 @@ class AsgiAdapter:
             libraries will not support this fully though, so your mileage may vary
             on using ProcessPoolExecutor implementations with this parameter.
         max_body_size
-            The maximum body size this should allow received request bodies to be 
+            The maximum body size this should allow received request bodies to be
             in bytes before failing the request with a 413 - Content Too Large.
         """
         self._executor = executor
@@ -574,7 +574,7 @@ class AsgiBot(hikari.RESTBotAware):
             what timeouts `aiohttp` should expect to use for requests, and behavior
             regarding HTTP-redirects.
         max_body_size
-            The maximum body size this should allow received request bodies to be 
+            The maximum body size this should allow received request bodies to be
             in bytes before failing the request with a 413 - Content Too Large.
         max_rate_limit
             The max number of seconds to backoff for when rate limited. Anything
