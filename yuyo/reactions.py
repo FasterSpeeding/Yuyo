@@ -205,7 +205,7 @@ class ReactionHandler(AbstractReactionHandler):
         # <<inherited docstring from AbstractReactionHandler>>.
         self._message = None
 
-    def add_callback(
+    def set_callback(
         self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], callback: CallbackSig, /
     ) -> Self:
         """Add a callback to this reaction handler.
@@ -271,7 +271,7 @@ class ReactionHandler(AbstractReactionHandler):
             if isinstance(emoji_identifier, hikari.CustomEmoji):
                 emoji_identifier = emoji_identifier.id
 
-            self.add_callback(emoji_identifier, callback)
+            self.set_callback(emoji_identifier, callback)
             return callback
 
         return decorator
@@ -353,19 +353,19 @@ class ReactionPaginator(ReactionHandler):
         self._triggers = triggers
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_callback(pagination.LEFT_DOUBLE_TRIANGLE, self._on_first)
+            self.set_callback(pagination.LEFT_DOUBLE_TRIANGLE, self._on_first)
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_callback(pagination.LEFT_TRIANGLE, self._on_previous)
+            self.set_callback(pagination.LEFT_TRIANGLE, self._on_previous)
 
         if pagination.STOP_SQUARE in triggers:
-            self.add_callback(pagination.STOP_SQUARE, self._on_disable)
+            self.set_callback(pagination.STOP_SQUARE, self._on_disable)
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_callback(pagination.RIGHT_TRIANGLE, self._on_next)
+            self.set_callback(pagination.RIGHT_TRIANGLE, self._on_next)
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
+            self.set_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
 
     async def _edit_message(
         self, *, content: hikari.UndefinedNoneOr[str], embed: hikari.UndefinedNoneOr[hikari.Embed]

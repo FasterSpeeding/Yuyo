@@ -51,7 +51,6 @@ __all__: list[str] = [
     "ReactionClient",
     "ReactionHandler",
     "ReactionPaginator",
-    "SelectMenuBuilder",
     "ServiceManager",
     "ShardFinishedChunkingEvent",
     "TopGGService",
@@ -86,7 +85,6 @@ from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
 from .components import MultiComponentExecutor
-from .components import SelectMenuBuilder
 from .components import WaitForExecutor
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService

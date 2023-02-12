@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support for new select menu types to `yuyo.to_builder`.
+- [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
+  for adding channel select menus to an action row.
+- [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
+  adding the other new select menu types to an action row.
 
 ### Changed
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
@@ -20,12 +24,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
 - `lines` is now positional only in [yuyo.pagination.async_paginate_string][],
   [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][].
+- Renamed `add_callback` to `set_callback` on `ComponentExecutor` and `ReactionHandler`.
+- [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] now takes all
+  the button's options as arguments.
+  This also now returns the action row and adds the button to the row immedieatly (without
+  any calls to `add_to_parent`).
+- Renamed the old `ActionRowExecutor.add_select_menu` to
+  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select]
+  and added the other select menu's config as keyword-arguments.
 
 ### Fixed
 - `Context.create_initial_response` (and by extension `Context.respond` for the initial
   response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the `content` argument for REST-based
   interaction commands.
+
+### Removed
+- `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and
+  `yuyo.SelectMenuBuilder`/`yuyo.components.SelectMenuBuilder`. Hikari's default
+  implementations should be used instead.
 
 ## [1.6.1a1] - 2023-01-17
 ### Changed
