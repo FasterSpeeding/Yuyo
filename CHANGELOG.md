@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `Context.create_initial_response` (and by extension `Context.respond` for the initial
-response specifically) will no-longer try to pass the attachment, component or embed as
+  response specifically) will no-longer try to pass the attachment, component or embed as
   the actual message content when passed for the `content` argument for REST-based
   interaction commands.
 - `BLACK_CROSS` can now be passed to
