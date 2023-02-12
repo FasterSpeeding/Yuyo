@@ -48,7 +48,6 @@ if typing.TYPE_CHECKING:
         content: hikari.UndefinedOr[str]
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
-        mentions_everyone: hikari.UndefinedOr[bool]
 
 
 EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
@@ -304,16 +303,15 @@ async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.
 class Page:
     """Represents a pagianted response."""
 
-    __slots__ = ("_attachments", "_content", "_embeds", "_mentions_everyone")
+    __slots__ = ("_attachments", "_content", "_embeds")
 
     def __init__(
         self,
-        content: hikari.UndefinedOr[str],
+        content: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         *,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         # TODO: come up with a system for passing other components per-response.
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
         """Initialise a response page.
 
@@ -329,7 +327,6 @@ class Page:
         self._attachments = attachments
         self._content = content
         self._embeds = embeds
-        self._mentions_everyone = mentions_everyone
 
     @classmethod
     def from_entry(cls, entry: EntryT, /) -> Page:
