@@ -138,6 +138,7 @@ class BaseLink(abc.ABC):
         raise ValueError("Link doesn't match pattern")
 
     @classmethod
+    @abc.abstractmethod
     def _pattern(cls) -> re.Pattern[str]:
         raise NotImplementedError
 

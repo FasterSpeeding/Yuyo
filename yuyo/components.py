@@ -76,13 +76,6 @@ if typing.TYPE_CHECKING:
     _OtherT = typing.TypeVar("_OtherT")
     _AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 
-    class _ContainerProto(typing.Protocol):
-        def add_callback(self, _: str, __: CallbackSig, /) -> Self:
-            raise NotImplementedError
-
-        def add_component(self, _: hikari.api.ComponentBuilder, /) -> Self:
-            raise NotImplementedError
-
     class _ParentExecutorProto(typing.Protocol):
         def add_builder(self, _: hikari.api.ComponentBuilder, /) -> Self:
             raise NotImplementedError
@@ -91,7 +84,7 @@ if typing.TYPE_CHECKING:
             raise NotImplementedError
 
 
-_ContainerProtoT = typing.TypeVar("_ContainerProtoT", bound="_ContainerProto")
+_ParentT = typing.TypeVar("_ParentT")
 _ParentExecutorProtoT = typing.TypeVar("_ParentExecutorProtoT", bound="_ParentExecutorProto")
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
@@ -1931,38 +1924,172 @@ WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
 
-class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[_ContainerProtoT]):  # noqa: D101
+class InteractiveButtonBuilder(hikari.impl.InteractiveButtonBuilder[typing.NoReturn]):
     __slots__ = ("_callback",)
 
     def __init__(
-        self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, style: hikari.ButtonStyle, /
+        self,
+        callback: CallbackSig,
+        custom_id: str,
+        style: hikari.ButtonStyle,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
     ) -> None:
         self._callback = callback
-        super().__init__(container=container, custom_id=custom_id, style=style)
+        super().__init__(
+            container=NotImplemented,
+            custom_id=custom_id,
+            style=style,
+            label=label,
+            is_disabled=is_disabled,
+        )
+        self.set_emoji(emoji)
 
     @property
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> _ContainerProtoT:
-        self._container.add_callback(self.custom_id, self.callback)
-        return super().add_to_container()
+    def add_to_container(self) -> typing.NoReturn:
+        raise NotImplementedError
 
 
-class SelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[_ContainerProtoT]):  # noqa: D101
+class SelectMenuBuilder(hikari.impl.special_endpoints.SelectMenuBuilder[typing.NoReturn]):
+    """"""
+
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: CallbackSig, container: _ContainerProtoT, custom_id: str, /) -> None:
+    def __init__(
+        self,
+        callback: CallbackSig,
+        custom_id: str,
+        type: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
         self._callback = callback
-        super().__init__(container=container, custom_id=custom_id)
+        super().__init__(
+            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
+            custom_id=custom_id,
+            type=type,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_to_container(self) -> typing.NoReturn:
+        raise NotImplementedError
+
+
+class TextSelectMenuBuilder(hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn], typing.Generic[_ParentT]):
+    """"""
+
+    __slots__ = ("_callback", "__container")
+
+    @typing.overload
+    def __init__(
+        self,
+        callback: CallbackSig,
+        custom_id: str,
+        /,
+        *,
+        container: _ParentT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self: TextSelectMenuBuilder[typing.NoReturn],
+        callback: CallbackSig,
+        custom_id: str,
+        /,
+        *,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        callback: CallbackSig,
+        custom_id: str,
+        /,
+        *,
+        container: typing.Optional[_ParentT] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        self._callback = callback
+        self.__container = container
+        super().__init__(
+            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
 
     @property
     def callback(self) -> CallbackSig:
         return self._callback
 
-    def add_to_container(self) -> _ContainerProtoT:
-        self._container.add_callback(self.custom_id, self.callback)
-        return super().add_to_container()
+    @property
+    def parent(self) -> _ParentT:
+        if self.__container is None:
+            raise NotImplementedError
+
+        return self.__container
+
+    def add_to_container(self) -> typing.NoReturn:
+        raise NotImplementedError
+
+
+class ChannelSelectMenuBuilder(hikari.impl.special_endpoints.ChannelSelectMenuBuilder[typing.NoReturn]):
+    """"""
+
+    __slots__ = ("_callback",)
+
+    def __init__(
+        self,
+        callback: CallbackSig,
+        custom_id: str,
+        /,
+        *,
+        channel_types: typing.Optional[collections.Sequence[hikari.ChannelType]] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        self._callback = callback
+        super().__init__(
+            container=NotImplemented,  # pyright: ignore [ reportGeneralTypeIssues ]
+            channel_types=list(channel_types) if channel_types else [],
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_to_container(self) -> typing.NoReturn:
+        raise NotImplementedError
 
 
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
@@ -2008,14 +2135,29 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     @typing.overload
     def add_button(
-        self, style: hikari.InteractiveButtonTypesT, callback: CallbackSig, /, *, custom_id: typing.Optional[str] = None
-    ) -> InteractiveButtonBuilder[Self]:
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
         ...
 
     @typing.overload
     def add_button(
-        self, style: typing.Literal[hikari.ButtonStyle.LINK, 5], url: str, /
-    ) -> hikari.impl.LinkButtonBuilder[Self]:
+        self,
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+        url: str,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
         ...
 
     def add_button(
@@ -2024,31 +2166,105 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         callback_or_url: typing.Union[CallbackSig, str],
         *,
         custom_id: typing.Optional[str] = None,
-    ) -> typing.Union[hikari.impl.LinkButtonBuilder[Self], InteractiveButtonBuilder[Self]]:
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if style in hikari.InteractiveButtonTypes:
-            # Pyright doesn't properly support _ attrs kwargs
             if custom_id is None:
                 custom_id = _random_id()
 
             if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
-            return InteractiveButtonBuilder(callback_or_url, self, custom_id, hikari.ButtonStyle(style))
+            self.add_component(
+                InteractiveButtonBuilder(
+                    callback_or_url, custom_id, hikari.ButtonStyle(style), label=label, is_disabled=is_disabled
+                ).set_emoji(emoji)
+            )
+            return self
 
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        return hikari.impl.LinkButtonBuilder(container=self, style=style, url=callback_or_url)
+        self.add_component(
+            hikari.impl.LinkButtonBuilder(
+                container=NotImplemented, style=style, url=callback_or_url, label=label, is_disabled=is_disabled
+            ).set_emoji(emoji)
+        )
+        return self
 
     def add_select_menu(
-        self, callback: CallbackSig, /, custom_id: typing.Optional[str] = None
-    ) -> SelectMenuBuilder[Self]:
-        self._assert_can_add_type(hikari.ComponentType.SELECT_MENU)
-        if custom_id is None:
-            custom_id = _random_id()
+        self,
+        callback: CallbackSig,
+        type: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        type = hikari.ComponentType(type)
+        self._assert_can_add_type(type)
+        self.add_component(SelectMenuBuilder(
+            callback, custom_id or _random_id(), type, placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled
+        ))
+        return self
 
-        return SelectMenuBuilder(callback, self, custom_id)
+    def add_channel_select(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[collections.Sequence[hikari.ChannelType]] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
+        self.add_component(
+            ChannelSelectMenuBuilder(
+                callback,
+                custom_id or _random_id(),
+                channel_types=channel_types,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+        )
+        return self
+
+    def add_text_select(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> TextSelectMenuBuilder[Self]:
+        self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
+        component = TextSelectMenuBuilder(
+            callback,
+            custom_id or _random_id(),
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        self.add_component(component)
+        return component
 
     def build(self) -> dict[str, typing.Any]:
         return {
@@ -2273,29 +2489,19 @@ class ComponentPaginator(ActionRowExecutor):
         self._lock = asyncio.Lock()
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_first).set_emoji(
-                pagination.LEFT_DOUBLE_TRIANGLE
-            ).add_to_container()
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_first, emoji=pagination.LEFT_DOUBLE_TRIANGLE)
 
         if pagination.LEFT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_previous).set_emoji(
-                pagination.LEFT_TRIANGLE
-            ).add_to_container()
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_previous, emoji=pagination.LEFT_TRIANGLE)
 
         if pagination.STOP_SQUARE in triggers:
-            self.add_button(hikari.ButtonStyle.DANGER, self._on_disable).set_emoji(
-                pagination.BLACK_CROSS
-            ).add_to_container()
+            self.add_button(hikari.ButtonStyle.DANGER, self._on_disable, emoji=pagination.BLACK_CROSS)
 
         if pagination.RIGHT_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_next).set_emoji(
-                pagination.RIGHT_TRIANGLE
-            ).add_to_container()
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_next, emoji=pagination.RIGHT_TRIANGLE)
 
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
-            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last).set_emoji(
-                pagination.RIGHT_DOUBLE_TRIANGLE
-            ).add_to_container()
+            self.add_button(hikari.ButtonStyle.SECONDARY, self._on_last, emoji=pagination.RIGHT_DOUBLE_TRIANGLE)
 
     def builder(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Get a sequence of the component builders for this paginator.
