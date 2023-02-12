@@ -2503,7 +2503,7 @@ class ComponentPaginator(ActionRowExecutor):
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.add_right_double_button()
 
-    def add_left_double_button(
+    def add_first_button(
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
@@ -2514,7 +2514,7 @@ class ComponentPaginator(ActionRowExecutor):
     ) -> Self:
         return self.add_button(style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
 
-    def add_left_button(
+    def add_previous_button(
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
@@ -2536,7 +2536,7 @@ class ComponentPaginator(ActionRowExecutor):
     ) -> Self:
         return self.add_button(style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
 
-    def add_right_button(
+    def add_next_button(
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
@@ -2547,7 +2547,7 @@ class ComponentPaginator(ActionRowExecutor):
     ) -> Self:
         return self.add_button(style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
 
-    def add_right_double_button(
+    def add_last_button(
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
