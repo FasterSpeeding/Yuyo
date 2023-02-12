@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ReactionPaginator.get_next_entry][yuyo.reactions.ReactionPaginator.get_next_entry] now both
   return [yuyo.pagination.Page][] rather than a tuple.
   This can be used to create a response easily by passing the result of
-  [Page.to_kwargs][][yuyo.pagination.to_kwargs] to the create message or execute webhook REST method.
+  [Page.to_kwargs][yuyo.pagination.to_kwargs] to the create message or execute webhook REST method.
 
 ### Fixed
 - `Context.create_initial_response` (and by extension `Context.respond` for the initial
