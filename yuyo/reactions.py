@@ -450,9 +450,7 @@ class ReactionPaginator(ReactionHandler):
                 except (hikari.NotFoundError, hikari.ForbiddenError):
                     return
 
-    async def open(
-        self, message: hikari.Message, /, *, add_reactions: bool = True
-    ) -> None:
+    async def open(self, message: hikari.Message, /, *, add_reactions: bool = True) -> None:
         await super().open(message)
         if not add_reactions:
             return
@@ -475,7 +473,7 @@ class ReactionPaginator(ReactionHandler):
         channel_id: hikari.SnowflakeishOr[hikari.TextableChannel],
         /,
         *,
-        add_reactions: bool = True
+        add_reactions: bool = True,
     ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
