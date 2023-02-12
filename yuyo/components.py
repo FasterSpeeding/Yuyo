@@ -2325,7 +2325,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     view.
     """
 
-    __slots__ = ("_builders", "_executors", "_last_triggered",  "_timeout")
+    __slots__ = ("_builders", "_executors", "_last_triggered", "_timeout")
 
     def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
         """Initialise a multi-component executor.
