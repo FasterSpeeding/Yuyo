@@ -43,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and
   `yuyo.SelectMenuBuilder`/`yuyo.components.SelectMenuBuilder`. Hikari's default
   implementations should be used instead.
+- The deprecated `load_from_attributes` arguments and the relevant deprecated `as_reaction_callback`
+  and `as_component_callback` functions.
+- The deprecated `WaitForComponent` alias of `WaitForExecutor`.
 
 ## [1.6.1a1] - 2023-01-17
 ### Changed

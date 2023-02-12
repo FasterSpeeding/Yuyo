@@ -47,13 +47,11 @@ __all__: list[str] = [
 import abc
 import asyncio
 import datetime
-import inspect
 import itertools
 import logging
 import os
 import typing
 import uuid
-import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -74,7 +72,6 @@ if typing.TYPE_CHECKING:
 
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
-    _AbstractComponentExecutorT = typing.TypeVar("_AbstractComponentExecutorT", bound="AbstractComponentExecutor")
 
 
 _ParentT = typing.TypeVar("_ParentT")
@@ -1655,13 +1652,6 @@ class ComponentClient:
 
         return decorator
 
-    def add_executor(
-        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
-    ) -> Self:
-        """Deprecated alias of [yuyo.components.ComponentClient.add_executor][]."""
-        warnings.warn("add_executor is deprecated, use set_executor instead.", DeprecationWarning, stacklevel=2)
-        return self.set_executor(message, executor)
-
     def set_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
@@ -1719,14 +1709,6 @@ class ComponentClient:
         return self
 
 
-def as_component_callback(custom_id: str, /) -> collections.Callable[[CallbackSigT], CallbackSigT]:  # noqa: D103
-    def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-        callback.__custom_id__ = custom_id  # type: ignore
-        return callback
-
-    return decorator
-
-
 class AbstractComponentExecutor(abc.ABC):
     """Abstract interface of an object which handles the execution of a message component."""
 
@@ -1765,11 +1747,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_timeout")
 
     def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        load_from_attributes: bool = True,
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        self, *, ephemeral_default: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
     ) -> None:
         """Initialise a component executor.
 
@@ -1784,16 +1762,6 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._timeout = timeout
-        if load_from_attributes and type(self) is not ComponentExecutor:
-            for _, value in inspect.getmembers(self):  # TODO: might be a tad bit slow
-                try:
-                    custom_id = value.__custom_id__
-
-                except AttributeError:
-                    pass
-
-                else:
-                    self._id_to_callback[custom_id] = value
 
     @property
     def callbacks(self) -> collections.Mapping[str, CallbackSig]:
@@ -1965,8 +1933,6 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._future.set_result(ctx)
 
 
-WaitForComponent = WaitForExecutor
-
 WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
@@ -1977,11 +1943,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        load_from_attributes: bool = False,
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        self, *, ephemeral_default: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
     ) -> None:
         """Initialise an action row executor.
 
@@ -1992,9 +1954,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         timeout
             How long this component should last until its marked as timed out.
         """
-        super().__init__(
-            ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
-        )
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
         self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -2345,23 +2305,14 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
 
     __slots__ = ("_parent",)
 
-    def __init__(
-        self, parent: _ParentT, /, *, ephemeral_default: bool = False, load_from_attributes: bool = False
-    ) -> None:
-        super().__init__(ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes)
+    def __init__(self, parent: _ParentT, /, *, ephemeral_default: bool = False) -> None:
+        super().__init__(ephemeral_default=ephemeral_default)
         self._parent = parent
 
     @property
     def parent(self) -> _ParentT:
         """The parent executor."""
         return self._parent
-
-
-def as_child_executor(  # noqa: D103
-    executor: type[_AbstractComponentExecutorT], /
-) -> type[_AbstractComponentExecutorT]:
-    executor.__is_child_executor__ = True  # type: ignore
-    return executor
 
 
 class MultiComponentExecutor(AbstractComponentExecutor):
@@ -2373,9 +2324,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
 
-    def __init__(
-        self, *, load_from_attributes: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
-    ) -> None:
+    def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
         """Initialise a multi-component executor.
 
         Parameters
@@ -2389,14 +2338,6 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._timeout = timeout
-        if load_from_attributes and type(self) is not MultiComponentExecutor:
-            for _, value in inspect.getmembers(self):  # TODO: might be a tad bit slow
-                try:
-                    if value.__is_child_executor__:
-                        self._executors.append(value())
-
-                except AttributeError:
-                    pass
 
     @property
     def builders(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
@@ -2500,7 +2441,6 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        load_from_attributes: bool = False,
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a component paginator.
@@ -2536,9 +2476,7 @@ class ComponentPaginator(ActionRowExecutor):
         ):  # pyright: ignore reportUnnecessaryIsInstance
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(
-            ephemeral_default=ephemeral_default, load_from_attributes=load_from_attributes, timeout=timeout
-        )
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: list[pagination.EntryT] = []

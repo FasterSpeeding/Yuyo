@@ -33,7 +33,6 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import warnings
 from unittest import mock
 
 import alluka
@@ -265,18 +264,6 @@ class TestComponentClient:
         assert client.get_constant_id("trans2") is mock_callback
         assert "trans2" not in client._constant_ids
         assert client._prefix_ids["trans2"] is mock_callback
-
-    def test_add_executor(self):
-        mock_executor = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-            result = client.add_executor(123321, mock_executor)
-
-        assert result is client
-        assert client.get_executor(123321) is mock_executor
 
     def test_set_executor(self):
         mock_executor = mock.Mock()

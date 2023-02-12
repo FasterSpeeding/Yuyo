@@ -37,7 +37,6 @@ __all__: list[str] = ["AbstractReactionHandler", "ReactionClient", "ReactionHand
 import abc
 import asyncio
 import datetime
-import inspect
 import typing
 from collections import abc as collections
 
@@ -118,20 +117,6 @@ class AbstractReactionHandler(abc.ABC):
         """
 
 
-def as_reaction_callback(  # noqa: D103
-    emoji_identifier: typing.Union[hikari.SnowflakeishOr[hikari.CustomEmoji], str], /
-) -> collections.Callable[[CallbackSigT], CallbackSigT]:
-    def decorator(callback: CallbackSigT, /) -> CallbackSigT:
-        nonlocal emoji_identifier
-        if isinstance(emoji_identifier, hikari.CustomEmoji):
-            emoji_identifier = emoji_identifier.id
-
-        callback.__emoji_identifier__ = emoji_identifier  # type: ignore
-        return callback
-
-    return decorator
-
-
 class ReactionHandler(AbstractReactionHandler):
     """Standard basic implementation of a reaction handler."""
 
@@ -142,7 +127,6 @@ class ReactionHandler(AbstractReactionHandler):
         *,
         authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
         timeout: datetime.timedelta = datetime.timedelta(seconds=30),
-        load_from_attributes: bool = True,
     ) -> None:
         """Initialise a reaction handler.
 
@@ -161,17 +145,6 @@ class ReactionHandler(AbstractReactionHandler):
         self._lock = asyncio.Lock()
         self._message: typing.Optional[hikari.Message] = None
         self._timeout = timeout
-
-        if load_from_attributes and type(self) is not ReactionHandler:
-            for _, value in inspect.getmembers(self):
-                try:
-                    identifier = value.__emoji_identifier__
-
-                except AttributeError:
-                    pass
-
-                else:
-                    self._callbacks[identifier] = value
 
     @property
     def authors(self) -> collections.Set[hikari.Snowflake]:
@@ -346,7 +319,7 @@ class ReactionPaginator(ReactionHandler):
         ):  # pyright: ignore reportUnnecessaryIsInstance
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(authors=authors, timeout=timeout, load_from_attributes=False)
+        super().__init__(authors=authors, timeout=timeout)
         self._buffer: list[pagination.EntryT] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
