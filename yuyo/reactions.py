@@ -428,7 +428,7 @@ class ReactionPaginator(ReactionHandler):
         except KeyError:
             pass
 
-    async def close(self, *, remove_reactions: bool = False, max_retries: int = 5, max_backoff: float = 2.0) -> None:
+    async def close(self, *, remove_reactions: bool = False) -> None:
         """Close this handler and deregister any previously registered message.
 
         Parameters
@@ -451,7 +451,7 @@ class ReactionPaginator(ReactionHandler):
                     return
 
     async def open(
-        self, message: hikari.Message, /, *, add_reactions: bool = True, max_retries: int = 5, max_backoff: float = 2.0
+        self, message: hikari.Message, /, *, add_reactions: bool = True
     ) -> None:
         await super().open(message)
         if not add_reactions:
@@ -475,9 +475,7 @@ class ReactionPaginator(ReactionHandler):
         channel_id: hikari.SnowflakeishOr[hikari.TextableChannel],
         /,
         *,
-        add_reactions: bool = True,
-        max_retries: int = 5,
-        max_backoff: float = 2.0,
+        add_reactions: bool = True
     ) -> hikari.Message:
         """Start this handler and link it to a bot message.
 
@@ -493,12 +491,6 @@ class ReactionPaginator(ReactionHandler):
         add_reactions
             Whether this should add the paginator's reactions to the message
             after responding.
-        max_retries
-            How many times this should retry to respond if Hikari raises
-            any ratelimit errors.
-        max_backoff
-            The maximum time this should backoff for before trying if Hikari
-            raises any ratelimit errors.
 
         Returns
         -------
@@ -521,7 +513,7 @@ class ReactionPaginator(ReactionHandler):
             raise ValueError("ReactionPaginator iterator yielded no pages.")
 
         message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
-        await self.open(message, add_reactions=add_reactions, max_retries=max_retries, max_backoff=max_backoff)
+        await self.open(message, add_reactions=add_reactions)
         return message
 
 
