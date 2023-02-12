@@ -2539,8 +2539,7 @@ class ComponentPaginator(ActionRowExecutor):
         )
         first_response = await response_paginator.get_next_entry()
         assert first_response
-        content, embed = first_response
-        message = await ctx.respond(content=content, embed=embed, component=response_paginator, ensure_result=True)
+        message = await ctx.respond(component=response_paginator, **first_response.to_kwargs(), ensure_result=True)
         component_client.set_executor(message, response_paginator)
         ```
 

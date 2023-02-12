@@ -372,6 +372,13 @@ class ReactionPaginator(ReactionHandler):
             await self._edit_message(self._buffer[-1])
 
     async def get_next_entry(self, /) -> typing.Optional[pagination.Page]:
+        """Get the next entry in this paginator.
+
+        Returns
+        -------
+        yuyo.pagination.Page | None
+            The next entry in this paginator, or [None][] if there are no more entries.
+        """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
