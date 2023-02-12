@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
   in the `triggers` array to enable the stop button.
 - The configured executor is now used for handling attachments when creating the initial responses
-  when using the ASGI bot.
+  with the ASGI bot.
 - Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessarily hold up
   on bad requests.
 
