@@ -361,21 +361,113 @@ class ReactionPaginator(ReactionHandler):
         emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_DOUBLE_TRIANGLE,
         add_reaction: bool = True,
     ) -> Self:
+        r"""Add the jump to first entry reaction button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These reactions will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        emoji
+            The emoji to react with for this button.
+        add_reaction
+            Whether the bot should add this reaction to the message when
+            [ReactionPaginator.open][yuyo.reactions.ReactionPaginator.open] is
+            called with `add_reactions=True`.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self._add_button(self._on_first, emoji, add_reaction)
 
     def add_previous_button(
         self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_TRIANGLE, add_reaction: bool = True
     ) -> Self:
+        r"""Add the previous entry reaction button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These reactions will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        emoji
+            The emoji to react with for this button.
+        add_reaction
+            Whether the bot should add this reaction to the message when
+            [ReactionPaginator.open][yuyo.reactions.ReactionPaginator.open] is
+            called with `add_reactions=True`.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self._add_button(self._on_previous, emoji, add_reaction)
 
     def add_stop_button(
         self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.STOP_SQUARE, add_reaction: bool = True
     ) -> Self:
+        r"""Add the stop reaction button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These reactions will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        emoji
+            The emoji to react with for this button.
+        add_reaction
+            Whether the bot should add this reaction to the message when
+            [ReactionPaginator.open][yuyo.reactions.ReactionPaginator.open] is
+            called with `add_reactions=True`.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self._add_button(self._on_disable, emoji, add_reaction)
 
     def add_next_button(
         self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_TRIANGLE, add_reaction: bool = True
     ) -> Self:
+        r"""Add the next entry reaction button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These reactions will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        emoji
+            The emoji to react with for this button.
+        add_reaction
+            Whether the bot should add this reaction to the message when
+            [ReactionPaginator.open][yuyo.reactions.ReactionPaginator.open] is
+            called with `add_reactions=True`.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self._add_button(self._on_next, emoji, add_reaction)
 
     def add_last_button(
@@ -384,6 +476,29 @@ class ReactionPaginator(ReactionHandler):
         emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_DOUBLE_TRIANGLE,
         add_reaction: bool = True,
     ) -> Self:
+        r"""Add the jump to last entry reaction button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These reactions will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        emoji
+            The emoji to react with for this button.
+        add_reaction
+            Whether the bot should add this reaction to the message when
+            [ReactionPaginator.open][yuyo.reactions.ReactionPaginator.open] is
+            called with `add_reactions=True`.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self._add_button(self._on_last, emoji, add_reaction)
 
     async def _edit_message(self, response: pagination.Page, /) -> None:
@@ -499,6 +614,15 @@ class ReactionPaginator(ReactionHandler):
                     return
 
     async def open(self, message: hikari.Message, /, *, add_reactions: bool = True) -> None:
+        """Start the reaction paginator and start accepting reactions..
+
+        Parameters
+        ----------
+        message
+            The message this paginator should target.
+        add_reactions
+            Whether this should add the paginator's reactions to the message.
+        """
         await super().open(message)
         if not add_reactions:
             return

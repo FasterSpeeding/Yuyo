@@ -53,8 +53,9 @@ if typing.TYPE_CHECKING:
 EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
 """A type hint used to represent a paginator entry.
 
-This may be either [Page][] or `tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]`
-where the tuple[0] is the message content and tuple[1] is an embed to send.
+This may be either [Page][yuyo.pagination.Page] or
+`tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]` where tuple[0]
+is the message content and tuple[1] is an embed to send.
 """
 
 LEFT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(

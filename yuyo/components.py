@@ -2514,6 +2514,35 @@ class ComponentPaginator(ActionRowExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        r"""Add the jump to first entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self.add_button(
             style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -2527,6 +2556,35 @@ class ComponentPaginator(ActionRowExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        r"""Add the previous entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self.add_button(
             style, self._on_previous, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -2540,6 +2598,35 @@ class ComponentPaginator(ActionRowExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        r"""Add the stop button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self.add_button(
             style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -2553,6 +2640,35 @@ class ComponentPaginator(ActionRowExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        r"""Add the next entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self.add_button(
             style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -2568,6 +2684,35 @@ class ComponentPaginator(ActionRowExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        r"""Add the jump to last entry button to this paginator.
+
+        You should pass `triggers=[]` to
+        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
         return self.add_button(
             style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
