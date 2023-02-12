@@ -356,8 +356,4 @@ class Page:
         dict[str, Any]
             The create message kwargs for this page.
         """
-        return {
-            "attachments": self._attachments,
-            "content": self._content,
-            "embeds": self._embeds,
-        }
+        return {"attachments": self._attachments, "content": self._content, "embeds": self._embeds}
