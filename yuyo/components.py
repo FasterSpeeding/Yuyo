@@ -2481,7 +2481,7 @@ class ComponentPaginator(ActionRowExecutor):
         super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
-        self._buffer: list[pagination.EntryT] = []
+        self._buffer: list[pagination.Response] = []
         self._ephemeral_default = ephemeral_default
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
@@ -2523,7 +2523,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self) -> typing.Optional[pagination.EntryT]:
+    async def get_next_entry(self, /) -> typing.Optional[pagination.Response]:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
@@ -2545,7 +2545,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         Returns
         -------
-        yuyo.pagination.EntryT | None
+        yuyo.pagination.Response | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
@@ -2555,6 +2555,7 @@ class ComponentPaginator(ActionRowExecutor):
 
         # If entry is not None then the generator's position was pushed forwards.
         if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
+            entry = pagination.Response.from_entry(entry)
             self._index += 1
             self._buffer.append(entry)
             return entry
@@ -2564,8 +2565,7 @@ class ComponentPaginator(ActionRowExecutor):
     async def _on_first(self, ctx: ComponentContext, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
             self._index = 0
-            content, embed = first_entry
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, **first_entry.to_kwargs())
 
         else:
             await _noop(ctx)
@@ -2573,8 +2573,8 @@ class ComponentPaginator(ActionRowExecutor):
     async def _on_previous(self, ctx: ComponentContext, /) -> None:
         if self._index > 0:
             self._index -= 1
-            content, embed = self._buffer[self._index]
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+            response = self._buffer[self._index]
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, **response.to_kwargs())
 
         else:
             await _noop(ctx)
@@ -2596,21 +2596,21 @@ class ComponentPaginator(ActionRowExecutor):
                 .add_to_container()
             )
             await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
-            self._buffer.extend(await _internal.collect_iterable(self._iterator))
+            self._buffer.extend(map(pagination.Response.from_entry, await _internal.collect_iterable(self._iterator)))
             self._index = len(self._buffer) - 1
             self._iterator = None
 
             if self._buffer:
-                content, embed = self._buffer[self._index]
-                await ctx.edit_initial_response(components=self.builder(), content=content, embed=embed)
+                response = self._buffer[self._index]
+                await ctx.edit_initial_response(components=self.builder(), **response.to_kwargs())
 
             else:
                 await ctx.edit_initial_response(components=self.builder())
 
         elif self._buffer:
             self._index = len(self._buffer) - 1
-            content, embed = self._buffer[-1]
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, content=content, embed=embed)
+            response = self._buffer[-1]
+            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, **response.to_kwargs())
 
         else:
             await _noop(ctx)
@@ -2618,8 +2618,7 @@ class ComponentPaginator(ActionRowExecutor):
     async def _on_next(self, ctx: ComponentContext, /) -> None:
         if entry := await self.get_next_entry():
             await ctx.defer(hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
-            content, embed = entry
-            await ctx.edit_initial_response(content=content, embed=embed)
+            await ctx.edit_initial_response(**entry.to_kwargs())
 
         else:
             await _noop(ctx)

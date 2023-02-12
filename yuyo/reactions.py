@@ -320,7 +320,7 @@ class ReactionPaginator(ReactionHandler):
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
-        self._buffer: list[pagination.EntryT] = []
+        self._buffer: list[pagination.Response] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._triggers = triggers
@@ -340,14 +340,12 @@ class ReactionPaginator(ReactionHandler):
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.set_callback(pagination.RIGHT_DOUBLE_TRIANGLE, self._on_last)
 
-    async def _edit_message(
-        self, *, content: hikari.UndefinedNoneOr[str], embed: hikari.UndefinedNoneOr[hikari.Embed]
-    ) -> None:
+    async def _edit_message(self, response: pagination.Response, /) -> None:
         if self._message is None:
             return
 
         try:
-            await self._message.edit(content=content, embed=embed)
+            await self._message.edit(**response.to_kwargs())
 
         except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
             raise HandlerClosed() from exc
@@ -363,19 +361,17 @@ class ReactionPaginator(ReactionHandler):
 
     async def _on_first(self, _: EventT, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
-            content, embed = first_entry
-            await self._edit_message(content=content, embed=embed)
+            await self._edit_message(first_entry)
 
     async def _on_last(self, _: EventT, /) -> None:
         if self._iterator:
-            self._buffer.extend(await _internal.collect_iterable(self._iterator))
+            self._buffer.extend(map(pagination.Response.from_entry, await _internal.collect_iterable(self._iterator)))
 
         if self._buffer:
             self._index = len(self._buffer) - 1
-            content, embed = self._buffer[-1]
-            await self._edit_message(content=content, embed=embed)
+            await self._edit_message(self._buffer[-1])
 
-    async def get_next_entry(self) -> typing.Optional[pagination.EntryT]:
+    async def get_next_entry(self, /) -> typing.Optional[pagination.Response]:
         # Check to see if we're behind the buffer before trying to go forward in the generator.
         if len(self._buffer) >= self._index + 2:
             self._index += 1
@@ -383,6 +379,7 @@ class ReactionPaginator(ReactionHandler):
 
         # If entry is not None then the generator's position was pushed forwards.
         if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
+            entry = pagination.Response.from_entry(entry)
             self._index += 1
             self._buffer.append(entry)
             return entry
@@ -391,14 +388,12 @@ class ReactionPaginator(ReactionHandler):
 
     async def _on_next(self, _: EventT, /) -> None:
         if entry := await self.get_next_entry():
-            content, embed = entry
-            await self._edit_message(content=content, embed=embed)
+            await self._edit_message(entry)
 
     async def _on_previous(self, _: EventT, /) -> None:
         if self._index > 0:
             self._index -= 1
-            content, embed = self._buffer[self._index]
-            await self._edit_message(content=content, embed=embed)
+            await self._edit_message(self._buffer[self._index])
 
     def add_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> Self:
         """Add a author/owner to this handler.
@@ -510,7 +505,7 @@ class ReactionPaginator(ReactionHandler):
         if entry is None:
             raise ValueError("ReactionPaginator iterator yielded no pages.")
 
-        message = await rest.create_message(channel_id, content=entry[0], embed=entry[1])
+        message = await rest.create_message(channel_id, **entry.to_kwargs())
         await self.open(message, add_reactions=add_reactions)
         return message
 
