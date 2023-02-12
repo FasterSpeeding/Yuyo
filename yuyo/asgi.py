@@ -355,6 +355,7 @@ class AsgiAdapter:
 
             if len(body) > self._max_body_size:
                 await _error_response(send, b"Content Too Large", status_code=413)
+                return
 
             more_body = received.get("more_body", False)
 

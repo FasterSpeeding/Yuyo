@@ -954,6 +954,45 @@ class TestAsgiAdapter:
         stub_server.on_interaction.assert_not_called()
 
     @pytest.mark.asyncio()
+    async def test__process_request_when_body_too_big(
+        self, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
+    ):
+        adapter = yuyo.AsgiAdapter(stub_server, max_body_size=64)
+
+        http_scope["headers"] = [
+            (b"Content-Type", b"application/json"),
+            (b"x-signature-timestamp", b"b" * 32),
+            (b"x-signature-ed25519", b"a" * 64),
+        ]
+        mock_receive = mock.AsyncMock(
+            side_effect=[
+                {"body": b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "more_body": True},
+                {"body": b"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "more_body": True},
+            ]
+        )
+        mock_send = mock.AsyncMock()
+        assert isinstance(stub_server.on_interaction, mock.Mock)
+
+        await adapter._process_request(http_scope, mock_receive, mock_send)
+
+        mock_send.assert_has_awaits(
+            [
+                mock.call(
+                    {
+                        "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+                        "status": 413,
+                        "trailers": False,
+                        "type": "http.response.start",
+                    }
+                ),
+                mock.call({"type": "http.response.body", "body": b"Content Too Large", "more_body": False}),
+            ]
+        )
+        mock_receive.assert_has_awaits([mock.call(), mock.call()])
+        assert isinstance(stub_server.on_interaction, mock.Mock)
+        stub_server.on_interaction.assert_not_called()
+
+    @pytest.mark.asyncio()
     async def test__process_request_when_on_interaction_raises(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
