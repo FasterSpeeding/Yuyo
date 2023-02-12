@@ -97,5 +97,3 @@ from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
-
-WaitForComponent = WaitForExecutor
