@@ -718,6 +718,13 @@ class TestAsgiAdapter:
     async def test__process_request_when_no_body(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
+        http_scope["headers"] = [
+            (b"random-header2", b"random value"),
+            (b"x-signature-timestamp", b"653245"),
+            (b"x-signature-ed25519", b"7472616e73"),
+            (b"Content-Type", b"application/json"),
+            (b"random-header", b"random value"),
+        ]
         mock_receive = mock.AsyncMock(return_value={"body": b"", "more_body": False})
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
@@ -745,6 +752,13 @@ class TestAsgiAdapter:
     async def test__process_request_when_no_body_and_receive_empty(
         self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer, http_scope: asgiref.typing.HTTPScope
     ):
+        http_scope["headers"] = [
+            (b"random-header2", b"random value"),
+            (b"x-signature-timestamp", b"653245"),
+            (b"x-signature-ed25519", b"7472616e73"),
+            (b"Content-Type", b"application/json"),
+            (b"random-header", b"random value"),
+        ]
         mock_receive = mock.AsyncMock(return_value={})
         mock_send = mock.AsyncMock()
         assert isinstance(stub_server.on_interaction, mock.Mock)
@@ -794,7 +808,7 @@ class TestAsgiAdapter:
                 ),
             ]
         )
-        mock_receive.assert_awaited_once_with()
+        mock_receive.assert_not_called()
         assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
@@ -824,7 +838,7 @@ class TestAsgiAdapter:
                 ),
             ]
         )
-        mock_receive.assert_awaited_once_with()
+        mock_receive.assert_not_called()
         assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
@@ -858,7 +872,7 @@ class TestAsgiAdapter:
                 ),
             ]
         )
-        mock_receive.assert_awaited_once_with()
+        mock_receive.assert_not_called()
         assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
@@ -892,7 +906,7 @@ class TestAsgiAdapter:
                 ),
             ]
         )
-        mock_receive.assert_awaited_once_with()
+        mock_receive.assert_not_called()
         assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
@@ -935,7 +949,7 @@ class TestAsgiAdapter:
                 ),
             ]
         )
-        mock_receive.assert_awaited_once_with()
+        mock_receive.assert_not_called()
         assert isinstance(stub_server.on_interaction, mock.Mock)
         stub_server.on_interaction.assert_not_called()
 
