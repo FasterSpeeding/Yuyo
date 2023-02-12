@@ -84,10 +84,15 @@ class AsgiAdapter:
     feature (e.g `python -m pip install hikari[server]`).
     """
 
-    __slots__ = ("_executor", "_on_shutdown", "_on_startup", "_server")
+    __slots__ = ("_executor", "_max_body_size", "_on_shutdown", "_on_startup", "_server")
 
     def __init__(
-        self, server: hikari.api.InteractionServer, /, *, executor: typing.Optional[concurrent.futures.Executor] = None
+        self,
+        server: hikari.api.InteractionServer,
+        /,
+        *,
+        executor: typing.Optional[concurrent.futures.Executor] = None,
+        max_body_size: int = 1024**2,
     ) -> None:
         """Initialise the adapter.
 
@@ -107,8 +112,12 @@ class AsgiAdapter:
             relies on all objects used in IPC to be `pickle`able. Many third-party
             libraries will not support this fully though, so your mileage may vary
             on using ProcessPoolExecutor implementations with this parameter.
+        max_body_size
+            The maximum body size this should allow received request bodies to be
+            in bytes before failing the request with a 413 - Content Too Large.
         """
         self._executor = executor
+        self._max_body_size = max_body_size
         self._on_shutdown: list[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]] = []
         self._on_startup: list[collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]]] = []
         self._server = server
@@ -320,20 +329,6 @@ class AsgiAdapter:
             await _error_response(send, b"Not found", status_code=404)
             return
 
-        more_body = True
-        body = bytearray()
-        while more_body:
-            received = await receive()
-
-            if next_body := received.get("body"):
-                body.extend(next_body)
-
-            more_body = received.get("more_body", False)
-
-        if not body:
-            await _error_response(send, b"POST request must have a body")
-            return
-
         try:
             content_type, signature, timestamp = _find_headers(scope)
 
@@ -348,6 +343,24 @@ class AsgiAdapter:
 
         if not signature or not timestamp:
             await _error_response(send, b"Missing required request signature header(s)")
+            return
+
+        more_body = True
+        body = bytearray()
+        while more_body:
+            received = await receive()
+
+            if next_body := received.get("body"):
+                body.extend(next_body)
+
+            if len(body) > self._max_body_size:
+                await _error_response(send, b"Content Too Large", status_code=413)
+                return
+
+            more_body = received.get("more_body", False)
+
+        if not body:
+            await _error_response(send, b"POST request must have a body")
             return
 
         try:
@@ -484,6 +497,7 @@ class AsgiBot(hikari.RESTBotAware):
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
@@ -501,6 +515,7 @@ class AsgiBot(hikari.RESTBotAware):
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
@@ -517,6 +532,7 @@ class AsgiBot(hikari.RESTBotAware):
         asgi_managed: bool = True,
         executor: typing.Optional[concurrent.futures.Executor] = None,
         http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
@@ -557,6 +573,9 @@ class AsgiBot(hikari.RESTBotAware):
             customise functionality such as whether SSL-verification is enabled,
             what timeouts `aiohttp` should expect to use for requests, and behavior
             regarding HTTP-redirects.
+        max_body_size
+            The maximum body size this should allow received request bodies to be
+            in bytes before failing the request with a 413 - Content Too Large.
         max_rate_limit
             The max number of seconds to backoff for when rate limited. Anything
             greater than this will instead raise an error.
@@ -627,7 +646,9 @@ class AsgiBot(hikari.RESTBotAware):
         self._adapter = AsgiAdapter(
             hikari.impl.InteractionServer(
                 entity_factory=self._entity_factory, rest_client=self._rest, public_key=public_key
-            )
+            ),
+            executor=executor,
+            max_body_size=max_body_size,
         )
 
         self._is_asgi_managed = asgi_managed

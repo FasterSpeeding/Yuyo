@@ -55,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__] and
   [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
   in the `triggers` array to enable the stop button.
+- The configured executor is now used for handling attachments when creating the initial responses
+  with the ASGI bot.
+- Check the headers before reading the body in the ASGI adapter and bot to avoid unnecessary hold up
+  on bad requests.
 
 ### Removed
 - `yuyo.InteractiveButtonBuilder`/`yuyo.components.InteractiveButtonBuilder` and
@@ -63,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The deprecated `load_from_attributes` arguments and the relevant deprecated `as_reaction_callback`
   and `as_component_callback` functions.
 - The deprecated `WaitForComponent` alias of `WaitForExecutor`.
+
+### Security
+- The [yuyo.asgi.AsgiAdapter][] and [yuyo.asgi.AsgiBot][] both now have a max body size limit to avoid
+  potential DoS and memory issues. This is configurable using `max_body_size` in the `__init__`s.
 
 ## [1.6.1a1] - 2023-01-17
 ### Changed
