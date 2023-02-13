@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or reaction.
 
 ### Changed
+- The `response_type` argument is now keyword only and defaults to
+  [ResponseType.MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.MESSAGE_CREATE] for
+  [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response]
+- The `defer_type` argument is now keyword only and defaults to
+  [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
+  for [ComponentContext.defer][yuyo.components.ComponentContext.defer]
+
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
 - Renamed `ErrorManager.with_rule` to [ErrorManager.add_rule][yuyo.backoff.ErrorManager.add_rule]
@@ -196,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iterators.
 
 ### Fixed
-- [yuyo.components.ComponentContext.respond][] trying to edit in the initial response instead
+- [yuyo.components.BaseContext.respond][] trying to edit in the initial response instead
   of create a follow up if a deferred initial response was deleted.
 - Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.
 

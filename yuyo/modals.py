@@ -31,21 +31,22 @@
 """Higher level client for callback based modal execution."""
 from __future__ import annotations
 
-from . import components
-import hikari
 import typing
+
+import hikari
+
+from . import components
 
 if typing.TYPE_CHECKING:
     import asyncio
-    from collections import abc as collections
-
     import datetime
+    from collections import abc as collections
 
 
 class ModalContext(components.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
 
-    __slots__= ("_client",)
+    __slots__ = ("_client",)
 
     def __init__(
         self,
@@ -54,9 +55,13 @@ class ModalContext(components.BaseContext[hikari.ModalInteraction]):
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Optional[asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]]] = None
+        response_future: typing.Optional[
+            asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]]
+        ] = None,
     ) -> None:
-        super().__init__(interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future)
+        super().__init__(
+            interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
+        )
         self._client = client
         self._response_future = response_future
 
@@ -257,9 +262,11 @@ class ModalContext(components.BaseContext[hikari.ModalInteraction]):
                 self._response_future.set_result(self._interaction.build_deferred_response().set_flags(flags))
 
             else:
-                await self._interaction.create_initial_response(hikari.ResponseType.DEFERRED_MESSAGE_CREATE, flags=flags)
+                await self._interaction.create_initial_response(
+                    hikari.ResponseType.DEFERRED_MESSAGE_CREATE, flags=flags
+                )
 
 
 class ModalClient:
+    """Client used to handle modal executors within a REST or gateway flow."""
     __slots__ = ()
-
