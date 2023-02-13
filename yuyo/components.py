@@ -33,6 +33,7 @@ from __future__ import annotations
 
 __all__: list[str] = [
     "AbstractComponentExecutor",
+    "ActionColumnExecutor",
     "ActionRowExecutor",
     "BaseContext",
     "CallbackSig",
@@ -71,6 +72,8 @@ if typing.TYPE_CHECKING:
     import hikari.api.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
+
+    from . import modals
 
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
@@ -2229,6 +2232,17 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         """The sub-components in this row."""
         return self._components.copy()
 
+    @property
+    def is_full(self) -> bool:
+        """Whether this row is considered "full".
+
+        For buttons the limit is 5. For other sub-components the limit is 1.
+        """
+        if self._components and isinstance(self._components[0], hikari.api.ButtonBuilder):
+            return len(self._components) >= 5
+
+        return len(self._components) >= 1
+
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> None:
         if self._stored_type is not None and self._stored_type != type_:
             raise ValueError(f"{type_} component type cannot be added to a container which already holds {type_}")
@@ -2567,6 +2581,278 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
         raise ValueError(f"Unknown channel type {exc.args[0]}") from exc
 
 
+class ActionColumnExecutor(AbstractComponentExecutor):
+    __slots__ = ("_last_triggered", "_rows", "_timeout")
+
+    def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._rows: list[ActionRowExecutor] = []
+        self._timeout = timeout
+
+    @property
+    def custom_ids(self) -> collections.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return list(itertools.chain.from_iterable(row.custom_ids for row in self._rows))
+
+    @property
+    def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+
+    @property
+    def rows(self) -> collections.Sequence[ActionRowExecutor]:
+        return self._rows.copy()
+
+    def add_row(self, row: ActionRowExecutor, /) -> Self:
+        self._rows.append(row)
+        return self
+
+    async def execute(self, ctx: ComponentContext, /) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        for executor in self._rows:
+            if ctx.interaction.custom_id in executor.custom_ids:
+                await executor.execute(ctx)
+                return
+
+        raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
+
+    def _append_row(self, *, is_button: bool = False) -> ActionRowExecutor:
+        if not self._rows or not self._rows[-1].is_full:
+            row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+            self._rows.append(row)
+            return row
+
+        # TODO: this works since the other types all take up the whole row right now.
+        if is_button or not self._rows[-1].components:
+            return self._rows[-1]
+
+        row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+        self._rows.append(row)
+        return row
+
+    @typing.overload
+    def add_button(
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    @typing.overload
+    def add_button(
+        self,
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+        url: str,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    def add_button(
+        self,
+        style: typing.Union[int, hikari.ButtonStyle],
+        callback_or_url: typing.Union[CallbackSig, str],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a button to this action row.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        callback_or_url
+            The button's url if it is a URL button, otherwise its callback.
+        custom_id
+            The button's custom ID.
+
+            This is ignored for url buttons.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+
+        Raises
+        ------
+        ValueError
+            * If any of the sub-components in this action row aren't buttons.
+            * If a callback is passed for `callback_or_url` for a url style button.
+            * If a string is passed for `callback_or_url` for an interactive button.
+        """
+        self._append_row(is_button=True).add_button(
+            # Some lil type lies
+            typing.cast("hikari.InteractiveButtonTypesT", style),
+            typing.cast(CallbackSig, callback_or_url),
+            custom_id=custom_id,
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+        return self
+
+    def add_select_menu(
+        self,
+        callback: CallbackSig,
+        type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a select menu to this action row.
+
+        For channel select menus and text select menus see
+        [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select] and
+        [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] respectively.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        type_
+            The type of select menu to add.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+        """
+        self._append_row().add_select_menu(
+            callback,
+            type_,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        return self
+
+    def add_channel_select(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[
+            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+        ] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a channel select menu to this action row.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        channel_types
+            Sequence of the types of channels this select menu should show as options.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+        """
+        self._append_row().add_channel_select(
+            callback,
+            custom_id=custom_id,
+            channel_types=channel_types,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        return self
+
+    def add_text_select(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+        """Add a channel select menu to this action row.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        hikari.api.special_endpoints.TextSelectMenuBuilder
+            Builder for the added text select menu.
+
+            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option]
+            should be used to add options to this select menu.
+
+            And the parent action row can be accessed by calling
+            [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
+        """
+        return self._append_row().add_text_select(
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
     """Extended action row implementation which can be tied to a multi-component executor."""
 
@@ -2585,8 +2871,10 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
 class MultiComponentExecutor(AbstractComponentExecutor):
     """Multi-component implementation of a component executor.
 
-    This implementation allows for multiple components to be executed as a single
-    view.
+    This implementation allows for multiple top-level components to be used
+    as a single executor.
+
+    You likely want [yuyo.components.ActionColumnExecutor][] instead.
     """
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
@@ -2655,9 +2943,9 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         ChildActionRowExecutor[Self]
             Builder class used to modify the added action row.
 
-            This functions exactly like [yuyo.components.ActionRowExecutor][] but comes
-            with the [ChildActionRowExecutor.parent][yuyo.components.ChildActionRowExecutor.parent]
-            property which can be used to get back to this multi-component executor.
+            This functions exactly like [yuyo.components.ActionRowExecutor][]
+            but comes with the `ChildActionRowExecutor.parent` property which
+            can be used to get back to this multi-component executor.
         """
         child = ChildActionRowExecutor(self)
         self.add_executor(child).add_builder(child)
