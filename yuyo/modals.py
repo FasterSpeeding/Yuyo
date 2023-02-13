@@ -269,4 +269,5 @@ class ModalContext(components.BaseContext[hikari.ModalInteraction]):
 
 class ModalClient:
     """Client used to handle modal executors within a REST or gateway flow."""
+
     __slots__ = ()
