@@ -58,13 +58,14 @@ import hikari
 import hikari.api
 import hikari.snowflakes
 
-from . import _internal
 from . import backoff
 
 if typing.TYPE_CHECKING:
     import sake
     from hikari import traits
     from typing_extensions import Self
+
+    from . import _internal
 
     _T = typing.TypeVar("_T")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
