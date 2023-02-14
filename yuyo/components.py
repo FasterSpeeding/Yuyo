@@ -73,7 +73,6 @@ if typing.TYPE_CHECKING:
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
 
-
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
 
