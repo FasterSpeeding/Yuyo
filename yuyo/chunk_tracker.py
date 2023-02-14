@@ -264,9 +264,6 @@ def _now() -> datetime.datetime:
     return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
-_TIMEOUT = datetime.timedelta(seconds=5)
-
-
 class _ShardInfo:
     __slots__ = ("any_received", "guild_ids", "incomplete_guild_ids", "known_nonces", "last_received_at", "shard")
 
@@ -325,11 +322,17 @@ class ChunkTracker:
         "_rest",
         "_shards",
         "_task",
+        "_timeout",
         "_tracked_identifies",
     )
 
     def __init__(
-        self, event_manager: hikari.api.EventManager, rest: hikari.RESTAware, shards: hikari.ShardAware, /
+        self,
+        event_manager: hikari.api.EventManager,
+        rest: hikari.RESTAware,
+        shards: hikari.ShardAware,
+        /,
+        timeout: typing.Union[int, float, datetime.timedelta] = datetime.timedelta(seconds=5),
     ) -> None:
         """Initialise a chunk tracker.
 
@@ -340,9 +343,17 @@ class ChunkTracker:
         ----------
         event_manager
             The event manager this chunk tracker should dispatch events over.
+        rest
+            The REST aware object this should use.
         shards
             The shard aware object this should use.
+        timeout
+            How long this should wait between chunks until deciding the request
+            has finished early/incomplete.
         """
+        if not isinstance(timeout, datetime.timedelta):
+            timeout = datetime.timedelta(seconds=timeout)
+
         self._auto_chunk_members = False
         self._chunk_presences = False
         self._event_manager = event_manager
@@ -351,21 +362,31 @@ class ChunkTracker:
         self._rest = rest
         self._shards = shards
         self._task: typing.Optional[asyncio.Task[None]] = None
+        self._timeout = timeout
         self._tracked_identifies: dict[int, _ShardInfo] = {}
         event_manager.subscribe(hikari.ShardPayloadEvent, self._on_payload_event)
         event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
         event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
     @classmethod
-    def from_gateway_bot(cls, bot: _internal.GatewayBotProto, /) -> Self:
+    def from_gateway_bot(
+        cls,
+        bot: _internal.GatewayBotProto,
+        /,
+        *,
+        timeout: typing.Union[int, float, datetime.timedelta] = datetime.timedelta(seconds=5),
+    ) -> Self:
         """Initialise a chunk tracker from a gateway bot.
 
         Parameters
         ----------
         bot : hikari.traits.ShardAware & hikari.traits.RESTAware & hikari.traits.EventManagerAware
             The gateway bot this chunk tracker should use.
+        timeout
+            How long this should wait between chunks until deciding the request
+            has finished early/incomplete.
         """
-        return cls(bot.event_manager, bot, bot)
+        return cls(bot.event_manager, bot, bot, timeout=timeout)
 
     async def request_guild_members(
         self,
@@ -463,7 +484,7 @@ class ChunkTracker:
             date = _now()
 
             for nonce, request_info in self._requests.items():
-                if date - request_info.last_received_at < _TIMEOUT:
+                if date - request_info.last_received_at < self._timeout:
                     continue
 
                 if shard_info := self._tracked_identifies.get(request_info.shard.id):
@@ -475,7 +496,7 @@ class ChunkTracker:
             for shard_info in self._tracked_identifies.copy().values():
                 # The previous loop may have depleted an identify tracker so we handle
                 # that here.
-                if date - shard_info.last_received_at < _TIMEOUT and shard_info.guild_ids:
+                if date - shard_info.last_received_at < self._timeout and shard_info.guild_ids:
                     continue
 
                 del self._tracked_identifies[shard_info.shard.id]
