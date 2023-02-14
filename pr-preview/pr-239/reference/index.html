@@ -7304,22 +7304,6 @@ to the request and deferrals.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>response_type</code></td>
-          <td class="doc-param-details">
-            <p>The type of message response to give.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.MessageResponseTypesT">MessageResponseTypesT</span></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>hikari.ResponseType.MESSAGE_CREATE</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
           <td><code>content</code></td>
           <td class="doc-param-details">
             <p>The content to edit the last response with.</p>
@@ -7341,6 +7325,22 @@ no <code>attachments</code> kwargs are provided.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>response_type</code></td>
+          <td class="doc-param-details">
+            <p>The type of message response to give.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.MessageResponseTypesT">MessageResponseTypesT</span></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.ResponseType.MESSAGE_CREATE</code>
                 </span>
             </p>
           </td>
@@ -7913,8 +7913,8 @@ methods should update the existing message.</p>
         <tr>
           <td><code>ephemeral</code></td>
           <td class="doc-param-details">
-            <p>Whether the deferred response should be ephemeral.
-Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> here is a shorthand for including <code>1 &lt;&lt; 64</code> in the
+            <p>Whether the deferred response should be ephemeral.</p>
+<p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> here is a shorthand for including <code>1 &lt;&lt; 64</code> in the
 passed flags.</p>
             <p>
                 <span class="doc-param-annotation">
