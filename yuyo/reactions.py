@@ -142,7 +142,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._lock = asyncio.Lock()
+        self._lock: typing.Optional[asyncio.Lock] = None
         self._message: typing.Optional[hikari.Message] = None
         self._timeout = timeout
 
