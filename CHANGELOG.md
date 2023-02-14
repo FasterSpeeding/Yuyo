@@ -28,11 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The `response_type` argument is now keyword only and defaults to
-  [ResponseType.MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.MESSAGE_CREATE] for
-  [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response]
+  [ResponseType.MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.MESSAGE_CREATE] in
+  [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response].
 - The `defer_type` argument is now keyword only and defaults to
   [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
-  for [ComponentContext.defer][yuyo.components.ComponentContext.defer]
+  in [ComponentContext.defer][yuyo.components.ComponentContext.defer].
 
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
