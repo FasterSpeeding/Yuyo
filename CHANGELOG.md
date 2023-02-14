@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `add_callback` to `set_callback` on `ComponentExecutor` and `ReactionHandler`.
 - [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] now takes all
   the button's options as arguments.
-  This also now returns the action row and adds the button to the row immedieatly (without
+  This also now returns the action row and adds the button to the row immediately (without
   any calls to `add_to_parent`).
 - Renamed the old `ActionRowExecutor.add_select_menu` to
   [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select]
