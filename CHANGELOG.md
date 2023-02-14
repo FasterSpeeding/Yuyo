@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `timeout` config to [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
 - `bot_managed` config to [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot].
+- Support for modals which takes a similar shape to the component handling in `yuyo.modals`.
+
+### Changed
+- The `response_type` argument is now keyword only and defaults to
+  [ResponseType.MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.MESSAGE_CREATE] in
+  [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response].
+- The `defer_type` argument is now keyword only and defaults to
+  [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
+  in [ComponentContext.defer][yuyo.components.ComponentContext.defer].
 
 ### Removed
 - The `AbstractReactionHandler.last_triggered` and `ReactionHandler.timeout` properties as
@@ -27,13 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or reaction.
 
 ### Changed
-- The `response_type` argument is now keyword only and defaults to
-  [ResponseType.MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.MESSAGE_CREATE] in
-  [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response].
-- The `defer_type` argument is now keyword only and defaults to
-  [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
-  in [ComponentContext.defer][yuyo.components.ComponentContext.defer].
-
 - `from_gateway_bot` classmethods can now also take cache-less `ShardAware` bots.
 - Bumped minimum Hikari version to `2.0.0.dev116`.
 - Renamed `ErrorManager.with_rule` to [ErrorManager.add_rule][yuyo.backoff.ErrorManager.add_rule]
