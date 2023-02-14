@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.7.0a1] - 2023-02-14
 ### Added
 - Support for the new select menu types to `yuyo.to_builder`.
 - [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
@@ -293,7 +294,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.7.0a1...HEAD
+[1.7.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...v1.7.0a1
 [1.6.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...v1.6.1a1
 [1.6.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...v1.6.0a1
 [1.5.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...v1.5.0a1
