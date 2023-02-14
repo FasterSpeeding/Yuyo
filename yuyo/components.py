@@ -71,6 +71,8 @@ if typing.TYPE_CHECKING:
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
 
+    from . import modals
+
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
 
@@ -87,7 +89,7 @@ _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 ComponentResponseT = typing.Union[
     hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
 ]
-"""Type hint of the builder response types allows for components."""
+"""Type hint of the builder response types allows for component interactions."""
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
 
@@ -121,9 +123,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         *,
         ephemeral_default: bool = False,
         response_future: typing.Union[
-            asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]],
-            asyncio.Future[ComponentResponseT],
-            None,
+            asyncio.Future[modals.ModalResponseT], asyncio.Future[ComponentResponseT], None
         ] = None,
     ) -> None:
         self._ephemeral_default = ephemeral_default
@@ -504,7 +504,6 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     @abc.abstractmethod
     async def create_initial_response(
         self,
-        /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
@@ -1236,7 +1235,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
     async def create_initial_response(
         self,
-        /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         response_type: hikari.MessageResponseTypesT = hikari.ResponseType.MESSAGE_CREATE,
@@ -1268,8 +1266,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
         Parameters
         ----------
-        response_type
-            The type of message response to give.
         content
             The content to edit the last response with.
 
@@ -1285,6 +1281,8 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             Likewise, if this is a [hikari.files.Resource][], then the
             content is instead treated as an attachment if no `attachment` and
             no `attachments` kwargs are provided.
+        response_type
+            The type of message response to give.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -1483,6 +1481,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
                 methods should update the existing message.
         ephemeral
             Whether the deferred response should be ephemeral.
+
             Passing [True][] here is a shorthand for including `1 << 64` in the
             passed flags.
         flags
@@ -1999,7 +1998,6 @@ class AbstractComponentExecutor(abc.ABC):
         ExecutorClosed
             If the executor is closed.
         """
-        raise NotImplementedError
 
 
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
