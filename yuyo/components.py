@@ -2239,7 +2239,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if self._components and isinstance(self._components[0], hikari.api.ButtonBuilder):
             return len(self._components) >= 5
 
-        return len(self._components) >= 1
+        return bool(self._components)
 
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> None:
         if self._stored_type is not None and self._stored_type != type_:
