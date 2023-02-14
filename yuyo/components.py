@@ -2620,7 +2620,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             self._rows.append(row)
             return row
 
-        # TODO: this works since the other types all take up the whole row right now.
+        # This works since the other types all take up the whole row right now.
         if is_button or not self._rows[-1].components:
             return self._rows[-1]
 
