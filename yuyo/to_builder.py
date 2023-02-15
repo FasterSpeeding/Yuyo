@@ -74,7 +74,7 @@ def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
     Raises
     ------
     NotImplementedError
-        If a unsupported command type is passed.
+        If an unsupported command type is passed.
 
         Currently [hikari.commands.SlashCommand][] and
         [hikari.commands.ContextMenuCommand][] are supported.
@@ -152,7 +152,7 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
     Raises
     ------
     NotImplementedError
-        If a unsupported context menu type is passed.
+        If an unsupported context menu type is passed.
 
         Currently [hikari.commands.CommandType.MESSAGE][] and
         [hikari.commands.CommandType.USER][] are supported.
@@ -195,13 +195,13 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
         The following are currently supported:
 
-        * [hikari.components.ComponentType.ACTION_ROW][]
-        * [hikari.components.ComponentType.BUTTON][]
-        * [hikari.components.ComponentType.TEXT_SELECT_MENU][]
-        * [hikari.components.ComponentType.USER_SELECT_MENU][]
-        * [hikari.components.ComponentType.ROLE_SELECT_MENU][]
-        * [hikari.components.ComponentType.MENTIONABLE_SELECT_MENU][]
-        * [hikari.components.ComponentType.CHANNEL_SELECT_MENU][]
+        * [ACTION_ROW][hikari.components.ComponentType.ACTION_ROW]
+        * [BUTTON][hikari.components.ComponentType.BUTTON]
+        * [TEXT_SELECT_MENU][hikari.components.ComponentType.TEXT_SELECT_MENU]
+        * [USER_SELECT_MENU][hikari.components.ComponentType.USER_SELECT_MENU]
+        * [ROLE_SELECT_MENU][hikari.components.ComponentType.ROLE_SELECT_MENU]
+        * [MENTIONABLE_SELECT_MENU][hikari.components.ComponentType.MENTIONABLE_SELECT_MENU]
+        * [CHANNEL_SELECT_MENU][hikari.components.ComponentType.CHANNEL_SELECT_MENU]
     """
     return hikari.impl.MessageActionRowBuilder(
         components=[_to_sub_component(component) for component in action_row.components]
