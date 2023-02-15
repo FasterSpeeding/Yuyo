@@ -195,13 +195,13 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
         The following are currently supported:
 
-        * [hikari.components.ComponentType.ACTION_ROW][]
-        * [hikari.components.ComponentType.BUTTON][]
-        * [hikari.components.ComponentType.TEXT_SELECT_MENU][]
-        * [hikari.components.ComponentType.USER_SELECT_MENU][]
-        * [hikari.components.ComponentType.ROLE_SELECT_MENU][]
-        * [hikari.components.ComponentType.MENTIONABLE_SELECT_MENU][]
-        * [hikari.components.ComponentType.CHANNEL_SELECT_MENU][]
+        * [ACTION_ROW][hikari.components.ComponentType.ACTION_ROW]
+        * [BUTTON][hikari.components.ComponentType.BUTTON]
+        * [TEXT_SELECT_MENU][hikari.components.ComponentType.TEXT_SELECT_MENU]
+        * [USER_SELECT_MENU][hikari.components.ComponentType.USER_SELECT_MENU]
+        * [ROLE_SELECT_MENU][hikari.components.ComponentType.ROLE_SELECT_MENU]
+        * [MENTIONABLE_SELECT_MENU][hikari.components.ComponentType.MENTIONABLE_SELECT_MENU]
+        * [CHANNEL_SELECT_MENU][hikari.components.ComponentType.CHANNEL_SELECT_MENU]
     """
     return hikari.impl.MessageActionRowBuilder(
         components=[_to_sub_component(component) for component in action_row.components]
