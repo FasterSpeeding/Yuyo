@@ -1749,7 +1749,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_timeout")
 
     def __init__(
-        self, *, ephemeral_default: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+        self,
+        *,
+        ephemeral_default: bool = False,
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a component executor.
 
@@ -1778,7 +1781,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return (
+            self._timeout is not None
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        )
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -1848,7 +1854,7 @@ class WaitForExecutor(AbstractComponentExecutor):
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         ephemeral_default: bool = False,
-        timeout: datetime.timedelta,
+        timeout: typing.Optional[datetime.timedelta],
     ) -> None:
         """Initialise a wait for executor.
 
@@ -1883,7 +1889,8 @@ class WaitForExecutor(AbstractComponentExecutor):
         # <<inherited docstring from AbstractComponentExecutor>>.
         return bool(
             self._finished
-            or self._made_at
+            or self._timeout is not None
+            and self._made_at
             and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
         )
 
@@ -1908,7 +1915,9 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._future = asyncio.get_running_loop().create_future()
         try:
-            return await asyncio.wait_for(self._future, self._timeout.total_seconds())
+            return await asyncio.wait_for(
+                self._future, None if self._timeout is None else self._timeout.total_seconds()
+            )
 
         finally:
             self._finished = True
@@ -1945,7 +1954,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     __slots__ = ("_components", "_stored_type")
 
     def __init__(
-        self, *, ephemeral_default: bool = False, timeout: datetime.timedelta = datetime.timedelta(seconds=30)
+        self,
+        *,
+        ephemeral_default: bool = False,
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise an action row executor.
 
@@ -2327,7 +2339,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
 
-    def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
+    def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
         """Initialise a multi-component executor.
 
         Parameters
@@ -2360,7 +2372,10 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return (
+            self._timeout is not None
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        )
 
     def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
         """Add a non-executable component builder to this executor.
@@ -2444,7 +2459,7 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a component paginator.
 

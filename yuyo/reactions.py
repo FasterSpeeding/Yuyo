@@ -126,7 +126,7 @@ class ReactionHandler(AbstractReactionHandler):
         self,
         *,
         authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a reaction handler.
 
@@ -159,7 +159,10 @@ class ReactionHandler(AbstractReactionHandler):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractReactionHandler>>.
-        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return (
+            self._timeout is not None
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        )
 
     @property
     def last_triggered(self) -> datetime.datetime:
@@ -167,7 +170,7 @@ class ReactionHandler(AbstractReactionHandler):
         return self._last_triggered
 
     @property
-    def timeout(self) -> datetime.timedelta:
+    def timeout(self) -> typing.Optional[datetime.timedelta]:
         """How long this handler will wait since the last event before timing out."""
         return self._timeout
 
@@ -294,7 +297,7 @@ class ReactionPaginator(ReactionHandler):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: datetime.timedelta = datetime.timedelta(seconds=30),
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a reaction paginator.
 
