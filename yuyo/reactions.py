@@ -76,15 +76,6 @@ class AbstractReactionHandler(abc.ABC):
     def has_expired(self) -> bool:
         """Whether this handler has ended."""
 
-    @property
-    @abc.abstractmethod
-    def last_triggered(self) -> datetime.datetime:
-        """When this handler was last triggered.
-
-        !!! note
-            If it hasn't ever been triggered then this will be when it was created.
-        """
-
     @abc.abstractmethod
     async def close(self) -> None:
         """Close this handler."""
@@ -163,16 +154,6 @@ class ReactionHandler(AbstractReactionHandler):
             self._timeout is not None
             and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
         )
-
-    @property
-    def last_triggered(self) -> datetime.datetime:
-        # <<inherited docstring from AbstractReactionHandler>>.
-        return self._last_triggered
-
-    @property
-    def timeout(self) -> typing.Optional[datetime.timedelta]:
-        """How long this handler will wait since the last event before timing out."""
-        return self._timeout
 
     async def open(self, message: hikari.Message, /) -> None:
         self._message = message

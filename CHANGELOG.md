@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `timeout` config to [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
 
-### Changed
-- [yuyo.reactions.ReactionHandler.timeout][] can now return [None][].
+### Removed
+- The `AbstractReactionHandler.last_triggered` and `ReactionHandler.timeout` properties as
+  these were leaking impl detail.
 
 ## [1.7.0a1] - 2023-02-14
 ### Added
