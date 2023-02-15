@@ -74,7 +74,7 @@ def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
     Raises
     ------
     NotImplementedError
-        If a unsupported command type is passed.
+        If an unsupported command type is passed.
 
         Currently [hikari.commands.SlashCommand][] and
         [hikari.commands.ContextMenuCommand][] are supported.
@@ -152,7 +152,7 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
     Raises
     ------
     NotImplementedError
-        If a unsupported context menu type is passed.
+        If an unsupported context menu type is passed.
 
         Currently [hikari.commands.CommandType.MESSAGE][] and
         [hikari.commands.CommandType.USER][] are supported.
