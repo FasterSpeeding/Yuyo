@@ -62,22 +62,27 @@ LEFT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to go back to the first entry."""
+
 LEFT_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK LEFT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to go back an entry."""
+
 STOP_SQUARE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK SQUARE FOR STOP}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to close a menu in a reaction context."""
+
 RIGHT_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK RIGHT-POINTING TRIANGLE}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to continue to the next entry."""
+
 RIGHT_DOUBLE_TRIANGLE: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\N{VARIATION SELECTOR-16}"
 )
-"""The emoji used for the lesser-enabled skip to last entry button."""
+"""The emoji used for the (not enabled by default) skip to last entry button."""
+
 BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}"
 )

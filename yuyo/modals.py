@@ -33,18 +33,19 @@ from __future__ import annotations
 
 __all__ = ["ModalClient", "ModalContext"]
 
-import asyncio
 import abc
+import asyncio
+import datetime
 import typing
 from collections import abc as collections
 
 import alluka as alluka_
 import hikari
 
+from . import _internal
 from . import components
 
 if typing.TYPE_CHECKING:
-    import datetime
     import types
 
     from typing_extensions import Self
@@ -675,7 +676,7 @@ class ModalClient:
 
 
 class ModalClosed(Exception):
-    __slots__ = ()
+    ...
 
 
 class AbstractModal(abc.ABC):
@@ -703,7 +704,15 @@ class AbstractModal(abc.ABC):
 
 
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
-    __slots__ = ("_callback", "_created_at", "_ephemeral_default", "_id_to_callback", "_last_triggered")
+    __slots__ = (
+        "_callback",
+        "_created_at",
+        "_ephemeral_default",
+        "_id_to_callback",
+        "_last_triggered",
+        "_rows",
+        "_timeout",
+    )
 
     def __init__(
         self,
@@ -711,7 +720,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         /,
         *,
         ephemeral_default: bool = False,
-        timeout: datetime.timedelta = datetime.timedelta(seconds=10)
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10),
     ) -> None:
         """Initialise a component executor.
 
@@ -722,29 +731,72 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         timeout
             How long this component should last until its marked as timed out.
         """
-        self._callback= callback
+        self._callback = callback
         self._created_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._rows: list[hikari.impl.ModalActionRowBuilder] = []
         self._timeout = timeout
 
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return (
+            self._timeout is not None
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        )
 
     if typing.TYPE_CHECKING:
         __call__: _CallbackSigT
 
     else:
+
         async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
             return await self._callback(*args, **kwargs)
 
+    async def add_text_input(
+        self,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        required: bool = True,
+        min_length: int = 0,
+        max_length: int = 1,
+    ) -> Self:
+        if custom_id is None:
+            custom_id = _internal.random_custom_id()
+
+        row = hikari.impl.ModalActionRowBuilder()
+        self._rows.append(row)
+        # TODO: this builder is inconsistent.
+        row.add_component(
+            hikari.impl.TextInputBuilder(
+                container=NotImplemented,
+                label=label,
+                custom_id=custom_id,
+                style=style,
+                placeholder=placeholder,
+                value=value,
+                required=required,
+                min_length=min_length,
+                max_length=max_length,
+            )
+        )
+        return self
+
+    async def execute(self, ctx: ModalContext) -> None:
+        ...
 
 
 def as_modal(
-    *, ephemeral_default: bool = False, timeout: datetime.timedelta(seconds=10)
-) -> collections.CallbackSig[[_CallbackSigT], _CallbackSigT]:
-    def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-        
+    *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10)
+) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
+    def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
+        return Modal(callback, ephemeral_default=ephemeral_default, timeout=timeout)
 
+    return decorator

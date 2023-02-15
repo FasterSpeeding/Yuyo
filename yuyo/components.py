@@ -52,7 +52,6 @@ import itertools
 import logging
 import os
 import typing
-import uuid
 from collections import abc as collections
 
 import alluka as alluka_
@@ -92,10 +91,6 @@ ComponentResponseT = typing.Union[
 """Type hint of the builder response types allows for component interactions."""
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
-
-
-def _random_id() -> str:
-    return str(uuid.uuid4())
 
 
 def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int], /) -> float:
@@ -2328,7 +2323,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if style in hikari.InteractiveButtonTypes:
             if custom_id is None:
-                custom_id = _random_id()
+                custom_id = _internal.random_custom_id()
 
             if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
@@ -2394,7 +2389,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _random_id()
+            custom_id = _internal.random_custom_id()
 
         type_ = hikari.ComponentType(type_)
         self._assert_can_add_type(type_)
@@ -2449,7 +2444,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _random_id()
+            custom_id = _internal.random_custom_id()
 
         self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
         self.set_callback(custom_id, callback)
@@ -2504,7 +2499,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
-            custom_id = _random_id()
+            custom_id = _internal.random_custom_id()
 
         self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
         component = hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn](

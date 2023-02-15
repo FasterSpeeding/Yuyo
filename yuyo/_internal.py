@@ -36,6 +36,7 @@ __all__: list[str] = []
 import enum
 import sys
 import typing
+import uuid
 from collections import abc as collections
 
 import hikari
@@ -117,3 +118,7 @@ async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typin
         return await anext_(iterator, default)
 
     return next(iterator, default)
+
+
+def random_custom_id() -> str:
+    return str(uuid.uuid4())
