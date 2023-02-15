@@ -1235,13 +1235,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.timeout" class="md-nav__link">
-    timeout
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionHandler.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -2591,13 +2584,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.timeout" class="md-nav__link">
-    timeout
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionHandler.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -3045,7 +3031,7 @@
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -5796,7 +5782,7 @@ ensures a request will be tracked as this only tracks chunk requests with a set 
 
 
 <a href="#yuyo.chunk_tracker.ChunkTracker.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">shards</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">event_manager</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">shards</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -5826,6 +5812,18 @@ see <a class="autorefs autorefs-internal" href="chunk_tracker/#yuyo.chunk_tracke
           </td>
         </tr>
         <tr>
+          <td><code>rest</code></td>
+          <td class="doc-param-details">
+            <p>The REST aware object this should use.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RESTAware">RESTAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
           <td><code>shards</code></td>
           <td class="doc-param-details">
             <p>The shard aware object this should use.</p>
@@ -5833,6 +5831,23 @@ see <a class="autorefs autorefs-internal" href="chunk_tracker/#yuyo.chunk_tracke
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ShardAware">ShardAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td class="doc-param-details">
+            <p>How long this should wait between chunks until deciding the request
+has finished early/incomplete.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>datetime.timedelta(seconds=5)</code>
                 </span>
             </p>
           </td>
@@ -5857,7 +5872,7 @@ see <a class="autorefs autorefs-internal" href="chunk_tracker/#yuyo.chunk_tracke
   </span>
 
 <a href="#yuyo.chunk_tracker.ChunkTracker.from_gateway_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -5880,6 +5895,23 @@ see <a class="autorefs autorefs-internal" href="chunk_tracker/#yuyo.chunk_tracke
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.traits" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#module-hikari.traits">traits</a>.<a class="autorefs autorefs-external" title="hikari.traits.ShardAware" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#hikari.traits.ShardAware">ShardAware</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td class="doc-param-details">
+            <p>How long this should wait between chunks until deciding the request
+has finished early/incomplete.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>datetime.timedelta(seconds=5)</code>
                 </span>
             </p>
           </td>
@@ -8061,7 +8093,7 @@ passed flags.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -8334,7 +8366,7 @@ until it times out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -9563,7 +9595,7 @@ until it times out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -10325,29 +10357,6 @@ any user will be able to trigger it.</p>
 
 </div>
 
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="yuyo.reactions.ReactionHandler.timeout" class="doc doc-heading">
-        <span class="doc doc-object-name doc-attribute-name">timeout</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-<a href="#yuyo.reactions.ReactionHandler.timeout" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">timeout</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>How long this handler will wait since the last event before timing out.</p>
-  </div>
-
-</div>
-
 
 
 <div class="doc doc-object doc-function">
@@ -10399,7 +10408,7 @@ paginator.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -10687,7 +10696,7 @@ paginator.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -12576,7 +12585,7 @@ should default to ephemeral (meaning only the author can see them) unless
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
                 </span>
             </p>
           </td>
