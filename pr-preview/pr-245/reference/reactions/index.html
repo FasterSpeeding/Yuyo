@@ -495,13 +495,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.AbstractReactionHandler.last_triggered" class="md-nav__link">
-    last_triggered
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.AbstractReactionHandler.close" class="md-nav__link">
     close()
   </a>
@@ -621,13 +614,6 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionHandler.authors" class="md-nav__link">
     authors
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.timeout" class="md-nav__link">
-    timeout
   </a>
   
 </li>
@@ -840,13 +826,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.reactions.AbstractReactionHandler.last_triggered" class="md-nav__link">
-    last_triggered
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#yuyo.reactions.AbstractReactionHandler.close" class="md-nav__link">
     close()
   </a>
@@ -966,13 +945,6 @@
           <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionHandler.authors" class="md-nav__link">
     authors
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.reactions.ReactionHandler.timeout" class="md-nav__link">
-    timeout
   </a>
   
 </li>
@@ -1195,34 +1167,6 @@
   <div class="doc doc-contents ">
   
       <p>Whether this handler has ended.</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="yuyo.reactions.AbstractReactionHandler.last_triggered" class="doc doc-heading">
-        <span class="doc doc-object-name doc-attribute-name">last_triggered</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#yuyo.reactions.AbstractReactionHandler.last_triggered" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">last_triggered</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>When this handler was last triggered.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If it hasn't ever been triggered then this will be when it was created.</p>
-</div>
   </div>
 
 </div>
@@ -1978,29 +1922,6 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
 <p>If this is empty then the handler is considered public and
 any user will be able to trigger it.</p>
 </div>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="yuyo.reactions.ReactionHandler.timeout" class="doc doc-heading">
-        <span class="doc doc-object-name doc-attribute-name">timeout</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-<a href="#yuyo.reactions.ReactionHandler.timeout" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">timeout</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">]</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>How long this handler will wait since the last event before timing out.</p>
   </div>
 
 </div>
