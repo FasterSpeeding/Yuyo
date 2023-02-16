@@ -1726,8 +1726,9 @@ class ComponentClient:
         *,
         future: typing.Optional[asyncio.Future[ComponentResponseT]] = None,
     ) -> None:
+        ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+
         try:
-            ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
             await executor.execute(ctx)
         except ExecutorClosed:
             self._executors.pop(interaction.message.id, None)

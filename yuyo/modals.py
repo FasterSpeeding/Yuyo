@@ -36,6 +36,7 @@ __all__ = ["ModalClient", "ModalContext"]
 import abc
 import asyncio
 import datetime
+import logging
 import typing
 from collections import abc as collections
 
@@ -59,6 +60,8 @@ _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
+
+_LOGGER = logging.getLogger("hikari.yuyo.modals")
 
 
 class ModalContext(components.BaseContext[hikari.ModalInteraction]):
@@ -285,13 +288,12 @@ class ModalContext(components.BaseContext[hikari.ModalInteraction]):
 
 
 class ModalClient:
-    """Client used to handle modal executors within a REST or gateway flow."""
+    """Client used to handle modals within a REST or gateway flow."""
 
     __slots__ = (
         "_alluka",
         "_constant_ids",
         "_event_manager",
-        "_executors",
         "_gc_task",
         "_modals",
         "_prefix_ids",
@@ -420,13 +422,13 @@ class ModalClient:
 
     async def _gc(self) -> None:
         while True:
-            for message_id, executor in tuple(self._executors.items()):
-                if not executor.has_expired or message_id not in self._executors:
+            for custom_id, modal in tuple(self._modals.items()):
+                if not modal.has_expired or custom_id not in self._modals:
                     continue
 
-                del self._executors[message_id]
+                del self._modals[custom_id]
                 # This may slow this gc task down but the more we yield the better.
-                # await executor.close()  # TODO: this
+                # await modal.close()  # TODO: this
 
             await asyncio.sleep(5)  # TODO: is this a good time?
 
@@ -443,7 +445,7 @@ class ModalClient:
         if self._event_manager:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-        self._executors = {}
+        self._modals = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
@@ -466,17 +468,33 @@ class ModalClient:
 
     async def _execute_modal(
         self,
-        executor: AbstractModal,
+        modal: AbstractModal,
         interaction: hikari.ModalInteraction,
         /,
         *,
         future: typing.Optional[asyncio.Future[ModalResponseT]] = None,
     ) -> None:
+        ctx = ModalContext(self, interaction, self._add_task, response_future=future)
+
         try:
-            ctx = ModalContext(self, interaction, self._add_task, response_future=future)
-            await executor.execute(ctx)
+            await modal.execute(ctx)
         except ModalClosed:
-            self._executors.pop(interaction.message.id, None)
+            self._modals.pop(ctx.interaction.custom_id, None)
+
+    async def _execute_constant_modal(
+        self,
+        modal: AbstractModal,
+        interaction: hikari.ModalInteraction,
+        /,
+        *,
+        future: typing.Optional[asyncio.Future[ModalResponseT]] = None,
+    ) -> None:
+        ctx = ModalContext(self, interaction, self._add_task, response_future=future)
+
+        try:
+            await modal.execute(ctx)
+        except ModalClosed:
+            _LOGGER.warning("Constant executor raised ModalClosed, you need to set `timeout` to None")
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -491,14 +509,14 @@ class ModalClient:
 
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
             ctx = ModalContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await self._alluka.call_with_async_di(constant_callback, ctx)
+            await constant_callback.execute(ctx)
 
-        elif executor := self._executors.get(event.interaction.message.id):
-            await self._execute_executor(executor, event.interaction)
+        elif modal := self._modals.get(event.interaction.custom_id):
+            await self._execute_modal(modal, event.interaction)
 
         else:
             await event.interaction.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
+                hikari.ResponseType.MESSAGE_CREATE, "This modal has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
             )
 
     async def on_rest_request(self, interaction: hikari.ModalInteraction, /) -> ModalResponseT:
@@ -514,23 +532,22 @@ class ModalClient:
         ResponseT
             The REST re sponse.
         """
-        if constant_callback := self._match_constant_id(interaction.custom_id):
+        if modal := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[ModalResponseT] = asyncio.Future()
-            ctx = ModalContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
-            self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
+            self._add_task(asyncio.create_task(self._execute_constant_modal(modal, interaction, future=future)))
             return await future
 
-        if executor := self._executors.get(interaction.message.id):
-            if not executor.has_expired:
+        if modal := self._modals.get(interaction.custom_id):
+            if not modal.has_expired:
                 future = asyncio.Future()
-                self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
+                self._add_task(asyncio.create_task(self._execute_modal(modal, interaction, future=future)))
                 return await future
 
-            del self._executors[interaction.message.id]
+            del self._modals[interaction.custom_id]
 
         return (
             interaction.build_response()
-            .set_content("This message has timed-out.")
+            .set_content("This modal has timed-out.")
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
@@ -703,15 +720,67 @@ class AbstractModal(abc.ABC):
         """
 
 
-class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
+class _TrackedField:
+    __slots__ = ("custom_id", "key", "prefix_match")
+
+    def __init__(self, *, custom_id: str, key: str, prefix_match: bool) -> None:
+        self.custom_id = custom_id
+        self.key = key
+        self.prefix_match = prefix_match
+
+
+class _MetaModal(abc.ABCMeta):
+    _static_fields: list[_TrackedField] = []
+    _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
+
+    def __init_subclass__(cls) -> None:
+        cls._static_fields = []
+        cls._static_rows = []
+
+    def add_static_text_input(
+        cls,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        required: bool = True,
+        min_length: int = 0,
+        max_length: int = 1,
+        prefix_match: bool = False,
+        keyword: typing.Optional[str] = None,
+    ) -> None:  # TODO: return Self?
+        """tmp"""
+        custom_id, row = _make_text_input(
+            custom_id=custom_id,
+            label=label,
+            style=style,
+            placeholder=placeholder,
+            value=value,
+            required=required,
+            min_length=min_length,
+            max_length=max_length,
+        )
+
+        if keyword:
+            cls._static_fields.append(_TrackedField(custom_id=custom_id, key=keyword, prefix_match=prefix_match))
+
+        cls._static_rows.append(row)
+
+
+class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
+    """Temp"""
+
     __slots__ = (
         "_callback",
         "_created_at",
         "_ephemeral_default",
-        "_id_to_callback",
         "_last_triggered",
         "_rows",
         "_timeout",
+        "_tracked_fields",
     )
 
     def __init__(
@@ -734,10 +803,10 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         self._callback = callback
         self._created_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._ephemeral_default = ephemeral_default
-        self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._rows: list[hikari.impl.ModalActionRowBuilder] = []
         self._timeout = timeout
+        self._tracked_fields: list[_TrackedField] = []
 
     @property
     def has_expired(self) -> bool:
@@ -755,7 +824,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
             return await self._callback(*args, **kwargs)
 
-    async def add_text_input(
+    def add_text_input(
         self,
         label: str,
         /,
@@ -767,30 +836,62 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         required: bool = True,
         min_length: int = 0,
         max_length: int = 1,
+        prefix_match: bool = False,
+        keyword: typing.Optional[str] = None,
     ) -> Self:
-        if custom_id is None:
-            custom_id = _internal.random_custom_id()
-
-        row = hikari.impl.ModalActionRowBuilder()
-        self._rows.append(row)
-        # TODO: this builder is inconsistent.
-        row.add_component(
-            hikari.impl.TextInputBuilder(
-                container=NotImplemented,
-                label=label,
-                custom_id=custom_id,
-                style=style,
-                placeholder=placeholder,
-                value=value,
-                required=required,
-                min_length=min_length,
-                max_length=max_length,
-            )
+        """Tmp"""
+        custom_id, row = _make_text_input(
+            custom_id=custom_id,
+            label=label,
+            style=style,
+            placeholder=placeholder,
+            value=value,
+            required=required,
+            min_length=min_length,
+            max_length=max_length,
         )
+        self._rows.append(row)
+
+        if keyword:
+            self._tracked_fields.append(_TrackedField(custom_id=custom_id, key=keyword, prefix_match=prefix_match))
+
         return self
 
     async def execute(self, ctx: ModalContext) -> None:
-        ...
+        raise NotImplementedError()
+
+
+def _make_text_input(
+    *,
+    label: str,
+    custom_id: typing.Optional[str],
+    style: hikari.TextInputStyle,
+    placeholder: hikari.UndefinedOr[str],
+    value: hikari.UndefinedOr[str],
+    required: bool,
+    min_length: int,
+    max_length: int,
+) -> tuple[str, hikari.impl.ModalActionRowBuilder]:
+    if custom_id is None:
+        custom_id = _internal.random_custom_id()
+
+    # TODO: TextInputBuilder is inconsistent.
+    component = hikari.impl.TextInputBuilder(
+        container=NotImplemented,
+        label=label,
+        custom_id=custom_id,
+        style=style,
+        placeholder=placeholder,
+        value=value,
+        required=required,
+        min_length=min_length,
+        max_length=max_length,
+    )
+    row = hikari.impl.ModalActionRowBuilder(components=[component])
+    return (custom_id, row)
+
+
+# TODO: allow without paranthesis
 
 
 def as_modal(
@@ -800,3 +901,8 @@ def as_modal(
         return Modal(callback, ephemeral_default=ephemeral_default, timeout=timeout)
 
     return decorator
+
+
+@as_modal()
+async def callback(ctx: ModalContext) -> None:
+    pass
