@@ -46,7 +46,7 @@ import alluka as alluka_
 import hikari
 
 from . import _internal
-from . import components
+from . import components as components_
 
 if typing.TYPE_CHECKING:
     import types
@@ -77,7 +77,7 @@ NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
 """Type of [yuyo.modals.NO_DEFAULT][]."""
 
 
-class ModalContext(components.BaseContext[hikari.ModalInteraction]):
+class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
 
     __slots__ = ("_client",)
@@ -303,16 +303,7 @@ class ModalContext(components.BaseContext[hikari.ModalInteraction]):
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
-    __slots__ = (
-        "_alluka",
-        "_constant_ids",
-        "_event_manager",
-        "_gc_task",
-        "_modals",
-        "_prefix_ids",
-        "_server",
-        "_tasks",
-    )
+    __slots__ = ("_alluka", "_modals", "_event_manager", "_gc_task", "_prefix_ids", "_server", "_tasks")
 
     def __init__(
         self,
@@ -353,10 +344,9 @@ class ModalClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         self._alluka = alluka or alluka_.Client()
-        self._constant_ids: dict[str, AbstractModal] = {}
+        self._modals: dict[str, AbstractModal] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._modals: dict[str, AbstractModal] = {}
         self._prefix_ids: dict[str, AbstractModal] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
@@ -475,7 +465,7 @@ class ModalClient:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
     def _match_constant_id(self, custom_id: str) -> typing.Optional[AbstractModal]:
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(
+        return self._modals.get(custom_id) or self._prefix_ids.get(
             next(filter(custom_id.startswith, self._prefix_ids.keys()), "")
         )
 
@@ -556,29 +546,22 @@ class ModalClient:
                 self._add_task(asyncio.create_task(self._execute_modal(modal, interaction, future=future)))
                 return await future
 
-            del self._modals[interaction.custom_id]
-
         return (
             interaction.build_response()
             .set_content("This modal has timed-out.")
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    def set_constant_id(self, custom_id: str, callback: AbstractModal, /, *, prefix_match: bool = False) -> Self:
-        """Add a constant "custom_id" callback.
-
-        These are callbacks which'll always be called for a specific custom_id
-        while taking priority over executors.
+    def set_modal(self, custom_id: str, modal: AbstractModal, /, *, prefix_match: bool = False) -> Self:
+        """Register a modal for a custom ID.
 
         Parameters
         ----------
         custom_id
-            The custom_id to register the callback for.
+            The custom_id to register the modal for.
         callback
-            The callback to register.
+            The modal to register.
 
-            This should take a single argument of type [yuyo.modals.ModalContext][],
-            be asynchronous and return [None][].
         prefix_match
             Whether the custom_id should be treated as a prefix match.
 
@@ -598,38 +581,38 @@ class ModalClient:
         if custom_id in self._prefix_ids:
             raise ValueError(f"{custom_id!r} is already registered as a prefix match")
 
-        if custom_id in self._constant_ids:
-            raise ValueError(f"{custom_id!r} is already registered as a constant id")
+        if custom_id in self._modals:
+            raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if prefix_match:
-            self._prefix_ids[custom_id] = callback
+            self._prefix_ids[custom_id] = modal
             return self
 
-        self._constant_ids[custom_id] = callback
+        self._modals[custom_id] = modal
         return self
 
-    def get_constant_id(self, custom_id: str, /) -> typing.Optional[AbstractModal]:
-        """Get a set constant "custom_id" callback.
+    def get_modal(self, custom_id: str, /) -> typing.Optional[AbstractModal]:
+        """Get the modal set for a custom ID.
 
         Parameters
         ----------
         custom_id
-            The custom_id to get the callback for.
+            The custom_id to get the modal for.
 
         Returns
         -------
-        CallbackSig | None
+        AbstractModal | None
             The callback for the custom_id, or [None][] if it doesn't exist.
         """
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
+        return self._modals.get(custom_id) or self._prefix_ids.get(custom_id)
 
-    def remove_constant_id(self, custom_id: str, /) -> Self:
-        """Remove a constant "custom_id" callback.
+    def remove_modal(self, custom_id: str, /) -> Self:
+        """Remove the modal set for a custom ID.
 
         Parameters
         ----------
         custom_id
-            The custom_id to remove the callback for.
+            The custom_id to unset the modal for.
 
         Returns
         -------
@@ -642,67 +625,11 @@ class ModalClient:
             If the custom_id is not registered.
         """
         try:
-            del self._constant_ids[custom_id]
+            del self._modals[custom_id]
         except KeyError:
             del self._prefix_ids[custom_id]
 
         return self
-
-    # def set_executor(
-    #     self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractModalExecutor, /
-    # ) -> Self:
-    #     """Set the modal executor for a message.
-
-    #     Parameters
-    #     ----------
-    #     message
-    #         The message to set the executor for.
-    #     executor
-    #         The executor to set.
-
-    #         This will be called for every modal interaction for the message
-    #         unless the modal's custom_id is registered as a constant id callback.
-
-    #     Returns
-    #     -------
-    #     Self
-    #         The modal client to allow chaining.
-    #     """
-    #     self._executors[int(message)] = executor
-    #     return self
-
-    # def get_executor(
-    #     self, message: hikari.SnowflakeishOr[hikari.Message], /
-    # ) -> typing.Optional[AbstractModalExecutor]:
-    #     """Get the modal executor set for a message.
-
-    #     Parameters
-    #     ----------
-    #     message
-    #         The message to get the executor for.
-
-    #     Returns
-    #     -------
-    #     yuyo.modals.AbstractModalExecutor | None
-    #         The executor set for the message or [None][] if none is set.
-    #     """
-    #     return self._executors.get(int(message))
-
-    # def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
-    #     """Remove the modal executor for a message.
-
-    #     Parameters
-    #     ----------
-    #     message
-    #         The message to remove the executor for.
-
-    #     Returns
-    #     -------
-    #     Self
-    #         The modal client to allow chaining.
-    #     """
-    #     self._executors.pop(int(message))
-    #     return self
 
 
 class ModalClosed(Exception):
@@ -734,26 +661,32 @@ class AbstractModal(abc.ABC):
 
 
 class _TrackedField:
-    __slots__ = ("custom_id", "default", "key", "prefix_match")
+    __slots__ = ("custom_id", "default", "key", "prefix_match", "type")
 
     def __init__(
-        self, *, custom_id: str, default: typing.Union[typing.Any, NoDefault], key: str, prefix_match: bool
+        self,
+        *,
+        custom_id: str,
+        default: typing.Union[typing.Any, NoDefault],
+        key: str,
+        prefix_match: bool,
+        type_: hikari.ComponentType,
     ) -> None:
         self.custom_id = custom_id
         self.default = default
         self.key = key
         self.prefix_match = prefix_match
+        self.type = type_
 
 
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
-    """Temp"""
+    """Represents a Modal."""
 
     __slots__ = (
         "_callback",
         "_created_at",
         "_ephemeral_default",
         "_last_triggered",
-        "_prefix_match",
         "_rows",
         "_timeout",
         "_tracked_fields",
@@ -762,7 +695,6 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     _all_static_fields: list[_TrackedField] = []
     _all_static_rows: list[hikari.impl.ModalActionRowBuilder] = []
     _static_fields: list[_TrackedField] = []
-    _static_prefix_match = False
     _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
 
     def __init__(
@@ -786,21 +718,18 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         self._created_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._ephemeral_default = ephemeral_default
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._prefix_match = False
-        self._rows: list[hikari.impl.ModalActionRowBuilder] = []
+        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
         self._timeout = timeout
-        self._tracked_fields: list[_TrackedField] = []
+        self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
 
     def __init_subclass__(cls) -> None:
         cls._all_static_fields = []
         cls._all_static_rows = []
         cls._static_fields = []
-        cls._static_prefix_match = False
         cls._static_rows = []
 
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, Modal):
-                cls._static_prefix_match = cls._static_prefix_match or super_cls._static_prefix_match
                 cls._all_static_fields.extend(super_cls._all_static_fields)
                 cls._all_static_rows.extend(super_cls._all_static_rows)
 
@@ -811,6 +740,10 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             self._timeout is not None
             and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
         )
+
+    @property
+    def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
+        return self._rows
 
     if typing.TYPE_CHECKING:
         __call__: _CallbackSigT
@@ -895,7 +828,13 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
         if keyword:
             cls._static_fields.append(
-                _TrackedField(custom_id=custom_id, default=default, key=keyword, prefix_match=prefix_match)
+                _TrackedField(
+                    custom_id=custom_id,
+                    default=default,
+                    key=keyword,
+                    prefix_match=prefix_match,
+                    type_=hikari.ComponentType.TEXT_INPUT,
+                )
             )
 
         cls._static_rows.append(row)
@@ -947,7 +886,8 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
-            Whether `custom_id` should be matched as a prefix rather than through equal.
+            Whether `custom_id` should be matched against `.split(":", 1)[0]`
+            rather than the whole string.
         keyword
             Name of the parameter the text for this field should be passed to.
 
@@ -973,7 +913,13 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
         if keyword:
             self._tracked_fields.append(
-                _TrackedField(custom_id=custom_id, default=default, key=keyword, prefix_match=prefix_match)
+                _TrackedField(
+                    custom_id=custom_id,
+                    default=default,
+                    key=keyword,
+                    prefix_match=prefix_match,
+                    type_=hikari.ComponentType.TEXT_INPUT,
+                )
             )
 
         return self
@@ -981,12 +927,34 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     async def execute(self, ctx: ModalContext) -> None:
         ctx.set_ephemeral_default(self._ephemeral_default)
         fields: dict[str, typing.Any] = {}
-        compiled_prefixes: typing.Optional[dict[str, typing.Any]] = None
+        compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
+        components: dict[str, hikari.ModalComponentTypesT] = {}
+
+        for component in itertools.chain.from_iterable(
+            component.components for component in ctx.interaction.components
+        ):
+            components[component.custom_id] = component
+            compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
 
         for field in self._tracked_fields:
             if field.prefix_match:
-                if compiled_prefixes is None:
-                    compiled_prefixes = {itertools.chain}
+                component = compiled_prefixes.get(field.custom_id)
+
+            else:
+                component = components.get(field.custom_id)
+
+            if not component:
+                if field.default is NO_DEFAULT:
+                    raise RuntimeError(f"Missing required component `{field.custom_id}`")
+
+                fields[field.key] = field.default
+                continue
+
+            if component.type is not field.type:
+                raise RuntimeError(
+                    f"Mismatched component type, expected {field.type} "
+                    f"for `{field.custom_id}` but got {component.type}"
+                )
 
         await ctx.client.alluka.call_with_async_di(self._callback, ctx, **fields)
 
@@ -1029,5 +997,20 @@ def as_modal(
 ) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
     def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
         return Modal(callback, ephemeral_default=ephemeral_default, timeout=timeout)
+
+    return decorator
+
+
+def as_modal_template(
+    *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10)
+) -> collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]:
+    def decorator(callback: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
+        class ModalTemplate(Modal[typing.Any]):  # pyright complains about using _CallbackSigT here for some reason
+            __slots__ = ()
+
+            def __init__(self) -> None:
+                return super().__init__(callback, ephemeral_default=ephemeral_default, timeout=timeout)
+
+        return ModalTemplate
 
     return decorator
