@@ -121,4 +121,5 @@ async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typin
 
 
 def random_custom_id() -> str:
+    """Generate a random custom ID."""
     return str(uuid.uuid4())

@@ -31,11 +31,13 @@
 """Higher level client for callback based modal execution."""
 from __future__ import annotations
 
-__all__ = ["ModalClient", "ModalContext"]
+__all__ = ["ModalClient", "ModalContext", "NO_DEFAULT", "NoDefault"]
 
 import abc
 import asyncio
 import datetime
+import enum
+import itertools
 import logging
 import typing
 from collections import abc as collections
@@ -62,6 +64,17 @@ ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.I
 """Type hint of the builder response types allows for modal interactions."""
 
 _LOGGER = logging.getLogger("hikari.yuyo.modals")
+
+
+class _NoDefaultEnum(enum.Enum):
+    VALUE = object()
+
+
+NO_DEFAULT = _NoDefaultEnum.VALUE
+"""Singleton used to signify when a field has no default."""
+
+NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
+"""Type of [yuyo.modals.NO_DEFAULT][]."""
 
 
 class ModalContext(components.BaseContext[hikari.ModalInteraction]):
@@ -721,56 +734,18 @@ class AbstractModal(abc.ABC):
 
 
 class _TrackedField:
-    __slots__ = ("custom_id", "key", "prefix_match")
+    __slots__ = ("custom_id", "default", "key", "prefix_match")
 
-    def __init__(self, *, custom_id: str, key: str, prefix_match: bool) -> None:
+    def __init__(
+        self, *, custom_id: str, default: typing.Union[typing.Any, NoDefault], key: str, prefix_match: bool
+    ) -> None:
         self.custom_id = custom_id
+        self.default = default
         self.key = key
         self.prefix_match = prefix_match
 
 
-class _MetaModal(abc.ABCMeta):
-    _static_fields: list[_TrackedField] = []
-    _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
-
-    def __init_subclass__(cls) -> None:
-        cls._static_fields = []
-        cls._static_rows = []
-
-    def add_static_text_input(
-        cls,
-        label: str,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        required: bool = True,
-        min_length: int = 0,
-        max_length: int = 1,
-        prefix_match: bool = False,
-        keyword: typing.Optional[str] = None,
-    ) -> None:  # TODO: return Self?
-        """tmp"""
-        custom_id, row = _make_text_input(
-            custom_id=custom_id,
-            label=label,
-            style=style,
-            placeholder=placeholder,
-            value=value,
-            required=required,
-            min_length=min_length,
-            max_length=max_length,
-        )
-
-        if keyword:
-            cls._static_fields.append(_TrackedField(custom_id=custom_id, key=keyword, prefix_match=prefix_match))
-
-        cls._static_rows.append(row)
-
-
-class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
+class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     """Temp"""
 
     __slots__ = (
@@ -778,10 +753,17 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
         "_created_at",
         "_ephemeral_default",
         "_last_triggered",
+        "_prefix_match",
         "_rows",
         "_timeout",
         "_tracked_fields",
     )
+
+    _all_static_fields: list[_TrackedField] = []
+    _all_static_rows: list[hikari.impl.ModalActionRowBuilder] = []
+    _static_fields: list[_TrackedField] = []
+    _static_prefix_match = False
+    _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
 
     def __init__(
         self,
@@ -804,9 +786,23 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
         self._created_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._ephemeral_default = ephemeral_default
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._prefix_match = False
         self._rows: list[hikari.impl.ModalActionRowBuilder] = []
         self._timeout = timeout
         self._tracked_fields: list[_TrackedField] = []
+
+    def __init_subclass__(cls) -> None:
+        cls._all_static_fields = []
+        cls._all_static_rows = []
+        cls._static_fields = []
+        cls._static_prefix_match = False
+        cls._static_rows = []
+
+        for super_cls in cls.mro()[-2::-1]:
+            if issubclass(super_cls, Modal):
+                cls._static_prefix_match = cls._static_prefix_match or super_cls._static_prefix_match
+                cls._all_static_fields.extend(super_cls._all_static_fields)
+                cls._all_static_rows.extend(super_cls._all_static_rows)
 
     @property
     def has_expired(self) -> bool:
@@ -824,6 +820,87 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
         async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
             return await self._callback(*args, **kwargs)
 
+    @classmethod
+    def add_static_text_input(
+        cls,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 1,
+        prefix_match: bool = False,
+        keyword: typing.Optional[str] = None,
+    ) -> type[Self]:
+        """Add a text input field to all instances and subclasses of this modal.
+
+        Parameters
+        ----------
+        label
+            The text input field's display label.
+
+            This cannot be greater than 45 characters long.
+        custom_id
+            The field's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+        style
+            The text input's style.
+        placeholder
+            Placeholder text to display when the text input is empty.
+        value
+            Default text to pre-fill the field with.
+        default
+            Default value to pass if this text input field was not provided.
+
+            The field will be marked as required unless this is supplied.
+        min_length
+            Minimum length the input text can be.
+
+            This can be greater than or equal to 0 and less than or equal to 4000.
+        max_length
+            Maximum length the input text can be.
+
+            This can be greater than or equal to 1 and less than or equal to 4000.
+        prefix_match
+            Whether `custom_id` should be matched as a prefix rather than through equal.
+        keyword
+            Name of the parameter the text for this field should be passed to.
+
+            This will be of type [str][] and may also be the value passed for
+            `default`.
+
+        Returns
+        -------
+        Self
+            The class to enable call chaining.
+        """
+        if cls is Modal:
+            raise RuntimeError("Can only add static fields to subclasses")
+
+        custom_id, row = _make_text_input(
+            custom_id=custom_id,
+            label=label,
+            style=style,
+            placeholder=placeholder,
+            value=value,
+            default=default,
+            min_length=min_length,
+            max_length=max_length,
+        )
+
+        if keyword:
+            cls._static_fields.append(
+                _TrackedField(custom_id=custom_id, default=default, key=keyword, prefix_match=prefix_match)
+            )
+
+        cls._static_rows.append(row)
+        return cls
+
     def add_text_input(
         self,
         label: str,
@@ -833,32 +910,85 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT], metaclass=_MetaModal):
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        required: bool = True,
+        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 1,
         prefix_match: bool = False,
         keyword: typing.Optional[str] = None,
     ) -> Self:
-        """Tmp"""
+        """Add a text input field to this modal instance.
+
+        Parameters
+        ----------
+        label
+            The text input field's display label.
+
+            This cannot be greater than 45 characters long.
+        custom_id
+            The field's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+        style
+            The text input's style.
+        placeholder
+            Placeholder text to display when the text input is empty.
+        value
+            Default text to pre-fill the field with.
+        default
+            Default value to pass if this text input field was not provided.
+
+            The field will be marked as required unless this is supplied.
+        min_length
+            Minimum length the input text can be.
+
+            This can be greater than or equal to 0 and less than or equal to 4000.
+        max_length
+            Maximum length the input text can be.
+
+            This can be greater than or equal to 1 and less than or equal to 4000.
+        prefix_match
+            Whether `custom_id` should be matched as a prefix rather than through equal.
+        keyword
+            Name of the parameter the text for this field should be passed to.
+
+            This will be of type [str][] and may also be the value passed for
+            `default`.
+
+        Returns
+        -------
+        Self
+            The model instance to enable call chaining.
+        """
         custom_id, row = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
             placeholder=placeholder,
             value=value,
-            required=required,
+            default=default,
             min_length=min_length,
             max_length=max_length,
         )
         self._rows.append(row)
 
         if keyword:
-            self._tracked_fields.append(_TrackedField(custom_id=custom_id, key=keyword, prefix_match=prefix_match))
+            self._tracked_fields.append(
+                _TrackedField(custom_id=custom_id, default=default, key=keyword, prefix_match=prefix_match)
+            )
 
         return self
 
     async def execute(self, ctx: ModalContext) -> None:
-        raise NotImplementedError()
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        fields: dict[str, typing.Any] = {}
+        compiled_prefixes: typing.Optional[dict[str, typing.Any]] = None
+
+        for field in self._tracked_fields:
+            if field.prefix_match:
+                if compiled_prefixes is None:
+                    compiled_prefixes = {itertools.chain}
+
+        await ctx.client.alluka.call_with_async_di(self._callback, ctx, **fields)
 
 
 def _make_text_input(
@@ -868,7 +998,7 @@ def _make_text_input(
     style: hikari.TextInputStyle,
     placeholder: hikari.UndefinedOr[str],
     value: hikari.UndefinedOr[str],
-    required: bool,
+    default: typing.Union[typing.Any, NoDefault],
     min_length: int,
     max_length: int,
 ) -> tuple[str, hikari.impl.ModalActionRowBuilder]:
@@ -883,7 +1013,7 @@ def _make_text_input(
         style=style,
         placeholder=placeholder,
         value=value,
-        required=required,
+        required=default is NO_DEFAULT,
         min_length=min_length,
         max_length=max_length,
     )
@@ -891,7 +1021,7 @@ def _make_text_input(
     return (custom_id, row)
 
 
-# TODO: allow without paranthesis
+# TODO: allow without parenthesis
 
 
 def as_modal(
