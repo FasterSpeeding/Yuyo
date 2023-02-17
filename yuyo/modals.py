@@ -737,20 +737,20 @@ class AbstractModal(abc.ABC):
 
 
 class _TrackedField:
-    __slots__ = ("custom_id", "default", "key", "prefix_match", "type")
+    __slots__ = ("custom_id", "default", "parameter", "prefix_match", "type")
 
     def __init__(
         self,
         *,
         custom_id: str,
         default: typing.Union[typing.Any, NoDefault],
-        key: str,
+        parameter: str,
         prefix_match: bool,
         type_: hikari.ComponentType,
     ) -> None:
         self.custom_id = custom_id
         self.default = default
-        self.key = key
+        self.parameter = parameter
         self.prefix_match = prefix_match
         self.type = type_
 
@@ -817,7 +817,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         min_length: int = 0,
         max_length: int = 1,
         prefix_match: bool = False,
-        keyword: typing.Optional[str] = None,
+        parameter: typing.Optional[str] = None,
     ) -> type[Self]:
         """Add a text input field to all instances and subclasses of this modal.
 
@@ -851,7 +851,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
             Whether `custom_id` should be matched as a prefix rather than through equal.
-        keyword
+        parameter
             Name of the parameter the text for this field should be passed to.
 
             This will be of type [str][] and may also be the value passed for
@@ -876,12 +876,12 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             max_length=max_length,
         )
 
-        if keyword:
+        if parameter:
             cls._static_fields.append(
                 _TrackedField(
                     custom_id=custom_id,
                     default=default,
-                    key=keyword,
+                    parameter=parameter,
                     prefix_match=prefix_match,
                     type_=hikari.ComponentType.TEXT_INPUT,
                 )
@@ -903,7 +903,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         min_length: int = 0,
         max_length: int = 1,
         prefix_match: bool = False,
-        keyword: typing.Optional[str] = None,
+        parameter: typing.Optional[str] = None,
     ) -> Self:
         """Add a text input field to this modal instance.
 
@@ -938,7 +938,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         prefix_match
             Whether `custom_id` should be matched against `.split(":", 1)[0]`
             rather than the whole string.
-        keyword
+        parameter
             Name of the parameter the text for this field should be passed to.
 
             This will be of type [str][] and may also be the value passed for
@@ -961,12 +961,12 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         )
         self._rows.append(row)
 
-        if keyword:
+        if parameter:
             self._tracked_fields.append(
                 _TrackedField(
                     custom_id=custom_id,
                     default=default,
-                    key=keyword,
+                    parameter=parameter,
                     prefix_match=prefix_match,
                     type_=hikari.ComponentType.TEXT_INPUT,
                 )
@@ -997,7 +997,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
                 if field.default is NO_DEFAULT:
                     raise RuntimeError(f"Missing required component `{field.custom_id}`")
 
-                fields[field.key] = field.default
+                fields[field.parameter] = field.default
                 continue
 
             if component.type is not field.type:
@@ -1006,7 +1006,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
                     f"for `{field.custom_id}` but got {component.type}"
                 )
 
-            fields[field.key] = component.value
+            fields[field.parameter] = component.value
 
         await ctx.client.alluka.call_with_async_di(self._callback, ctx, **fields)
 
