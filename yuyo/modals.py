@@ -77,6 +77,58 @@ NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
 """Type of [yuyo.modals.NO_DEFAULT][]."""
 
 
+class AbstractExpire(abc.ABC):
+    __slots__ = ()
+
+    @property
+    @abc.abstractmethod
+    def has_expired(self) -> bool:
+        ...
+
+    @abc.abstractmethod
+    def increment_uses(self) -> bool:
+        ...
+
+
+class BasicExpire(AbstractExpire):
+    __slots__ = ("_last_triggered", "_max_uses", "_timeout")
+
+    def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = -1) -> None:
+        if not isinstance(timeout, datetime.timedelta):
+            timeout = datetime.timedelta(seconds=timeout)
+
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._timeout = timeout
+        self._uses_left = max_uses
+
+    @property
+    def has_expired(self) -> bool:
+        if self._uses_left == 0:
+            return True
+
+        return datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered > self._timeout
+
+    def increment_uses(self) -> bool:
+        if self._uses_left > 1:
+            self._uses_left -= 1
+
+        elif self._uses_left == 0:
+            raise RuntimeError("Uses already depleted")
+
+        return self._uses_left == 0
+
+
+class NoExpire(AbstractExpire):
+    __slots__ = ()
+
+    @property
+    def has_expired(self) -> bool:
+        return False
+
+    def increment_uses(self) -> bool:
+        return False
+
+
 class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
 
@@ -344,10 +396,10 @@ class ModalClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         self._alluka = alluka or alluka_.Client()
-        self._modals: dict[str, AbstractModal] = {}
+        self._modals: dict[str, tuple[AbstractExpire, AbstractModal]] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: dict[str, AbstractModal] = {}
+        self._prefix_ids: dict[str, tuple[AbstractExpire, AbstractModal]] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -425,13 +477,17 @@ class ModalClient:
 
     async def _gc(self) -> None:
         while True:
-            for custom_id, modal in tuple(self._modals.items()):
-                if not modal.has_expired or custom_id not in self._modals:
+            for custom_id, (timeout, _) in tuple(self._modals.items()):
+                if not timeout.has_expired or custom_id not in self._modals:
                     continue
 
                 del self._modals[custom_id]
-                # This may slow this gc task down but the more we yield the better.
-                # await modal.close()  # TODO: this
+
+            for prefix, (timeout, _) in tuple(self._prefix_ids.items()):
+                if not timeout.has_expired or prefix not in self._prefix_ids:
+                    continue
+
+                del self._prefix_ids[prefix]
 
             await asyncio.sleep(5)  # TODO: is this a good time?
 
@@ -463,11 +519,6 @@ class ModalClient:
 
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
-
-    def _match_constant_id(self, custom_id: str) -> typing.Optional[AbstractModal]:
-        return self._modals.get(custom_id) or self._prefix_ids.get(
-            next(filter(custom_id.startswith, self._prefix_ids.keys()), "")
-        )
 
     async def _execute_modal(
         self,
@@ -510,12 +561,19 @@ class ModalClient:
         if not isinstance(event.interaction, hikari.ModalInteraction):
             return
 
-        if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            ctx = ModalContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await constant_callback.execute(ctx)
+        prefix = event.interaction.custom_id.split(":", 1)[0]
+        if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._prefix_ids[prefix]
 
-        elif modal := self._modals.get(event.interaction.custom_id):
-            await self._execute_modal(modal, event.interaction)
+            ctx = ModalContext(self, event.interaction, self._add_task, ephemeral_default=False)
+            await entry[1].execute(ctx)
+
+        elif (entry := self._modals.get(event.interaction.custom_id)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._modals[event.interaction.custom_id]
+
+            await self._execute_modal(entry[1], event.interaction)
 
         else:
             await event.interaction.create_initial_response(
@@ -535,16 +593,22 @@ class ModalClient:
         ResponseT
             The REST re sponse.
         """
-        if modal := self._match_constant_id(interaction.custom_id):
+        prefix = interaction.custom_id.split(":", 1)[0]
+        if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._prefix_ids[prefix]
+
             future: asyncio.Future[ModalResponseT] = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_constant_modal(modal, interaction, future=future)))
+            self._add_task(asyncio.create_task(self._execute_constant_modal(entry[1], interaction, future=future)))
             return await future
 
-        if modal := self._modals.get(interaction.custom_id):
-            if not modal.has_expired:
-                future = asyncio.Future()
-                self._add_task(asyncio.create_task(self._execute_modal(modal, interaction, future=future)))
-                return await future
+        if (entry := self._modals.get(interaction.custom_id)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._modals[interaction.custom_id]
+
+            future = asyncio.Future()
+            self._add_task(asyncio.create_task(self._execute_modal(entry[1], interaction, future=future)))
+            return await future
 
         return (
             interaction.build_response()
@@ -552,7 +616,15 @@ class ModalClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    def set_modal(self, custom_id: str, modal: AbstractModal, /, *, prefix_match: bool = False) -> Self:
+    def set_modal(
+        self,
+        custom_id: str,
+        modal: AbstractModal,
+        /,
+        *,
+        prefix_match: bool = False,
+        timeout: typing.Union[AbstractExpire, None, NoDefault] = NO_DEFAULT,
+    ) -> Self:
         """Register a modal for a custom ID.
 
         Parameters
@@ -584,11 +656,17 @@ class ModalClient:
         if custom_id in self._modals:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
+        if timeout is NO_DEFAULT:
+            timeout = BasicExpire(datetime.timedelta(10), max_uses=1)
+
+        elif timeout is None:
+            timeout = NoExpire()
+
         if prefix_match:
-            self._prefix_ids[custom_id] = modal
+            self._prefix_ids[custom_id] = (timeout, modal)
             return self
 
-        self._modals[custom_id] = modal
+        self._modals[custom_id] = (timeout, modal)
         return self
 
     def get_modal(self, custom_id: str, /) -> typing.Optional[AbstractModal]:
@@ -604,7 +682,10 @@ class ModalClient:
         AbstractModal | None
             The callback for the custom_id, or [None][] if it doesn't exist.
         """
-        return self._modals.get(custom_id) or self._prefix_ids.get(custom_id)
+        if entry := self._modals.get(custom_id) or self._prefix_ids.get(custom_id):
+            return entry[1]
+
+        return None
 
     def remove_modal(self, custom_id: str, /) -> Self:
         """Remove the modal set for a custom ID.
@@ -638,11 +719,6 @@ class ModalClosed(Exception):
 
 class AbstractModal(abc.ABC):
     __slots__ = ()
-
-    @property
-    @abc.abstractmethod
-    def has_expired(self) -> bool:
-        """Whether this modal has ended."""
 
     @abc.abstractmethod
     async def execute(self, ctx: ModalContext) -> None:
@@ -682,29 +758,14 @@ class _TrackedField:
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     """Represents a Modal."""
 
-    __slots__ = (
-        "_callback",
-        "_created_at",
-        "_ephemeral_default",
-        "_last_triggered",
-        "_rows",
-        "_timeout",
-        "_tracked_fields",
-    )
+    __slots__ = ("_callback", "_ephemeral_default", "_rows", "_tracked_fields")
 
     _all_static_fields: list[_TrackedField] = []
     _all_static_rows: list[hikari.impl.ModalActionRowBuilder] = []
     _static_fields: list[_TrackedField] = []
     _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
 
-    def __init__(
-        self,
-        callback: _CallbackSigT,
-        /,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10),
-    ) -> None:
+    def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
         """Initialise a component executor.
 
         Parameters
@@ -715,11 +776,8 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             How long this component should last until its marked as timed out.
         """
         self._callback = callback
-        self._created_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._ephemeral_default = ephemeral_default
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
-        self._timeout = timeout
         self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
 
     def __init_subclass__(cls) -> None:
@@ -732,14 +790,6 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             if issubclass(super_cls, Modal):
                 cls._all_static_fields.extend(super_cls._all_static_fields)
                 cls._all_static_rows.extend(super_cls._all_static_rows)
-
-    @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return (
-            self._timeout is not None
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
-        )
 
     @property
     def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
@@ -992,24 +1042,22 @@ def _make_text_input(
 # TODO: allow without parenthesis
 
 
-def as_modal(
-    *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10)
-) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
+def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
     def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
-        return Modal(callback, ephemeral_default=ephemeral_default, timeout=timeout)
+        return Modal(callback, ephemeral_default=ephemeral_default)
 
     return decorator
 
 
 def as_modal_template(
-    *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=10)
+    *, ephemeral_default: bool = False
 ) -> collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]:
     def decorator(callback: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
         class ModalTemplate(Modal[typing.Any]):  # pyright complains about using _CallbackSigT here for some reason
             __slots__ = ()
 
             def __init__(self) -> None:
-                return super().__init__(callback, ephemeral_default=ephemeral_default, timeout=timeout)
+                return super().__init__(callback, ephemeral_default=ephemeral_default)
 
         return ModalTemplate
 
