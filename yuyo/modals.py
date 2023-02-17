@@ -1006,6 +1006,8 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
                     f"for `{field.custom_id}` but got {component.type}"
                 )
 
+            fields[field.key] = component.value
+
         await ctx.client.alluka.call_with_async_di(self._callback, ctx, **fields)
 
 
