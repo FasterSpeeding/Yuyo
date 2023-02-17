@@ -788,8 +788,8 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, Modal):
-                cls._all_static_fields.extend(super_cls._all_static_fields)
-                cls._all_static_rows.extend(super_cls._all_static_rows)
+                cls._all_static_fields.extend(super_cls._static_fields)
+                cls._all_static_rows.extend(super_cls._static_rows)
 
     @property
     def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
