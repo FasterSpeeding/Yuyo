@@ -91,7 +91,7 @@ class AbstractExpire(abc.ABC):
 
 
 class BasicExpire(AbstractExpire):
-    __slots__ = ("_last_triggered", "_max_uses", "_timeout")
+    __slots__ = ("_last_triggered", "_timeout", "_uses_left")
 
     def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = -1) -> None:
         if not isinstance(timeout, datetime.timedelta):
@@ -875,19 +875,20 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
             min_length=min_length,
             max_length=max_length,
         )
+        cls._all_static_rows.append(row)
+        cls._static_rows.append(row)
 
         if parameter:
-            cls._static_fields.append(
-                _TrackedField(
-                    custom_id=custom_id,
-                    default=default,
-                    parameter=parameter,
-                    prefix_match=prefix_match,
-                    type_=hikari.ComponentType.TEXT_INPUT,
-                )
+            field = _TrackedField(
+                custom_id=custom_id,
+                default=default,
+                parameter=parameter,
+                prefix_match=prefix_match,
+                type_=hikari.ComponentType.TEXT_INPUT,
             )
+            cls._all_static_fields.append(field)
+            cls._static_fields.append(field)
 
-        cls._static_rows.append(row)
         return cls
 
     def add_text_input(
