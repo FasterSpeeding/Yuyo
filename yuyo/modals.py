@@ -1031,8 +1031,3 @@ def as_modal(
         return Modal(callback, ephemeral_default=ephemeral_default, timeout=timeout)
 
     return decorator
-
-
-@as_modal()
-async def callback(ctx: ModalContext) -> None:
-    pass

@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `timeout` config to [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
 - `bot_managed` config to [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot].
-- Support for modals which takes a similar shape to the component handling in `yuyo.modals`.
+- Support for modals in `yuyo.modals`.
 
 ### Changed
 - The `response_type` argument is now keyword only and defaults to
