@@ -2370,9 +2370,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         )
         return self
 
-    def add_url_button(
+    def add_link_button(
         self,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
         /,
         *,
@@ -2383,7 +2382,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         self.add_component(
             hikari.impl.LinkButtonBuilder(
-                container=NotImplemented, style=style, url=url, label=label, is_disabled=is_disabled
+                container=NotImplemented, style=hikari.ButtonStyle.LINK, url=url, label=label, is_disabled=is_disabled
             ).set_emoji(emoji)
         )
         return self
@@ -2657,26 +2656,21 @@ class _StaticLinkButton(_SubComponent):
 
     def __init__(
         self,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
-        self._style: typing.Literal[hikari.ButtonStyle.LINK, 5] = style
         self._url = url
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
     def add(self, cls: type[ActionColumnExecutor]) -> None:
-        cls.add_static_link_button(
-            self._style, self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
-        )
+        cls.add_static_link_button(self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled)
 
 
 def static_link_button(
-    style: typing.Literal[hikari.ButtonStyle.LINK, 5],
     url: str,
     /,
     *,
@@ -2684,7 +2678,7 @@ def static_link_button(
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> _StaticLinkButton:
-    return _StaticLinkButton(style, url, emoji, label, is_disabled)
+    return _StaticLinkButton(url, emoji, label, is_disabled)
 
 
 class _SelectMenu(_SubComponent, typing.Generic[_CallbackSigT]):
@@ -2848,37 +2842,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
 
-    @typing.overload
     def add_button(
         self,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    @typing.overload
-    def add_button(
-        self,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
-        url: str,
-        /,
-        *,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    def add_button(
-        self,
-        style: typing.Union[int, hikari.ButtonStyle],
-        callback_or_url: typing.Union[CallbackSig, str],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2918,13 +2885,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             * If a string is passed for `callback_or_url` for an interactive button.
         """
         _append_row(self._rows, is_button=True).add_button(
-            # Some lil type lies
-            typing.cast("hikari.InteractiveButtonTypesT", style),
-            typing.cast(CallbackSig, callback_or_url),
-            custom_id=custom_id,
-            emoji=emoji,
-            label=label,
-            is_disabled=is_disabled,
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
         return self
 
@@ -2948,10 +2909,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
         return cls
 
+    def add_link_button(
+        self,
+        url: str,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        _append_row(self._rows, is_button=True).add_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+        return self
+
     @classmethod
     def add_static_link_button(
         cls,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
         /,
         *,
@@ -2959,7 +2931,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
-        ...
+        _append_row(cls._static_rows, is_button=True).add_link_button(
+            url, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+        return cls
 
     def add_select_menu(
         self,
