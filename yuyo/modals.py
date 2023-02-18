@@ -775,7 +775,6 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         timeout
             How long this component should last until its marked as timed out.
         """
-        self._callback = callback
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
         self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
@@ -1046,6 +1045,10 @@ class _DynamicModal(Modal[_CallbackSigT]):
     def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
         self.callback = callback
+
+
+def modal(callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> Modal[_CallbackSigT]:
+    return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
 
 def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
