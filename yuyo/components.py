@@ -51,6 +51,8 @@ __all__: list[str] = [
 import abc
 import asyncio
 import datetime
+import functools
+import inspect
 import itertools
 import logging
 import os
@@ -2282,6 +2284,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     ) -> Self:
         ...
 
+    @typing_extensions.deprecated("Use add_link_button")
     @typing.overload
     def add_button(
         self,
@@ -2363,6 +2366,24 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self.add_component(
             hikari.impl.LinkButtonBuilder(
                 container=NotImplemented, style=style, url=callback_or_url, label=label, is_disabled=is_disabled
+            ).set_emoji(emoji)
+        )
+        return self
+
+    def add_url_button(
+        self,
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+        url: str,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        self._assert_can_add_type(hikari.ComponentType.BUTTON)
+        self.add_component(
+            hikari.impl.LinkButtonBuilder(
+                container=NotImplemented, style=style, url=url, label=label, is_disabled=is_disabled
             ).set_emoji(emoji)
         )
         return self
@@ -2580,6 +2601,203 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
         raise ValueError(f"Unknown channel type {exc.args[0]}") from exc
 
 
+class _SubComponent(abc.ABC):
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def add(self, cls: type[ActionColumnExecutor]) -> None:
+        raise NotImplementedError
+
+
+class _StaticButton(_SubComponent, typing.Generic[_CallbackSigT]):
+    def __init__(
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: _CallbackSigT,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> None:
+        self.__call__: _CallbackSigT = callback
+        self._style: hikari.InteractiveButtonTypesT = style
+        self._callback = callback
+        self._custom_id = custom_id
+        self._emoji = emoji
+        self._label = label
+        self._is_disabled = is_disabled
+        functools.update_wrapper(self, callback)
+
+    def add(self, cls: type[ActionColumnExecutor]) -> None:
+        cls.add_static_button(
+            self._style,
+            self._callback,
+            custom_id=self._custom_id,
+            emoji=self._emoji,
+            label=self._label,
+            is_disabled=self._is_disabled,
+        )
+
+
+def as_static_button(
+    style: hikari.InteractiveButtonTypesT,
+    callback: _CallbackSigT,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> _StaticButton[_CallbackSigT]:
+    return _StaticButton(style, callback, custom_id, emoji, label, is_disabled)
+
+
+class _StaticLinkButton(_SubComponent):
+    __slots__ = ("_style", "_url", "_emoji", "_label", "_is_disabled")
+
+    def __init__(
+        self,
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+        url: str,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> None:
+        self._style: typing.Literal[hikari.ButtonStyle.LINK, 5] = style
+        self._url = url
+        self._emoji = emoji
+        self._label = label
+        self._is_disabled = is_disabled
+
+    def add(self, cls: type[ActionColumnExecutor]) -> None:
+        cls.add_static_link_button(
+            self._style, self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
+        )
+
+
+def static_link_button(
+    style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+    url: str,
+    /,
+    *,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> _StaticLinkButton:
+    return _StaticLinkButton(style, url, emoji, label, is_disabled)
+
+
+class _SelectMenu(_SubComponent, typing.Generic[_CallbackSigT]):
+    def __init__(
+        self,
+        callback: _CallbackSigT,
+        type_: typing.Union[hikari.ComponentType, int],
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        self.__call__: _CallbackSigT
+        self._type = type_
+        self._custom_id = custom_id
+        self._placeholder = placeholder
+        self._min_values = min_values
+        self._max_values = max_values
+        self._is_disabled = is_disabled
+        functools.update_wrapper(self, callback)
+
+    def add(self, cls: type[ActionColumnExecutor]) -> None:
+        cls.add_static_select_menu(
+            self.__call__,
+            self._type,
+            custom_id=self._custom_id,
+            placeholder=self._placeholder,
+            min_values=self._min_values,
+            max_values=self._max_values,
+            is_disabled=self._is_disabled,
+        )
+
+
+def as_select_menu(
+    callback: _CallbackSigT,
+    type_: typing.Union[hikari.ComponentType, int],
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> _SelectMenu[_CallbackSigT]:
+    return _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
+
+
+class _ChannelSelect(_SubComponent, typing.Generic[_CallbackSigT]):
+    __call__: _CallbackSigT
+
+    def __init__(
+        self,
+        callback: _CallbackSigT,
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[
+            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+        ] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        self.__call__: _CallbackSigT
+        self._custom_id = custom_id
+        self._channel_types = channel_types
+        self._placeholder = placeholder
+        self._min_values = min_values
+        self._max_values = max_values
+        self._is_disabled = is_disabled
+        functools.update_wrapper(self, callback)
+
+    def add(self, cls: type[ActionColumnExecutor]) -> None:
+        cls.add_static_channel_select(
+            self.__call__,
+            custom_id=self._custom_id,
+            channel_types=self._channel_types,
+            placeholder=self._placeholder,
+            min_values=self._min_values,
+            max_values=self._max_values,
+            is_disabled=self._is_disabled,
+        )
+
+
+def as_channel_select(
+    callback: _CallbackSigT,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    channel_types: typing.Optional[
+        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+    ] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> _ChannelSelect[_CallbackSigT]:
+    return _ChannelSelect(callback, custom_id, channel_types, placeholder, min_values, max_values, is_disabled)
+
+
+def as_text_select(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+    raise NotImplementedError
+
+
 class ActionColumnExecutor(AbstractComponentExecutor):
     __slots__ = ("_last_triggered", "_rows", "_timeout")
 
@@ -2598,6 +2816,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, ActionColumnExecutor):
                 cls._all_static_rows.extend(super_cls._static_rows)
+
+        for _, attr in inspect.getmembers(cls):
+            if isinstance(attr, _SubComponent):
+                attr.add(cls)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2706,7 +2928,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
         return self
 
-    @typing.overload
     @classmethod
     def add_static_button(
         cls,
@@ -2719,11 +2940,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
-        ...
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
 
-    @typing.overload
+        _append_row(cls._static_rows, is_button=True).add_button(
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+        return cls
+
     @classmethod
-    def add_static_button(
+    def add_static_link_button(
         cls,
         style: typing.Literal[hikari.ButtonStyle.LINK, 5],
         url: str,
@@ -2734,32 +2960,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> type[Self]:
         ...
-
-    @classmethod
-    def add_static_button(
-        cls,
-        style: typing.Union[int, hikari.ButtonStyle],
-        callback_or_url: typing.Union[CallbackSig, str],
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
-
-        _append_row(cls._static_rows, is_button=True).add_button(
-            # Some lil type lies
-            typing.cast("hikari.InteractiveButtonTypesT", style),
-            typing.cast(CallbackSig, callback_or_url),
-            custom_id=custom_id,
-            emoji=emoji,
-            label=label,
-            is_disabled=is_disabled,
-        )
-        return cls
 
     def add_select_menu(
         self,
