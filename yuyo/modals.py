@@ -631,9 +631,8 @@ class ModalClient:
         ----------
         custom_id
             The custom_id to register the modal for.
-        callback
+        modal
             The modal to register.
-
         prefix_match
             Whether the custom_id should be treated as a prefix match.
 
@@ -772,8 +771,6 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
-        timeout
-            How long this component should last until its marked as timed out.
         """
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
