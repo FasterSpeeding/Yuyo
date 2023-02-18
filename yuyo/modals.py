@@ -815,7 +815,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
         min_length: int = 0,
-        max_length: int = 1,
+        max_length: int = 4000,
         prefix_match: bool = False,
         parameter: typing.Optional[str] = None,
     ) -> type[Self]:
@@ -902,7 +902,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
         min_length: int = 0,
-        max_length: int = 1,
+        max_length: int = 4000,
         prefix_match: bool = False,
         parameter: typing.Optional[str] = None,
     ) -> Self:
