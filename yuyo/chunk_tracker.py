@@ -48,13 +48,13 @@ import typing
 
 import hikari
 
-from . import _internal
-
 if typing.TYPE_CHECKING:
     from collections import abc as collections
 
     import typing_extensions
     from typing_extensions import Self
+
+    from . import _internal
 
     _P = typing_extensions.ParamSpec("_P")
     _T = typing.TypeVar("_T")

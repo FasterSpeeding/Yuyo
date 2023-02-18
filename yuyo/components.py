@@ -65,7 +65,7 @@ from . import pagination
 if typing.TYPE_CHECKING:
     import types
 
-    import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports
+    import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports  # noqa: TC004
     import hikari.api.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
