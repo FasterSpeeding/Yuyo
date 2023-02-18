@@ -1422,7 +1422,7 @@ class ComponentClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, _:  typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
+    async def _on_starting(self, _: typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
         self.open()
 
     async def _on_stopping(self, _: typing.Union[hikari.StoppingEvent, hikari.RESTBotAware], /) -> None:
