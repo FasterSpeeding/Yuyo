@@ -10263,7 +10263,7 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code>ResponseT</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.InteractionMessageBuilder">InteractionMessageBuilder</span> | <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.InteractionDeferredBuilder">InteractionDeferredBuilder</span></code>
               </span>
           </td>
           <td class="doc-returns-details">
@@ -10419,20 +10419,54 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
           </td>
         </tr>
         <tr>
-          <td><code>callback</code></td>
+          <td><code>modal</code></td>
           <td class="doc-param-details">
             <p>The modal to register.</p>
             <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.modals.AbstractModal" href="modals/#yuyo.modals.AbstractModal">AbstractModal</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>prefix_match</code></td>
+          <td class="doc-param-details">
+            <p>Whether the custom_id should be treated as a prefix match.</p>
+<p>This allows for further state to be held in the custom id after the
+prefix and is lower priority than normal custom id match.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td class="doc-param-details">
+            <p>Timeout strategy for this modal.</p>
+<p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> here will set <a class="autorefs autorefs-internal" href="modals/#yuyo.modals.NeverTimeout">NeverTimeout</a></p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-internal" title="yuyo.modals.AbstractTimeout" href="modals/#yuyo.modals.AbstractTimeout">AbstractTimeout</a>, None, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="modals/#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>NO_DEFAULT</code>
+                </span>
             </p>
           </td>
         </tr>
     </tbody>
   </table>
-      <p>prefix_match
-    Whether the custom_id should be treated as a prefix match.</p>
-<pre><code>This allows for further state to be held in the custom id after the
-prefix and is lower priority than normal custom id match.
-</code></pre>
 
   <table>
     <thead>
