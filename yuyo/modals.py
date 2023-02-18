@@ -981,8 +981,9 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
         components: dict[str, hikari.ModalComponentTypesT] = {}
 
+        component: typing.Optional[hikari.ModalComponentTypesT]  # MyPy compat
         for component in itertools.chain.from_iterable(
-            component.components for component in ctx.interaction.components
+            component_.components for component_ in ctx.interaction.components
         ):
             components[component.custom_id] = component
             compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
@@ -1052,15 +1053,26 @@ def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_Callb
     return decorator
 
 
+class _TemplateModal(Modal[_CallbackSigT]):
+    __slots__ = ()
+
+    _CALLBACK: _CallbackSigT
+    _EPHEMERAL_DEFAULT: bool
+
+    def __init__(self) -> None:
+        super().__init__(self._CALLBACK, ephemeral_default=self._EPHEMERAL_DEFAULT)
+
+
 def as_modal_template(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]:
-    def decorator(callback: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
-        class ModalTemplate(Modal[typing.Any]):  # pyright complains about using _CallbackSigT here for some reason
+) -> collections.Callable[[_CallbackSigT], type[_TemplateModal[_CallbackSigT]]]:
+    def decorator(callback: _CallbackSigT, /) -> type[_TemplateModal[_CallbackSigT]]:
+        class ModalTemplate(
+            _TemplateModal[typing.Any]
+        ):  # pyright complains about using _CallbackSigT here for some reason
             __slots__ = ()
-
-            def __init__(self) -> None:
-                return super().__init__(callback, ephemeral_default=ephemeral_default)
+            _CALLBACK = callback
+            _EPHEMERAL_DEFAULT = ephemeral_default
 
         return ModalTemplate
 
