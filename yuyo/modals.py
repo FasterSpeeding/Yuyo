@@ -53,6 +53,8 @@ if typing.TYPE_CHECKING:
 
     from typing_extensions import Self
 
+    _ModalT = typing.TypeVar("_ModalT", bound="Modal[typing.Any]")
+
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
 """Type hint of a modal callback."""
@@ -1075,5 +1077,69 @@ def as_modal_template(
             callback = callback_
 
         return ModalTemplate
+
+    return decorator
+
+
+def with_static_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+    parameter: typing.Optional[str] = None,
+) -> collections.Callable[[type[_ModalT]], type[_ModalT]]:
+    def decorator(modal: type[_ModalT], /) -> type[_ModalT]:
+        modal.add_static_text_input(
+            label,
+            custom_id=custom_id,
+            style=style,
+            placeholder=placeholder,
+            value=value,
+            default=default,
+            min_length=min_length,
+            max_length=max_length,
+            prefix_match=prefix_match,
+            parameter=parameter,
+        )
+        return modal
+
+    return decorator
+
+
+def with_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+    parameter: typing.Optional[str] = None,
+) -> collections.Callable[[_ModalT], _ModalT]:
+    def decorator(modal: _ModalT, /) -> _ModalT:
+        modal.add_text_input(
+            label,
+            custom_id=custom_id,
+            style=style,
+            placeholder=placeholder,
+            value=value,
+            default=default,
+            min_length=min_length,
+            max_length=max_length,
+            prefix_match=prefix_match,
+            parameter=parameter,
+        )
+        return modal
 
     return decorator
