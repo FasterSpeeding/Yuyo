@@ -106,7 +106,7 @@ class TestComponentClient:
         class StubClient(yuyo.ComponentClient):
             __init__ = mock_init
 
-        stub_client = StubClient.from_rest_bot(mock_bot)
+        stub_client = StubClient.from_rest_bot(mock_bot, event_managed=True)
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(server=mock_bot.interaction_server)
