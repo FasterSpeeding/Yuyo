@@ -38,7 +38,6 @@ __all__ = [
     "CallbackSig",
     "Modal",
     "ModalClient",
-    "ModalClosed",
     "ModalContext",
     "NO_DEFAULT",
     "NeverTimeout",
@@ -576,11 +575,7 @@ class ModalClient:
         future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         ctx = ModalContext(self, interaction, self._add_task, response_future=future)
-
-        try:
-            await modal.execute(ctx)
-        except ModalClosed:
-            self._modals.pop(ctx.interaction.custom_id, None)
+        await modal.execute(ctx)
 
     async def _execute_prefix_modal(
         self,
@@ -591,11 +586,7 @@ class ModalClient:
         future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         ctx = ModalContext(self, interaction, self._add_task, response_future=future)
-
-        try:
-            await modal.execute(ctx)
-        except ModalClosed:
-            self._modals.pop(ctx.interaction.custom_id, None)
+        await modal.execute(ctx)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -762,10 +753,6 @@ class ModalClient:
         return self
 
 
-class ModalClosed(Exception):
-    """Error used to indicate that a modal is now closed during execution."""
-
-
 class AbstractModal(abc.ABC):
     """Base class for a modal execution handler."""
 
@@ -779,11 +766,6 @@ class AbstractModal(abc.ABC):
         ----------
         ctx
             The context to execute this with.
-
-        Raises
-        ------
-        ModalClosed
-            If the modal is closed.
         """
 
 
