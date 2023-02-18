@@ -87,7 +87,7 @@ from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
-from .components import MultiComponentExecutor
+from .components import MultiComponentExecutor  # pyright: ignore [ reportDeprecated ]
 from .components import WaitForExecutor
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService

@@ -61,6 +61,7 @@ import alluka as alluka_
 import hikari
 import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
 import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
+import typing_extensions
 
 from . import _internal
 from . import pagination
@@ -2582,10 +2583,21 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 class ActionColumnExecutor(AbstractComponentExecutor):
     __slots__ = ("_last_triggered", "_rows", "_timeout")
 
+    _all_static_rows: list[ActionRowExecutor] = []
+    _static_rows: list[ActionRowExecutor] = []
+
     def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._rows: list[ActionRowExecutor] = []
+        self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
         self._timeout = timeout
+
+    def __init_subclass__(cls) -> None:
+        cls._all_static_rows = []
+        cls._static_rows = []
+
+        for super_cls in cls.mro()[-2::-1]:
+            if issubclass(super_cls, ActionColumnExecutor):
+                cls._all_static_rows.extend(super_cls._static_rows)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2613,20 +2625,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 return
 
         raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
-
-    def _append_row(self, *, is_button: bool = False) -> ActionRowExecutor:
-        if not self._rows or not self._rows[-1].is_full:
-            row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
-            self._rows.append(row)
-            return row
-
-        # This works since the other types all take up the whole row right now.
-        if is_button or not self._rows[-1].components:
-            return self._rows[-1]
-
-        row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
-        self._rows.append(row)
-        return row
 
     @typing.overload
     def add_button(
@@ -2697,7 +2695,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             * If a callback is passed for `callback_or_url` for a url style button.
             * If a string is passed for `callback_or_url` for an interactive button.
         """
-        self._append_row(is_button=True).add_button(
+        _append_row(self._rows, is_button=True).add_button(
             # Some lil type lies
             typing.cast("hikari.InteractiveButtonTypesT", style),
             typing.cast(CallbackSig, callback_or_url),
@@ -2707,6 +2705,61 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         return self
+
+    @typing.overload
+    @classmethod
+    def add_static_button(
+        cls,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        ...
+
+    @typing.overload
+    @classmethod
+    def add_static_button(
+        cls,
+        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
+        url: str,
+        /,
+        *,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        ...
+
+    @classmethod
+    def add_static_button(
+        cls,
+        style: typing.Union[int, hikari.ButtonStyle],
+        callback_or_url: typing.Union[CallbackSig, str],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
+
+        _append_row(cls._static_rows, is_button=True).add_button(
+            # Some lil type lies
+            typing.cast("hikari.InteractiveButtonTypesT", style),
+            typing.cast(CallbackSig, callback_or_url),
+            custom_id=custom_id,
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+        return cls
 
     def add_select_menu(
         self,
@@ -2746,7 +2799,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action row to enable chained calls.
         """
-        self._append_row().add_select_menu(
+        _append_row(self._rows).add_select_menu(
             callback,
             type_,
             custom_id=custom_id,
@@ -2756,6 +2809,33 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         return self
+
+    @classmethod
+    def add_static_select_menu(
+        cls,
+        callback: CallbackSig,
+        type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
+
+        _append_row(cls._static_rows).add_select_menu(
+            callback,
+            type_,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        return cls
 
     def add_channel_select(
         self,
@@ -2793,7 +2873,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action row to enable chained calls.
         """
-        self._append_row().add_channel_select(
+        _append_row(self._rows).add_channel_select(
             callback,
             custom_id=custom_id,
             channel_types=channel_types,
@@ -2803,6 +2883,35 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         return self
+
+    @classmethod
+    def add_static_channel_select(
+        cls,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[
+            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+        ] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
+
+        _append_row(cls._static_rows).add_channel_select(
+            callback,
+            custom_id=custom_id,
+            channel_types=channel_types,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        return cls
 
     def add_text_select(
         self,
@@ -2841,7 +2950,31 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action row can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        return self._append_row().add_text_select(
+        return _append_row(self._rows).add_text_select(
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    @classmethod
+    def add_static_text_select(
+        cls,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
+
+        return _append_row(cls._static_rows).add_text_select(
             callback,
             custom_id=custom_id,
             placeholder=placeholder,
@@ -2851,6 +2984,22 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
 
+def _append_row(rows: list[ActionRowExecutor], *, is_button: bool = False) -> ActionRowExecutor:
+    if not rows or not rows[-1].is_full:
+        row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+        rows.append(row)
+        return row
+
+    # This works since the other types all take up the whole row right now.
+    if is_button or not rows[-1].components:
+        return rows[-1]
+
+    row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+    rows.append(row)
+    return row
+
+
+@typing_extensions.deprecated("Use the ActionColumnExecutor")
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
     """Extended action row implementation which can be tied to a multi-component executor."""
 
@@ -2866,6 +3015,7 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
         return self._parent
 
 
+@typing_extensions.deprecated("Use the ActionColumnExecutor")
 class MultiComponentExecutor(AbstractComponentExecutor):
     """Multi-component implementation of a component executor.
 
@@ -2933,7 +3083,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._builders.append(builder)
         return self
 
-    def add_action_row(self) -> ChildActionRowExecutor[Self]:
+    def add_action_row(self) -> ChildActionRowExecutor[Self]:  # pyright: ignore [ reportDeprecated ]
         """Builder object for the added action row.
 
         Returns
@@ -2945,7 +3095,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
             but comes with the `ChildActionRowExecutor.parent` property which
             can be used to get back to this multi-component executor.
         """
-        child = ChildActionRowExecutor(self)
+        child = ChildActionRowExecutor(self)  # pyright: ignore [ reportDeprecated ]
         self.add_executor(child).add_builder(child)
         return child
 
@@ -3029,7 +3179,7 @@ class ComponentPaginator(ActionRowExecutor):
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
-        ):  # pyright: ignore reportUnnecessaryIsInstance
+        ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)

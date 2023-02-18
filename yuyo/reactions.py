@@ -300,7 +300,7 @@ class ReactionPaginator(ReactionHandler):
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
-        ):  # pyright: ignore reportUnnecessaryIsInstance
+        ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
