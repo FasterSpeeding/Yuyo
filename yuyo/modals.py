@@ -758,14 +758,14 @@ class _TrackedField:
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     """Represents a Modal."""
 
-    __slots__ = ("_callback", "_ephemeral_default", "_rows", "_tracked_fields")
+    __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
     _all_static_fields: list[_TrackedField] = []
     _all_static_rows: list[hikari.impl.ModalActionRowBuilder] = []
     _static_fields: list[_TrackedField] = []
     _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
 
-    def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
+    def __init__(self, *, ephemeral_default: bool = False) -> None:
         """Initialise a component executor.
 
         Parameters
@@ -791,17 +791,11 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
                 cls._all_static_fields.extend(super_cls._static_fields)
                 cls._all_static_rows.extend(super_cls._static_rows)
 
+    callback: _CallbackSigT
+
     @property
     def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
         return self._rows
-
-    if typing.TYPE_CHECKING:
-        __call__: _CallbackSigT
-
-    else:
-
-        async def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-            return await self._callback(*args, **kwargs)
 
     @classmethod
     def add_static_text_input(
@@ -1010,7 +1004,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
             fields[field.parameter] = component.value
 
-        await ctx.client.alluka.call_with_async_di(self._callback, ctx, **fields)
+        await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
 
 
 def _make_text_input(
@@ -1046,9 +1040,17 @@ def _make_text_input(
 # TODO: allow without parenthesis
 
 
+class _DynamicModal(Modal[_CallbackSigT]):
+    __slots__ = ("_callback",)
+
+    def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
+        super().__init__(ephemeral_default=ephemeral_default)
+        self.callback = callback
+
+
 def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
     def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
-        return Modal(callback, ephemeral_default=ephemeral_default)
+        return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
     return decorator
 
@@ -1056,23 +1058,21 @@ def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_Callb
 class _TemplateModal(Modal[_CallbackSigT]):
     __slots__ = ()
 
-    _CALLBACK: _CallbackSigT
     _EPHEMERAL_DEFAULT: bool
 
     def __init__(self) -> None:
-        super().__init__(self._CALLBACK, ephemeral_default=self._EPHEMERAL_DEFAULT)
+        super().__init__(ephemeral_default=self._EPHEMERAL_DEFAULT)
 
 
 def as_modal_template(
     *, ephemeral_default: bool = False
 ) -> collections.Callable[[_CallbackSigT], type[_TemplateModal[_CallbackSigT]]]:
-    def decorator(callback: _CallbackSigT, /) -> type[_TemplateModal[_CallbackSigT]]:
-        class ModalTemplate(
-            _TemplateModal[typing.Any]
-        ):  # pyright complains about using _CallbackSigT here for some reason
+    def decorator(callback_: _CallbackSigT, /) -> type[_TemplateModal[_CallbackSigT]]:
+        # pyright complains about using _CallbackSigT here for some reason
+        class ModalTemplate(_TemplateModal[typing.Any]):
             __slots__ = ()
-            _CALLBACK = callback
             _EPHEMERAL_DEFAULT = ephemeral_default
+            callback = callback_
 
         return ModalTemplate
 
