@@ -96,6 +96,22 @@ class TestComponentClient:
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(server=mock_bot.interaction_server)
+        mock_bot.add_shutdown_callback.assert_not_called()
+        mock_bot.add_startup_callback.assert_not_called()
+
+    def test_from_rest_bot_when_bot_managed(self):
+        mock_bot = mock.Mock()
+        mock_init = mock.Mock(return_value=None)
+
+        class StubClient(yuyo.ComponentClient):
+            __init__ = mock_init
+
+        stub_client = StubClient.from_rest_bot(mock_bot, bot_managed=True)
+
+        assert isinstance(stub_client, StubClient)
+        mock_init.assert_called_once_with(server=mock_bot.interaction_server)
+        mock_bot.add_shutdown_callback.assert_called_once_with(stub_client._on_stopping)
+        mock_bot.add_startup_callback.assert_called_once_with(stub_client._on_starting)
 
     @pytest.mark.asyncio()
     async def test__on_starting(self):
