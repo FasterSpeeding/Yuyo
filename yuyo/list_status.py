@@ -549,7 +549,7 @@ class ServiceManager(AbstractManager):
         event_managed: bool = True,
         strategy: typing.Optional[AbstractCountStrategy] = None,
         user_agent: typing.Optional[str] = None,
-    ) -> ServiceManager:
+    ) -> Self:
         """Build a service manager from a gateway bot.
 
         Parameters

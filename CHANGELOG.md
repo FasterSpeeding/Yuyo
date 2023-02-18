@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - `timeout` config to [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
+- `bot_managed` config to [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot].
 
 ### Removed
 - The `AbstractReactionHandler.last_triggered` and `ReactionHandler.timeout` properties as

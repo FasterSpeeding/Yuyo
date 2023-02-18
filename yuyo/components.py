@@ -1371,7 +1371,7 @@ class ComponentClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.EventManagerAware, /, *, event_managed: bool = True) -> ComponentClient:
+    def from_gateway_bot(cls, bot: hikari.EventManagerAware, /, *, event_managed: bool = True) -> Self:
         """Build a component client froma Gateway Bot.
 
         Parameters
@@ -1390,20 +1390,29 @@ class ComponentClient:
         return cls(event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
-    def from_rest_bot(cls, bot: hikari.InteractionServerAware, /) -> ComponentClient:
+    def from_rest_bot(cls, bot: hikari.RESTBotAware, /, *, bot_managed: bool = False) -> Self:
         """Build a component client froma REST Bot.
 
         Parameters
         ----------
         bot
             The REST bot this component client should be bound to.
+        bot_managed
+            Whether the component client should be automatically opened and
+            closed based on the Bot's startup and shutdown callbacks.
 
         Returns
         -------
         ComponentClient
             The initialised component client.
         """
-        return cls(server=bot.interaction_server)
+        client = cls(server=bot.interaction_server)
+
+        if bot_managed:
+            bot.add_startup_callback(client._on_starting)
+            bot.add_shutdown_callback(client._on_stopping)
+
+        return client
 
     def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
         self._tasks.remove(task)
@@ -1413,10 +1422,10 @@ class ComponentClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, _: hikari.StartingEvent, /) -> None:
+    async def _on_starting(self, _:  typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
         self.open()
 
-    async def _on_stopping(self, _: hikari.StoppingEvent, /) -> None:
+    async def _on_stopping(self, _: typing.Union[hikari.StoppingEvent, hikari.RESTBotAware], /) -> None:
         self.close()
 
     async def _gc(self) -> None:

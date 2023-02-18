@@ -715,7 +715,7 @@ class ReactionClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: _GatewayBotProto, /, *, event_managed: bool = True) -> ReactionClient:
+    def from_gateway_bot(cls, bot: _GatewayBotProto, /, *, event_managed: bool = True) -> Self:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters
