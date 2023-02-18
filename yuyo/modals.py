@@ -28,17 +28,33 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Higher level client for callback based modal execution."""
+"""Higher level client for modal execution."""
 from __future__ import annotations
 
-__all__ = ["ModalClient", "ModalContext", "NO_DEFAULT", "NoDefault"]
+__all__ = [
+    "AbstractModal",
+    "AbstractTimeout",
+    "BasicTimeout",
+    "CallbackSig",
+    "Modal",
+    "ModalClient",
+    "ModalClosed",
+    "ModalContext",
+    "NO_DEFAULT",
+    "NeverTimeout",
+    "NoDefault",
+    "as_modal",
+    "as_modal_template",
+    "modal",
+    "with_static_text_input",
+    "with_text_input",
+]
 
 import abc
 import asyncio
 import datetime
 import enum
 import itertools
-import logging
 import typing
 from collections import abc as collections
 
@@ -62,10 +78,8 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 
-ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
+_ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
-
-_LOGGER = logging.getLogger("hikari.yuyo.modals")
 
 
 class _NoDefaultEnum(enum.Enum):
@@ -79,23 +93,48 @@ NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
 """Type of [yuyo.modals.NO_DEFAULT][]."""
 
 
-class AbstractExpire(abc.ABC):
+class AbstractTimeout(abc.ABC):
+    """Abstract interface used to manage timing out a modal."""
+
     __slots__ = ()
 
     @property
     @abc.abstractmethod
     def has_expired(self) -> bool:
-        ...
+        """Whether this modal has timed-out."""
 
     @abc.abstractmethod
     def increment_uses(self) -> bool:
-        ...
+        """Add a use to the modal.
+
+        Returns
+        -------
+        bool
+            Whether the modal has now timed-out.
+        """
 
 
-class BasicExpire(AbstractExpire):
+class BasicTimeout(AbstractTimeout):
+    """Basic modal timeout strategy.
+
+    This implementation timeouts if `timeout` passes since the last call or
+    when `max_uses` reaches `0`.
+    """
+
     __slots__ = ("_last_triggered", "_timeout", "_uses_left")
 
     def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = -1) -> None:
+        """Initialise a basic timeout.
+
+        Parameters
+        ----------
+        timeout
+            How long this modal should wait between calls before timing-out.
+        max_uses
+            The maximum amount of uses this modal allows.
+
+            Setting this to `-1` marks it as unlimited.
+        """
         if not isinstance(timeout, datetime.timedelta):
             timeout = datetime.timedelta(seconds=timeout)
 
@@ -105,12 +144,14 @@ class BasicExpire(AbstractExpire):
 
     @property
     def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
         if self._uses_left == 0:
             return True
 
         return datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered > self._timeout
 
     def increment_uses(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
         if self._uses_left > 1:
             self._uses_left -= 1
 
@@ -120,14 +161,18 @@ class BasicExpire(AbstractExpire):
         return self._uses_left == 0
 
 
-class NoExpire(AbstractExpire):
+class NeverTimeout(AbstractTimeout):
+    """Timeout implementation which never expires."""
+
     __slots__ = ()
 
     @property
     def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
         return False
 
     def increment_uses(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
         return False
 
 
@@ -143,7 +188,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Optional[asyncio.Future[ModalResponseT]] = None,
+        response_future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         super().__init__(
             interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
@@ -398,10 +443,10 @@ class ModalClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         self._alluka = alluka or alluka_.Client()
-        self._modals: dict[str, tuple[AbstractExpire, AbstractModal]] = {}
+        self._modals: dict[str, tuple[AbstractTimeout, AbstractModal]] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: dict[str, tuple[AbstractExpire, AbstractModal]] = {}
+        self._prefix_ids: dict[str, tuple[AbstractTimeout, AbstractModal]] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -528,7 +573,7 @@ class ModalClient:
         interaction: hikari.ModalInteraction,
         /,
         *,
-        future: typing.Optional[asyncio.Future[ModalResponseT]] = None,
+        future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         ctx = ModalContext(self, interaction, self._add_task, response_future=future)
 
@@ -537,20 +582,20 @@ class ModalClient:
         except ModalClosed:
             self._modals.pop(ctx.interaction.custom_id, None)
 
-    async def _execute_constant_modal(
+    async def _execute_prefix_modal(
         self,
         modal: AbstractModal,
         interaction: hikari.ModalInteraction,
         /,
         *,
-        future: typing.Optional[asyncio.Future[ModalResponseT]] = None,
+        future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         ctx = ModalContext(self, interaction, self._add_task, response_future=future)
 
         try:
             await modal.execute(ctx)
         except ModalClosed:
-            _LOGGER.warning("Constant executor raised ModalClosed, you need to set `timeout` to None")
+            self._modals.pop(ctx.interaction.custom_id, None)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -568,8 +613,7 @@ class ModalClient:
             if entry[0].increment_uses():
                 del self._prefix_ids[prefix]
 
-            ctx = ModalContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await entry[1].execute(ctx)
+            await self._execute_prefix_modal(entry[1], event.interaction)
 
         elif (entry := self._modals.get(event.interaction.custom_id)) and not entry[0].has_expired:
             if entry[0].increment_uses():
@@ -582,7 +626,7 @@ class ModalClient:
                 hikari.ResponseType.MESSAGE_CREATE, "This modal has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
             )
 
-    async def on_rest_request(self, interaction: hikari.ModalInteraction, /) -> ModalResponseT:
+    async def on_rest_request(self, interaction: hikari.ModalInteraction, /) -> _ModalResponseT:
         """Process a modal interaction REST request.
 
         Parameters
@@ -592,7 +636,7 @@ class ModalClient:
 
         Returns
         -------
-        ResponseT
+        hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
             The REST re sponse.
         """
         prefix = interaction.custom_id.split(":", 1)[0]
@@ -600,8 +644,8 @@ class ModalClient:
             if entry[0].increment_uses():
                 del self._prefix_ids[prefix]
 
-            future: asyncio.Future[ModalResponseT] = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_constant_modal(entry[1], interaction, future=future)))
+            future: asyncio.Future[_ModalResponseT] = asyncio.Future()
+            self._add_task(asyncio.create_task(self._execute_prefix_modal(entry[1], interaction, future=future)))
             return await future
 
         if (entry := self._modals.get(interaction.custom_id)) and not entry[0].has_expired:
@@ -625,7 +669,7 @@ class ModalClient:
         /,
         *,
         prefix_match: bool = False,
-        timeout: typing.Union[AbstractExpire, None, NoDefault] = NO_DEFAULT,
+        timeout: typing.Union[AbstractTimeout, None, NoDefault] = NO_DEFAULT,
     ) -> Self:
         """Register a modal for a custom ID.
 
@@ -640,6 +684,10 @@ class ModalClient:
 
             This allows for further state to be held in the custom id after the
             prefix and is lower priority than normal custom id match.
+        timeout
+            Timeout strategy for this modal.
+
+            Passing [None][] here will set [NeverTimeout][yuyo.modals.NeverTimeout]
 
         Returns
         -------
@@ -658,10 +706,10 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is NO_DEFAULT:
-            timeout = BasicExpire(datetime.timedelta(10), max_uses=1)
+            timeout = BasicTimeout(datetime.timedelta(10), max_uses=1)
 
         elif timeout is None:
-            timeout = NoExpire()
+            timeout = NeverTimeout()
 
         if prefix_match:
             self._prefix_ids[custom_id] = (timeout, modal)
@@ -715,14 +763,16 @@ class ModalClient:
 
 
 class ModalClosed(Exception):
-    ...
+    """Error used to indicate that a modal is now closed during execution."""
 
 
 class AbstractModal(abc.ABC):
+    """Base class for a modal execution handler."""
+
     __slots__ = ()
 
     @abc.abstractmethod
-    async def execute(self, ctx: ModalContext) -> None:
+    async def execute(self, ctx: ModalContext, /) -> None:
         """Execute this modal.
 
         Parameters
@@ -757,7 +807,105 @@ class _TrackedField:
 
 
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
-    """Represents a Modal."""
+    """Standard implementation of a modal executor.
+
+    Examples
+    --------
+
+    There's a few different ways this can be used to for a modal.
+
+    Sub-components can be added to an instance of a modal using chainable
+    methods:
+
+    ```py
+    async def callback(
+        ctx: modals.ModalContext, input: str, other_input: str | None
+    ) -> None:
+        await ctx.respond("hi")
+
+    modal = (
+        modals.modal(callback, ephemeral_default=True)
+        .add_text_input("Title A", parameter="input")
+        .add_text_input(
+            "Title B",
+            style=hikari.TextInputStyle.PARAGRAPH,
+            parameter="other_input",
+            default=None,
+        )
+    )
+    ```
+
+    or using decorator methods:
+
+    ```py
+    @modals.with_text_input(
+        "Title B",
+        style=hikari.TextInputStyle.PARAGRAPH,
+        parameter="other_input",
+        default=None,
+    )
+    @modals.with_text_input("Title A", parameter="input")
+    @modals.as_modal(ephemeral_default=True)
+    async def callback(
+        ctx: modals.ModalContext, input: str, other_input: str
+    ) -> None:
+        await ctx.respond("bye")
+    ```
+
+    !!! note
+        Since decorators are executed from the bottom upwards fields added
+        through decorator calls will follow the same order.
+
+    Subclasses of [Modal][yuyo.modals.Modal] can act as a template where
+    "static" fields are included on all instances and subclasses of that class.
+
+    ```py
+    @modals.with_static_text_input(
+        "Title B",
+        style=hikari.TextInputStyle.PARAGRAPH,
+        parameter="other_input",
+        default=None,
+    )
+    @modals.with_static_text_input("Title A", parameter="input")
+    class CustomModal(modals.Modal):
+        async def callback(
+            ctx: modals.ModalContext,
+            input: str,
+            other_input: str | None,
+            value: str
+        ) -> None:
+            await ctx.respond("Good job")
+    ```
+
+    Templates can be made by subclassing [Modal][yuyo.modals.Modal] and
+    defining the method `callback` for handling context  menu execution
+    (this must be valid for the signature signature
+    `(modals.ModalContext, ...) -> Coroutine[Any, Any, None]`).
+
+    ```py
+    @modals.with_static_text_input(
+        "Title B",
+        style=hikari.TextInputStyle.PARAGRAPH,
+        parameter="other_input",
+        default=None,
+    )
+    @modals.with_static_text_input("Title A", parameter="input")
+    @modals.as_modal_template
+    async def custom_modal(
+        ctx: modals.ModalContext,
+        input: str,
+        other_input: str | None,
+        value: str,
+    ) -> None:
+        await ctx.respond("Bye")
+    ```
+
+    or by using [as_modal_template][yuyo.modals.as_modal_template] (which returns
+    a class which functions like a [Modal][yuyo.modals.Modal] subclass).
+
+    The chainable `add_static_{}()` classmethods can also be used to add static
+    fields to a [Modal][yuyo.modals.Modal] subclass.
+    """
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
@@ -793,6 +941,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
     @property
     def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
+        """Builder objects of the rows in this modal."""
         return self._rows
 
     @classmethod
@@ -811,7 +960,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         prefix_match: bool = False,
         parameter: typing.Optional[str] = None,
     ) -> type[Self]:
-        """Add a text input field to all instances and subclasses of this modal.
+        """Add a text input field to all instances and subclasses of this modal class.
 
         Parameters
         ----------
@@ -967,7 +1116,8 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
         return self
 
-    async def execute(self, ctx: ModalContext) -> None:
+    async def execute(self, ctx: ModalContext, /) -> None:
+        # <<inherited docstring from AbstractModal>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         fields: dict[str, typing.Any] = {}
         compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
@@ -1047,34 +1197,72 @@ class _DynamicModal(Modal[_CallbackSigT]):
 
 
 def modal(callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> Modal[_CallbackSigT]:
+    """Create a modal instance for a callback.
+
+    Parameters
+    ----------
+    callback
+        Callback to use for modal execution.
+    ephemeral_default
+        Whether this modal's responses should default to ephemeral.
+
+    Returns
+    -------
+    Modal
+        The created modal.
+    """
     return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
 
 def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
+    """Create a modal instance through a decorator call.
+
+    Parameters
+    ----------
+    ephemeral_default
+        Whether this modal's responses should default to ephemeral.
+
+    Returns
+    -------
+    collections.abc.Callable[[CallbackSig], Modal]
+        Decorator callback used to create the modal.
+    """
+
     def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
         return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
     return decorator
 
 
-class _TemplateModal(Modal[_CallbackSigT]):
-    __slots__ = ()
-
-    _EPHEMERAL_DEFAULT: bool
-
-    def __init__(self) -> None:
-        super().__init__(ephemeral_default=self._EPHEMERAL_DEFAULT)
-
-
 def as_modal_template(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[_CallbackSigT], type[_TemplateModal[_CallbackSigT]]]:
-    def decorator(callback_: _CallbackSigT, /) -> type[_TemplateModal[_CallbackSigT]]:
+) -> collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]:
+    """Create a modal template through a decorator callback.
+
+    Parameters
+    ----------
+    ephemeral_default
+        Whether this modal's responses should default to ephemeral.
+
+    Returns
+    -------
+    collections.abc.Callable[[CallbackSig], type[Modal]]
+        A decorator callback which returns the created modal class.
+    """
+    ephemeral_default_ = ephemeral_default
+    del ephemeral_default
+
+    def decorator(callback_: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
         # pyright complains about using _CallbackSigT here for some reason
-        class ModalTemplate(_TemplateModal[typing.Any]):
+        class ModalTemplate(Modal[typing.Any]):
             __slots__ = ()
-            _EPHEMERAL_DEFAULT = ephemeral_default
             callback = callback_
+
+            def __init__(self, *, ephemeral_default: typing.Union[bool, NoDefault] = NO_DEFAULT) -> None:
+                if ephemeral_default is NO_DEFAULT:
+                    ephemeral_default = ephemeral_default_
+
+                super().__init__(ephemeral_default=ephemeral_default)
 
         return ModalTemplate
 
@@ -1095,6 +1283,50 @@ def with_static_text_input(
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
 ) -> collections.Callable[[type[_ModalT]], type[_ModalT]]:
+    """Add a text input field to the decorated modal subclass.
+
+    Parameters
+    ----------
+    label
+        The text input field's display label.
+
+        This cannot be greater than 45 characters long.
+    custom_id
+        The field's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+    style
+        The text input's style.
+    placeholder
+        Placeholder text to display when the text input is empty.
+    value
+        Default text to pre-fill the field with.
+    default
+        Default value to pass if this text input field was not provided.
+
+        The field will be marked as required unless this is supplied.
+    min_length
+        Minimum length the input text can be.
+
+        This can be greater than or equal to 0 and less than or equal to 4000.
+    max_length
+        Maximum length the input text can be.
+
+        This can be greater than or equal to 1 and less than or equal to 4000.
+    prefix_match
+        Whether `custom_id` should be matched as a prefix rather than through equal.
+    parameter
+        Name of the parameter the text for this field should be passed to.
+
+        This will be of type [str][] and may also be the value passed for
+        `default`.
+
+    Returns
+    -------
+    type[Modal]
+        The decorated modal class.
+    """
+
     def decorator(modal: type[_ModalT], /) -> type[_ModalT]:
         modal.add_static_text_input(
             label,
@@ -1127,6 +1359,50 @@ def with_text_input(
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
 ) -> collections.Callable[[_ModalT], _ModalT]:
+    """Add a text input field to the decorated modal instance.
+
+    Parameters
+    ----------
+    label
+        The text input field's display label.
+
+        This cannot be greater than 45 characters long.
+    custom_id
+        The field's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+    style
+        The text input's style.
+    placeholder
+        Placeholder text to display when the text input is empty.
+    value
+        Default text to pre-fill the field with.
+    default
+        Default value to pass if this text input field was not provided.
+
+        The field will be marked as required unless this is supplied.
+    min_length
+        Minimum length the input text can be.
+
+        This can be greater than or equal to 0 and less than or equal to 4000.
+    max_length
+        Maximum length the input text can be.
+
+        This can be greater than or equal to 1 and less than or equal to 4000.
+    prefix_match
+        Whether `custom_id` should be matched as a prefix rather than through equal.
+    parameter
+        Name of the parameter the text for this field should be passed to.
+
+        This will be of type [str][] and may also be the value passed for
+        `default`.
+
+    Returns
+    -------
+    Modal
+        The decorated instance.
+    """
+
     def decorator(modal: _ModalT, /) -> _ModalT:
         modal.add_text_input(
             label,

@@ -35,11 +35,13 @@ __all__: list[str] = [
     "AbstractComponentExecutor",
     "ActionRowExecutor",
     "BaseContext",
+    "CallbackSig",
     "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "ExecutorClosed",
     "MultiComponentExecutor",
     "WaitFor",
     "WaitForExecutor",
@@ -70,8 +72,6 @@ if typing.TYPE_CHECKING:
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     from typing_extensions import Self
 
-    from . import modals
-
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
 
@@ -85,7 +85,7 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
-ComponentResponseT = typing.Union[
+_ComponentResponseT = typing.Union[
     hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
 ]
 """Type hint of the builder response types allows for component interactions."""
@@ -118,7 +118,10 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         *,
         ephemeral_default: bool = False,
         response_future: typing.Union[
-            asyncio.Future[modals.ModalResponseT], asyncio.Future[ComponentResponseT], None
+            # _ModalResponseT
+            asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]],
+            asyncio.Future[_ComponentResponseT],
+            None,
         ] = None,
     ) -> None:
         self._ephemeral_default = ephemeral_default
@@ -1215,7 +1218,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Optional[asyncio.Future[ComponentResponseT]] = None,
+        response_future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
     ) -> None:
         super().__init__(
             interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
@@ -1724,7 +1727,7 @@ class ComponentClient:
         interaction: hikari.ComponentInteraction,
         /,
         *,
-        future: typing.Optional[asyncio.Future[ComponentResponseT]] = None,
+        future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
     ) -> None:
         ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
 
@@ -1756,7 +1759,7 @@ class ComponentClient:
                 hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
             )
 
-    async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> ComponentResponseT:
+    async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ComponentResponseT:
         """Process a component interaction REST request.
 
         Parameters
@@ -1770,7 +1773,7 @@ class ComponentClient:
             The REST re sponse.
         """
         if constant_callback := self._match_constant_id(interaction.custom_id):
-            future: asyncio.Future[ComponentResponseT] = asyncio.Future()
+            future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
             ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
             self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
