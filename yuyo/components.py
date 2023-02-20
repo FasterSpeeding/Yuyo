@@ -3201,13 +3201,9 @@ def with_static_button(
         The decorated action column class.
     """
     return lambda executor: executor.add_static_button(
-        style,
-        callback,
-        custom_id=custom_id,
-        emoji=emoji,
-        label=label,
-        is_disabled=is_disabled
+        style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
     )
+
 
 def with_static_link_button(
     url: str,
@@ -3235,9 +3231,8 @@ def with_static_link_button(
     type[Self]
         The decorated action column class.
     """
-    return lambda executor: executor.add_static_link_button(
-        url, emoji=emoji, label=label, is_disabled=is_disabled
-    )
+    return lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+
 
 def with_static_select_menu(
     callback: CallbackSig,
@@ -3280,6 +3275,7 @@ def with_static_select_menu(
         callback, type_, custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values
     )
 
+
 def with_static_channel_select(
     callback: CallbackSig,
     /,
@@ -3316,7 +3312,12 @@ def with_static_channel_select(
         The decorated action column class.
     """
     return lambda executor: executor.add_static_channel_select(
-        callback, custom_id=custom_id, channel_types=channel_types, placeholder=placeholder, min_values=min_values, max_values=max_values
+        callback,
+        custom_id=custom_id,
+        channel_types=channel_types,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
     )
 
 
