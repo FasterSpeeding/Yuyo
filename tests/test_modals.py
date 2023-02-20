@@ -37,6 +37,7 @@ import datetime
 from unittest import mock
 
 import alluka
+import freezegun
 import hikari
 import pytest
 
@@ -45,13 +46,23 @@ from yuyo import modals
 
 class TestBasicTimeout:
     def test_has_expired(self):
-        ...
+        with freezegun.freeze_time() as frozen:
+            timeout = modals.BasicTimeout(datetime.timedelta(seconds=60), max_uses=4)
 
-    def test_has_expired_when_has_expired(self):
-        ...
+            for tick_time in [15, 15, 15, 14]:
+                frozen.tick(datetime.timedelta(seconds=tick_time))
+                assert timeout.has_expired is False
+
+            frozen.tick(datetime.timedelta(seconds=2))
+            assert timeout.has_expired is True
 
     def test_has_expired_when_no_uses_left(self):
-        ...
+        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=1)
+
+        assert timeout.increment_uses() is True
+        assert timeout.has_expired is True
+
+        assert timeout.has_expired is True
 
     def test_increment_uses(self):
         timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=4)
