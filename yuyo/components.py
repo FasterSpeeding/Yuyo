@@ -2203,7 +2203,12 @@ WaitFor = WaitForExecutor
 
 
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
-    """Class used for handling the execution of an action row."""
+    """Class used for handling the execution of an action row.
+
+    You likely want [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+    instead as this provides an interface for handling all the components on a
+    message.
+    """
 
     __slots__ = ("_components", "_stored_type")
 
@@ -2307,14 +2312,22 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
-        """Add a button to this action row.
+        """Add an interactive button to this action row.
 
         Parameters
         ----------
         style
             The button's style.
+
+            Passing the LINK type here is deprecated, use
+            [add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
+            instead.
         callback_or_url
-            The button's url if it is a URL button, otherwise its callback.
+            The button's url if it is a Link button, otherwise its callback.
+
+            Passing a URL here is deprecated, use
+            [add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
+            instead.
         custom_id
             The button's custom ID.
 
@@ -2377,6 +2390,29 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        """Add a Link button to this action row.
+
+        Parameters
+        ----------
+        url
+            The button's url.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+
+        Raises
+        ------
+        ValueError
+            * If any of the sub-components in this action row aren't buttons.
+        """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         self.add_component(
             hikari.impl.LinkButtonBuilder(
@@ -2599,12 +2635,29 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 
 
 class ActionColumnExecutor(AbstractComponentExecutor):
+    """Executor which handles columns of action rows.
+
+    This can be used to declare and handle the components on a message a couple
+    of ways.
+
+    ```py
+    ```
+
+    """
+
     __slots__ = ("_last_triggered", "_rows", "_timeout")
 
     _all_static_rows: list[ActionRowExecutor] = []
     _static_rows: list[ActionRowExecutor] = []
 
-    def __init__(self, *, timeout: datetime.timedelta = datetime.timedelta(seconds=30)) -> None:
+    def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
+        """Initialise an action column executor.
+
+        Parameters
+        ----------
+        timeout
+            How long this should wait for a matching component interaction until it times-out.
+        """
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
         self._timeout = timeout
@@ -2625,13 +2678,28 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        return (
+            self._timeout is not None
+            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
+        )
 
     @property
     def rows(self) -> collections.Sequence[ActionRowExecutor]:
         return self._rows.copy()
 
     def add_row(self, row: ActionRowExecutor, /) -> Self:
+        """Add an action row executor to this column.
+
+        Parameters
+        ----------
+        row
+            The action row executor to add.
+
+        Returns
+        -------
+        Self
+            The column executor to enable chained calls.
+        """
         self._rows.append(row)
         return self
 
@@ -2655,18 +2723,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
-        """Add a button to this action row.
+        """Add an interactive button to this action column.
 
         Parameters
         ----------
         style
             The button's style.
-        callback_or_url
-            The button's url if it is a URL button, otherwise its callback.
+        callback
+            The button's execution callback.
         custom_id
             The button's custom ID.
-
-            This is ignored for url buttons.
         emoji
             The button's emoji.
         label
@@ -2677,14 +2743,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Returns
         -------
         Self
-            The action row to enable chained calls.
-
-        Raises
-        ------
-        ValueError
-            * If any of the sub-components in this action row aren't buttons.
-            * If a callback is passed for `callback_or_url` for a url style button.
-            * If a string is passed for `callback_or_url` for an interactive button.
+            The action column to enable chained calls.
         """
         _append_row(self._rows, is_button=True).add_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
@@ -2703,6 +2762,28 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
+        """Add an interactive button to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        callback
+            The button's execution callback.
+        custom_id
+            The button's custom ID.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+        """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -2720,6 +2801,26 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
+        """Add a link button to this action column.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        url
+            The button's url.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action column to enable chained calls.
+        """
         _append_row(self._rows, is_button=True).add_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
         return self
 
@@ -2733,6 +2834,26 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
+        """Add a link button to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        url
+            The button's url.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+        """
         _append_row(cls._static_rows, is_button=True).add_link_button(
             url, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -2750,11 +2871,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> Self:
-        """Add a select menu to this action row.
+        """Add a select menu to this action column.
 
         For channel select menus and text select menus see
-        [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select] and
-        [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] respectively.
+        [ActionColumnExecutor.add_channel_select][yuyo.components.ActionColumnExecutor.add_channel_select] and
+        [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select] respectively.
 
         Parameters
         ----------
@@ -2774,7 +2895,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Returns
         -------
         Self
-            The action row to enable chained calls.
+            The action column to enable chained calls.
         """
         _append_row(self._rows).add_select_menu(
             callback,
@@ -2800,6 +2921,32 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> type[Self]:
+        """Add a select menu to all subclasses and instances of this action column class.
+
+        For channel select menus and text select menus see
+        [ActionColumnExecutor.add_channel_select][yuyo.components.ActionColumnExecutor.add_channel_select] and
+        [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select] respectively.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        type_
+            The type of select menu to add.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+        """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -2828,7 +2975,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> Self:
-        """Add a channel select menu to this action row.
+        """Add a channel select menu to this action column.
 
         Parameters
         ----------
@@ -2848,7 +2995,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Returns
         -------
         Self
-            The action row to enable chained calls.
+            The action column to enable chained calls.
         """
         _append_row(self._rows).add_channel_select(
             callback,
@@ -2876,6 +3023,28 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> type[Self]:
+        """Add a channel select menu to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        channel_types
+            Sequence of the types of channels this select menu should show as options.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+        """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -2901,7 +3070,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
-        """Add a channel select menu to this action row.
+        """Add a channel select menu to this action column.
 
         Parameters
         ----------
@@ -2924,7 +3093,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option]
             should be used to add options to this select menu.
 
-            And the parent action row can be accessed by calling
+            And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         return _append_row(self._rows).add_text_select(
@@ -2948,6 +3117,32 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+        """Add a channel select menu to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        hikari.api.special_endpoints.TextSelectMenuBuilder
+            Builder for the added text select menu.
+
+            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option]
+            should be used to add options to this select menu.
+
+            And the parent action column can be accessed by calling
+            [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
+        """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -2978,7 +3173,7 @@ def _append_row(rows: list[ActionRowExecutor], *, is_button: bool = False) -> Ac
 
 @typing_extensions.deprecated("Use the ActionColumnExecutor")
 class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
-    """Extended action row implementation which can be tied to a multi-component executor."""
+    """Deprecated action row impl used by [MultiComponentExecutor][yuyo.components.MultiComponentExecutor]."""
 
     __slots__ = ("_parent",)
 
@@ -2994,12 +3189,12 @@ class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
 
 @typing_extensions.deprecated("Use the ActionColumnExecutor")
 class MultiComponentExecutor(AbstractComponentExecutor):
-    """Multi-component implementation of a component executor.
+    """Deprecated implementation of a multi-component executor.
+
+    You should use  [yuyo.components.ActionColumnExecutor][] instead.
 
     This implementation allows for multiple top-level components to be used
     as a single executor.
-
-    You likely want [yuyo.components.ActionColumnExecutor][] instead.
     """
 
     __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
