@@ -10060,7 +10060,7 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
   </span>
 
 <a href="#yuyo.modals.ModalClient.from_rest_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bot_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -10082,7 +10082,24 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.InteractionServerAware">InteractionServerAware</span></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RESTBotAware">RESTBotAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>bot_managed</code></td>
+          <td class="doc-param-details">
+            <p>Whether the modal client should be automatically opened and
+closed based on the Bot's startup and shutdown callbacks.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
                 </span>
             </p>
           </td>

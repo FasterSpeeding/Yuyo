@@ -2476,7 +2476,7 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
   </span>
 
 <a href="#yuyo.modals.ModalClient.from_rest_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bot_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2498,7 +2498,24 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.InteractionServerAware">InteractionServerAware</span></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RESTBotAware">RESTBotAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>bot_managed</code></td>
+          <td class="doc-param-details">
+            <p>Whether the modal client should be automatically opened and
+closed based on the Bot's startup and shutdown callbacks.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -3541,7 +3558,7 @@ passed flags.</p>
 
 
 <a href="#yuyo.modals.as_modal" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">as_modal</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">as_modal</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3586,11 +3603,11 @@ passed flags.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<a class="autorefs autorefs-internal" title="yuyo.modals.CallbackSig" href="#yuyo.modals.CallbackSig">CallbackSig</a>], <a class="autorefs autorefs-internal" title="yuyo.modals.Modal" href="#yuyo.modals.Modal">Modal</a>]</code>
+                  <code><a class="autorefs autorefs-internal" title="yuyo.modals.Modal" href="#yuyo.modals.Modal">Modal</a></code>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Decorator callback used to create the modal.</p>
+            <p>The new decorated modal.</p>
           </td>
         </tr>
     </tbody>
@@ -3609,7 +3626,7 @@ passed flags.</p>
 
 
 <a href="#yuyo.modals.as_modal_template" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">as_modal_template</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">as_modal_template</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3654,11 +3671,11 @@ passed flags.</p>
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<span title="collections.abc.abc">abc</span>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<a class="autorefs autorefs-internal" title="yuyo.modals.CallbackSig" href="#yuyo.modals.CallbackSig">CallbackSig</a>], <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#type">type</a>[<a class="autorefs autorefs-internal" title="yuyo.modals.Modal" href="#yuyo.modals.Modal">Modal</a>]]</code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#type">type</a>[<a class="autorefs autorefs-internal" title="yuyo.modals.Modal" href="#yuyo.modals.Modal">Modal</a>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>A decorator callback which returns the created modal class.</p>
+            <p>The new decorated modal class.</p>
           </td>
         </tr>
     </tbody>
