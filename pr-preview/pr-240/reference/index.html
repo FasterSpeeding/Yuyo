@@ -418,6 +418,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ActionRowExecutor.add_link_button" class="md-nav__link">
+    add_link_button()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ActionRowExecutor.add_select_menu" class="md-nav__link">
     add_select_menu()
   </a>
@@ -1858,6 +1865,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ActionRowExecutor.add_link_button" class="md-nav__link">
+    add_link_button()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ActionRowExecutor.add_select_menu" class="md-nav__link">
     add_select_menu()
   </a>
@@ -3128,6 +3142,9 @@
 
   
       <p>Class used for handling the execution of an action row.</p>
+<p>You likely want <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
+instead as this provides an interface for handling all the components on a
+message.</p>
 
 
 
@@ -3267,7 +3284,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Add a button to this action row.</p>
+      <p>Add an interactive button to this action row.</p>
 
   <table>
     <thead>
@@ -3281,6 +3298,9 @@
           <td><code>style</code></td>
           <td class="doc-param-details">
             <p>The button's style.</p>
+<p>Passing the LINK type here is deprecated, use
+<a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_link_button">add_link_button</a>
+instead.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3292,7 +3312,10 @@
         <tr>
           <td><code>callback_or_url</code></td>
           <td class="doc-param-details">
-            <p>The button's url if it is a URL button, otherwise its callback.</p>
+            <p>The button's url if it is a Link button, otherwise its callback.</p>
+<p>Passing a URL here is deprecated, use
+<a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_link_button">add_link_button</a>
+instead.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3621,6 +3644,141 @@ should be used to set the callback for this component if it is interactive
           </td>
           <td class="doc-returns-details">
             <p>The action row to enable chained calls.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.ActionRowExecutor.add_link_button" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">add_link_button</span>
+
+
+<a href="#yuyo.components.ActionRowExecutor.add_link_button" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">add_link_button</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a Link button to this action row.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>url</code></td>
+          <td class="doc-param-details">
+            <p>The button's url.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>emoji</code></td>
+          <td class="doc-param-details">
+            <p>The button's emoji.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.Snowflakeish">Snowflakeish</span>, <a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.Emoji">Emoji</span>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.UndefinedType">UndefinedType</span>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>label</code></td>
+          <td class="doc-param-details">
+            <p>The button's label.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>hikari.UNDEFINED</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>is_disabled</code></td>
+          <td class="doc-param-details">
+            <p>Whether the button should be marked as disabled.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The action row to enable chained calls.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <ul>
+<li>If any of the sub-components in this action row aren't buttons.</li>
+</ul>
           </td>
         </tr>
     </tbody>
@@ -6674,7 +6832,7 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
   </span>
 
 <a href="#yuyo.components.ComponentClient.from_rest_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bot_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -6696,7 +6854,24 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.InteractionServerAware">InteractionServerAware</span></code>
+                    <code><a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">hikari</a>.<span title="hikari.components.RESTBotAware">RESTBotAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>bot_managed</code></td>
+          <td class="doc-param-details">
+            <p>Whether the component client should be automatically opened and
+closed based on the Bot's startup and shutdown callbacks.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -11327,10 +11502,10 @@ complete globally.</p>
         Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="components/#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code></p>
 
   
-      <p>Multi-component implementation of a component executor.</p>
+      <p>Deprecated implementation of a multi-component executor.</p>
+<p>You should use  <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> instead.</p>
 <p>This implementation allows for multiple top-level components to be used
 as a single executor.</p>
-<p>You likely want <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> instead.</p>
 
 
 

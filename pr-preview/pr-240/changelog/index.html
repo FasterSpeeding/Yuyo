@@ -317,6 +317,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#removed" class="md-nav__link">
     Removed
   </a>
@@ -507,7 +514,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#deprecated" class="md-nav__link">
+  <a href="#deprecated_1" class="md-nav__link">
     Deprecated
   </a>
   
@@ -1104,6 +1111,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#removed" class="md-nav__link">
     Removed
   </a>
@@ -1294,7 +1308,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#deprecated" class="md-nav__link">
+  <a href="#deprecated_1" class="md-nav__link">
     Deprecated
   </a>
   
@@ -1675,6 +1689,18 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
 <ul>
 <li><code>timeout</code> config to <a class="autorefs autorefs-internal" href="../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkTracker.__init__">ChunkTracker.__init__</a>.</li>
+<li><code>bot_managed</code> config to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.from_rest_bot">ComponentClient.from_rest_bot</a>.</li>
+<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> which handles building and executing multiple message
+  action row components and also introduces a class template system for message components in a similar
+  fashion to modals.</li>
+</ul>
+<h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.MultiComponentExecutor">yuyo.components.MultiComponentExecutor</a> and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ChildActionRowExecutor">yuyo.components.ChildActionRowExecutor</a>.
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> should be used instead.</li>
+<li>Using <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_button">ActionRowExecutor.add_button</a> to add
+  specifically link buttons. <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_link_button">ActionRowExecutor.add_link_button</a>
+  should be used instead.</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">#</a></h3>
 <ul>
@@ -1829,7 +1855,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   <code>yuyo.reactions.as_reaction_callback</code> are no longer included in <code>yuyo.__all__</code>/exported
   top-level.</li>
 </ul>
-<h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
+<h3 id="deprecated_1">Deprecated<a class="headerlink" href="#deprecated_1" title="Permanent link">#</a></h3>
 <ul>
 <li><code>yuyo.components.as_child_executor</code>, <code>yuyo.components.as_component_callback</code>, and
   <code>yuyo.components.as_reaction_callback</code> are no longer documented (included in their
