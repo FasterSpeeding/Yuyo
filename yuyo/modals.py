@@ -151,12 +151,13 @@ class BasicTimeout(AbstractTimeout):
 
     def increment_uses(self) -> bool:
         # <<inherited docstring from AbstractTimeout>>.
-        if self._uses_left > 1:
+        if self._uses_left > 0:
             self._uses_left -= 1
 
         elif self._uses_left == 0:
             raise RuntimeError("Uses already depleted")
 
+        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         return self._uses_left == 0
 
 
@@ -492,20 +493,29 @@ class ModalClient:
         return cls(event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
-    def from_rest_bot(cls, bot: hikari.InteractionServerAware, /) -> Self:
+    def from_rest_bot(cls, bot: hikari.RESTBotAware, /, *, bot_managed: bool = False) -> Self:
         """Build a modal client froma REST Bot.
 
         Parameters
         ----------
         bot
             The REST bot this modal client should be bound to.
+        bot_managed
+            Whether the modal client should be automatically opened and
+            closed based on the Bot's startup and shutdown callbacks.
 
         Returns
         -------
         ModalClient
             The initialised modal client.
         """
-        return cls(server=bot.interaction_server)
+        client = cls(server=bot.interaction_server)
+
+        if bot_managed:
+            bot.add_startup_callback(client._on_starting)
+            bot.add_shutdown_callback(client._on_stopping)
+
+        return client
 
     def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
         self._tasks.remove(task)
@@ -515,10 +525,10 @@ class ModalClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, _: hikari.StartingEvent, /) -> None:
+    async def _on_starting(self, _: typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
         self.open()
 
-    async def _on_stopping(self, _: hikari.StoppingEvent, /) -> None:
+    async def _on_stopping(self, _: typing.Union[hikari.StoppingEvent, hikari.RESTBotAware], /) -> None:
         self.close()
 
     async def _gc(self) -> None:
@@ -1167,11 +1177,8 @@ def _make_text_input(
     return (custom_id, row)
 
 
-# TODO: allow without parenthesis
-
-
 class _DynamicModal(Modal[_CallbackSigT]):
-    __slots__ = ("_callback",)
+    __slots__ = ("callback",)
 
     def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
@@ -1196,7 +1203,19 @@ def modal(callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> Mod
     return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
 
+@typing.overload
+def as_modal(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
+    ...
+
+
+@typing.overload
 def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]:
+    ...
+
+
+def as_modal(
+    callback: typing.Optional[_CallbackSigT] = None, /, *, ephemeral_default: bool = False
+) -> typing.Union[Modal[_CallbackSigT], collections.Callable[[_CallbackSigT], Modal[_CallbackSigT]]]:
     """Create a modal instance through a decorator call.
 
     Parameters
@@ -1206,19 +1225,34 @@ def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_Callb
 
     Returns
     -------
-    collections.abc.Callable[[CallbackSig], Modal]
-        Decorator callback used to create the modal.
+    Modal
+        The new decorated modal.
     """
 
     def decorator(callback: _CallbackSigT, /) -> Modal[_CallbackSigT]:
         return _DynamicModal(callback, ephemeral_default=ephemeral_default)
 
+    if callback:
+        return decorator(callback)
+
     return decorator
 
 
+@typing.overload
+def as_modal_template(callback: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
+    ...
+
+
+@typing.overload
 def as_modal_template(
     *, ephemeral_default: bool = False
 ) -> collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]:
+    ...
+
+
+def as_modal_template(
+    callback: typing.Optional[_CallbackSigT] = None, /, *, ephemeral_default: bool = False
+) -> typing.Union[type[Modal[_CallbackSigT]], collections.Callable[[_CallbackSigT], type[Modal[_CallbackSigT]]]]:
     """Create a modal template through a decorator callback.
 
     Parameters
@@ -1228,8 +1262,8 @@ def as_modal_template(
 
     Returns
     -------
-    collections.abc.Callable[[CallbackSig], type[Modal]]
-        A decorator callback which returns the created modal class.
+    type[Modal]
+        The new decorated modal class.
     """
     ephemeral_default_ = ephemeral_default
     del ephemeral_default
@@ -1247,6 +1281,9 @@ def as_modal_template(
                 super().__init__(ephemeral_default=ephemeral_default)
 
         return ModalTemplate
+
+    if callback:
+        return decorator(callback)
 
     return decorator
 
