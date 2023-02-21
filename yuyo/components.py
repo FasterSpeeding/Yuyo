@@ -2315,6 +2315,9 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     ) -> Self:
         """Add an interactive button to this action row.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -2392,6 +2395,9 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         is_disabled: bool = False,
     ) -> Self:
         """Add a Link button to this action row.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
 
         Parameters
         ----------
@@ -2641,9 +2647,49 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     This can be used to declare and handle the components on a message a couple
     of ways.
 
+    Sub-components can be added to an instance of the column executor using
+    chainable methods on it:
+
     ```py
+    async def callback_1(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
+
+    components = (
+        components.ActionColumnExecutor()
+        .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
+        .add_link_button("https://example.com", label="Button 2",)
+    )
     ```
 
+    Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+    can act as a template where "static" fields are included on all instances
+    and subclasses of that class:
+
+    ```py
+    async def callback_1(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
+
+    async def callback_2(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
+
+    @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
+    class CustomColumn(components.ActionColumnExecutor):
+        ...
+
+    (
+        CustomColumn
+        .add_static_text_select(callback_2, min_values=0, max_values=3)
+        # The following calls are all adding options to the added
+        # text select menu.
+        .add_option("Option 1", "value 1")
+        .add_option("Option 2", "value 2")
+        .add_option("Option 3", "value 3")
+    )
+   ```
+
+    !!! note
+        Since decorators are executed from the bottom upwards fields added
+        through decorator calls will follow the same order.
     """
 
     __slots__ = ("_last_triggered", "_rows", "_timeout")
@@ -2726,6 +2772,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> Self:
         """Add an interactive button to this action column.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -2764,6 +2813,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> type[Self]:
         """Add an interactive button to all subclasses and instances of this action column class.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
 
         Parameters
         ----------
@@ -2804,6 +2856,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> Self:
         """Add a link button to this action column.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         url
@@ -2834,6 +2889,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> type[Self]:
         """Add a link button to all subclasses and instances of this action column class.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
 
         Parameters
         ----------
@@ -3180,6 +3238,9 @@ def with_static_button(
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
     """Add a static interactive button to the decorated action column class.
 
+    Either `emoji` xor `label` must be provided to be the button's
+    displayed label.
+
     Parameters
     ----------
     style
@@ -3214,6 +3275,9 @@ def with_static_link_button(
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
     """Add a link button to the decorated action column class.
+
+    Either `emoji` xor `label` must be provided to be the button's
+    displayed label.
 
     Parameters
     ----------
@@ -3552,18 +3616,17 @@ class ComponentPaginator(ActionRowExecutor):
         !!! note
             These buttons will appear in the order these methods were called in.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
             The button's style.
         emoji
             Emoji to display on this button.
-
-            Either this or `label` must be provided, but not both.
         label
             Label to display on this button.
-
-            Either this or `emoji` must be provided, but not both.
         is_disabled
             Whether to make this button as disabled.
 
@@ -3572,6 +3635,10 @@ class ComponentPaginator(ActionRowExecutor):
         Self
             To enable chained calls.
         """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
         return self.add_button(
             style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -3594,6 +3661,9 @@ class ComponentPaginator(ActionRowExecutor):
         !!! note
             These buttons will appear in the order these methods were called in.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -3614,6 +3684,10 @@ class ComponentPaginator(ActionRowExecutor):
         Self
             To enable chained calls.
         """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
         return self.add_button(
             style, self._on_previous, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -3636,6 +3710,9 @@ class ComponentPaginator(ActionRowExecutor):
         !!! note
             These buttons will appear in the order these methods were called in.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -3656,6 +3733,10 @@ class ComponentPaginator(ActionRowExecutor):
         Self
             To enable chained calls.
         """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
         return self.add_button(
             style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -3678,6 +3759,9 @@ class ComponentPaginator(ActionRowExecutor):
         !!! note
             These buttons will appear in the order these methods were called in.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -3698,6 +3782,10 @@ class ComponentPaginator(ActionRowExecutor):
         Self
             To enable chained calls.
         """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
         return self.add_button(
             style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -3722,6 +3810,9 @@ class ComponentPaginator(ActionRowExecutor):
         !!! note
             These buttons will appear in the order these methods were called in.
 
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
         Parameters
         ----------
         style
@@ -3742,6 +3833,10 @@ class ComponentPaginator(ActionRowExecutor):
         Self
             To enable chained calls.
         """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
         return self.add_button(
             style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )

@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   specifically link buttons. [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
   should be used instead.
 
+### Fixed
+- The `add_{}_button` on [ComponentPaginator][yuyo.components.ComponentPaginator][] now ignore
+  `emoji` when `label` is passed to avoid erroring when users don't explicitly unset the
+  default for `emoji`.
+
 ### Removed
 - The `AbstractReactionHandler.last_triggered` and `ReactionHandler.timeout` properties as
   these were leaking impl detail.
