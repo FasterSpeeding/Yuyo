@@ -2049,8 +2049,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -2073,8 +2073,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -2099,8 +2099,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -2186,7 +2186,12 @@
       <p>Executor which handles columns of action rows.</p>
 <p>This can be used to declare and handle the components on a message a couple
 of ways.</p>
-<p>Sub-components can be added to an instance of the column executor using
+<p>To send a column's components pass
+[ActionColumnExecutor.rows][yuyo.components.ActionColumnExecutor.rows] as <code>components</code>
+when calling the create message method (e.g. <code>respond</code>/<code>create_message</code>).</p>
+
+<p><strong>Examples:</strong></p>
+    <p>Sub-components can be added to an instance of the column executor using
 chainable methods on it:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
