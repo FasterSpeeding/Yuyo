@@ -75,6 +75,7 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 """Type hint of a modal callback."""
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
+_CallbackSigT_co = typing.TypeVar("_CallbackSigT_co", bound=CallbackSig, covariant=True)
 
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
@@ -1284,7 +1285,7 @@ def as_modal_template(
         # pyright complains about using _CallbackSigT here for some reason
         class ModalTemplate(Modal[typing.Any]):
             __slots__ = ()
-            callback = classmethod(callback_)
+            callback = staticmethod(callback_)
 
             def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
                 super().__init__(ephemeral_default=ephemeral_default)

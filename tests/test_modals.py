@@ -82,7 +82,7 @@ class TestBasicTimeout:
         assert timeout.has_expired is True
 
     def test_increment_uses_when_unlimited(self):
-        timeout = modals.BasicTimeout(datetime.timedelta(days=6000))
+        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=-1)
 
         for _ in range(0, 10000):
             assert timeout.increment_uses() is False
@@ -340,7 +340,8 @@ class TestModal:
 
 
 def test_modal():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal = modals.modal(mock_callback, ephemeral_default=True)
 
@@ -350,7 +351,8 @@ def test_modal():
 
 
 def test_modal_with_defaults():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal = modals.modal(mock_callback)
 
@@ -360,7 +362,8 @@ def test_modal_with_defaults():
 
 
 def test_as_modal():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal = modals.as_modal(ephemeral_default=True)(mock_callback)
 
@@ -370,7 +373,8 @@ def test_as_modal():
 
 
 def test_as_modal_with_defaults():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal = modals.as_modal(ephemeral_default=True)(mock_callback)
 
@@ -380,7 +384,8 @@ def test_as_modal_with_defaults():
 
 
 def test_as_modal_with_defaults_when_no_parameters_supplied():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal = modals.as_modal(mock_callback)
 
@@ -390,12 +395,13 @@ def test_as_modal_with_defaults_when_no_parameters_supplied():
 
 
 def test_as_modal_template():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback
+    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
 
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
@@ -403,12 +409,13 @@ def test_as_modal_template():
 
 
 def test_as_modal_template_with_defaults():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal_cls = modals.as_modal_template(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback
+    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
 
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
@@ -416,12 +423,13 @@ def test_as_modal_template_with_defaults():
 
 
 def test_as_modal_template_when_config_overriden_in_init_call():
-    mock_callback = mock.Mock()
+    async def mock_callback(ctx: modals.ModalContext) -> None:
+        ...
 
     modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback
+    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
 
     modal = modal_cls(ephemeral_default=False)
     assert isinstance(modal, modals.Modal)
