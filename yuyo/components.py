@@ -2644,52 +2644,52 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
-    This can be used to declare and handle the components on a message a couple
-    of ways.
+     This can be used to declare and handle the components on a message a couple
+     of ways.
 
-    Sub-components can be added to an instance of the column executor using
-    chainable methods on it:
+     Sub-components can be added to an instance of the column executor using
+     chainable methods on it:
 
-    ```py
-    async def callback_1(ctx: components.ComponentContext) -> None:
-        await ctx.respond("meow")
+     ```py
+     async def callback_1(ctx: components.ComponentContext) -> None:
+         await ctx.respond("meow")
 
-    components = (
-        components.ActionColumnExecutor()
-        .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
-        .add_link_button("https://example.com", label="Button 2",)
-    )
+     components = (
+         components.ActionColumnExecutor()
+         .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
+         .add_link_button("https://example.com", label="Button 2",)
+     )
+     ```
+
+     Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+     can act as a template where "static" fields are included on all instances
+     and subclasses of that class:
+
+     ```py
+     async def callback_1(ctx: components.ComponentContext) -> None:
+         await ctx.respond("meow")
+
+     async def callback_2(ctx: components.ComponentContext) -> None:
+         await ctx.respond("meow")
+
+     @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
+     class CustomColumn(components.ActionColumnExecutor):
+         ...
+
+     (
+         CustomColumn
+         .add_static_text_select(callback_2, min_values=0, max_values=3)
+         # The following calls are all adding options to the added
+         # text select menu.
+         .add_option("Option 1", "value 1")
+         .add_option("Option 2", "value 2")
+         .add_option("Option 3", "value 3")
+     )
     ```
 
-    Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-    can act as a template where "static" fields are included on all instances
-    and subclasses of that class:
-
-    ```py
-    async def callback_1(ctx: components.ComponentContext) -> None:
-        await ctx.respond("meow")
-
-    async def callback_2(ctx: components.ComponentContext) -> None:
-        await ctx.respond("meow")
-
-    @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
-    class CustomColumn(components.ActionColumnExecutor):
-        ...
-
-    (
-        CustomColumn
-        .add_static_text_select(callback_2, min_values=0, max_values=3)
-        # The following calls are all adding options to the added
-        # text select menu.
-        .add_option("Option 1", "value 1")
-        .add_option("Option 2", "value 2")
-        .add_option("Option 3", "value 3")
-    )
-   ```
-
-    !!! note
-        Since decorators are executed from the bottom upwards fields added
-        through decorator calls will follow the same order.
+     !!! note
+         Since decorators are executed from the bottom upwards fields added
+         through decorator calls will follow the same order.
     """
 
     __slots__ = ("_last_triggered", "_rows", "_timeout")
@@ -3336,7 +3336,13 @@ def with_static_select_menu(
         The decorated action column class.
     """
     return lambda executor: executor.add_static_select_menu(
-        callback, type_, custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values, is_disabled=is_disabled
+        callback,
+        type_,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
     )
 
 
