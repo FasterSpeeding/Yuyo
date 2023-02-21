@@ -2644,58 +2644,61 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
-     This can be used to declare and handle the components on a message a couple
-     of ways.
+    This can be used to declare and handle the components on a message a couple
+    of ways.
 
-     Sub-components can be added to an instance of the column executor using
-     chainable methods on it:
+    Sub-components can be added to an instance of the column executor using
+    chainable methods on it:
 
-     ```py
-     async def callback_1(ctx: components.ComponentContext) -> None:
-         await ctx.respond("meow")
+    ```py
+    async def callback_1(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
 
-     components = (
-         components.ActionColumnExecutor()
-         .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
-         .add_link_button("https://example.com", label="Button 2",)
-     )
-     ```
-
-     Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-     can act as a template where "static" fields are included on all instances
-     and subclasses of that class:
-
-     ```py
-     async def callback_1(ctx: components.ComponentContext) -> None:
-         await ctx.respond("meow")
-
-     async def callback_2(ctx: components.ComponentContext) -> None:
-         await ctx.respond("meow")
-
-     @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
-     class CustomColumn(components.ActionColumnExecutor):
-         ...
-
-     (
-         CustomColumn
-         .add_static_text_select(callback_2, min_values=0, max_values=3)
-         # The following calls are all adding options to the added
-         # text select menu.
-         .add_option("Option 1", "value 1")
-         .add_option("Option 2", "value 2")
-         .add_option("Option 3", "value 3")
-     )
+    components = (
+        components.ActionColumnExecutor()
+        .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
+        .add_link_button("https://example.com", label="Button 2",)
+    )
     ```
 
-     !!! note
-         Since decorators are executed from the bottom upwards fields added
-         through decorator calls will follow the same order.
+    Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+    can act as a template where "static" fields are included on all instances
+    and subclasses of that class:
+
+    ```py
+    async def callback_1(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
+
+    async def callback_2(ctx: components.ComponentContext) -> None:
+        await ctx.respond("meow")
+
+    @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
+    class CustomColumn(components.ActionColumnExecutor):
+        # The init can be overridden to store extra data on the column object when subclassing.
+        def __init__(self, special_string: str, timeout: typing.Optional[datetime.timedelta] = None):
+            super().__init__(timeout=timeout)
+            self.special_string = special_string
+
+    (
+        CustomColumn
+        .add_static_text_select(callback_2, min_values=0, max_values=3)
+        # The following calls are all adding options to the added
+        # text select menu.
+        .add_option("Option 1", "value 1")
+        .add_option("Option 2", "value 2")
+        .add_option("Option 3", "value 3")
+    )
+```
+
+    !!! note
+        Since decorators are executed from the bottom upwards fields added
+        through decorator calls will follow the same order.
     """
 
     __slots__ = ("_last_triggered", "_rows", "_timeout")
 
-    _all_static_rows: list[ActionRowExecutor] = []
-    _static_rows: list[ActionRowExecutor] = []
+    _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
+    _static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
 
     def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
         """Initialise an action column executor.
@@ -2836,6 +2839,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         -------
         type[Self]
             The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -2908,6 +2917,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         -------
         type[Self]
             The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
         """
         _append_row(cls._static_rows, is_button=True).add_link_button(
             url, emoji=emoji, label=label, is_disabled=is_disabled
@@ -3001,6 +3016,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         -------
         type[Self]
             The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -3099,6 +3120,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         -------
         type[Self]
             The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -3197,6 +3224,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -3274,7 +3307,7 @@ def with_static_link_button(
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Add a link button to the decorated action column class.
+    """Add a static link button to the decorated action column class.
 
     Either `emoji` xor `label` must be provided to be the button's
     displayed label.
@@ -3309,7 +3342,7 @@ def with_static_select_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Add a select menu to the decorated action column class.
+    """Add a static select menu to the decorated action column class.
 
     For channel select menus and text select menus see
     [ActionColumnExecutor.add_channel_select][yuyo.components.ActionColumnExecutor.add_channel_select] and
@@ -3359,7 +3392,7 @@ def with_static_channel_select(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Add a channel select menu to the decorated action column class.
+    """Add a static channel select menu to the decorated action column class.
 
     Parameters
     ----------
