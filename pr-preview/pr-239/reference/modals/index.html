@@ -1379,8 +1379,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractTimeout.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -1568,6 +1568,8 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
   
       <p>Standard implementation of a modal executor.</p>
+<p>To send this modal pass <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal.rows">Modal.rows</a> as <code>components</code>
+when calling <code>create_modal_response</code>.</p>
 
 <p><strong>Examples:</strong></p>
     <p>There's a few different ways this can be used to for a modal.</p>
@@ -1609,7 +1611,7 @@ methods:</p>
 through decorator calls will follow the same order.</p>
 </div>
 <p>Subclasses of <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> can act as a template where
-"static" fields are included on all instances and subclasses of that class.</p>
+"static" fields are included on all instances and subclasses of that class:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span>
     <span class="s2">&quot;Title B&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span>
@@ -1618,6 +1620,11 @@ through decorator calls will follow the same order.</p>
 <span class="p">)</span>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CustomModal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="c1"># The init can be overridden to store extra data on the column object when subclassing.</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">special_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="n">ephemeral_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">special_string</span> <span class="o">=</span> <span class="n">special_string</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
         <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span>
         <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1940,11 +1947,33 @@ fields to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Moda
         <tr>
           <td>
               <span class="doc-returns-annotation">
-                  <code><span title="typing_extensions.Self">Self</span></code>
+                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#type">type</a>[<span title="typing_extensions.Self">Self</span>]</code>
               </span>
           </td>
           <td class="doc-returns-details">
             <p>The class to enable call chaining.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">modals.Modal</a>
+(rather than on a subclass).</p>
           </td>
         </tr>
     </tbody>
@@ -3779,7 +3808,7 @@ passed flags.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a text input field to the decorated modal subclass.</p>
+      <p>Add a static text input field to the decorated modal subclass.</p>
 
   <table>
     <thead>
@@ -4185,7 +4214,7 @@ passed flags.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The decorated instance.</p>
+            <p>The decorated modal instance.</p>
           </td>
         </tr>
     </tbody>
