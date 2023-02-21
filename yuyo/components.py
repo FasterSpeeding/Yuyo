@@ -2378,12 +2378,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
 
-        self.add_component(
-            hikari.impl.LinkButtonBuilder(
-                container=NotImplemented, style=style, url=callback_or_url, label=label, is_disabled=is_disabled
-            ).set_emoji(emoji)
-        )
-        return self
+        return self.add_link_button(callback_or_url, emoji=emoji, label=label, is_disabled=is_disabled)
 
     def add_link_button(
         self,
@@ -2741,6 +2736,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @property
     def rows(self) -> collections.Sequence[ActionRowExecutor]:
+        """The rows in this column."""
         return self._rows.copy()
 
     def add_row(self, row: ActionRowExecutor, /) -> Self:
@@ -2859,6 +2855,55 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
         return cls
+
+    @classmethod
+    def with_static_button(
+        cls,
+        style: hikari.InteractiveButtonTypesT,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
+        """Add an interactive button to this class by decorating its callback.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            The button's custom ID.
+        emoji
+            The button's emoji.
+        label
+            The button's label.
+        is_disabled
+            Whether the button should be marked as disabled.
+
+        Returns
+        -------
+        CallbackSig
+            The decorated callback.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+
+        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
+            cls.add_static_button(
+                style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+            )
+            return callback
+
+        return decorator
 
     def add_link_button(
         self,
@@ -3043,6 +3088,62 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
         return cls
 
+    @classmethod
+    def with_static_select_menu(
+        cls,
+        type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
+        """Add a select menu to this class by decorating its callback.
+
+        For channel select menus see
+        [ActionColumnExecutor.with_static_channel_select][yuyo.components.ActionColumnExecutor.with_static_channel_select] .
+
+        Parameters
+        ----------
+        type_
+            The type of select menu to add.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        CallbackSig
+            The decorated callback.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+
+        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
+            cls.add_static_select_menu(
+                callback,
+                type_,
+                custom_id=custom_id,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+            return callback
+
+        return decorator
+
     def add_channel_select(
         self,
         callback: CallbackSig,
@@ -3146,6 +3247,60 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         return cls
+
+    @classmethod
+    def with_static_channel_select(
+        cls,
+        *,
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[
+            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+        ] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
+        """Add a channel select menu to this class by decorating its callback.
+
+        Parameters
+        ----------
+        channel_types
+            Sequence of the types of channels this select menu should show as options.
+        custom_id
+            The select menu's custom ID.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+
+        Returns
+        -------
+        CallbackSig
+            The decorated callback.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+
+        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
+            cls.add_static_channel_select(
+                callback,
+                custom_id=custom_id,
+                channel_types=channel_types,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+            return callback
+
+        return decorator
 
     def add_text_select(
         self,
