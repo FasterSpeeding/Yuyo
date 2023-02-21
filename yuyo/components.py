@@ -2647,6 +2647,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     This can be used to declare and handle the components on a message a couple
     of ways.
 
+    To send a column's components pass
+    [ActionColumnExecutor.rows][yuyo.components.ActionColumnExecutor.rows] as `components`
+    when calling the create message method (e.g. `respond`/`create_message`).
+
+    Examples
+    --------
+
     Sub-components can be added to an instance of the column executor using
     chainable methods on it:
 
