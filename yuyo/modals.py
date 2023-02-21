@@ -122,7 +122,7 @@ class BasicTimeout(AbstractTimeout):
 
     __slots__ = ("_last_triggered", "_timeout", "_uses_left")
 
-    def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = -1) -> None:
+    def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = 1) -> None:
         """Initialise a basic timeout.
 
         Parameters
@@ -707,7 +707,7 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is NO_DEFAULT:
-            timeout = BasicTimeout(datetime.timedelta(10), max_uses=1)
+            timeout = BasicTimeout(datetime.timedelta(10))
 
         elif timeout is None:
             timeout = NeverTimeout()
@@ -1284,7 +1284,7 @@ def as_modal_template(
         # pyright complains about using _CallbackSigT here for some reason
         class ModalTemplate(Modal[typing.Any]):
             __slots__ = ()
-            callback = callback_
+            callback = classmethod(callback_)
 
             def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
                 super().__init__(ephemeral_default=ephemeral_default)
