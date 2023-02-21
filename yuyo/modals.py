@@ -1279,8 +1279,6 @@ def as_modal_template(
     type[Modal]
         The new decorated modal class.
     """
-    ephemeral_default_ = ephemeral_default
-    del ephemeral_default
 
     def decorator(callback_: _CallbackSigT, /) -> type[Modal[_CallbackSigT]]:
         # pyright complains about using _CallbackSigT here for some reason
@@ -1288,10 +1286,7 @@ def as_modal_template(
             __slots__ = ()
             callback = callback_
 
-            def __init__(self, *, ephemeral_default: typing.Union[bool, NoDefault] = NO_DEFAULT) -> None:
-                if ephemeral_default is NO_DEFAULT:
-                    ephemeral_default = ephemeral_default_
-
+            def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
                 super().__init__(ephemeral_default=ephemeral_default)
 
         return ModalTemplate
