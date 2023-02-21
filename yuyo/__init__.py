@@ -47,6 +47,8 @@ __all__: list[str] = [
     "DiscordBotListService",
     "ErrorManager",
     "FinishedChunkingEvent",
+    "ModalClient",
+    "ModalContext",
     "MultiComponentExecutor",
     "ReactionClient",
     "ReactionHandler",
@@ -62,6 +64,7 @@ __all__: list[str] = [
     "chunk_tracker",
     "components",
     "links",
+    "modals",
     "paginate_string",
     "pagination",
     "reactions",
@@ -90,6 +93,8 @@ from .list_status import BotsGGService
 from .list_status import DiscordBotListService
 from .list_status import ServiceManager
 from .list_status import TopGGService
+from .modals import ModalClient
+from .modals import ModalContext
 from .pagination import aenumerate
 from .pagination import async_paginate_string
 from .pagination import paginate_string
