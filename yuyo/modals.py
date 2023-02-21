@@ -801,6 +801,9 @@ class _TrackedField:
 class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     """Standard implementation of a modal executor.
 
+    To send this modal pass [Modal.rows][yuyo.modals.Modal.rows] as `components`
+    when calling `create_modal_response`.
+
     Examples
     --------
 
@@ -849,7 +852,7 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
         through decorator calls will follow the same order.
 
     Subclasses of [Modal][yuyo.modals.Modal] can act as a template where
-    "static" fields are included on all instances and subclasses of that class.
+    "static" fields are included on all instances and subclasses of that class:
 
     ```py
     @modals.with_static_text_input(
@@ -860,6 +863,11 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
     )
     @modals.with_static_text_input("Title A", parameter="input")
     class CustomModal(modals.Modal):
+        # The init can be overridden to store extra data on the column object when subclassing.
+        def __init__(self, special_string: str, ephemeral_default: bool = False):
+            super().__init__(ephemeral_default=ephemeral_default)
+            self.special_string = special_string
+
         async def callback(
             ctx: modals.ModalContext,
             input: str,
@@ -901,10 +909,10 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _all_static_fields: list[_TrackedField] = []
-    _all_static_rows: list[hikari.impl.ModalActionRowBuilder] = []
-    _static_fields: list[_TrackedField] = []
-    _static_rows: list[hikari.impl.ModalActionRowBuilder] = []
+    _all_static_fields: typing.ClassVar[list[_TrackedField]] = []
+    _all_static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
+    _static_fields: typing.ClassVar[list[_TrackedField]] = []
+    _static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
 
     def __init__(self, *, ephemeral_default: bool = False) -> None:
         """Initialise a component executor.
@@ -992,8 +1000,14 @@ class Modal(AbstractModal, typing.Generic[_CallbackSigT]):
 
         Returns
         -------
-        Self
+        type[Self]
             The class to enable call chaining.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [modals.Modal][yuyo.modals.Modal]
+            (rather than on a subclass).
         """
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
@@ -1302,7 +1316,7 @@ def with_static_text_input(
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
 ) -> collections.Callable[[type[_ModalT]], type[_ModalT]]:
-    """Add a text input field to the decorated modal subclass.
+    """Add a static text input field to the decorated modal subclass.
 
     Parameters
     ----------
@@ -1345,23 +1359,18 @@ def with_static_text_input(
     type[Modal]
         The decorated modal class.
     """
-
-    def decorator(modal: type[_ModalT], /) -> type[_ModalT]:
-        modal.add_static_text_input(
-            label,
-            custom_id=custom_id,
-            style=style,
-            placeholder=placeholder,
-            value=value,
-            default=default,
-            min_length=min_length,
-            max_length=max_length,
-            prefix_match=prefix_match,
-            parameter=parameter,
-        )
-        return modal
-
-    return decorator
+    return lambda modal_cls: modal_cls.add_static_text_input(
+        label,
+        custom_id=custom_id,
+        style=style,
+        placeholder=placeholder,
+        value=value,
+        default=default,
+        min_length=min_length,
+        max_length=max_length,
+        prefix_match=prefix_match,
+        parameter=parameter,
+    )
 
 
 def with_text_input(
@@ -1419,22 +1428,17 @@ def with_text_input(
     Returns
     -------
     Modal
-        The decorated instance.
+        The decorated modal instance.
     """
-
-    def decorator(modal: _ModalT, /) -> _ModalT:
-        modal.add_text_input(
-            label,
-            custom_id=custom_id,
-            style=style,
-            placeholder=placeholder,
-            value=value,
-            default=default,
-            min_length=min_length,
-            max_length=max_length,
-            prefix_match=prefix_match,
-            parameter=parameter,
-        )
-        return modal
-
-    return decorator
+    return lambda modal: modal.add_text_input(
+        label,
+        custom_id=custom_id,
+        style=style,
+        placeholder=placeholder,
+        value=value,
+        default=default,
+        min_length=min_length,
+        max_length=max_length,
+        prefix_match=prefix_match,
+        parameter=parameter,
+    )

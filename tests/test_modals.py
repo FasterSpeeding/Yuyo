@@ -397,7 +397,7 @@ def test_with_static_text_input():
 
     result = modals.with_static_text_input("meow")(modal_cls)
 
-    assert result is modal_cls
+    assert result is modal_cls.add_static_text_input.return_value
     modal_cls.add_static_text_input.assert_called_once_with(
         "meow",
         custom_id=None,
@@ -429,7 +429,7 @@ def test_with_static_text_input_with_defaults():
         parameter="param",
     )(modal_cls)
 
-    assert result is modal_cls
+    assert result is modal_cls.add_static_text_input.return_value
     modal_cls.add_static_text_input.assert_called_once_with(
         "meow",
         custom_id="echo",
@@ -452,7 +452,7 @@ def test_with_text_input():
 
     result = modals.with_text_input("nyaa")(modal)
 
-    assert result is modal
+    assert result is modal_cls.add_text_input.return_value
     mock_add_text_input.assert_called_once_with(
         "nyaa",
         custom_id=None,
@@ -486,7 +486,7 @@ def test_with_text_input_with_defaults():
         parameter="arg",
     )(modal)
 
-    assert result is modal
+    assert result is mock_add_text_input.return_value
     mock_add_text_input.assert_called_once_with(
         "nyaa",
         custom_id="bridge",
