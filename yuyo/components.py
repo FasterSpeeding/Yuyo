@@ -2412,7 +2412,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Raises
         ------
         ValueError
-            * If any of the sub-components in this action row aren't buttons.
+            If any of the sub-components in this action row aren't buttons.
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         self.add_component(
@@ -3272,7 +3272,7 @@ def with_static_select_menu(
         The decorated action column class.
     """
     return lambda executor: executor.add_static_select_menu(
-        callback, type_, custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values
+        callback, type_, custom_id=custom_id, placeholder=placeholder, min_values=min_values, max_values=max_values, is_disabled=is_disabled
     )
 
 
@@ -3318,6 +3318,7 @@ def with_static_channel_select(
         placeholder=placeholder,
         min_values=min_values,
         max_values=max_values,
+        is_disabled=is_disabled,
     )
 
 
