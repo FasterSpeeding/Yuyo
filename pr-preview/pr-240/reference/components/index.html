@@ -2049,8 +2049,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -2073,8 +2073,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -2099,8 +2099,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -2185,9 +2185,42 @@
   
       <p>Executor which handles columns of action rows.</p>
 <p>This can be used to declare and handle the components on a message a couple
-of ways.</p>
-<div class="highlight"><pre><span></span><code>
+ of ways.</p>
+<p>Sub-components can be added to an instance of the column executor using
+ chainable methods on it:</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
+
+<span class="n">components</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">chainable</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 2&quot;</span><span class="p">,)</span>
+<span class="p">)</span>
 </code></pre></div>
+<p>Alternatively, subclasses of <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
+ can act as a template where "static" fields are included on all instances
+ and subclasses of that class:</p>
+<p>```py
+ async def callback_1(ctx: components.ComponentContext) -&gt; None:
+     await ctx.respond("meow")</p>
+<p>async def callback_2(ctx: components.ComponentContext) -&gt; None:
+     await ctx.respond("meow")</p>
+<p>@components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
+ class CustomColumn(components.ActionColumnExecutor):
+     ...</p>
+<p>(
+     CustomColumn
+     .add_static_text_select(callback_2, min_values=0, max_values=3)
+     # The following calls are all adding options to the added
+     # text select menu.
+     .add_option("Option 1", "value 1")
+     .add_option("Option 2", "value 2")
+     .add_option("Option 3", "value 3")
+ )
+```</p>
+<p>!!! note
+     Since decorators are executed from the bottom upwards fields added
+     through decorator calls will follow the same order.</p>
 
 
 
@@ -2265,6 +2298,8 @@ of ways.</p>
   <div class="doc doc-contents ">
   
       <p>Add an interactive button to this action column.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -2549,6 +2584,8 @@ of ways.</p>
   <div class="doc doc-contents ">
   
       <p>Add a link button to this action column.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -2872,6 +2909,8 @@ of ways.</p>
   <div class="doc doc-contents ">
   
       <p>Add an interactive button to all subclasses and instances of this action column class.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -3164,6 +3203,8 @@ of ways.</p>
   <div class="doc doc-contents ">
   
       <p>Add a link button to all subclasses and instances of this action column class.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -3844,6 +3885,8 @@ message.</p>
   <div class="doc doc-contents ">
   
       <p>Add an interactive button to this action row.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -4227,6 +4270,8 @@ should be used to set the callback for this component if it is interactive
   <div class="doc doc-contents ">
   
       <p>Add a Link button to this action row.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -4335,9 +4380,7 @@ should be used to set the callback for this component if it is interactive
             </span>
           </td>
           <td class="doc-raises-details">
-            <ul>
-<li>If any of the sub-components in this action row aren't buttons.</li>
-</ul>
+            <p>If any of the sub-components in this action row aren't buttons.</p>
           </td>
         </tr>
     </tbody>
@@ -8566,6 +8609,8 @@ before calling this.</p>
 <p class="admonition-title">Note</p>
 <p>These buttons will appear in the order these methods were called in.</p>
 </div>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -8595,7 +8640,6 @@ before calling this.</p>
           <td><code>emoji</code></td>
           <td class="doc-param-details">
             <p>Emoji to display on this button.</p>
-<p>Either this or <code>label</code> must be provided, but not both.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -8612,7 +8656,6 @@ before calling this.</p>
           <td><code>label</code></td>
           <td class="doc-param-details">
             <p>Label to display on this button.</p>
-<p>Either this or <code>emoji</code> must be provided, but not both.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -8691,6 +8734,8 @@ before calling this.</p>
 <p class="admonition-title">Note</p>
 <p>These buttons will appear in the order these methods were called in.</p>
 </div>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -8816,6 +8861,8 @@ before calling this.</p>
 <p class="admonition-title">Note</p>
 <p>These buttons will appear in the order these methods were called in.</p>
 </div>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -8941,6 +8988,8 @@ before calling this.</p>
 <p class="admonition-title">Note</p>
 <p>These buttons will appear in the order these methods were called in.</p>
 </div>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -9066,6 +9115,8 @@ before calling this.</p>
 <p class="admonition-title">Note</p>
 <p>These buttons will appear in the order these methods were called in.</p>
 </div>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -9834,6 +9885,8 @@ should default to ephemeral (meaning only the author can see them) unless
   <div class="doc doc-contents ">
   
       <p>Add a static interactive button to the decorated action column class.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
@@ -10118,6 +10171,8 @@ should default to ephemeral (meaning only the author can see them) unless
   <div class="doc doc-contents ">
   
       <p>Add a link button to the decorated action column class.</p>
+<p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
+displayed label.</p>
 
   <table>
     <thead>
