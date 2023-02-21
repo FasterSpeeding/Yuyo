@@ -125,6 +125,7 @@ class TestModalContext:
 
 
 class TestModalClient:
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_context_manager(self):
         ...
@@ -140,128 +141,164 @@ class TestModalClient:
 
         assert client.alluka is mock_alluka
 
+    @pytest.mark.skip(reason="TODO")
     def test_from_gateway_bot(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_from_rest_bot(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_from_rest_bot_when_bot_managed(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test__remove_task(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test__add_task(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test__on_starting(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test__on_stopping(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test__gc(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_close(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_open(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_other_interaction_type(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_expired_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_expired_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_modal_after_expired_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_expired_modal_and_prefix(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_expired_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_expired_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_modal_after_expired_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_rest_request_for_expired_modal_and_prefix(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal_for_prefix_match(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal_when_custom_id_already_registered(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal_when_custom_id_already_registered_as_prefix(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal_when_no_timeout_set(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_set_modal_when_timeout_is_none(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_get_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_get_modal_for_prefix(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_get_modal_when_not_registered(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_remove_modal(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_remove_modal_for_prefix(self):
         ...
 
+    @pytest.mark.skip(reason="TODO")
     def test_remove_modal_when_not_registered(self):
         ...
 
 
+@pytest.mark.skip(reason="TODO")
 class TestModal:
     def test_subclassing_behaviour(self):
         ...
