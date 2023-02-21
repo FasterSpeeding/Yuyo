@@ -2049,8 +2049,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -2073,8 +2073,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -2099,8 +2099,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -2184,43 +2184,56 @@
 
   
       <p>Executor which handles columns of action rows.</p>
-<p>This can be used to declare and handle the components on a message a couple
- of ways.</p>
-<p>Sub-components can be added to an instance of the column executor using
- chainable methods on it:</p>
-<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
+<pre><code>This can be used to declare and handle the components on a message a couple
+of ways.
 
-<span class="n">components</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">chainable</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 1&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 2&quot;</span><span class="p">,)</span>
-<span class="p">)</span>
-</code></pre></div>
-<p>Alternatively, subclasses of <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
- can act as a template where "static" fields are included on all instances
- and subclasses of that class:</p>
-<p>```py
- async def callback_1(ctx: components.ComponentContext) -&gt; None:
-     await ctx.respond("meow")</p>
-<p>async def callback_2(ctx: components.ComponentContext) -&gt; None:
-     await ctx.respond("meow")</p>
-<p>@components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
- class CustomColumn(components.ActionColumnExecutor):
-     ...</p>
-<p>(
-     CustomColumn
-     .add_static_text_select(callback_2, min_values=0, max_values=3)
-     # The following calls are all adding options to the added
-     # text select menu.
-     .add_option("Option 1", "value 1")
-     .add_option("Option 2", "value 2")
-     .add_option("Option 3", "value 3")
- )
-```</p>
-<p>!!! note
-     Since decorators are executed from the bottom upwards fields added
-     through decorator calls will follow the same order.</p>
+Sub-components can be added to an instance of the column executor using
+chainable methods on it:
+
+```py
+async def callback_1(ctx: components.ComponentContext) -&gt; None:
+    await ctx.respond("meow")
+
+components = (
+    components.ActionColumnExecutor()
+    .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
+    .add_link_button("https://example.com", label="Button 2",)
+)
+```
+
+Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+can act as a template where "static" fields are included on all instances
+and subclasses of that class:
+
+```py
+async def callback_1(ctx: components.ComponentContext) -&gt; None:
+    await ctx.respond("meow")
+
+async def callback_2(ctx: components.ComponentContext) -&gt; None:
+    await ctx.respond("meow")
+
+@components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
+class CustomColumn(components.ActionColumnExecutor):
+    # The init can be overridden to store extra data on the column object when subclassing.
+    def __init__(self, special_string: str, timeout: typing.Optional[datetime.timedelta] = None):
+        super().__init__(timeout=timeout)
+        self.special_string = special_string
+
+(
+    CustomColumn
+    .add_static_text_select(callback_2, min_values=0, max_values=3)
+    # The following calls are all adding options to the added
+    # text select menu.
+    .add_option("Option 1", "value 1")
+    .add_option("Option 2", "value 2")
+    .add_option("Option 3", "value 3")
+)
+</code></pre>
+<p>```</p>
+<pre><code>!!! note
+    Since decorators are executed from the bottom upwards fields added
+    through decorator calls will follow the same order.
+</code></pre>
 
 
 
@@ -3032,6 +3045,28 @@ displayed label.</p>
     </tbody>
   </table>
 
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
+(rather than on a subclass).</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -3180,6 +3215,28 @@ displayed label.</p>
     </tbody>
   </table>
 
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
+(rather than on a subclass).</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -3293,6 +3350,28 @@ displayed label.</p>
           </td>
           <td class="doc-returns-details">
             <p>The action column class to enable chained calls.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
+(rather than on a subclass).</p>
           </td>
         </tr>
     </tbody>
@@ -3445,6 +3524,28 @@ displayed label.</p>
     </tbody>
   </table>
 
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
+(rather than on a subclass).</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -3576,6 +3677,28 @@ displayed label.</p>
 should be used to add options to this select menu.</p>
 <p>And the parent action column can be accessed by calling
 [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
+(rather than on a subclass).</p>
           </td>
         </tr>
     </tbody>
@@ -10026,7 +10149,7 @@ displayed label.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a channel select menu to the decorated action column class.</p>
+      <p>Add a static channel select menu to the decorated action column class.</p>
 
   <table>
     <thead>
@@ -10170,7 +10293,7 @@ displayed label.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a link button to the decorated action column class.</p>
+      <p>Add a static link button to the decorated action column class.</p>
 <p>Either <code>emoji</code> xor <code>label</code> must be provided to be the button's
 displayed label.</p>
 
@@ -10284,7 +10407,7 @@ displayed label.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a select menu to the decorated action column class.</p>
+      <p>Add a static select menu to the decorated action column class.</p>
 <p>For channel select menus and text select menus see
 <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor.add_channel_select">ActionColumnExecutor.add_channel_select</a> and
 <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor.add_text_select">ActionColumnExecutor.add_text_select</a> respectively.</p>
