@@ -2184,56 +2184,49 @@
 
   
       <p>Executor which handles columns of action rows.</p>
-<pre><code>This can be used to declare and handle the components on a message a couple
-of ways.
+<p>This can be used to declare and handle the components on a message a couple
+of ways.</p>
+<p>Sub-components can be added to an instance of the column executor using
+chainable methods on it:</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
 
-Sub-components can be added to an instance of the column executor using
-chainable methods on it:
-
-```py
-async def callback_1(ctx: components.ComponentContext) -&gt; None:
-    await ctx.respond("meow")
-
-components = (
-    components.ActionColumnExecutor()
-    .add_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
-    .add_link_button("https://example.com", label="Button 2",)
-)
-```
-
-Alternatively, subclasses of [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+<span class="n">components</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">chainable</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Button 2&quot;</span><span class="p">,)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Alternatively, subclasses of <a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
 can act as a template where "static" fields are included on all instances
-and subclasses of that class:
+and subclasses of that class:</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
 
-```py
-async def callback_1(ctx: components.ComponentContext) -&gt; None:
-    await ctx.respond("meow")
+<span class="k">async</span> <span class="k">def</span> <span class="nf">callback_2</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
 
-async def callback_2(ctx: components.ComponentContext) -&gt; None:
-    await ctx.respond("meow")
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_select_menu</span><span class="p">(</span><span class="n">callback_1</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CustomColumn</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="c1"># The init can be overridden to store extra data on the column object when subclassing.</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">special_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">special_string</span> <span class="o">=</span> <span class="n">special_string</span>
 
-@components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
-class CustomColumn(components.ActionColumnExecutor):
-    # The init can be overridden to store extra data on the column object when subclassing.
-    def __init__(self, special_string: str, timeout: typing.Optional[datetime.timedelta] = None):
-        super().__init__(timeout=timeout)
-        self.special_string = special_string
-
-(
-    CustomColumn
-    .add_static_text_select(callback_2, min_values=0, max_values=3)
-    # The following calls are all adding options to the added
-    # text select menu.
-    .add_option("Option 1", "value 1")
-    .add_option("Option 2", "value 2")
-    .add_option("Option 3", "value 3")
-)
-</code></pre>
-<p>```</p>
-<pre><code>!!! note
-    Since decorators are executed from the bottom upwards fields added
-    through decorator calls will follow the same order.
-</code></pre>
+<span class="p">(</span>
+    <span class="n">CustomColumn</span><span class="o">.</span><span class="n">add_static_text_select</span><span class="p">(</span><span class="n">callback_2</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="c1"># The following calls are all adding options to the added</span>
+    <span class="c1"># text select menu.</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;Option 1&quot;</span><span class="p">,</span> <span class="s2">&quot;value 1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;Option 2&quot;</span><span class="p">,</span> <span class="s2">&quot;value 2&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;Option 3&quot;</span><span class="p">,</span> <span class="s2">&quot;value 3&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since decorators are executed from the bottom upwards fields added
+through decorator calls will follow the same order.</p>
+</div>
 
 
 
