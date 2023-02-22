@@ -55,6 +55,7 @@ import itertools
 import logging
 import os
 import typing
+import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -2373,6 +2374,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                     is_disabled=is_disabled,
                 ).set_emoji(emoji)
             )
+
+        warnings.warn("Use `add_link_button` to add link buttons", category=DeprecationWarning, stacklevel=2)
 
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
