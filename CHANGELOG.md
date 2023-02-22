@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bot_managed` config to [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot].
 - [ComponentContext.create_modal_response][yuyo.components.ComponentContext.create_modal_response] method.
 - Support for modals in `yuyo.modals`.
+- [yuyo.components.ActionColumnExecutor][] which handles building and executing multiple message
+  action row components and also introduces a class template system for message components in a similar
+  fashion to modals.
 
 ### Changed
 - The `response_type` argument is now keyword only and defaults to
@@ -18,6 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `defer_type` argument is now keyword only and defaults to
   [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
   in [ComponentContext.defer][yuyo.components.ComponentContext.defer].
+
+### Deprecated
+- [yuyo.components.MultiComponentExecutor][] and [yuyo.components.ChildActionRowExecutor][].
+  [yuyo.components.ActionColumnExecutor][] should be used instead.
+- Using [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] to add
+  specifically link buttons. [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
+  should be used instead.
+
+### Fixed
+- The `add_{}_button` on [ComponentPaginator][yuyo.components.ComponentPaginator][] now ignore
+  `emoji` when `label` is passed to avoid erroring when users don't explicitly unset the
+  default for `emoji`.
 
 ### Removed
 - The `AbstractReactionHandler.last_triggered` and `ReactionHandler.timeout` properties as
