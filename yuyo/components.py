@@ -2700,7 +2700,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     __slots__ = ("_last_triggered", "_rows", "_timeout")
 
     _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
-    _static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
+    _static_fields: typing.ClassVar[
+        list[tuple[hikari.ComponentType, collections.Callable[[ActionRowExecutor], object]]]
+    ] = []
 
     def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
         """Initialise an action column executor.
@@ -2716,11 +2718,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def __init_subclass__(cls) -> None:
         cls._all_static_rows = []
-        cls._static_rows = []
+        cls._static_fields = []
 
         for super_cls in cls.mro()[-2::-1]:
-            if issubclass(super_cls, ActionColumnExecutor):
-                cls._all_static_rows.extend(super_cls._static_rows)
+            if not issubclass(super_cls, ActionColumnExecutor):
+                continue
+
+            for component_type, callback in super_cls._static_fields:
+                row = _append_row(cls._all_static_rows, is_button=component_type is hikari.ComponentType.BUTTON)
+                callback(row)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2852,9 +2858,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows, cls._all_static_rows, is_button=True).add_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
+        def _add_element(row: ActionRowExecutor, /) -> None:
+            row.add_button(style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+
+        _add_element(_append_row(cls._all_static_rows, is_button=True))
+        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
         return cls
 
     @classmethod
@@ -2976,9 +2984,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-        _append_row(cls._static_rows, cls._all_static_rows, is_button=True).add_link_button(
-            url, emoji=emoji, label=label, is_disabled=is_disabled
-        )
+        if cls is ActionColumnExecutor:
+            raise RuntimeError("Can only add static components to subclasses")
+
+        def _add_element(row: ActionRowExecutor, /) -> None:
+            row.add_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+
+        _add_element(_append_row(cls._all_static_rows, is_button=True))
+        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
         return cls
 
     def add_select_menu(
@@ -3078,15 +3091,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows, cls._all_static_rows).add_select_menu(
-            callback,
-            type_,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
+        def _add_element(row: ActionRowExecutor, /) -> None:
+            row.add_select_menu(
+                callback,
+                type_,
+                custom_id=custom_id,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+
+        _add_element(_append_row(cls._all_static_rows, is_button=True))
+        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
         return cls
 
     @classmethod
@@ -3238,15 +3255,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows, cls._all_static_rows).add_channel_select(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
+        def _add_element(row: ActionRowExecutor, /) -> None:
+            row.add_channel_select(
+                callback,
+                custom_id=custom_id,
+                channel_types=channel_types,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+
+        _add_element(_append_row(cls._all_static_rows, is_button=True))
+        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
         return cls
 
     @classmethod
@@ -3396,30 +3417,27 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        return _append_row(cls._static_rows, cls._all_static_rows).add_text_select(
-            callback,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
+        def _add_element(
+            row: ActionRowExecutor, /
+        ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+            return row.add_text_select(
+                callback,
+                custom_id=custom_id,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            )
+
+        select = _add_element(_append_row(cls._all_static_rows, is_button=True))
+        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
+        return select
 
 
-def _append_row(
-    rows: list[ActionRowExecutor],
-    all_rows: typing.Optional[list[ActionRowExecutor]] = None,
-    /,
-    *,
-    is_button: bool = False,
-) -> ActionRowExecutor:
+def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) -> ActionRowExecutor:
     if not rows or rows[-1].is_full:
         row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
         rows.append(row)
-
-        if all_rows is not None:
-            all_rows.append(row)
-
         return row
 
     # This works since the other types all take up the whole row right now.
@@ -3428,10 +3446,6 @@ def _append_row(
 
     row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
     rows.append(row)
-
-    if all_rows is not None:
-        all_rows.append(row)
-
     return row
 
 
