@@ -3105,8 +3105,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             )
 
-        _add_element(_append_row(cls._all_static_rows, is_button=True))
-        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
+        _add_element(_append_row(cls._all_static_rows))
+        cls._static_fields.append((hikari.ComponentType(type_), _add_element))
         return cls
 
     @classmethod
@@ -3269,8 +3269,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             )
 
-        _add_element(_append_row(cls._all_static_rows, is_button=True))
-        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
+        _add_element(_append_row(cls._all_static_rows))
+        cls._static_fields.append((hikari.ComponentType.CHANNEL_SELECT_MENU, _add_element))
         return cls
 
     @classmethod
@@ -3432,8 +3432,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             )
 
-        select = _add_element(_append_row(cls._all_static_rows, is_button=True))
-        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
+        select = _add_element(_append_row(cls._all_static_rows))
+        cls._static_fields.append((hikari.ComponentType.TEXT_SELECT_MENU, _add_element))
         return select
 
 
