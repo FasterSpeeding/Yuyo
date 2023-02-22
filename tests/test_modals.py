@@ -399,8 +399,8 @@ async def test_as_modal_template():
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
-    async def callback(ctx: modals.ModalContext, user: int, other: str) -> None:
-        return await mock_callback(ctx, 123)
+    async def callback(ctx: modals.ModalContext, user: int, /, *, other: str) -> None:
+        return await mock_callback(ctx, user, other=other)
 
     modal_cls = modals.as_modal_template(ephemeral_default=True)(callback)
 
@@ -419,8 +419,8 @@ async def test_as_modal_template_with_defaults():
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
-    async def callback(ctx: modals.ModalContext, member: str, none: bool) -> None:
-        return await mock_callback(ctx, 123)
+    async def callback(ctx: modals.ModalContext, member: str, /, *, none: bool) -> None:
+        return await mock_callback(ctx, member, none=none)
 
     modal_cls = modals.as_modal_template(callback)
 
@@ -439,8 +439,8 @@ async def test_as_modal_template_when_config_overriden_in_init_call():
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
-    async def callback(ctx: modals.ModalContext, thing: str, other_thing: str) -> None:
-        return await mock_callback(ctx, 123)
+    async def callback(ctx: modals.ModalContext, thing: str, /, *, other_thing: str) -> None:
+        return await mock_callback(ctx, thing, other_thing=other_thing)
 
     modal_cls = modals.as_modal_template(ephemeral_default=True)(callback)
 
