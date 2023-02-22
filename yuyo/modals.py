@@ -1267,6 +1267,11 @@ class _GenericModal(Modal, typing.Generic[_P]):
         raise NotImplementedError
 
 
+if not typing.TYPE_CHECKING and not hasattr(_GenericModal, "__parameters__"):
+    # Language bug???
+    _GenericModal.__parameters__ = (_P,)
+
+
 @typing.overload
 def as_modal_template(callback: collections.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
     ...
