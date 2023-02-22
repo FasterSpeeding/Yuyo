@@ -1260,16 +1260,12 @@ def as_modal(
     return decorator
 
 
-class _GenericModal(Modal, typing.Generic[_P]):
+# Putting typing.Generic after Modal here breaks Python's generic handling.
+class _GenericModal(typing.Generic[_P], Modal):
     __slots__ = ()
 
     async def callback(self, *arg: _P.args, **kwargs: _P.kwargs) -> None:
         raise NotImplementedError
-
-
-if not typing.TYPE_CHECKING and not hasattr(_GenericModal, "__parameters__"):
-    # Language bug???
-    _GenericModal.__parameters__ = (_P,)
 
 
 @typing.overload
