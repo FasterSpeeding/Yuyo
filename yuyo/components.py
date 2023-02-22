@@ -2852,7 +2852,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows, is_button=True).add_button(
+        _append_row(cls._static_rows, cls._all_static_rows, is_button=True).add_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
         return cls
@@ -2976,7 +2976,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-        _append_row(cls._static_rows, is_button=True).add_link_button(
+        _append_row(cls._static_rows, cls._all_static_rows, is_button=True).add_link_button(
             url, emoji=emoji, label=label, is_disabled=is_disabled
         )
         return cls
@@ -3078,7 +3078,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows).add_select_menu(
+        _append_row(cls._static_rows, cls._all_static_rows).add_select_menu(
             callback,
             type_,
             custom_id=custom_id,
@@ -3238,7 +3238,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._static_rows).add_channel_select(
+        _append_row(cls._static_rows, cls._all_static_rows).add_channel_select(
             callback,
             custom_id=custom_id,
             channel_types=channel_types,
@@ -3396,7 +3396,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        return _append_row(cls._static_rows).add_text_select(
+        return _append_row(cls._static_rows, cls._all_static_rows).add_text_select(
             callback,
             custom_id=custom_id,
             placeholder=placeholder,
@@ -3406,10 +3406,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
 
-def _append_row(rows: list[ActionRowExecutor], *, is_button: bool = False) -> ActionRowExecutor:
-    if not rows or not rows[-1].is_full:
+def _append_row(
+    rows: list[ActionRowExecutor],
+    all_rows: typing.Optional[list[ActionRowExecutor]] = None,
+    /,
+    *,
+    is_button: bool = False,
+) -> ActionRowExecutor:
+    if not rows or rows[-1].is_full:
         row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
         rows.append(row)
+
+        if all_rows is not None:
+            all_rows.append(row)
+
         return row
 
     # This works since the other types all take up the whole row right now.
@@ -3418,6 +3428,10 @@ def _append_row(rows: list[ActionRowExecutor], *, is_button: bool = False) -> Ac
 
     row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
     rows.append(row)
+
+    if all_rows is not None:
+        all_rows.append(row)
+
     return row
 
 
