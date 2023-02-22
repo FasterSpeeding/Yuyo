@@ -822,17 +822,17 @@ class Modal(AbstractModal):
 
     ```py
     async def callback(
-        ctx: modals.ModalContext, input: str, other_input: str | None
+        ctx: modals.ModalContext, field: str, other_field: str | None
     ) -> None:
         await ctx.respond("hi")
 
     modal = (
         modals.modal(callback, ephemeral_default=True)
-        .add_text_input("Title A", parameter="input")
+        .add_text_input("Title A", parameter="field")
         .add_text_input(
             "Title B",
             style=hikari.TextInputStyle.PARAGRAPH,
-            parameter="other_input",
+            parameter="other_field",
             default=None,
         )
     )
@@ -844,13 +844,13 @@ class Modal(AbstractModal):
     @modals.with_text_input(
         "Title B",
         style=hikari.TextInputStyle.PARAGRAPH,
-        parameter="other_input",
+        parameter="other_field",
         default=None,
     )
-    @modals.with_text_input("Title A", parameter="input")
+    @modals.with_text_input("Title A", parameter="field")
     @modals.as_modal(ephemeral_default=True)
     async def callback(
-        ctx: modals.ModalContext, input: str, other_input: str
+        ctx: modals.ModalContext, field: str, field: str
     ) -> None:
         await ctx.respond("bye")
     ```
@@ -866,10 +866,10 @@ class Modal(AbstractModal):
     @modals.with_static_text_input(
         "Title B",
         style=hikari.TextInputStyle.PARAGRAPH,
-        parameter="other_input",
+        parameter="other_field",
         default=None,
     )
-    @modals.with_static_text_input("Title A", parameter="input")
+    @modals.with_static_text_input("Title A", parameter="field")
     class CustomModal(modals.Modal):
         # The init can be overridden to store extra data on the column object when subclassing.
         def __init__(self, special_string: str, ephemeral_default: bool = False):
@@ -878,8 +878,8 @@ class Modal(AbstractModal):
 
         async def callback(
             ctx: modals.ModalContext,
-            input: str,
-            other_input: str | None,
+            field: str,
+            other_field: str | None,
             value: str
         ) -> None:
             await ctx.respond("Good job")
@@ -894,15 +894,15 @@ class Modal(AbstractModal):
     @modals.with_static_text_input(
         "Title B",
         style=hikari.TextInputStyle.PARAGRAPH,
-        parameter="other_input",
+        parameter="other_field",
         default=None,
     )
-    @modals.with_static_text_input("Title A", parameter="input")
+    @modals.with_static_text_input("Title A", parameter="field")
     @modals.as_modal_template
     async def custom_modal(
         ctx: modals.ModalContext,
-        input: str,
-        other_input: str | None,
+        field: str,
+        other_field: str | None,
         value: str,
     ) -> None:
         await ctx.respond("Bye")
