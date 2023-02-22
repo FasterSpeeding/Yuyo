@@ -53,23 +53,25 @@ import abc
 import asyncio
 import datetime
 import enum
+import functools
 import itertools
 import typing
 from collections import abc as collections
 
 import alluka as alluka_
 import hikari
+import typing_extensions
 
 from . import _internal
 from . import components as components_
 
+_P = typing_extensions.ParamSpec("_P")
+
 if typing.TYPE_CHECKING:
     import types
 
-    import typing_extensions
     from typing_extensions import Self
 
-    _P = typing_extensions.ParamSpec("_P")
     _T = typing.TypeVar("_T")
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
@@ -1302,6 +1304,7 @@ def as_modal_template(
             def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
                 super().__init__(ephemeral_default=ephemeral_default)
 
+            @functools.wraps(callback_)
             async def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> None:
                 return await callback_(*args, **kwargs)
 
