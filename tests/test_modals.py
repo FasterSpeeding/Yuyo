@@ -401,7 +401,7 @@ def test_as_modal_template():
     modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
+    assert modal_cls.callback is mock_callback
 
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
@@ -415,7 +415,7 @@ def test_as_modal_template_with_defaults():
     modal_cls = modals.as_modal_template(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
+    assert modal_cls.callback is mock_callback
 
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
@@ -429,7 +429,7 @@ def test_as_modal_template_when_config_overriden_in_init_call():
     modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
+    assert modal_cls.callback is mock_callback
 
     modal = modal_cls(ephemeral_default=False)
     assert isinstance(modal, modals.Modal)
