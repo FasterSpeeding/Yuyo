@@ -2248,11 +2248,12 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         return bool(self._components)
 
-    def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> None:
+    def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> Self:
         if self._stored_type is not None and self._stored_type != type_:
             raise ValueError(f"{type_} component type cannot be added to a container which already holds {type_}")
 
         self._stored_type = type_
+        return self
 
     def add_component(self, component: hikari.api.ComponentBuilder, /) -> Self:
         """Add a sub-component to this action row.
@@ -2363,8 +2364,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             if isinstance(callback_or_url, str):
                 raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
 
-            self.set_callback(custom_id, callback_or_url)
-            self.add_component(
+            return self.set_callback(custom_id, callback_or_url).add_component(
                 hikari.impl.InteractiveButtonBuilder(
                     container=NotImplemented,
                     custom_id=custom_id,
@@ -2373,7 +2373,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                     is_disabled=is_disabled,
                 ).set_emoji(emoji)
             )
-            return self
 
         if not isinstance(callback_or_url, str):
             raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
@@ -2415,13 +2414,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ValueError
             If any of the sub-components in this action row aren't buttons.
         """
-        self._assert_can_add_type(hikari.ComponentType.BUTTON)
-        self.add_component(
+        return self._assert_can_add_type(hikari.ComponentType.BUTTON).add_component(
             hikari.impl.LinkButtonBuilder(
                 container=NotImplemented, style=hikari.ButtonStyle.LINK, url=url, label=label, is_disabled=is_disabled
             ).set_emoji(emoji)
         )
-        return self
 
     def add_select_menu(
         self,
@@ -2465,20 +2462,21 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             custom_id = _internal.random_custom_id()
 
         type_ = hikari.ComponentType(type_)
-        self._assert_can_add_type(type_)
-        self.set_callback(custom_id, callback)
-        self.add_component(
-            hikari.impl.special_endpoints.SelectMenuBuilder(
-                container=NotImplemented,
-                custom_id=custom_id,
-                type=type_,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+        return (
+            self._assert_can_add_type(type_)
+            .set_callback(custom_id, callback)
+            .add_component(
+                hikari.impl.special_endpoints.SelectMenuBuilder(
+                    container=NotImplemented,
+                    custom_id=custom_id,
+                    type=type_,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
         )
-        return self
 
     def add_channel_select(
         self,
@@ -2519,20 +2517,21 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if custom_id is None:
             custom_id = _internal.random_custom_id()
 
-        self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
-        self.set_callback(custom_id, callback)
-        self.add_component(
-            hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
-                container=NotImplemented,
-                custom_id=custom_id,
-                channel_types=_parse_channel_types(*channel_types) if channel_types else [],
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+        return (
+            self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
+            .set_callback(custom_id, callback)
+            .add_component(
+                hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+                    container=NotImplemented,
+                    custom_id=custom_id,
+                    channel_types=_parse_channel_types(*channel_types) if channel_types else [],
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
         )
-        return self
 
     def add_text_select(
         self,
@@ -2574,7 +2573,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if custom_id is None:
             custom_id = _internal.random_custom_id()
 
-        self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
         component = hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn](
             container=NotImplemented,  # type: ignore
             custom_id=custom_id,
@@ -2583,8 +2581,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self.set_callback(custom_id, callback)
-        self.add_component(component)
+        (
+            self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
+            .set_callback(custom_id, callback)
+            .add_component(component)
+        )
         return component
 
     def build(self) -> dict[str, typing.Any]:
