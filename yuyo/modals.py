@@ -689,7 +689,7 @@ class ModalClient:
             `.split(":", 1)[0]`.
 
             This allows for further state to be held in the custom id after the
-            prefix and is higher priority than normal custom id match.
+            prefix and is lower priority than normal custom id match.
         timeout
             Timeout strategy for this modal.
 
@@ -1002,7 +1002,7 @@ class Modal(AbstractModal):
             `.split(":", 1)[0]`.
 
             This allows for further state to be held in the custom id after the
-            prefix and is higher priority than normal custom id match.
+            prefix and is lower priority than normal custom id match.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1101,7 +1101,7 @@ class Modal(AbstractModal):
             `.split(":", 1)[0]`.
 
             This allows for further state to be held in the custom id after the
-            prefix and is higher priority than normal custom id match.
+            prefix and is lower priority than normal custom id match.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1381,7 +1381,7 @@ def with_static_text_input(
         `.split(":", 1)[0]`.
 
         This allows for further state to be held in the custom id after the
-        prefix and is higher priority than normal custom id match.
+        prefix and is lower priority than normal custom id match.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1458,7 +1458,7 @@ def with_text_input(
         `.split(":", 1)[0]`.
 
         This allows for further state to be held in the custom id after the
-        prefix and is higher priority than normal custom id match.
+        prefix and is lower priority than normal custom id match.
     parameter
         Name of the parameter the text for this field should be passed to.
 
