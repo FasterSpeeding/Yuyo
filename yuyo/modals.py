@@ -35,7 +35,6 @@ __all__ = [
     "AbstractModal",
     "AbstractTimeout",
     "BasicTimeout",
-    "CallbackSig",
     "Modal",
     "ModalClient",
     "ModalContext",
@@ -77,12 +76,6 @@ if typing.TYPE_CHECKING:
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
-
-
-CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
-"""Type hint of a modal callback."""
-
-_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
