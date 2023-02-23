@@ -682,10 +682,13 @@ class ModalClient:
         modal
             The modal to register.
         prefix_match
-            Whether the custom_id should be treated as a prefix match.
+            Whether `custom_id` should be matched as a prefix.
+
+            When this is [True][] `custom_id` will be matched against
+            `.split(":", 1)[0]`.
 
             This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
+            prefix and is higher priority than normal custom id match.
         timeout
             Timeout strategy for this modal.
 
@@ -992,7 +995,13 @@ class Modal(AbstractModal):
 
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
-            Whether `custom_id` should be matched as a prefix rather than through equal.
+            Whether `custom_id` should be matched as a prefix.
+
+            When this is [True][] `custom_id` will be matched against
+            `.split(":", 1)[0]`.
+
+            This allows for further state to be held in the custom id after the
+            prefix and is higher priority than normal custom id match.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1085,8 +1094,13 @@ class Modal(AbstractModal):
 
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
-            Whether `custom_id` should be matched against `.split(":", 1)[0]`
-            rather than the whole string.
+            Whether `custom_id` should be matched as a prefix.
+
+            When this is [True][] `custom_id` will be matched against
+            `.split(":", 1)[0]`.
+
+            This allows for further state to be held in the custom id after the
+            prefix and is higher priority than normal custom id match.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1360,7 +1374,13 @@ def with_static_text_input(
 
         This can be greater than or equal to 1 and less than or equal to 4000.
     prefix_match
-        Whether `custom_id` should be matched as a prefix rather than through equal.
+        Whether `custom_id` should be matched as a prefix.
+
+        When this is [True][] `custom_id` will be matched against
+        `.split(":", 1)[0]`.
+
+        This allows for further state to be held in the custom id after the
+        prefix and is higher priority than normal custom id match.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1431,7 +1451,13 @@ def with_text_input(
 
         This can be greater than or equal to 1 and less than or equal to 4000.
     prefix_match
-        Whether `custom_id` should be matched as a prefix rather than through equal.
+        Whether `custom_id` should be matched as a prefix.
+
+        When this is [True][] `custom_id` will be matched against
+        `.split(":", 1)[0]`.
+
+        This allows for further state to be held in the custom id after the
+        prefix and is higher priority than normal custom id match.
     parameter
         Name of the parameter the text for this field should be passed to.
 
