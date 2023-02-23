@@ -5,14 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-## [1.8.0a1.post1]
+## [1.8.0a1.post1] - 2023-02-23
 ### Fixed
 - The [yuyo.components.ComponentPaginator][] will no-longer send a new message with "MESSAGE_UPDATE" as
   the content when the last entry button is pressed for the first time instead of marking it as loading.
 - The [yuyo.components.ComponentPaginator][] will no-longer create a new message with "MESSAGE_UPDATE"
   as the content instead of giving a noop update response.
 
-## [1.8.0a1]
+## [1.8.0a1] - 2023-02-23
 ### Added
 - `timeout` config to [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
 - `bot_managed` config to [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot].
