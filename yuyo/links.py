@@ -87,10 +87,7 @@ class BaseLink(abc.ABC):
         Self | None
             Object of the found link or [None][].
         """
-        if result := next(cls.find_iter(app, content), None):
-            return result
-
-        return None  # MyPy compat
+        return next(cls.find_iter(app, content), None)
 
     @classmethod
     def find_iter(cls, app: hikari.RESTAware, content: str, /) -> collections.Iterator[Self]:
