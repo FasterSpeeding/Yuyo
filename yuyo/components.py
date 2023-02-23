@@ -4165,7 +4165,7 @@ class ComponentPaginator(ActionRowExecutor):
                 .set_emoji(878377505344614461)
                 .add_to_container()
             )
-            await ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE, component=loading_component)
+            await ctx.create_initial_response(component=loading_component, response_type=hikari.ResponseType.MESSAGE_UPDATE)
             self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
             self._index = len(self._buffer) - 1
             self._iterator = None
@@ -4196,4 +4196,4 @@ class ComponentPaginator(ActionRowExecutor):
 
 def _noop(ctx: ComponentContext, /) -> collections.Coroutine[typing.Any, typing.Any, None]:
     """Create a noop initial response to a component context."""
-    return ctx.create_initial_response(hikari.ResponseType.MESSAGE_UPDATE)
+    return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
