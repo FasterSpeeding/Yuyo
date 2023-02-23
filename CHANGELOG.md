@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   should be used instead.
 
 ### Fixed
-- The `add_{}_button` on [ComponentPaginator][yuyo.components.ComponentPaginator][] now ignore
+- The `add_{}_button` methods on [ComponentPaginator][yuyo.components.ComponentPaginator] now ignore
   `emoji` when `label` is passed to avoid erroring when users don't explicitly unset the
   default for `emoji`.
 
