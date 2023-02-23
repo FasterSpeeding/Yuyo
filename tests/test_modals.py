@@ -339,101 +339,154 @@ class TestModal:
         ...
 
 
-def test_modal():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
+@pytest.mark.asyncio()
+async def test_modal():
+    mock_ctx = mock.Mock()
+    mock_callback = mock.AsyncMock()
 
-    modal = modals.modal(mock_callback, ephemeral_default=True)
+    async def callback(ctx: modals.ModalContext, value: int, /, *, other: str) -> None:
+        return await mock_callback(ctx, value, other=other)
+
+    modal = modals.modal(callback, ephemeral_default=True)
 
     assert isinstance(modal, modals.Modal)
-    assert modal.callback is mock_callback
     assert modal._ephemeral_default is True
 
+    result = await modal.callback(mock_ctx, 123, other="543")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, 123, other="543")
 
-def test_modal_with_defaults():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal = modals.modal(mock_callback)
+@pytest.mark.asyncio()
+async def test_modal_with_defaults():
+    mock_ctx = mock.Mock()
+    mock_callback = mock.AsyncMock()
+
+    async def callback(ctx: modals.ModalContext, meow: str, /, *, nyaa: str) -> None:
+        return await mock_callback(ctx, meow, nyaa=nyaa)
+
+    modal = modals.modal(callback)
 
     assert isinstance(modal, modals.Modal)
-    assert modal.callback is mock_callback
     assert modal._ephemeral_default is False
 
+    result = await modal.callback(mock_ctx, "432", nyaa="3234")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, "432", nyaa="3234")
 
-def test_as_modal():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal = modals.as_modal(ephemeral_default=True)(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal():
+    mock_ctx = mock.Mock()
+    mock_callback = mock.AsyncMock()
+
+    async def callback(ctx: modals.ModalContext, of: int, /, *, accused: int) -> None:
+        return await mock_callback(ctx, of, accused=accused)
+
+    modal = modals.as_modal(ephemeral_default=True)(callback)
 
     assert isinstance(modal, modals.Modal)
-    assert modal.callback is mock_callback
     assert modal._ephemeral_default is True
 
+    result = await modal.callback(mock_ctx, 123, accused=54444)
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, 123, accused=54444)
 
-def test_as_modal_with_defaults():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal = modals.as_modal(ephemeral_default=True)(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal_with_defaults():
+    mock_ctx = mock.Mock()
+    mock_callback = mock.AsyncMock()
+
+    async def callback(ctx: modals.ModalContext, up: bool, /, *, echo: bytes) -> None:
+        return await mock_callback(ctx, up, echo=echo)
+
+    modal = modals.as_modal(ephemeral_default=True)(callback)
 
     assert isinstance(modal, modals.Modal)
-    assert modal.callback is mock_callback
     assert modal._ephemeral_default is True
 
+    result = await modal.callback(mock_ctx, True, echo=b"fdsasda")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, True, echo=b"fdsasda")
 
-def test_as_modal_with_defaults_when_no_parameters_supplied():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal = modals.as_modal(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal_with_defaults_when_no_parameters_supplied():
+    mock_ctx = mock.Mock()
+    mock_callback = mock.AsyncMock()
+
+    async def callback(ctx: modals.ModalContext, value: bytes, /, *, other: bytes) -> None:
+        return await mock_callback(ctx, value, other=other)
+
+    modal = modals.as_modal(callback)
 
     assert isinstance(modal, modals.Modal)
-    assert modal.callback is mock_callback
     assert modal._ephemeral_default is False
 
+    result = await modal.callback(mock_ctx, b"true", other=b"dfsaasd")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, b"true", other=b"dfsaasd")
 
-def test_as_modal_template():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal_template():
+    mock_callback = mock.AsyncMock()
+    mock_ctx = mock.Mock()
+
+    async def callback(ctx: modals.ModalContext, user: int, /, *, other: str) -> None:
+        return await mock_callback(ctx, user, other=other)
+
+    modal_cls = modals.as_modal_template(ephemeral_default=True)(callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
-
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
     assert modal._ephemeral_default is True
 
+    result = await modal.callback(mock_ctx, 123, other="hi")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, 123, other="hi")
 
-def test_as_modal_template_with_defaults():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal_cls = modals.as_modal_template(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal_template_with_defaults():
+    mock_callback = mock.AsyncMock()
+    mock_ctx = mock.Mock()
+
+    async def callback(ctx: modals.ModalContext, member: str, /, *, none: bool) -> None:
+        return await mock_callback(ctx, member, none=none)
+
+    modal_cls = modals.as_modal_template(callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
-
     modal = modal_cls()
     assert isinstance(modal, modals.Modal)
     assert modal._ephemeral_default is False
 
+    result = await modal.callback(mock_ctx, "these days it's", none=True)
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, "these days it's", none=True)
 
-def test_as_modal_template_when_config_overriden_in_init_call():
-    async def mock_callback(ctx: modals.ModalContext) -> None:
-        ...
 
-    modal_cls = modals.as_modal_template(ephemeral_default=True)(mock_callback)
+@pytest.mark.asyncio()
+async def test_as_modal_template_when_config_overriden_in_init_call():
+    mock_callback = mock.AsyncMock()
+    mock_ctx = mock.Mock()
+
+    async def callback(ctx: modals.ModalContext, thing: str, /, *, other_thing: str) -> None:
+        return await mock_callback(ctx, thing, other_thing=other_thing)
+
+    modal_cls = modals.as_modal_template(ephemeral_default=True)(callback)
 
     assert issubclass(modal_cls, modals.Modal)
-    assert modal_cls.callback is mock_callback  # pyright: ignore [ reportGeneralTypeIssues ]
-
     modal = modal_cls(ephemeral_default=False)
     assert isinstance(modal, modals.Modal)
     assert modal._ephemeral_default is False
+
+    result = await modal.callback(mock_ctx, "why don't we", other_thing="keep it coming back")
+    assert result is mock_callback.return_value
+    mock_callback.assert_awaited_once_with(mock_ctx, "why don't we", other_thing="keep it coming back")
 
 
 def test_with_static_text_input():
