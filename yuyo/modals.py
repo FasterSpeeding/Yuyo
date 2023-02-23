@@ -610,23 +610,24 @@ class ModalClient:
         if not isinstance(event.interaction, hikari.ModalInteraction):
             return
 
+        if (entry := self._modals.get(event.interaction.custom_id)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._modals[event.interaction.custom_id]
+
+            await self._execute_modal(entry[1], event.interaction)
+            return
+
         prefix = event.interaction.custom_id.split(":", 1)[0]
         if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
             if entry[0].increment_uses():
                 del self._prefix_ids[prefix]
 
             await self._execute_prefix_modal(entry[1], event.interaction)
+            return
 
-        elif (entry := self._modals.get(event.interaction.custom_id)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._modals[event.interaction.custom_id]
-
-            await self._execute_modal(entry[1], event.interaction)
-
-        else:
-            await event.interaction.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This modal has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
-            )
+        await event.interaction.create_initial_response(
+            hikari.ResponseType.MESSAGE_CREATE, "This modal has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
+        )
 
     async def on_rest_request(self, interaction: hikari.ModalInteraction, /) -> _ModalResponseT:
         """Process a modal interaction REST request.
@@ -641,6 +642,14 @@ class ModalClient:
         hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
             The REST re sponse.
         """
+        if (entry := self._modals.get(interaction.custom_id)) and not entry[0].has_expired:
+            if entry[0].increment_uses():
+                del self._modals[interaction.custom_id]
+
+            future = asyncio.Future()
+            self._add_task(asyncio.create_task(self._execute_modal(entry[1], interaction, future=future)))
+            return await future
+
         prefix = interaction.custom_id.split(":", 1)[0]
         if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
             if entry[0].increment_uses():
@@ -648,14 +657,6 @@ class ModalClient:
 
             future: asyncio.Future[_ModalResponseT] = asyncio.Future()
             self._add_task(asyncio.create_task(self._execute_prefix_modal(entry[1], interaction, future=future)))
-            return await future
-
-        if (entry := self._modals.get(interaction.custom_id)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._modals[interaction.custom_id]
-
-            future = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_modal(entry[1], interaction, future=future)))
             return await future
 
         return (
