@@ -1379,8 +1379,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractTimeout.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -1576,17 +1576,17 @@ when calling <code>create_modal_response</code>.</p>
 <p>Sub-components can be added to an instance of a modal using chainable
 methods:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
-    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_input</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
 
 <span class="n">modal</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">modals</span><span class="o">.</span><span class="n">modal</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span>
         <span class="s2">&quot;Title B&quot;</span><span class="p">,</span>
         <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span>
-        <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_input&quot;</span><span class="p">,</span>
+        <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
@@ -1595,13 +1595,13 @@ methods:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span>
     <span class="s2">&quot;Title B&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span>
-    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_input&quot;</span><span class="p">,</span>
+    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span>
     <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
-    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_input</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;bye&quot;</span><span class="p">)</span>
 </code></pre></div>
@@ -1615,10 +1615,10 @@ through decorator calls will follow the same order.</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span>
     <span class="s2">&quot;Title B&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span>
-    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_input&quot;</span><span class="p">,</span>
+    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span>
     <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CustomModal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
     <span class="c1"># The init can be overridden to store extra data on the column object when subclassing.</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">special_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
@@ -1627,8 +1627,8 @@ through decorator calls will follow the same order.</p>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
         <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span>
-        <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">other_input</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">value</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;Good job&quot;</span><span class="p">)</span>
@@ -1640,15 +1640,15 @@ defining the method <code>callback</code> for handling context  menu execution
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span>
     <span class="s2">&quot;Title B&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span>
-    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_input&quot;</span><span class="p">,</span>
+    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span>
     <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">custom_modal</span><span class="p">(</span>
     <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">other_input</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;Bye&quot;</span><span class="p">)</span>
@@ -3745,7 +3745,7 @@ passed flags.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><span title="yuyo.modals._CallbackSigT">_CallbackSigT</span></code>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Callable">Callable</a>[<span title="yuyo.modals._P">_P</span>, <span title="yuyo.modals._CoroT">_CoroT</span>[None]]</code>
                 </span>
             </p>
           </td>
