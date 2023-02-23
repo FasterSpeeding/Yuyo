@@ -945,7 +945,7 @@ class Modal(AbstractModal):
                 cls._all_static_fields.extend(super_cls._static_fields)
                 cls._all_static_rows.extend(super_cls._static_rows)
 
-    callback: collections.Callable[_SelfishSig[Self], _CoroT[None]]
+    callback: typing.ClassVar[collections.Callable[_SelfishSig[Self], _CoroT[None]]]
 
     @property
     def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
@@ -1199,15 +1199,18 @@ def _make_text_input(
     return (custom_id, row)
 
 
-class _DynamicModal(Modal, typing.Generic[_CallbackSigT]):
-    __slots__ = ("callback",)
+class _DynamicModal(Modal, typing.Generic[_P]):
+    __slots__ = ("_callback",)
 
-    def __init__(self, callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> None:
+    def __init__(self, callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self.callback: _CallbackSigT = callback
+        self._callback: collections.Callable[_P, _CoroT[None]] = callback
+
+    def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
+        return self._callback(*args, **kwargs)
 
 
-def modal(callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> _DynamicModal[_CallbackSigT]:
+def modal(callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> _DynamicModal[_P]:
     """Create a modal instance for a callback.
 
     Parameters
@@ -1226,18 +1229,20 @@ def modal(callback: _CallbackSigT, /, *, ephemeral_default: bool = False) -> _Dy
 
 
 @typing.overload
-def as_modal(callback: _CallbackSigT, /) -> _DynamicModal[_CallbackSigT]:
+def as_modal(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
     ...
 
 
 @typing.overload
-def as_modal(*, ephemeral_default: bool = False) -> collections.Callable[[_CallbackSigT], _DynamicModal[_CallbackSigT]]:
+def as_modal(
+    *, ephemeral_default: bool = False
+) -> collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
     ...
 
 
 def as_modal(
-    callback: typing.Optional[_CallbackSigT] = None, /, *, ephemeral_default: bool = False
-) -> typing.Union[_DynamicModal[_CallbackSigT], collections.Callable[[_CallbackSigT], _DynamicModal[_CallbackSigT]]]:
+    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
+) -> typing.Union[_DynamicModal[_P], collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]]:
     """Create a modal instance through a decorator call.
 
     Parameters
@@ -1251,8 +1256,8 @@ def as_modal(
         The new decorated modal.
     """
 
-    def decorator(callback: _CallbackSigT, /) -> _DynamicModal[_CallbackSigT]:
-        return _DynamicModal(callback, ephemeral_default=ephemeral_default)
+    def decorator(callback: _P, /) -> _DynamicModal[_P]:
+        return modal(callback, ephemeral_default=ephemeral_default)
 
     if callback:
         return decorator(callback)
@@ -1306,8 +1311,8 @@ def as_modal_template(
                 super().__init__(ephemeral_default=ephemeral_default)
 
             @functools.wraps(callback_)
-            async def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> None:
-                return await callback_(*args, **kwargs)
+            def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
+                return callback_(*args, **kwargs)
 
         return ModalTemplate
 
