@@ -688,8 +688,8 @@ class ModalClient:
             When this is [True][] `custom_id` will be matched against
             `.split(":", 1)[0]`.
 
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
+            This allows for further state to be held in the custom ID after the
+            prefix and is lower priority than normal matching.
         timeout
             Timeout strategy for this modal.
 
@@ -1001,8 +1001,8 @@ class Modal(AbstractModal):
             When this is [True][] `custom_id` will be matched against
             `.split(":", 1)[0]`.
 
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
+            This allows for further state to be held in the custom ID after the
+            prefix and is lower priority than normal matching.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1100,8 +1100,8 @@ class Modal(AbstractModal):
             When this is [True][] `custom_id` will be matched against
             `.split(":", 1)[0]`.
 
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
+            This allows for further state to be held in the custom ID after the
+            prefix and is lower priority than normal matching.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1380,8 +1380,8 @@ def with_static_text_input(
         When this is [True][] `custom_id` will be matched against
         `.split(":", 1)[0]`.
 
-        This allows for further state to be held in the custom id after the
-        prefix and is lower priority than normal custom id match.
+        This allows for further state to be held in the custom ID after the
+        prefix and is lower priority than normal matching.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1457,8 +1457,8 @@ def with_text_input(
         When this is [True][] `custom_id` will be matched against
         `.split(":", 1)[0]`.
 
-        This allows for further state to be held in the custom id after the
-        prefix and is lower priority than normal custom id match.
+        This allows for further state to be held in the custom ID after the
+        prefix and is lower priority than normal matching.
     parameter
         Name of the parameter the text for this field should be passed to.
 
