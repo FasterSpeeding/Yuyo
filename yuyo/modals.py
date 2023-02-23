@@ -1249,7 +1249,7 @@ def as_modal(
         The new decorated modal.
     """
 
-    def decorator(callback: _P, /) -> _DynamicModal[_P]:
+    def decorator(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
         return modal(callback, ephemeral_default=ephemeral_default)
 
     if callback:
