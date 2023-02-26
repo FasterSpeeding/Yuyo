@@ -860,7 +860,7 @@ class AsgiBot(hikari.RESTBotAware):
             registered_callback = self._on_shutdown.pop(callback)
 
         except KeyError:
-            pass
+            raise ValueError(callback) from None
 
         else:
             self._adapter.remove_shutdown_callback(registered_callback)
@@ -907,7 +907,7 @@ class AsgiBot(hikari.RESTBotAware):
             registered_callback = self._on_startup.pop(callback)
 
         except KeyError:
-            pass
+            raise ValueError(callback) from None
 
         else:
             self._adapter.remove_startup_callback(registered_callback)
