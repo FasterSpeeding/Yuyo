@@ -475,6 +475,11 @@ class ServiceManager(AbstractManager):
     ) -> None:
         """Initialise a service manager.
 
+        !!! note
+            For an easier way to initialise the manager from a bot see
+            [ServiceManager.from_gateway_bot][yuyo.list_status.ServiceManager.from_gateway_bot],
+            and [ServiceManager.from_tanjun][yuyo.list_status.ServiceManager.from_tanjun].
+
         Parameters
         ----------
         rest
