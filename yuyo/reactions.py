@@ -757,7 +757,7 @@ class ReactionClient:
             If [tanjun.abc.Client.events] is None.
         """
         import tanjun
-        
+
         if not tanjun_client.events:
             raise ValueError("Cannot build from a tanjun client with no event manager")
 

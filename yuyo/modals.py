@@ -67,9 +67,9 @@ from . import components as components_
 _P = typing_extensions.ParamSpec("_P")
 
 if typing.TYPE_CHECKING:
-    import tanjun
     import types
 
+    import tanjun
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
@@ -537,7 +537,7 @@ class ModalClient:
             The initialised modal client.
         """
         import tanjun
-        
+
         client = cls(event_manager=tanjun_client.events, server=tanjun_client.server)
         tanjun_client.set_type_dependency(ModalClient, client)
 

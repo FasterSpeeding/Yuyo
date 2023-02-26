@@ -133,9 +133,7 @@ class TestComponentClient:
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
-        mock_bot.set_type_dependency.assert_called_once_with(
-            yuyo.ComponentClient, stub_client
-        )
+        mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_not_called()
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
@@ -152,13 +150,11 @@ class TestComponentClient:
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
-        mock_bot.set_type_dependency.assert_called_once_with(
-            yuyo.ComponentClient, stub_client
-        )
+        mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_has_called(
             [
                 mock.call(tanjun.ClientCallbackNames.STARTING, stub_client.open),
-                mock.call(tanjun.ClientCallbackNames.CLOSING, stub_client.close)
+                mock.call(tanjun.ClientCallbackNames.CLOSING, stub_client.close),
             ]
         )
 

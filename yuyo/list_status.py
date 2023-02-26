@@ -61,8 +61,8 @@ import hikari.snowflakes
 from . import backoff
 
 if typing.TYPE_CHECKING:
-    import tanjun
     import sake
+    import tanjun
     from hikari import traits
     from typing_extensions import Self
 
@@ -591,11 +591,17 @@ class ServiceManager(AbstractManager):
         )
 
     @classmethod
-    def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True,
+    def from_tanjun(
+        cls,
+        tanjun_client: tanjun.abc.Client,
+        /,
+        *,
+        tanjun_managed: bool = True,
         strategy: typing.Optional[AbstractCountStrategy] = None,
-        user_agent: typing.Optional[str] = None,) -> Self:
+        user_agent: typing.Optional[str] = None,
+    ) -> Self:
         import tanjun
-        
+
         client = cls(
             tanjun_client.rest,
             cache=tanjun_client.cache,

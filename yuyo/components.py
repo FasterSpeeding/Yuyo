@@ -68,12 +68,12 @@ from . import _internal
 from . import pagination
 
 if typing.TYPE_CHECKING:
-    import tanjun
     import types
 
     import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports  # noqa: TC004
     import hikari.api.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
     import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
+    import tanjun
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
@@ -1684,7 +1684,7 @@ class ComponentClient:
             The initialised component client.
         """
         import tanjun
-        
+
         client = cls(event_manager=tanjun_client.events, server=tanjun_client.server)
         tanjun_client.set_type_dependency(ComponentClient, client)
 

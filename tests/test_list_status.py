@@ -605,7 +605,9 @@ class TestServiceManager:
         mock_counter = mock.AsyncMock()
         mock_bot = mock.AsyncMock(event_manager=mock.Mock())
 
-        manager = list_status.ServiceManager.from_tanjun(mock_bot, tanjun_managed=False, user_agent="meowers", strategy=mock_counter)
+        manager = list_status.ServiceManager.from_tanjun(
+            mock_bot, tanjun_managed=False, user_agent="meowers", strategy=mock_counter
+        )
 
         assert manager.counter is mock_counter
         assert manager.rest is mock_bot.rest
