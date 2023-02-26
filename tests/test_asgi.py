@@ -1449,7 +1449,8 @@ class TestAsgiBot:
         mock_callback = mock.AsyncMock()
         bot = yuyo.AsgiBot("yeet", "Bot")
 
-        bot.remove_shutdown_callback(mock_callback)
+        with pytest.raises(ValueError, match=str(mock_callback)):
+            bot.remove_shutdown_callback(mock_callback)
 
         assert bot.on_shutdown == []
         assert len(bot._adapter.on_shutdown) == 1
@@ -1501,7 +1502,8 @@ class TestAsgiBot:
         mock_callback = mock.AsyncMock()
         bot = yuyo.AsgiBot("yeet", "Bot")
 
-        bot.remove_startup_callback(mock_callback)
+        with pytest.raises(ValueError, match=str(mock_callback)):
+            bot.remove_startup_callback(mock_callback)
 
         assert bot.on_startup == []
         assert len(bot._adapter.on_startup) == 1
