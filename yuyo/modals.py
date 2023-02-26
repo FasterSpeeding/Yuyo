@@ -69,6 +69,7 @@ _P = typing_extensions.ParamSpec("_P")
 if typing.TYPE_CHECKING:
     import types
 
+    import tanjun
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
@@ -476,7 +477,7 @@ class ModalClient:
 
     @classmethod
     def from_gateway_bot(cls, bot: hikari.EventManagerAware, /, *, event_managed: bool = True) -> Self:
-        """Build a modal client froma Gateway Bot.
+        """Build a modal client from a Gateway Bot.
 
         Parameters
         ----------
@@ -495,7 +496,7 @@ class ModalClient:
 
     @classmethod
     def from_rest_bot(cls, bot: hikari.RESTBotAware, /, *, bot_managed: bool = False) -> Self:
-        """Build a modal client froma REST Bot.
+        """Build a modal client from a REST Bot.
 
         Parameters
         ----------
@@ -515,6 +516,34 @@ class ModalClient:
         if bot_managed:
             bot.add_startup_callback(client._on_starting)
             bot.add_shutdown_callback(client._on_stopping)
+
+        return client
+
+    @classmethod
+    def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
+        """Build a modal client from a Tanjun client.
+
+        Parameters
+        ----------
+        tanjun_client
+            The Tanjun client this modal client should be bound to.
+        tanjun_managed
+            Whether the modal client should be automatically opened and
+            closed based on the Tanjun client's lifetime client callback.
+
+        Returns
+        -------
+        ModalClient
+            The initialised modal client.
+        """
+        import tanjun
+
+        client = cls(event_manager=tanjun_client.events, server=tanjun_client.server)
+        tanjun_client.set_type_dependency(ModalClient, client)
+
+        if tanjun_managed:
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
 
         return client
 

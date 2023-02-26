@@ -4,3 +4,4 @@ typing_extensions>=4.5
 asgiref~=3.0
 hikari[server]
 hikari-sake>=1.0.4a1, <2
+hikari-tanjun>=2.11.0, <3

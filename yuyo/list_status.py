@@ -62,6 +62,7 @@ from . import backoff
 
 if typing.TYPE_CHECKING:
     import sake
+    import tanjun
     from hikari import traits
     from typing_extensions import Self
 
@@ -588,6 +589,64 @@ class ServiceManager(AbstractManager):
             strategy=strategy,
             user_agent=user_agent,
         )
+
+    @classmethod
+    def from_tanjun(
+        cls,
+        tanjun_client: tanjun.abc.Client,
+        /,
+        *,
+        tanjun_managed: bool = True,
+        strategy: typing.Optional[AbstractCountStrategy] = None,
+        user_agent: typing.Optional[str] = None,
+    ) -> Self:
+        """Build a service manager from a Tanjun client.
+
+        Parameters
+        ----------
+        tanjun_client
+            The Tanjun client to build a service manager from.
+        tanjun_managed
+            Whether this client should be automatically opened and closed based
+            on the Tanjun client's lifetime client callback.
+        strategy
+            The counter strategy this manager should expose to services.
+
+            If this is left as [None][] then the manager will try to pick
+            a suitable standard strategy based on the provided Hikari clients.
+        user_agent
+            Override the standard user agent used during requests to bot list services.
+
+        Returns
+        -------
+        ServiceManager
+            The build service manager.
+
+        Raises
+        ------
+        ValueError
+            If the manager failed to find a suitable standard strategy to use
+            when `strategy` was left as [None][].
+        """
+        import tanjun
+
+        client = cls(
+            tanjun_client.rest,
+            cache=tanjun_client.cache,
+            event_manager=tanjun_client.events,
+            shards=tanjun_client.shards,
+            strategy=strategy,
+            user_agent=user_agent,
+            event_managed=False,
+        )
+        tanjun_client.set_type_dependency(ServiceManager, client)
+        tanjun_client.set_type_dependency(AbstractManager, client)
+
+        if tanjun_managed:
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+
+        return client
 
     @property
     def is_alive(self) -> bool:

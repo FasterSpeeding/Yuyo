@@ -47,6 +47,7 @@ from . import _internal
 from . import pagination
 
 if typing.TYPE_CHECKING:
+    import tanjun
     from hikari.api import event_manager as event_manager_api
     from typing_extensions import Self
 
@@ -732,6 +733,42 @@ class ReactionClient:
             The reaction client for the bot.
         """
         return cls(rest=bot.rest, event_manager=bot.event_manager, event_managed=event_managed)
+
+    @classmethod
+    def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
+        """Build a `ReactionClient` from a gateway bot.
+
+        Parameters
+        ----------
+        tanjun_client
+            The tanjun client to build a reaction client for.
+        tanjun_managed
+            Whether the reaction client should be automatically opened and
+            closed based on the Tanjun client's lifetime client callback.
+
+        Returns
+        -------
+        ReactionClient
+            The reaction client for the bot.
+
+        Raises
+        ------
+        ValueError
+            If [tanjun.abc.Client.events] is None.
+        """
+        import tanjun
+
+        if not tanjun_client.events:
+            raise ValueError("Cannot build from a tanjun client with no event manager")
+
+        client = cls(rest=tanjun_client.rest, event_manager=tanjun_client.events)
+        tanjun_client.set_type_dependency(ReactionClient, client)
+
+        if tanjun_managed:
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+
+        return client
 
     async def _gc(self) -> None:
         while True:
