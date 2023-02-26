@@ -32,7 +32,7 @@ dynamic = ["description"]
 [project.optional-dependencies]
 asgi = ["asgiref~=3.0", "hikari[server]"]
 sake = ["hikari-sake>=1.0.4a1, <2"]
-tanjun = ["hikari-tanjun>=v2.11.0, <3"]
+tanjun = ["hikari-tanjun>=2.11.0, <3"]
 
 [project.urls]
 Homepage = "https://github.com/FasterSpeeding/Yuyo"
