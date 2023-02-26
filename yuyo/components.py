@@ -1624,13 +1624,24 @@ class ComponentClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: hikari.EventManagerAware, /, *, event_managed: bool = True) -> Self:
+    def from_gateway_bot(
+        cls,
+        bot: hikari.EventManagerAware,
+        /,
+        *,
+        alluka: typing.Optional[alluka_.abc.Client] = None,
+        event_managed: bool = True,
+    ) -> Self:
         """Build a component client froma Gateway Bot.
 
         Parameters
         ----------
         bot
             The Gateway bot this component client should be bound to.
+        alluka
+            The Alluka client to use for callback dependency injection in this client.
+
+            If not provided then this will initialise its own Alluka client.
         event_managed
             Whether the component client should be automatically opened and
             closed based on the lifetime events dispatched by `bot`.
@@ -1640,16 +1651,27 @@ class ComponentClient:
         ComponentClient
             The initialised component client.
         """
-        return cls(event_manager=bot.event_manager, event_managed=event_managed)
+        return cls(alluka=alluka, event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
-    def from_rest_bot(cls, bot: hikari.RESTBotAware, /, *, bot_managed: bool = False) -> Self:
+    def from_rest_bot(
+        cls,
+        bot: hikari.RESTBotAware,
+        /,
+        *,
+        alluka: typing.Optional[alluka_.abc.Client] = None,
+        bot_managed: bool = False,
+    ) -> Self:
         """Build a component client froma REST Bot.
 
         Parameters
         ----------
         bot
             The REST bot this component client should be bound to.
+        alluka
+            The Alluka client to use for callback dependency injection in this client.
+
+            If not provided then this will initialise its own Alluka client.
         bot_managed
             Whether the component client should be automatically opened and
             closed based on the Bot's startup and shutdown callbacks.
@@ -1659,7 +1681,7 @@ class ComponentClient:
         ComponentClient
             The initialised component client.
         """
-        client = cls(server=bot.interaction_server)
+        client = cls(alluka=alluka, server=bot.interaction_server)
 
         if bot_managed:
             bot.add_startup_callback(client._on_starting)
@@ -1686,7 +1708,7 @@ class ComponentClient:
         """
         import tanjun
 
-        client = cls(event_manager=tanjun_client.events, server=tanjun_client.server)
+        client = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
         tanjun_client.set_type_dependency(ComponentClient, client)
 
         if tanjun_managed:
