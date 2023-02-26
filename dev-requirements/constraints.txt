@@ -345,6 +345,9 @@ frozenlist==1.3.3 ; python_full_version >= "3.9.0" and python_version < "3.12" \
 hikari-sake==1.0.7 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:7f163acc889869df0a423e7804a7a5686ccc028ec33afdee4b8fdaf305a1c286 \
     --hash=sha256:9a941706192c2d769601c5f2665c26233960c552807e8f12411640f0b0a61316
+hikari-tanjun==2.11.4 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:3616cbf238b006b88daa3916932947993124344ae013fb523785673d4542c267 \
+    --hash=sha256:8ff718f11c4e5ae5958e1a719fa84773db7e4c88e09a8e2faf84d920b70c44af
 hikari==2.0.0.dev116 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:0e1d0bdfe777a6c16cdda7807b49d93c0a0da39ab369683955491d3d10963c90 \
     --hash=sha256:f78f5f828eff4c44484ca251555a19f0424366aa87a0092dbaceae9b039e0ab4
