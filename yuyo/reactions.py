@@ -55,7 +55,6 @@ if typing.TYPE_CHECKING:
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
     _ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 
-
     # This doesn't enforce ShardAware (unlike yuyo._internal.GatewayBotProto)
     class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
         """Protocol of a cacheless Hikari Gateway bot."""
@@ -94,7 +93,9 @@ class AbstractReactionHandler(abc.ABC):
         """
 
     @abc.abstractmethod
-    async def on_reaction_event(self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
+    async def on_reaction_event(
+        self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
+    ) -> None:
         """Handle a reaction event.
 
         Parameters
@@ -236,7 +237,9 @@ class ReactionHandler(AbstractReactionHandler):
 
         return decorator
 
-    async def on_reaction_event(self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
+    async def on_reaction_event(
+        self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
+    ) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             asyncio.create_task(self.close())
