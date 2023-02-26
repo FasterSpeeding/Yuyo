@@ -759,7 +759,7 @@ class ReactionClient:
         Raises
         ------
         ValueError
-            If [tanjun.abc.Client.events] is None.
+            If [tanjun.abc.Client.events][] is None.
         """
         import tanjun
 
