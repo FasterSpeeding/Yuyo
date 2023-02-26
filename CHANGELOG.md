@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `from_tanjun` convenience classmethods for initalising from a Tanjun client to
+- `from_tanjun` convenience classmethods for initialising from a Tanjun client to
   [ReactionClient][yuyo.reactions.ReactionClient], [ModalClient][yuyo.modals.ModalClient],
   [ServiceManager][yuyo.list_status.ServiceManager] and [ComponentClient][yuyo.modals.ModalClient].
 

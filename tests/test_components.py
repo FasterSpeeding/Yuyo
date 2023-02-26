@@ -134,10 +134,15 @@ class TestComponentClient:
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
         mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
-        mock_bot.add_client_callback.assert_not_called()
+        mock_bot.add_client_callback.assert_has_calls(
+            [
+                mock.call(tanjun.ClientCallbackNames.STARTING, stub_client.open),
+                mock.call(tanjun.ClientCallbackNames.CLOSING, stub_client.close),
+            ]
+        )
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
-    def test_from_tanjun_when_tanjun_managed(self):
+    def test_from_tanjun_when_not_tanjun_managed(self):
         assert tanjun
 
         mock_bot = mock.Mock()
@@ -146,17 +151,12 @@ class TestComponentClient:
         class StubClient(yuyo.ComponentClient):
             __init__ = mock_init
 
-        stub_client = StubClient.from_tanjun(mock_bot, tanjun_managed=True)
+        stub_client = StubClient.from_tanjun(mock_bot, tanjun_managed=False)
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
         mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
-        mock_bot.add_client_callback.assert_has_called(
-            [
-                mock.call(tanjun.ClientCallbackNames.STARTING, stub_client.open),
-                mock.call(tanjun.ClientCallbackNames.CLOSING, stub_client.close),
-            ]
-        )
+        mock_bot.add_client_callback.assert_not_called()
 
     @pytest.mark.asyncio()
     async def test__on_starting(self):

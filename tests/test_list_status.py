@@ -603,7 +603,7 @@ class TestServiceManager:
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
     def test_from_tanjun_when_optional_kwargs_provided(self):
         mock_counter = mock.AsyncMock()
-        mock_bot = mock.AsyncMock(event_manager=mock.Mock())
+        mock_bot = mock.Mock()
 
         manager = list_status.ServiceManager.from_tanjun(
             mock_bot, tanjun_managed=False, user_agent="meowers", strategy=mock_counter
@@ -621,12 +621,12 @@ class TestServiceManager:
     def test_from_tanjun(self):
         assert tanjun
 
-        mock_counter = mock.AsyncMock()
-        mock_bot = mock.AsyncMock(event_manager=mock.Mock())
+        mock_bot = mock.Mock()
+        mock_bot.cache.settings.components = hikari.api.CacheComponents.ALL
+        mock_bot.shards.intents = hikari.Intents.ALL
 
-        manager = list_status.ServiceManager.from_tanjun(mock_bot, user_agent="meowers")
+        manager = list_status.ServiceManager.from_tanjun(mock_bot)
 
-        assert manager.counter is mock_counter
         assert manager.rest is mock_bot.rest
         assert manager.cache is mock_bot.cache
         assert manager.shards is mock_bot.shards
