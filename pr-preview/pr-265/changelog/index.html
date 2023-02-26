@@ -1834,6 +1834,9 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">#</a></h3>
 <ul>
 <li>Prefix matched custom IDs are now correctly lower priority for modals.</li>
+<li><a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiBot.remove_shutdown_callback">AsgiBot.remove_shutdown_callback</a> and
+  <a class="autorefs autorefs-internal" href="../reference/asgi/#yuyo.asgi.AsgiBot.remove_startup_callback">AsgiBot.remove_startup_callback</a> now raise a <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a>
+  if the callback isn't registered (as per the documented behaviour) instead of silently passing.</li>
 </ul>
 <h2 id="180a1post1-2023-02-23"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1...v1.8.0a1.post1">1.8.0a1.post1</a> - 2023-02-23<a class="headerlink" href="#180a1post1-2023-02-23" title="Permanent link">#</a></h2>
 <h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">#</a></h3>
