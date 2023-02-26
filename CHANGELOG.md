@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `from_tanjun` convenience classmethods for initialising from a Tanjun client to
   [ComponentClient][yuyo.modals.ModalClient], [ModalClient][yuyo.modals.ModalClient],
-  [ReactionClient][yuyo.reactions.ReactionClient], and [ServiceManager][yuyo.list_status.ServiceManager]. 
+  [ReactionClient][yuyo.reactions.ReactionClient], and [ServiceManager][yuyo.list_status.ServiceManager].
 - `alluka` keyword-argument to to `from_gateway_bot` and `from_rest_bot` methods on
   [ComponentClient][yuyo.modals.ModalClient], [ModalClient][yuyo.modals.ModalClient], and
   [ReactionClient][yuyo.reactions.ReactionClient].
