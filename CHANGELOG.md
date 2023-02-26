@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Prefix matched custom IDs are now correctly lower priority for modals.
+- [AsgiBot.remove_shutdown_callback][yuyo.asgi.AsgiBot.remove_shutdown_callback] and
+  [AsgiBot.remove_startup_callback][yuyo.asgi.AsgiBot.remove_startup_callback] now raise a [ValueError][]
+  if the callback isn't registered (as per the documented behaviour) instead of silently passing.
 
 ## [1.8.0a1.post1] - 2023-02-23
 ### Fixed
