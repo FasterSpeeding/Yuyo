@@ -49,6 +49,7 @@ plugins:
             - https://docs.hikari-py.dev/en/latest/objects.inv
             - https://alluka.cursed.solutions/objects.inv
             - https://sake.cursed.solutions/objects.inv
+            - https://tanjun.cursed.solutions/objects.inv
           options:
             docstring_section_style: spacy
             docstring_style: numpy
