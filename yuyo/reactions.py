@@ -687,6 +687,11 @@ class ReactionClient:
     ) -> None:
         """Initialise a reaction client.
 
+        !!! note
+            For an easier way to initialise the client from a bot see
+            [ReactionClient.from_gateway_bot][yuyo.reactions.ReactionClient.from_gateway_bot],
+            and [ReactionClient.from_tanjun][yuyo.reactions.ReactionClient.from_tanjun].
+
         Parameters
         ----------
         rest
@@ -754,7 +759,7 @@ class ReactionClient:
         Raises
         ------
         ValueError
-            If [tanjun.abc.Client.events] is None.
+            If [tanjun.abc.Client.events][] is [None][].
         """
         import tanjun
 
