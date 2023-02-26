@@ -43,6 +43,12 @@ import pytest
 
 from yuyo import modals
 
+try:
+    import tanjun
+
+except ModuleNotFoundError:
+    tanjun = None
+
 
 class TestBasicTimeout:
     def test_has_expired(self):
@@ -147,6 +153,11 @@ class TestModalClient:
 
     @pytest.mark.skip(reason="TODO")
     def test_from_rest_bot(self):
+        ...
+
+    @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
+    @pytest.mark.skip(reason="TODO")
+    def test_from_tanjun(self):
         ...
 
     @pytest.mark.skip(reason="TODO")

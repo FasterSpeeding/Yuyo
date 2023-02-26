@@ -61,6 +61,7 @@ import hikari.snowflakes
 from . import backoff
 
 if typing.TYPE_CHECKING:
+    import tanjun
     import sake
     from hikari import traits
     from typing_extensions import Self
@@ -588,6 +589,30 @@ class ServiceManager(AbstractManager):
             strategy=strategy,
             user_agent=user_agent,
         )
+
+    @classmethod
+    def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True,
+        strategy: typing.Optional[AbstractCountStrategy] = None,
+        user_agent: typing.Optional[str] = None,) -> Self:
+        import tanjun
+        
+        client = cls(
+            tanjun_client.rest,
+            cache=tanjun_client.cache,
+            event_manager=tanjun_client.events,
+            shards=tanjun_client.shards,
+            strategy=strategy,
+            user_agent=user_agent,
+            event_managed=False,
+        )
+        tanjun_client.set_type_dependency(ServiceManager, client)
+        tanjun_client.set_type_dependency(AbstractManager, client)
+
+        if tanjun_managed:
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+
+        return client
 
     @property
     def is_alive(self) -> bool:

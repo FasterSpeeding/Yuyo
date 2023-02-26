@@ -16,6 +16,8 @@ The following feature flags ensure feature-specific optional dependencies are al
 * `hikari-yuyo[sake]` can be used to ensure the installed Sake version is compatible with
   Yuyo's functionality which uses Sake. You should still have a Sake version pinned in your
   own requirements as this just provides an accepted range for the dependency.
+* `hikari-yuyo[tanjun]` can be used to ensure the installed Tanjun version is compatible with
+  Yuyo's Tanjun support (e.g. the `from_tanjun`) class methods.
 
 # Quick Usage.
 

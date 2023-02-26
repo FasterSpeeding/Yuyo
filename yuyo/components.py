@@ -68,6 +68,7 @@ from . import _internal
 from . import pagination
 
 if typing.TYPE_CHECKING:
+    import tanjun
     import types
 
     import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports  # noqa: TC004
@@ -1662,6 +1663,34 @@ class ComponentClient:
         if bot_managed:
             bot.add_startup_callback(client._on_starting)
             bot.add_shutdown_callback(client._on_stopping)
+
+        return client
+
+    @classmethod
+    def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
+        """Build a component client froma Tanjun client.
+
+        Parameters
+        ----------
+        tanjun_client
+            The Tanjun client this component client should be bound to.
+        tanjun_managed
+            Whether the component client should be automatically opened and
+            closed based on the Tanjun client's lifetime client callback.
+
+        Returns
+        -------
+        ComponentClient
+            The initialised component client.
+        """
+        import tanjun
+        
+        client = cls(event_manager=tanjun_client.events, server=tanjun_client.server)
+        tanjun_client.set_type_dependency(ComponentClient, client)
+
+        if tanjun_managed:
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
 
         return client
 

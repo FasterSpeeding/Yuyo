@@ -42,6 +42,12 @@ import pytest
 from yuyo import _internal
 from yuyo import list_status
 
+try:
+    import tanjun
+
+except ModuleNotFoundError:
+    tanjun = None
+
 
 class TestCacheStrategy:
     def test_is_shard_bound_property(self):
@@ -593,6 +599,43 @@ class TestServiceManager:
         assert manager.shards is mock_bot
         assert manager.user_agent == "yeet yeet"
         mock_bot.event_manager.subscribe.assert_called()
+
+    @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
+    def test_from_tanjun_when_optional_kwargs_provided(self):
+        mock_counter = mock.AsyncMock()
+        mock_bot = mock.AsyncMock(event_manager=mock.Mock())
+
+        manager = list_status.ServiceManager.from_tanjun(mock_bot, tanjun_managed=False, user_agent="meowers", strategy=mock_counter)
+
+        assert manager.counter is mock_counter
+        assert manager.rest is mock_bot.rest
+        assert manager.cache is mock_bot.cache
+        assert manager.shards is mock_bot.shards
+        assert manager.user_agent == "meowers"
+        mock_bot.event_manager.subscribe.assert_not_called()
+        mock_bot.add_client_callback.assert_not_called()
+
+    @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
+    def test_from_tanjun(self):
+        assert tanjun
+
+        mock_counter = mock.AsyncMock()
+        mock_bot = mock.AsyncMock(event_manager=mock.Mock())
+
+        manager = list_status.ServiceManager.from_tanjun(mock_bot, user_agent="meowers")
+
+        assert manager.counter is mock_counter
+        assert manager.rest is mock_bot.rest
+        assert manager.cache is mock_bot.cache
+        assert manager.shards is mock_bot.shards
+        assert manager.user_agent == "Yuyo.last_status"
+        mock_bot.event_manager.subscribe.assert_not_called()
+        mock_bot.add_client_callback.assert_has_calls(
+            [
+                mock.call(tanjun.ClientCallbackNames.STARTING, manager.open),
+                mock.call(tanjun.ClientCallbackNames.CLOSING, manager.close),
+            ]
+        )
 
     def test_is_alive_property(self):
         manager = list_status.ServiceManager(mock.AsyncMock(), strategy=mock.AsyncMock(is_shard_bound=False))
