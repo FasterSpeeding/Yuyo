@@ -600,6 +600,34 @@ class ServiceManager(AbstractManager):
         strategy: typing.Optional[AbstractCountStrategy] = None,
         user_agent: typing.Optional[str] = None,
     ) -> Self:
+        """Build a service manager from a Tanjun client.
+
+        Parameters
+        ----------
+        tanjun_client
+            The Tanjun client to build a service manager from.
+        tanjun_managed
+            Whether this client should be automatically opened and closed based
+            on the Tanjun client's lifetime client callback.
+        strategy
+            The counter strategy this manager should expose to services.
+
+            If this is left as [None][] then the manager will try to pick
+            a suitable standard strategy based on the provided Hikari clients.
+        user_agent
+            Override the standard user agent used during requests to bot list services.
+
+        Returns
+        -------
+        ServiceManager
+            The build service manager.
+
+        Raises
+        ------
+        ValueError
+            If the manager failed to find a suitable standard strategy to use
+            when `strategy` was left as [None][].
+        """
         import tanjun
 
         client = cls(
