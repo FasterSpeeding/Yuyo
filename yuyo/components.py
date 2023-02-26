@@ -1632,7 +1632,7 @@ class ComponentClient:
         alluka: typing.Optional[alluka_.abc.Client] = None,
         event_managed: bool = True,
     ) -> Self:
-        """Build a component client froma Gateway Bot.
+        """Build a component client from a Gateway Bot.
 
         Parameters
         ----------
@@ -1662,7 +1662,7 @@ class ComponentClient:
         alluka: typing.Optional[alluka_.abc.Client] = None,
         bot_managed: bool = False,
     ) -> Self:
-        """Build a component client froma REST Bot.
+        """Build a component client from a REST Bot.
 
         Parameters
         ----------
@@ -1691,7 +1691,9 @@ class ComponentClient:
 
     @classmethod
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
-        """Build a component client froma Tanjun client.
+        """Build a component client from a Tanjun client.
+
+        This will use the Tanjun client's alluka client.
 
         Parameters
         ----------

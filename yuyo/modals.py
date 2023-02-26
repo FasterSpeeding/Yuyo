@@ -545,6 +545,8 @@ class ModalClient:
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a modal client from a Tanjun client.
 
+        This will use the Tanjun client's alluka client.
+
         Parameters
         ----------
         tanjun_client

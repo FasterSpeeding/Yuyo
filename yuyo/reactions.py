@@ -751,6 +751,8 @@ class ReactionClient:
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a `ReactionClient` from a gateway bot.
 
+        This will use the Tanjun client's alluka client.
+
         Parameters
         ----------
         tanjun_client
