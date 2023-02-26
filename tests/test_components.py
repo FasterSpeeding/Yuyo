@@ -86,10 +86,23 @@ class TestComponentClient:
         class StubClient(yuyo.ComponentClient):
             __init__ = mock_init
 
-        stub_client = StubClient.from_gateway_bot(mock_bot, event_managed=True)
+        stub_client = StubClient.from_gateway_bot(mock_bot)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(event_manager=mock_bot.event_manager, event_managed=True)
+        mock_init.assert_called_once_with(alluka=None, event_manager=mock_bot.event_manager, event_managed=True)
+
+    def test_from_gateway_bot_with_optional_kwargs(self):
+        mock_alluka = mock.Mock()
+        mock_bot = mock.Mock()
+        mock_init = mock.Mock(return_value=None)
+
+        class StubClient(yuyo.ComponentClient):
+            __init__ = mock_init
+
+        stub_client = StubClient.from_gateway_bot(mock_bot, alluka=mock_alluka, event_managed=False)
+
+        assert isinstance(stub_client, StubClient)
+        mock_init.assert_called_once_with(alluka=mock_alluka, event_manager=mock_bot.event_manager, event_managed=False)
 
     def test_from_rest_bot(self):
         mock_bot = mock.Mock()
@@ -101,21 +114,22 @@ class TestComponentClient:
         stub_client = StubClient.from_rest_bot(mock_bot)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(server=mock_bot.interaction_server)
+        mock_init.assert_called_once_with(alluka=None, server=mock_bot.interaction_server)
         mock_bot.add_shutdown_callback.assert_not_called()
         mock_bot.add_startup_callback.assert_not_called()
 
-    def test_from_rest_bot_when_bot_managed(self):
+    def test_from_rest_bot_with_optional_kwargs(self):
+        mock_alluka = mock.Mock()
         mock_bot = mock.Mock()
         mock_init = mock.Mock(return_value=None)
 
         class StubClient(yuyo.ComponentClient):
             __init__ = mock_init
 
-        stub_client = StubClient.from_rest_bot(mock_bot, bot_managed=True)
+        stub_client = StubClient.from_rest_bot(mock_bot, alluka=mock_alluka, bot_managed=True)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(server=mock_bot.interaction_server)
+        mock_init.assert_called_once_with(alluka=mock_alluka, server=mock_bot.interaction_server)
         mock_bot.add_shutdown_callback.assert_called_once_with(stub_client._on_stopping)
         mock_bot.add_startup_callback.assert_called_once_with(stub_client._on_starting)
 
@@ -132,7 +146,9 @@ class TestComponentClient:
         stub_client = StubClient.from_tanjun(mock_bot)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
+        mock_init.assert_called_once_with(
+            alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
+        )
         mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_has_calls(
             [
@@ -154,7 +170,9 @@ class TestComponentClient:
         stub_client = StubClient.from_tanjun(mock_bot, tanjun_managed=False)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(event_manager=mock_bot.events, server=mock_bot.server)
+        mock_init.assert_called_once_with(
+            alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
+        )
         mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_not_called()
 

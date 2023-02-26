@@ -699,7 +699,9 @@ class ReactionClient:
         event_manager
             The event manager client to register this reaction client with.
         alluka
-            The alluka client to use for callback DI.
+            The Alluka client to use for callback dependency injection in this client.
+
+            If not provided then this will initialise its own Alluka client.
         event_managed
             Whether the reaction client should be automatically opened and
             closed based on the lifetime events dispatched by `event_managed`.
@@ -721,13 +723,19 @@ class ReactionClient:
         return self._alluka
 
     @classmethod
-    def from_gateway_bot(cls, bot: _GatewayBotProto, /, *, event_managed: bool = True) -> Self:
+    def from_gateway_bot(
+        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+    ) -> Self:
         """Build a `ReactionClient` from a gateway bot.
 
         Parameters
         ----------
         bot : hikari.traits.EventManagerAware & hikari.traits.RESTAware
             The bot to build a reaction client for.
+        alluka
+            The Alluka client to use for callback dependency injection in this client.
+
+            If not provided then this will initialise its own Alluka client.
         event_managed
             Whether the reaction client should be automatically opened and
             closed based on the lifetime events dispatched by `bot`.
@@ -737,11 +745,13 @@ class ReactionClient:
         ReactionClient
             The reaction client for the bot.
         """
-        return cls(rest=bot.rest, event_manager=bot.event_manager, event_managed=event_managed)
+        return cls(alluka=alluka, rest=bot.rest, event_manager=bot.event_manager, event_managed=event_managed)
 
     @classmethod
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a `ReactionClient` from a gateway bot.
+
+        This will use the Tanjun client's alluka client.
 
         Parameters
         ----------
@@ -766,7 +776,7 @@ class ReactionClient:
         if not tanjun_client.events:
             raise ValueError("Cannot build from a tanjun client with no event manager")
 
-        client = cls(rest=tanjun_client.rest, event_manager=tanjun_client.events)
+        client = cls(alluka=tanjun_client.injector, rest=tanjun_client.rest, event_manager=tanjun_client.events)
         tanjun_client.set_type_dependency(ReactionClient, client)
 
         if tanjun_managed:
