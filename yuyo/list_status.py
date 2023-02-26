@@ -41,7 +41,6 @@ __all__: list[str] = [
     "EventStrategy",
     "SakeStrategy",
     "ServiceManager",
-    "ServiceSig",
     "TopGGService",
 ]
 

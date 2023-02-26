@@ -36,7 +36,6 @@ __all__: list[str] = [
     "ActionColumnExecutor",
     "ActionRowExecutor",
     "BaseContext",
-    "CallbackSig",
     "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",

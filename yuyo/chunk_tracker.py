@@ -332,6 +332,7 @@ class ChunkTracker:
         rest: hikari.RESTAware,
         shards: hikari.ShardAware,
         /,
+        *,
         timeout: typing.Union[int, float, datetime.timedelta] = datetime.timedelta(seconds=5),
     ) -> None:
         """Initialise a chunk tracker.

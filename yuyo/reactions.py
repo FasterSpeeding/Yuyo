@@ -51,16 +51,18 @@ if typing.TYPE_CHECKING:
     from hikari.api import event_manager as event_manager_api
     from typing_extensions import Self
 
+    _CallbackSigT = typing.TypeVar("_CallbackSigT", bound="CallbackSig")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
+    _ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
+
 
     # This doesn't enforce ShardAware (unlike yuyo._internal.GatewayBotProto)
     class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
         """Protocol of a cacheless Hikari Gateway bot."""
 
 
-EventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
-CallbackSigT = typing.TypeVar("CallbackSigT", bound=CallbackSig)
+"""Type-hint of a callback used to handle matching reactions events."""
 
 
 class HandlerClosed(Exception):
@@ -92,7 +94,7 @@ class AbstractReactionHandler(abc.ABC):
         """
 
     @abc.abstractmethod
-    async def on_reaction_event(self, event: EventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
+    async def on_reaction_event(self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
         """Handle a reaction event.
 
         Parameters
@@ -207,7 +209,7 @@ class ReactionHandler(AbstractReactionHandler):
 
     def with_callback(
         self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
-    ) -> collections.Callable[[CallbackSigT], CallbackSigT]:
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a callback to this reaction handler through a decorator call.
 
         Parameters
@@ -220,11 +222,11 @@ class ReactionHandler(AbstractReactionHandler):
 
         Returns
         -------
-        collections.abc.Callback[[CallbackSigT], CallbackSigT]
+        collections.abc.Callback[[CallbackSig], CallbackSig]
             A decorator to add a callback to this reaction handler.
         """
 
-        def decorator(callback: CallbackSigT, /) -> CallbackSigT:
+        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
             nonlocal emoji_identifier
             if isinstance(emoji_identifier, hikari.CustomEmoji):
                 emoji_identifier = emoji_identifier.id
@@ -234,7 +236,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         return decorator
 
-    async def on_reaction_event(self, event: EventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
+    async def on_reaction_event(self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             asyncio.create_task(self.close())
@@ -491,7 +493,7 @@ class ReactionPaginator(ReactionHandler):
         except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
             raise HandlerClosed() from exc
 
-    async def _on_disable(self, _: EventT, /) -> None:
+    async def _on_disable(self, _: _ReactionEventT, /) -> None:
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
@@ -500,11 +502,11 @@ class ReactionPaginator(ReactionHandler):
 
         raise HandlerClosed
 
-    async def _on_first(self, _: EventT, /) -> None:
+    async def _on_first(self, _: _ReactionEventT, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
             await self._edit_message(first_entry)
 
-    async def _on_last(self, _: EventT, /) -> None:
+    async def _on_last(self, _: _ReactionEventT, /) -> None:
         if self._iterator:
             self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
 
@@ -534,11 +536,11 @@ class ReactionPaginator(ReactionHandler):
 
         return None  # MyPy
 
-    async def _on_next(self, _: EventT, /) -> None:
+    async def _on_next(self, _: _ReactionEventT, /) -> None:
         if entry := await self.get_next_entry():
             await self._edit_message(entry)
 
-    async def _on_previous(self, _: EventT, /) -> None:
+    async def _on_previous(self, _: _ReactionEventT, /) -> None:
         if self._index > 0:
             self._index -= 1
             await self._edit_message(self._buffer[self._index])
