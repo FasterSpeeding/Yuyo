@@ -1564,8 +1564,9 @@ class ComponentClient:
 
         !!! note
             For an easier way to initialise the client from a bot see
-            [yuyo.components.ComponentClient.from_gateway_bot][] and
-            [yuyo.components.ComponentClient.from_rest_bot][].
+            [ComponentClient.from_gateway_bot][yuyo.components.ComponentClient.from_gateway_bot],
+            [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot], and
+            [ComponentClient.from_tanjun][yuyo.components.ComponentClient.from_tanjun].
 
         Parameters
         ----------
