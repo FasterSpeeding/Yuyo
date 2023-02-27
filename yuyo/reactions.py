@@ -53,12 +53,14 @@ if typing.TYPE_CHECKING:
 
     _CallbackSigT = typing.TypeVar("_CallbackSigT", bound="CallbackSig")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
-    _ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 
     # This doesn't enforce ShardAware (unlike yuyo._internal.GatewayBotProto)
     class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
         """Protocol of a cacheless Hikari Gateway bot."""
 
+
+ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
+"""Type hint of the event types [CallbackSig][yuyo.reactions.CallbackSig] takes as its first argument."""
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
 """Type-hint of a callback used to handle matching reactions events."""
@@ -94,7 +96,7 @@ class AbstractReactionHandler(abc.ABC):
 
     @abc.abstractmethod
     async def on_reaction_event(
-        self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
+        self, event: ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
     ) -> None:
         """Handle a reaction event.
 
@@ -238,7 +240,7 @@ class ReactionHandler(AbstractReactionHandler):
         return decorator
 
     async def on_reaction_event(
-        self, event: _ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
+        self, event: ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
     ) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
@@ -496,7 +498,7 @@ class ReactionPaginator(ReactionHandler):
         except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
             raise HandlerClosed() from exc
 
-    async def _on_disable(self, _: _ReactionEventT, /) -> None:
+    async def _on_disable(self, _: ReactionEventT, /) -> None:
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
@@ -505,11 +507,11 @@ class ReactionPaginator(ReactionHandler):
 
         raise HandlerClosed
 
-    async def _on_first(self, _: _ReactionEventT, /) -> None:
+    async def _on_first(self, _: ReactionEventT, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
             await self._edit_message(first_entry)
 
-    async def _on_last(self, _: _ReactionEventT, /) -> None:
+    async def _on_last(self, _: ReactionEventT, /) -> None:
         if self._iterator:
             self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
 
@@ -539,11 +541,11 @@ class ReactionPaginator(ReactionHandler):
 
         return None  # MyPy
 
-    async def _on_next(self, _: _ReactionEventT, /) -> None:
+    async def _on_next(self, _: ReactionEventT, /) -> None:
         if entry := await self.get_next_entry():
             await self._edit_message(entry)
 
-    async def _on_previous(self, _: _ReactionEventT, /) -> None:
+    async def _on_previous(self, _: ReactionEventT, /) -> None:
         if self._index > 0:
             self._index -= 1
             await self._edit_message(self._buffer[self._index])
@@ -835,9 +837,7 @@ class ReactionClient:
         """Whether this client is closed."""
         return self._gc_task is None
 
-    def set_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], paginator: AbstractReactionHandler, /
-    ) -> Self:
+    def set_handler(self, message: hikari.SnowflakeishOr[hikari.Message], handler: AbstractReactionHandler, /) -> Self:
         """Add a reaction handler to this reaction client.
 
         !!! note
@@ -847,10 +847,10 @@ class ReactionClient:
         ----------
         message
             The message ID to add register a reaction handler with.
-        paginator
-            The object of the opened paginator to register in this reaction client.
+        handler
+            The object of the opened handler to register in this reaction client.
         """
-        self._handlers[hikari.Snowflake(message)] = paginator
+        self._handlers[hikari.Snowflake(message)] = handler
         return self
 
     def get_handler(
