@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][]
+- Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][].
 
 ## [1.9.0a1] - 2023-02-27
 ### Added
