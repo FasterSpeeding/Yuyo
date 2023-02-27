@@ -837,9 +837,7 @@ class ReactionClient:
         """Whether this client is closed."""
         return self._gc_task is None
 
-    def set_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], handler: AbstractReactionHandler, /
-    ) -> Self:
+    def set_handler(self, message: hikari.SnowflakeishOr[hikari.Message], handler: AbstractReactionHandler, /) -> Self:
         """Add a reaction handler to this reaction client.
 
         !!! note
