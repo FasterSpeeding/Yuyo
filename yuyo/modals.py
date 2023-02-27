@@ -412,6 +412,9 @@ class ModalClient:
     ) -> None:
         """Initialise a modal client.
 
+        This registers [ModalClient][yuyo.modals.ModalClient] as a type
+        dependency when `alluka` isn't passed.
+
         !!! note
             For an easier way to initialise the client from a bot see
             [ModalClient.from_gateway_bot][yuyo.modals.ModalClient.from_gateway_bot],
@@ -440,7 +443,11 @@ class ModalClient:
         ValueError
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
-        self._alluka = alluka or alluka_.Client()
+        if alluka is None:
+            alluka = alluka_.Client()
+            self._set_standard_deps(alluka)
+
+        self._alluka = alluka
         self._modals: dict[str, tuple[AbstractTimeout, AbstractModal]] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
@@ -482,6 +489,9 @@ class ModalClient:
     ) -> Self:
         """Build a modal client from a Gateway Bot.
 
+        This registers [ModalClient][yuyo.modals.ModalClient] as a type
+        dependency when `alluka` isn't passed.
+
         Parameters
         ----------
         bot
@@ -512,6 +522,9 @@ class ModalClient:
     ) -> Self:
         """Build a modal client from a REST Bot.
 
+        This registers [ModalClient][yuyo.modals.ModalClient] as a type
+        dependency when `alluka` isn't passed.
+
         Parameters
         ----------
         bot
@@ -541,7 +554,8 @@ class ModalClient:
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a modal client from a Tanjun client.
 
-        This will use the Tanjun client's alluka client.
+        This will use the Tanjun client's alluka client and registers
+        [ModalClient][yuyo.modals.ModalClient] as a type dependency on Tanjun.
 
         Parameters
         ----------
@@ -558,14 +572,17 @@ class ModalClient:
         """
         import tanjun
 
-        client = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
-        tanjun_client.set_type_dependency(ModalClient, client)
+        self = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
+        self._set_standard_deps(tanjun_client.injector)
 
         if tanjun_managed:
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, self.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, self.close)
 
-        return client
+        return self
+
+    def _set_standard_deps(self, alluka: alluka_.abc.Client, /) -> None:
+        alluka.set_type_dependency(ModalClient, self)
 
     def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
         self._tasks.remove(task)

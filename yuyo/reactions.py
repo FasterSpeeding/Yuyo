@@ -692,6 +692,9 @@ class ReactionClient:
     ) -> None:
         """Initialise a reaction client.
 
+        This registers [ReactionClient][yuyo.reactions.ReactionClient] as a type
+        dependency when `alluka` isn't passed.
+
         !!! note
             For an easier way to initialise the client from a bot see
             [ReactionClient.from_gateway_bot][yuyo.reactions.ReactionClient.from_gateway_bot],
@@ -711,7 +714,11 @@ class ReactionClient:
             Whether the reaction client should be automatically opened and
             closed based on the lifetime events dispatched by `event_managed`.
         """
-        self._alluka = alluka or alluka_.Client()
+        if alluka is None:
+            alluka = alluka_.Client()
+            self._set_standard_deps(alluka)
+
+        self._alluka = alluka
         self.blacklist: list[hikari.Snowflake] = []
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
@@ -732,6 +739,9 @@ class ReactionClient:
         cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
     ) -> Self:
         """Build a `ReactionClient` from a gateway bot.
+
+        This registers [ReactionClient][yuyo.reactions.ReactionClient] as a type
+        dependency when `alluka` isn't passed.
 
         Parameters
         ----------
@@ -756,7 +766,9 @@ class ReactionClient:
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a `ReactionClient` from a gateway bot.
 
-        This will use the Tanjun client's alluka client.
+        This will use the Tanjun client's alluka client and registers
+        [ReactionClient][yuyo.reactions.ReactionClient] as a type dependency on
+        Tanjun.
 
         Parameters
         ----------
@@ -781,14 +793,17 @@ class ReactionClient:
         if not tanjun_client.events:
             raise ValueError("Cannot build from a tanjun client with no event manager")
 
-        client = cls(alluka=tanjun_client.injector, rest=tanjun_client.rest, event_manager=tanjun_client.events)
-        tanjun_client.set_type_dependency(ReactionClient, client)
+        self = cls(alluka=tanjun_client.injector, rest=tanjun_client.rest, event_manager=tanjun_client.events)
+        self._set_standard_deps(tanjun_client.injector)
 
         if tanjun_managed:
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, self.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, self.close)
 
-        return client
+        return self
+
+    def _set_standard_deps(self, alluka: alluka_.abc.Client) -> None:
+        alluka.set_type_dependency(ReactionClient, self)
 
     async def _gc(self) -> None:
         while True:

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `timeout` is now keyword-only for [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
+- The Alluka bound clients ([ComponentClient][yuyo.modals.ModalClient],
+  [ModalClient][yuyo.modals.ModalClient], abd [ReactionClient][yuyo.reactions.ReactionClient])
+  now all register themselves as type depedencies when they're not passed a 3rd party client.
 
 ### Fixed
 - Prefix matched custom IDs are now correctly lower priority for modals.
