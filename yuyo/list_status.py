@@ -33,9 +33,9 @@ from __future__ import annotations
 
 __all__: list[str] = [
     "BotsGGService",
-    "EventStrategy",
     "CacheStrategy",
     "DiscordBotListService",
+    "EventStrategy",
     "SakeStrategy",
     "ServiceManager",
     "TopGGService",
