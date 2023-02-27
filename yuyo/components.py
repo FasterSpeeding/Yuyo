@@ -34,11 +34,12 @@ from __future__ import annotations
 __all__: list[str] = [
     "ActionColumnExecutor",
     "ActionRowExecutor",
+    "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "MultiComponentExecutor", "ChildActionRowExecutor",
+    "MultiComponentExecutor",
     "WaitFor",
     "WaitForExecutor",
 ]
