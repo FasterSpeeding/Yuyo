@@ -58,6 +58,7 @@ if typing.TYPE_CHECKING:
     class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
         """Protocol of a cacheless Hikari Gateway bot."""
 
+
 ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 """Type hint of the event types [CallbackSig][yuyo.reactions.CallbackSig] takes as its first argument."""
 
