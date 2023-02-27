@@ -61,6 +61,7 @@ from . import _internal
 from . import components as components_
 
 _P = typing_extensions.ParamSpec("_P")
+_T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
     import types
@@ -68,7 +69,6 @@ if typing.TYPE_CHECKING:
     import tanjun
     from typing_extensions import Self
 
-    _T = typing.TypeVar("_T")
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
