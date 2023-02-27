@@ -617,11 +617,8 @@ class TestServiceManager:
         mock_bot.event_manager.subscribe.assert_not_called()
         mock_bot.add_client_callback.assert_not_called()
         mock_bot.set_type_dependency.assert_has_calls(
-            [
-                mock.call(list_status.AbstractManager, manager),
-                mock.call(list_status.ServiceManager, manager),
-            ],
-            any_order=True
+            [mock.call(list_status.AbstractManager, manager), mock.call(list_status.ServiceManager, manager)],
+            any_order=True,
         )
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
@@ -646,11 +643,8 @@ class TestServiceManager:
             ]
         )
         mock_bot.set_type_dependency.assert_has_calls(
-            [
-                mock.call(list_status.AbstractManager, manager),
-                mock.call(list_status.ServiceManager, manager),
-            ],
-            any_order=True
+            [mock.call(list_status.AbstractManager, manager), mock.call(list_status.ServiceManager, manager)],
+            any_order=True,
         )
 
     def test_is_alive_property(self):
