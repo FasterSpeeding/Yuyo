@@ -1558,6 +1558,9 @@ class ComponentClient:
     ) -> None:
         """Initialise a component client.
 
+        This sets [ComponentClient][yuyo.components.ComponentClient] as a
+        type dependency when `alluka` isn't passed.
+
         !!! note
             For an easier way to initialise the client from a bot see
             [ComponentClient.from_gateway_bot][yuyo.components.ComponentClient.from_gateway_bot],
@@ -1587,7 +1590,11 @@ class ComponentClient:
         ValueError
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
-        self._alluka = alluka or alluka_.Client()
+        if alluka is None:
+            alluka = alluka_.Client()
+            self._set_standard_deps(alluka)
+
+        self._alluka = alluka
         self._constant_ids: dict[str, CallbackSig] = {}
         self._event_manager = event_manager
         self._executors: dict[int, AbstractComponentExecutor] = {}
@@ -1630,6 +1637,9 @@ class ComponentClient:
     ) -> Self:
         """Build a component client from a Gateway Bot.
 
+        This sets [ComponentClient][yuyo.components.ComponentClient] as a
+        type dependency when `alluka` isn't passed.
+
         Parameters
         ----------
         bot
@@ -1660,6 +1670,9 @@ class ComponentClient:
     ) -> Self:
         """Build a component client from a REST Bot.
 
+        This sets [ComponentClient][yuyo.components.ComponentClient] as a
+        type dependency when `alluka` isn't passed.
+
         Parameters
         ----------
         bot
@@ -1689,7 +1702,9 @@ class ComponentClient:
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
         """Build a component client from a Tanjun client.
 
-        This will use the Tanjun client's alluka client.
+        This will use the Tanjun client's alluka client and registers
+        [ComponentClient][yuyo.components.ComponentClient] as a type dependency
+        on Tanjun.
 
         Parameters
         ----------
@@ -1706,14 +1721,17 @@ class ComponentClient:
         """
         import tanjun
 
-        client = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
-        tanjun_client.set_type_dependency(ComponentClient, client)
+        self = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
+        self._set_standard_deps(tanjun_client.injector)
 
         if tanjun_managed:
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, client.open)
-            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, client.close)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.STARTING, self.open)
+            tanjun_client.add_client_callback(tanjun.ClientCallbackNames.CLOSING, self.close)
 
-        return client
+        return self
+
+    def _set_standard_deps(self, alluka: alluka_.abc.Client) -> None:
+        alluka.set_type_dependency(ComponentClient, self)
 
     def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
         self._tasks.remove(task)

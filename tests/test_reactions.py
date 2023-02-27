@@ -28,6 +28,10 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# pyright: reportUnknownMemberType=none
+# This leads to too many false-positives around mocks.
+
 from unittest import mock
 
 import alluka
@@ -40,6 +44,7 @@ class TestReactionClient:
         client = reactions.ReactionClient(rest=mock.AsyncMock(), event_manager=mock.Mock())
 
         assert isinstance(client.alluka, alluka.Client)
+        assert client.alluka.get_type_dependency(reactions.ReactionClient) is client
 
     def test_alluka_with_passed_through_client(self):
         mock_alluka = mock.Mock()
@@ -47,6 +52,7 @@ class TestReactionClient:
         client = reactions.ReactionClient(alluka=mock_alluka, rest=mock.AsyncMock(), event_manager=mock.Mock())
 
         assert client.alluka is mock_alluka
+        mock_alluka.set_type_dependency.assert_not_called()
 
 
 class TestReactionHandler:

@@ -603,6 +603,11 @@ class ServiceManager(AbstractManager):
     ) -> Self:
         """Build a service manager from a Tanjun client.
 
+        This will use the Tanjun client's alluka client and registers
+        [ServiceManager][yuyo.list_status.ServiceManager] and
+        [AbstractManager][yuyo.list_status.AbstractManager] as type
+        dependencies on Tanjun.
+
         Parameters
         ----------
         tanjun_client
