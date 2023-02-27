@@ -32,11 +32,8 @@
 from __future__ import annotations
 
 __all__: list[str] = [
-    "AbstractCountStrategy",
-    "AbstractManager",
     "BotsGGService",
     "CacheStrategy",
-    "CountUnknownError",
     "DiscordBotListService",
     "EventStrategy",
     "SakeStrategy",

@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if the callback isn't registered (as per the documented behaviour) instead of silently passing.
 
 ### Removed
+- Unnecessary entries from module `__all__`s (i.e. type hints, abstract classes, base classes and
+  internal signal error classes).
 - Type variables are no-longer publicly exposed other than a couple callback types.
 
 ## [1.8.0a1.post1] - 2023-02-23

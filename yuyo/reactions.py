@@ -32,7 +32,7 @@
 
 from __future__ import annotations
 
-__all__: list[str] = ["AbstractReactionHandler", "ReactionClient", "ReactionHandler", "ReactionPaginator"]
+__all__: list[str] = ["ReactionClient", "ReactionHandler", "ReactionPaginator"]
 
 import abc
 import asyncio
