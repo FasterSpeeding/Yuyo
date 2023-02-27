@@ -13,11 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ComponentClient][yuyo.modals.ModalClient], [ModalClient][yuyo.modals.ModalClient], and
   [ReactionClient][yuyo.reactions.ReactionClient].
 
+### Changed
+- `timeout` is now keyword-only for [ChunkTracker.\_\_init\_\_][yuyo.chunk_tracker.ChunkTracker.__init__].
+
 ### Fixed
 - Prefix matched custom IDs are now correctly lower priority for modals.
 - [AsgiBot.remove_shutdown_callback][yuyo.asgi.AsgiBot.remove_shutdown_callback] and
   [AsgiBot.remove_startup_callback][yuyo.asgi.AsgiBot.remove_startup_callback] now raise a [ValueError][]
   if the callback isn't registered (as per the documented behaviour) instead of silently passing.
+
+### Removed
+- Type variables are no-longer publicly exposed other than a couple callback types.
 
 ## [1.8.0a1.post1] - 2023-02-23
 ### Fixed
