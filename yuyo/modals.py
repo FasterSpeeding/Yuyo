@@ -1227,7 +1227,10 @@ class Modal(AbstractModal):
             else:
                 component = components.get(field.custom_id)
 
-            if not component:
+            # Discord still provides text components when no input was given just with
+            # an empty string for `value` but we also want to support possible future
+            # cases where they just just don't provide the component.
+            if not component or not component.value:
                 if field.default is NO_DEFAULT:
                     raise RuntimeError(f"Missing required component `{field.custom_id}`")
 
