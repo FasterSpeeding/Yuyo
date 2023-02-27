@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] no-longer lead to Alluka's type-hint introspection
   raising an exception.
+- Handling of defaulting empty modal text inputs.
 
 ## [1.9.0a1] - 2023-02-27
 ### Added
