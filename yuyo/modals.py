@@ -70,10 +70,11 @@ if typing.TYPE_CHECKING:
 
     _T = typing.TypeVar("_T")
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
-    _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
 
+
+_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
