@@ -15,7 +15,7 @@
         <link rel="next" href="../pagination/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.13">
     
     
       
@@ -23,10 +23,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.0d440cfe.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ffa9267a.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
   
@@ -631,6 +631,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalClient.from_tanjun" class="md-nav__link">
+    from_tanjun()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalClient.get_modal" class="md-nav__link">
     get_modal()
   </a>
@@ -1009,6 +1016,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalClient.from_tanjun" class="md-nav__link">
+    from_tanjun()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalClient.get_modal" class="md-nav__link">
     get_modal()
   </a>
@@ -1144,7 +1158,6 @@
               <article class="md-content__inner md-typeset">
                 
                   
-
 
 
 <h1 id="yuyomodals">yuyo.modals<a class="headerlink" href="#yuyomodals" title="Permanent link">#</a></h1>
@@ -1865,7 +1878,11 @@ fields to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Moda
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix rather than through equal.</p>
+            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
+<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
+<code>.split(":", 1)[0]</code>.</p>
+<p>This allows for further state to be held in the custom ID after the
+prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2102,8 +2119,11 @@ fields to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Moda
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched against <code>.split(":", 1)[0]</code>
-rather than the whole string.</p>
+            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
+<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
+<code>.split(":", 1)[0]</code>.</p>
+<p>This allows for further state to be held in the custom ID after the
+prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2238,11 +2258,14 @@ rather than the whole string.</p>
   <div class="doc doc-contents ">
   
       <p>Initialise a modal client.</p>
+<p>This registers <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient">ModalClient</a> as a type
+dependency when <code>alluka</code> isn't passed.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For an easier way to initialise the client from a bot see
-<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient.from_gateway_bot">yuyo.modals.ModalClient.from_gateway_bot</a> and
-<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient.from_rest_bot">yuyo.modals.ModalClient.from_rest_bot</a>.</p>
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient.from_gateway_bot">ModalClient.from_gateway_bot</a>,
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient.from_rest_bot">ModalClient.from_rest_bot</a>, and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient.from_tanjun">ModalClient.from_tanjun</a>.</p>
 </div>
 
   <table>
@@ -2383,12 +2406,14 @@ from if applicable.</p>
   </span>
 
 <a href="#yuyo.modals.ModalClient.from_gateway_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alluka</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">event_managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
-      <p>Build a modal client froma Gateway Bot.</p>
+      <p>Build a modal client from a Gateway Bot.</p>
+<p>This registers <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient">ModalClient</a> as a type
+dependency when <code>alluka</code> isn't passed.</p>
 
   <table>
     <thead>
@@ -2406,6 +2431,23 @@ from if applicable.</p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.EventManagerAware">EventManagerAware</span></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>alluka</code></td>
+          <td class="doc-param-details">
+            <p>The Alluka client to use for callback dependency injection in this client.</p>
+<p>If not provided then this will initialise its own Alluka client.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" title="alluka" href="https://alluka.cursed.solutions/reference/#alluka">alluka_</a>.<a class="autorefs autorefs-external" title="alluka.abc" href="https://alluka.cursed.solutions/reference/abc/#alluka.abc">abc</a>.<span title="alluka_.abc.Client">Client</span>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
                 </span>
             </p>
           </td>
@@ -2468,12 +2510,14 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
   </span>
 
 <a href="#yuyo.modals.ModalClient.from_rest_bot" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bot_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">alluka</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bot_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
-      <p>Build a modal client froma REST Bot.</p>
+      <p>Build a modal client from a REST Bot.</p>
+<p>This registers <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient">ModalClient</a> as a type
+dependency when <code>alluka</code> isn't passed.</p>
 
   <table>
     <thead>
@@ -2496,6 +2540,23 @@ closed based on the lifetime events dispatched by <code>bot</code>.</p>
           </td>
         </tr>
         <tr>
+          <td><code>alluka</code></td>
+          <td class="doc-param-details">
+            <p>The Alluka client to use for callback dependency injection in this client.</p>
+<p>If not provided then this will initialise its own Alluka client.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" title="alluka" href="https://alluka.cursed.solutions/reference/#alluka">alluka_</a>.<a class="autorefs autorefs-external" title="alluka.abc" href="https://alluka.cursed.solutions/reference/abc/#alluka.abc">abc</a>.<span title="alluka_.abc.Client">Client</span>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
           <td><code>bot_managed</code></td>
           <td class="doc-param-details">
             <p>Whether the modal client should be automatically opened and
@@ -2508,6 +2569,93 @@ closed based on the Bot's startup and shutdown callbacks.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="yuyo.modals.ModalClient" href="#yuyo.modals.ModalClient">ModalClient</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The initialised modal client.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.modals.ModalClient.from_tanjun" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">from_tanjun</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#yuyo.modals.ModalClient.from_tanjun" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">from_tanjun</span><span class="p">(</span><span class="n">tanjun_client</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tanjun_managed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Build a modal client from a Tanjun client.</p>
+<p>This will use the Tanjun client's alluka client and registers
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient">ModalClient</a> as a type dependency on Tanjun.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>tanjun_client</code></td>
+          <td class="doc-param-details">
+            <p>The Tanjun client this modal client should be bound to.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://tanjun.cursed.solutions/reference/#tanjun">tanjun</a>.<a class="autorefs autorefs-external" title="tanjun.abc" href="https://tanjun.cursed.solutions/reference/abc/#tanjun.abc">abc</a>.<a class="autorefs autorefs-external" title="tanjun.abc.Client" href="https://tanjun.cursed.solutions/reference/abc/#tanjun.abc.Client">Client</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>tanjun_managed</code></td>
+          <td class="doc-param-details">
+            <p>Whether the modal client should be automatically opened and
+closed based on the Tanjun client's lifetime client callback.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>True</code>
                 </span>
             </p>
           </td>
@@ -2875,9 +3023,11 @@ closed based on the Bot's startup and shutdown callbacks.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether the custom_id should be treated as a prefix match.</p>
-<p>This allows for further state to be held in the custom id after the
-prefix and is lower priority than normal custom id match.</p>
+            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
+<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
+<code>.split(":", 1)[0]</code>.</p>
+<p>This allows for further state to be held in the custom ID after the
+prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3913,7 +4063,11 @@ passed flags.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix rather than through equal.</p>
+            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
+<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
+<code>.split(":", 1)[0]</code>.</p>
+<p>This allows for further state to be held in the custom ID after the
+prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4128,7 +4282,11 @@ passed flags.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix rather than through equal.</p>
+            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
+<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
+<code>.split(":", 1)[0]</code>.</p>
+<p>This allows for further state to be held in the custom ID after the
+prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4231,10 +4389,10 @@ passed flags.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.4b2c34cd.min.js"></script>
+      <script src="../../assets/javascripts/bundle.2a6f1dda.min.js"></script>
       
     
   </body>
