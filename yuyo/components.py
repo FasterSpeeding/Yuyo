@@ -38,6 +38,7 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "MultiComponentExecutor", "ChildActionRowExecutor",
     "WaitFor",
     "WaitForExecutor",
 ]
