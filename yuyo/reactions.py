@@ -838,7 +838,7 @@ class ReactionClient:
         return self._gc_task is None
 
     def set_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], paginator: AbstractReactionHandler, /
+        self, message: hikari.SnowflakeishOr[hikari.Message], handler: AbstractReactionHandler, /
     ) -> Self:
         """Add a reaction handler to this reaction client.
 
@@ -849,10 +849,10 @@ class ReactionClient:
         ----------
         message
             The message ID to add register a reaction handler with.
-        paginator
-            The object of the opened paginator to register in this reaction client.
+        handler
+            The object of the opened handler to register in this reaction client.
         """
-        self._handlers[hikari.Snowflake(message)] = paginator
+        self._handlers[hikari.Snowflake(message)] = handler
         return self
 
     def get_handler(
