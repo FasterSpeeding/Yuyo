@@ -53,12 +53,13 @@ if typing.TYPE_CHECKING:
 
     _CallbackSigT = typing.TypeVar("_CallbackSigT", bound="CallbackSig")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
-    _ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
 
     # This doesn't enforce ShardAware (unlike yuyo._internal.GatewayBotProto)
     class _GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, typing.Protocol):
         """Protocol of a cacheless Hikari Gateway bot."""
 
+ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
+"""Type hint of the event types [CallbackSig][yuyo.reactions.CallbackSig] takes as its first argument."""
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
 """Type-hint of a callback used to handle matching reactions events."""
