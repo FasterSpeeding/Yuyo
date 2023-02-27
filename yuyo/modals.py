@@ -418,7 +418,8 @@ class ModalClient:
         !!! note
             For an easier way to initialise the client from a bot see
             [ModalClient.from_gateway_bot][yuyo.modals.ModalClient.from_gateway_bot],
-            and [ModalClient.from_rest_bot][yuyo.modals.ModalClient.from_rest_bot].
+            [ModalClient.from_rest_bot][yuyo.modals.ModalClient.from_rest_bot], and
+            [ModalClient.from_tanjun][yuyo.modals.ModalClient.from_tanjun].
 
         Parameters
         ----------
