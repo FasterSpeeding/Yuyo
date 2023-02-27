@@ -71,6 +71,7 @@ class TestComponentClient:
         client = yuyo.ComponentClient(event_manager=mock.Mock())
 
         assert isinstance(client.alluka, alluka.Client)
+        assert client.alluka.get_type_dependency(yuyo.ComponentClient) is client
 
     def test_alluka_with_passed_through_client(self):
         mock_alluka = mock.Mock()
@@ -78,6 +79,7 @@ class TestComponentClient:
         client = yuyo.ComponentClient(alluka=mock_alluka, event_manager=mock.Mock())
 
         assert client.alluka is mock_alluka
+        mock_alluka.set_type_dependency.assert_not_called()
 
     def test_from_gateway_bot(self):
         mock_bot = mock.Mock()
@@ -149,7 +151,7 @@ class TestComponentClient:
         mock_init.assert_called_once_with(
             alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
         )
-        mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
+        mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_has_calls(
             [
                 mock.call(tanjun.ClientCallbackNames.STARTING, stub_client.open),
@@ -173,7 +175,7 @@ class TestComponentClient:
         mock_init.assert_called_once_with(
             alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
         )
-        mock_bot.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
+        mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_not_called()
 
     @pytest.mark.asyncio()

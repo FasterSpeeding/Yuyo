@@ -140,12 +140,14 @@ class TestModalClient:
         client = modals.ModalClient()
 
         assert isinstance(client.alluka, alluka.Client)
+        assert client.alluka.get_type_dependency(modals.ModalClient) is client
 
     def test_alluka_property_when_passed_through(self):
         mock_alluka = mock.Mock()
         client = modals.ModalClient(alluka=mock_alluka)
 
         assert client.alluka is mock_alluka
+        mock_alluka.set_type_dependency.assert_not_called()
 
     @pytest.mark.skip(reason="TODO")
     def test_from_gateway_bot(self):
