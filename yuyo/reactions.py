@@ -673,12 +673,7 @@ class ReactionPaginator(ReactionHandler):
 
 
 class ReactionClient:
-    """A class which handles the events for multiple registered reaction handlers.
-
-    !!! note
-        For a quicker way to initialise this client from a bot, see
-        [yuyo.reactions.ReactionClient.from_gateway_bot][].
-    """
+    """A class which handles the events for multiple registered reaction handlers."""
 
     __slots__ = ("_alluka", "blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
 
