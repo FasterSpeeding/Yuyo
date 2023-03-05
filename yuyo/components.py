@@ -2523,6 +2523,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -2579,6 +2581,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -2629,6 +2633,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3097,6 +3103,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3147,6 +3155,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3206,6 +3216,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3263,6 +3275,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3311,6 +3325,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3368,6 +3384,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3420,6 +3438,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3467,6 +3487,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The minimum amount of entries which need to be selected.
         max_values
             The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
 
         Returns
         -------
@@ -3623,6 +3645,8 @@ def with_static_select_menu(
         The minimum amount of entries which need to be selected.
     max_values
         The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
 
     Returns
     -------
@@ -3669,6 +3693,8 @@ def with_static_channel_select(
         The minimum amount of entries which need to be selected.
     max_values
         The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
 
     Returns
     -------
