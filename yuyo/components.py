@@ -2317,6 +2317,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         return bool(self._components)
 
+    @property
+    def type(self) -> hikari.ComponentType:
+        return hikari.ComponentType.ACTION_ROW
+
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> Self:
         if self._stored_type is not None and self._stored_type != type_:
             raise ValueError(f"{type_} component type cannot be added to a container which already holds {type_}")
