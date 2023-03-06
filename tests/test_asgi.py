@@ -1190,7 +1190,7 @@ class TestAsgiBot:
 
     def test_rest_property(self):
         with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
-            bot = yuyo.AsgiBot("token", "Bot")
+            bot = yuyo.AsgiBot("token")
 
             mock_rest_client_impl.assert_called_once_with(  # noqa: S106
                 cache=None,
@@ -1201,7 +1201,6 @@ class TestAsgiBot:
                 proxy_settings=bot.proxy_settings,
                 rest_url=None,
                 token="token",
-                token_type="Bot",
                 max_retries=3,
             )
             assert bot.rest is mock_rest_client_impl.return_value
