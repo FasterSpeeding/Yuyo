@@ -509,7 +509,7 @@ class AsgiBot(hikari.RESTBotAware):
     def __init__(
         self,
         token: str,
-        token_type: typing.Union[str, hikari.TokenType],
+        token_type: typing.Union[str, hikari.TokenType] = hikari.TokenType.BOT,
         public_key: typing.Union[bytes, str, None] = None,
         *,
         asgi_managed: bool = True,
@@ -548,7 +548,7 @@ class AsgiBot(hikari.RESTBotAware):
         token_type
             The type of token in use. This should only be passed when `str`
             is passed for `token`, can be `"Bot"` or `"Bearer"` and will be
-            defaulted to `"Bearer"` in this situation.
+            defaulted to `"Bot"` in this situation.
 
             This should be left as [None][] when either
             [hikari.api.rest.TokenStrategy][] or [None][] is passed for
@@ -616,6 +616,12 @@ class AsgiBot(hikari.RESTBotAware):
         """
         if isinstance(public_key, str):
             public_key = bytes.fromhex(public_key)
+
+        if isinstance(token, str):
+            token = token.strip()
+
+            if token_type is None:
+                token_type = hikari.TokenType.BOT
 
         self._entity_factory = hikari.impl.EntityFactoryImpl(self)
         self._executor = executor
