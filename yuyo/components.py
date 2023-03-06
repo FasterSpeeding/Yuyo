@@ -2318,7 +2318,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         return bool(self._components)
 
     @property
-    def type(self) -> hikari.ComponentType:
+    def type(self) -> typing.Literal[hikari.ComponentType.ACTION_ROW]:
         return hikari.ComponentType.ACTION_ROW
 
     def _assert_can_add_type(self, type_: hikari.ComponentType, /) -> Self:
