@@ -1201,6 +1201,7 @@ class TestAsgiBot:
                 proxy_settings=bot.proxy_settings,
                 rest_url=None,
                 token="token",
+                token_type="Bot",
                 max_retries=3,
             )
             assert bot.rest is mock_rest_client_impl.return_value
