@@ -5,22 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.9.1a1] - 2023-03-07
+### Added
+- Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][].
+
 ### Changed
 - `token_type` now defaults to `"Bot"` when a string token is passed for
   [AsgiBot.\_\_init\_\_][yuyo.asgi.AsgiBot.__init__].
 
 ### Fixed
-- Add `type` property to [yuyo.components.ActionRowExecutor][] and
-  [yuyo.components.ChildActionRowExecutor][] to fix compatibility with `Hikari>=2.0.0.dev117`.
-
-## [1.9.1a1] - 2023-03-??
-### Added
-- Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][].
-
-### Fixed
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] no-longer lead to Alluka's type-hint introspection
   raising an exception.
 - Handling of defaulting empty modal text inputs.
+- Add `type` property to [yuyo.components.ActionRowExecutor][] and
+  [yuyo.components.ChildActionRowExecutor][] to fix compatibility with `Hikari>=2.0.0.dev117`.
 
 ## [1.9.0a1] - 2023-02-27
 ### Added
