@@ -15,7 +15,7 @@
         <link rel="next" href="../to_builder/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.13">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.15">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ffa9267a.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.113286f1.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -501,6 +501,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionEventT" class="md-nav__link">
+    ReactionEventT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.reactions.AbstractReactionHandler" class="md-nav__link">
     AbstractReactionHandler
   </a>
@@ -846,6 +853,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.reactions.ReactionEventT" class="md-nav__link">
+    ReactionEventT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.reactions.AbstractReactionHandler" class="md-nav__link">
     AbstractReactionHandler
   </a>
@@ -1180,6 +1194,29 @@
 
 </div>
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="yuyo.reactions.ReactionEventT" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">ReactionEventT</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.reactions.ReactionEventT" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">ReactionEventT</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">ReactionAddEvent</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ReactionDeleteEvent</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Type hint of the event types <a class="autorefs autorefs-internal" href="#yuyo.reactions.CallbackSig">CallbackSig</a> takes as its first argument.</p>
+  </div>
+
+</div>
+
 
 <div class="doc doc-object doc-class">
 
@@ -1246,8 +1283,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1271,8 +1308,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.on_reaction_event" class="headerlink" title="Permanent link">#</a></h3>
@@ -1298,7 +1335,7 @@
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><span title="yuyo.reactions._ReactionEventT">_ReactionEventT</span></code>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.reactions.ReactionEventT" href="#yuyo.reactions.ReactionEventT">ReactionEventT</a></code>
                 </span>
             </p>
           </td>
@@ -1356,8 +1393,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -2006,7 +2043,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
 
 <a href="#yuyo.reactions.ReactionClient.set_handler" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">set_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">paginator</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">set_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2038,9 +2075,9 @@ closed based on the Tanjun client's lifetime client callback.</p>
           </td>
         </tr>
         <tr>
-          <td><code>paginator</code></td>
+          <td><code>handler</code></td>
           <td class="doc-param-details">
-            <p>The object of the opened paginator to register in this reaction client.</p>
+            <p>The object of the opened handler to register in this reaction client.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
