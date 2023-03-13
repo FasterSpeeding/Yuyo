@@ -37,6 +37,7 @@ __all__: list[str] = [
     "AsgiAdapter",
     "AsgiBot",
     "Backoff",
+    "BasicTimeout",
     "BotsGGService",
     "ChunkRequestFinishedEvent",
     "ChunkTracker",
@@ -69,10 +70,12 @@ __all__: list[str] = [
     "pagination",
     "reactions",
     "sync_paginate_string",
+    "timeouts",
     "to_builder",
 ]
 
 from . import links
+from . import timeouts
 from . import to_builder
 from .asgi import AsgiAdapter
 from .asgi import AsgiBot
@@ -102,3 +105,4 @@ from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
+from .timeouts import BasicTimeout

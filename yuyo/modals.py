@@ -32,11 +32,9 @@
 from __future__ import annotations
 
 __all__ = [
-    "BasicTimeout",
     "Modal",
     "ModalClient",
     "ModalContext",
-    "NeverTimeout",
     "as_modal",
     "as_modal_template",
     "modal",
@@ -59,6 +57,7 @@ import typing_extensions
 
 from . import _internal
 from . import components as components_
+from . import timeouts
 
 _P = typing_extensions.ParamSpec("_P")
 _T = typing.TypeVar("_T")
@@ -80,6 +79,16 @@ _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.
 """Type hint of the builder response types allows for modal interactions."""
 
 
+AbstractTimeout = timeouts.AbstractTimeout
+"""Deprecated alias of [tanjun.timeouts.AbstractTimeout][]"""
+
+BasicTimeout = timeouts.BasicTimeout
+"""Deprecated alias of [tanjun.timeouts.BasicTimeout][]"""
+
+NeverTimeout = timeouts.NeverTimeout
+"""Deprecated alias of [tanjun.timeouts.NeverTimeout][]"""
+
+
 class _NoDefaultEnum(enum.Enum):
     VALUE = object()
 
@@ -89,90 +98,6 @@ NO_DEFAULT = _NoDefaultEnum.VALUE
 
 NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
 """Type of [yuyo.modals.NO_DEFAULT][]."""
-
-
-class AbstractTimeout(abc.ABC):
-    """Abstract interface used to manage timing out a modal."""
-
-    __slots__ = ()
-
-    @property
-    @abc.abstractmethod
-    def has_expired(self) -> bool:
-        """Whether this modal has timed-out."""
-
-    @abc.abstractmethod
-    def increment_uses(self) -> bool:
-        """Add a use to the modal.
-
-        Returns
-        -------
-        bool
-            Whether the modal has now timed-out.
-        """
-
-
-class BasicTimeout(AbstractTimeout):
-    """Basic modal timeout strategy.
-
-    This implementation timeouts if `timeout` passes since the last call or
-    when `max_uses` reaches `0`.
-    """
-
-    __slots__ = ("_last_triggered", "_timeout", "_uses_left")
-
-    def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = 1) -> None:
-        """Initialise a basic timeout.
-
-        Parameters
-        ----------
-        timeout
-            How long this modal should wait between calls before timing-out.
-        max_uses
-            The maximum amount of uses this modal allows.
-
-            Setting this to `-1` marks it as unlimited.
-        """
-        if not isinstance(timeout, datetime.timedelta):
-            timeout = datetime.timedelta(seconds=timeout)
-
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._timeout = timeout
-        self._uses_left = max_uses
-
-    @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractTimeout>>.
-        if self._uses_left == 0:
-            return True
-
-        return datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered > self._timeout
-
-    def increment_uses(self) -> bool:
-        # <<inherited docstring from AbstractTimeout>>.
-        if self._uses_left > 0:
-            self._uses_left -= 1
-
-        elif self._uses_left == 0:
-            raise RuntimeError("Uses already depleted")
-
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        return self._uses_left == 0
-
-
-class NeverTimeout(AbstractTimeout):
-    """Timeout implementation which never expires."""
-
-    __slots__ = ()
-
-    @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractTimeout>>.
-        return False
-
-    def increment_uses(self) -> bool:
-        # <<inherited docstring from AbstractTimeout>>.
-        return False
 
 
 class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
@@ -450,10 +375,10 @@ class ModalClient:
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
-        self._modals: dict[str, tuple[AbstractTimeout, AbstractModal]] = {}
+        self._modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: dict[str, tuple[AbstractTimeout, AbstractModal]] = {}
+        self._prefix_ids: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -740,7 +665,7 @@ class ModalClient:
         /,
         *,
         prefix_match: bool = False,
-        timeout: typing.Union[AbstractTimeout, None, NoDefault] = NO_DEFAULT,
+        timeout: typing.Union[timeouts.AbstractTimeout, None, NoDefault] = NO_DEFAULT,
     ) -> Self:
         """Register a modal for a custom ID.
 
@@ -761,7 +686,7 @@ class ModalClient:
         timeout
             Timeout strategy for this modal.
 
-            Passing [None][] here will set [NeverTimeout][yuyo.modals.NeverTimeout]
+            Passing [None][] here will set [NeverTimeout][yuyo.timeouts.NeverTimeout]
 
         Returns
         -------
@@ -780,10 +705,10 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is NO_DEFAULT:
-            timeout = BasicTimeout(datetime.timedelta(10))
+            timeout = timeouts.BasicTimeout(datetime.timedelta(10))
 
         elif timeout is None:
-            timeout = NeverTimeout()
+            timeout = timeouts.NeverTimeout()
 
         if prefix_match:
             self._prefix_ids[custom_id] = (timeout, modal)

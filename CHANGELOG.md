@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Deprecated
+- Moved `tanjun.modals.AbstractTimeout`, `tanjun.modals.BasicTimeout` and `tanjun.modals.NeverTimeout`
+  to new [tanjun.timeouts][] module.
+
 ## [1.9.1a1] - 2023-03-07
 ### Added
 - Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][].
