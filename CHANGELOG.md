@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.10.0a1] - 2023-03-20
 ### Added
 - Support for declaring modal options in the modal callback's signature.
+- Message component has support for loading components from class attributes again.
+  This time this support has been added to [yuyo.components.ActionColumnExecutor][]
+  and uses [yuyo.components.].
 
 ### Changed
 - Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
