@@ -2930,7 +2930,7 @@ class _ChannelSelect(_CallableSubComponent[_SelfCallbackSigT]):
 
 
 @typing.overload
-def as_channel_select(callback: typing.Optional[_SelfCallbackSigT] = None, /) -> _ChannelSelect[_SelfCallbackSigT]:
+def as_channel_select(callback: _SelfCallbackSigT, /) -> _ChannelSelect[_SelfCallbackSigT]:
     ...
 
 
@@ -3016,15 +3016,15 @@ class _TextSelect(_CallableSubComponent[_SelfCallbackSigT]):
         is_default: bool,
     ) -> Self:
         self._options.append(
-            hikari.impl.special_endpoints._SelectOptionBuilder(
-                menu=typing.NoReturn, label=label, value=value, description=description, is_default=is_default
+            hikari.impl.special_endpoints._SelectOptionBuilder[typing.NoReturn](
+                menu=NotImplemented, label=label, value=value, description=description, is_default=is_default
             ).set_emoji(emoji)
         )
         return self
 
 
 @typing.overload
-def as_text_select(callback: typing.Optional[_SelfCallbackSigT], /) -> _TextSelect[_SelfCallbackSigT]:
+def as_text_select(callback: _SelfCallbackSigT, /) -> _TextSelect[_SelfCallbackSigT]:
     ...
 
 
