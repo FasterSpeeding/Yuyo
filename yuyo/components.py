@@ -2751,8 +2751,11 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
     def __init__(self, callback: _SelfCallbackSigT, /) -> None:
         self._callback = callback
 
+    async def __call__(self: _CallableSubComponent[collections.Callable[typing_extensions.Concatenate[_T, _P], _CoroT]], self_: _T, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
+        return await self._callback(self_, *args, **kwargs)
+
     @typing.overload
-    def __get__(self, obj: None, obj_type: type[typing.Any]) -> _SelfCallbackSigT:
+    def __get__(self, obj: None, obj_type: type[typing.Any]) -> Self:
         ...
 
     # Should really be using _T for the return type but that breaks Pyright rn.
@@ -2770,7 +2773,7 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
         if obj is not None:
             return types.MethodType(self._callback, obj)
 
-        return self._callback
+        return self
 
 
 class _StaticButton(_CallableSubComponent[_SelfCallbackSigT]):
