@@ -2747,16 +2747,18 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
         return await self._callback(self_, *args, **kwargs)
 
     @typing.overload
-    def __get__(self, obj: None, obj_type: type[typing.Any]) -> Self:
+    def __get__(self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None) -> Self:
         ...
 
     # Should really be using _T for the return type but that breaks Pyright rn.
     @typing.overload
-    def __get__(self, obj: object, obj_type: type[typing.Any]) -> collections.Callable[_P, _CoroT]:
+    def __get__(
+        self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
+    ) -> collections.Callable[_P, _CoroT]:
         ...
 
     def __get__(
-        self, obj: typing.Optional[object], obj_type: type[typing.Any]
+        self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
     ) -> typing.Union[Self, collections.Callable[..., typing.Any]]:
         if obj is not None:
             return types.MethodType(self._callback, obj)
