@@ -62,6 +62,7 @@ import typing_extensions
 
 from . import _internal
 from . import pagination
+from . import timeouts
 
 if typing.TYPE_CHECKING:
     import types
@@ -96,6 +97,13 @@ _LOGGER = logging.getLogger("hikari.yuyo.components")
 
 def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int], /) -> float:
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
+
+
+def _to_timeout(value: typing.Optional[datetime.timedelta], /) -> timeouts.AbstractTimeout:
+    if value is None:
+        return timeouts.NeverTimeout()
+
+    return timeouts.BasicTimeout(value, max_uses=-1)
 
 
 class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
@@ -2094,7 +2102,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._timeout = timeout
+        self._timeout = _to_timeout(timeout)
 
     @property
     def callbacks(self) -> collections.Mapping[str, CallbackSig]:
@@ -2109,10 +2117,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return (
-            self._timeout is not None
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
-        )
+        return self._timeout.has_expired
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -2175,7 +2180,7 @@ class WaitForExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_timeout")
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_raw_timeout", "_timeout")
 
     def __init__(
         self,
@@ -2205,7 +2210,8 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._finished = False
         self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
         self._made_at: typing.Optional[datetime.datetime] = None
-        self._timeout = timeout
+        self._raw_timeout = None if timeout is None else timeout.total_seconds()
+        self._timeout = _to_timeout(timeout)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2215,12 +2221,7 @@ class WaitForExecutor(AbstractComponentExecutor):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return bool(
-            self._finished
-            or self._timeout is not None
-            and self._made_at
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
-        )
+        return self._timeout.has_expired
 
     async def wait_for(self) -> ComponentContext:
         """Wait for the next matching interaction.
@@ -2243,9 +2244,7 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
         self._future = asyncio.get_running_loop().create_future()
         try:
-            return await asyncio.wait_for(
-                self._future, None if self._timeout is None else self._timeout.total_seconds()
-            )
+            return await asyncio.wait_for(self._future, self._raw_timeout)
 
         finally:
             self._finished = True
@@ -2795,7 +2794,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         """
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
-        self._timeout = timeout
+        self._timeout = _to_timeout(timeout)
 
     def __init_subclass__(cls) -> None:
         cls._all_static_rows = []
@@ -2817,10 +2816,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return (
-            self._timeout is not None
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
-        )
+        return self._timeout.has_expired
 
     @property
     def rows(self) -> collections.Sequence[ActionRowExecutor]:
@@ -3760,7 +3756,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
         self._executors: list[AbstractComponentExecutor] = []
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
-        self._timeout = timeout
+        self._timeout = _to_timeout(timeout)
 
     @property
     def builders(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
@@ -3780,10 +3776,7 @@ class MultiComponentExecutor(AbstractComponentExecutor):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return (
-            self._timeout is not None
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
-        )
+        return self._timeout.has_expired
 
     def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
         """Add a non-executable component builder to this executor.

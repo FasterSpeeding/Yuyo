@@ -45,6 +45,7 @@ import hikari
 
 from . import _internal
 from . import pagination
+from . import timeouts
 
 if typing.TYPE_CHECKING:
     import tanjun
@@ -141,7 +142,12 @@ class ReactionHandler(AbstractReactionHandler):
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._message: typing.Optional[hikari.Message] = None
-        self._timeout = timeout
+
+        if timeout is None:
+            self._timeout = timeouts.NeverTimeout()
+
+        else:
+            self._timeout = timeouts.BasicTimeout(timeout, max_uses=-1)
 
     @property
     def authors(self) -> collections.Set[hikari.Snowflake]:
@@ -156,10 +162,7 @@ class ReactionHandler(AbstractReactionHandler):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractReactionHandler>>.
-        return (
-            self._timeout is not None
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered
-        )
+        return self._timeout.has_expired
 
     async def open(self, message: hikari.Message, /) -> None:
         self._message = message

@@ -33,11 +33,9 @@
 # pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
 
-import datetime
 from unittest import mock
 
 import alluka
-import freezegun
 import hikari
 import pytest
 
@@ -48,70 +46,6 @@ try:
 
 except ModuleNotFoundError:
     tanjun = None
-
-
-class TestBasicTimeout:
-    def test_has_expired(self):
-        with freezegun.freeze_time() as frozen:
-            timeout = modals.BasicTimeout(datetime.timedelta(seconds=60), max_uses=4)
-
-            for tick_time in [15, 15, 15, 14]:
-                frozen.tick(datetime.timedelta(seconds=tick_time))
-                assert timeout.has_expired is False
-
-            frozen.tick(datetime.timedelta(seconds=2))
-            assert timeout.has_expired is True
-
-    def test_has_expired_when_no_uses_left(self):
-        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=1)
-
-        assert timeout.increment_uses() is True
-        assert timeout.has_expired is True
-
-        assert timeout.has_expired is True
-
-    def test_increment_uses(self):
-        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=4)
-
-        assert timeout.increment_uses() is False
-        assert timeout.has_expired is False
-
-        assert timeout.increment_uses() is False
-        assert timeout.has_expired is False
-
-        assert timeout.increment_uses() is False
-        assert timeout.has_expired is False
-
-        assert timeout.increment_uses() is True
-        assert timeout.has_expired is True
-
-        assert timeout.has_expired is True
-
-    def test_increment_uses_when_unlimited(self):
-        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=-1)
-
-        for _ in range(0, 10000):
-            assert timeout.increment_uses() is False
-
-    def test_increment_uses_when_already_expired(self):
-        timeout = modals.BasicTimeout(datetime.timedelta(days=6000), max_uses=1)
-
-        assert timeout.increment_uses() is True
-        assert timeout.has_expired is True
-
-        with pytest.raises(RuntimeError, match="Uses already depleted"):
-            timeout.increment_uses()
-
-
-class TestNeverTimeout:
-    def test_has_expired(self):
-        assert modals.NeverTimeout().has_expired is False
-
-    def test_increment_uses(self):
-        timeout = modals.NeverTimeout()
-
-        for _ in range(0, 10000):
-            assert timeout.increment_uses() is False
 
 
 class TestModalContext:
