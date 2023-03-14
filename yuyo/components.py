@@ -88,14 +88,6 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
-if typing.TYPE_CHECKING:
-    __SelfCallbackSig = collections.Callable[typing_extensions.Concatenate[typing.Any, _P], _CoroT]
-    _SelfCallbackSig = __SelfCallbackSig[...]
-
-else:
-    _SelfCallbackSig = collections.Callable[..., _CoroT]
-
-
 _LOGGER = logging.getLogger("hikari.yuyo.components")
 
 
@@ -2775,7 +2767,7 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
 class _StaticButton(_CallableSubComponent[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_callback", "_custom_id", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_style", "_custom_id", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2788,7 +2780,6 @@ class _StaticButton(_CallableSubComponent[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._callback = callback
         self._custom_id = custom_id
         self._emoji = emoji
         self._label = label
