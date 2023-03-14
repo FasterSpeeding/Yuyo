@@ -66,15 +66,15 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
-    _P = typing_extensions.ParamSpec("_P")
     _OtherT = typing.TypeVar("_OtherT")
     _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
-    _TextSelectT = typing.TypeVar("_TextSelectT", bound="_TextSelect[typing.Any]")
-    _SelfCallbackSigT = typing.TypeVar("_SelfCallbackSigT", bound="_SelfCallbackSig")
+    _TextSelectT = typing.TypeVar("_TextSelectT", bound="_TextSelect[typing.Any, typing.Any]")
 
 
+_P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _ParentT = typing.TypeVar("_ParentT")
+_SelfT = typing.TypeVar("_SelfT")
 _PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
@@ -2743,15 +2743,15 @@ class _SubComponent(abc.ABC):
         """Add this component to an action column executor."""
 
 
-class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
+class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
     """Base class used to represent components by decorating a callback."""
 
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: _SelfCallbackSigT, /) -> None:
+    def __init__(self, callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /) -> None:
         self._callback = callback
 
-    async def __call__(self: _CallableSubComponent[collections.Callable[typing_extensions.Concatenate[_T, _P], _CoroT]], self_: _T, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
+    async def __call__(self, self_: _SelfT, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
         return await self._callback(self_, *args, **kwargs)
 
     @typing.overload
@@ -2760,11 +2760,7 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
 
     # Should really be using _T for the return type but that breaks Pyright rn.
     @typing.overload
-    def __get__(
-        self: _CallableSubComponent[collections.Callable[typing_extensions.Concatenate[typing.Any, _P], _CoroT]],
-        obj: object,
-        obj_type: type[typing.Any],
-    ) -> collections.Callable[_P, _CoroT]:
+    def __get__(self, obj: object, obj_type: type[typing.Any]) -> collections.Callable[_P, _CoroT]:
         ...
 
     def __get__(
@@ -2776,7 +2772,7 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
         return self
 
 
-class _StaticButton(_CallableSubComponent[_SelfCallbackSigT]):
+class _StaticButton(_CallableSubComponent[_SelfT, _P]):
     """Used to represent a button method."""
 
     __slots__ = ("_style", "_callback", "_custom_id", "_emoji", "_label", "_is_disabled")
@@ -2784,7 +2780,7 @@ class _StaticButton(_CallableSubComponent[_SelfCallbackSigT]):
     def __init__(
         self,
         style: hikari.InteractiveButtonTypesT,
-        callback: _SelfCallbackSigT,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
         custom_id: typing.Optional[str] = None,
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -2817,7 +2813,9 @@ def as_static_button(
     emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
-) -> collections.Callable[[_SelfCallbackSigT], _StaticButton[_SelfCallbackSigT]]:
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
+]:
     return lambda callback: _StaticButton(style, callback, custom_id, emoji, label, is_disabled)
 
 
@@ -2851,12 +2849,12 @@ def static_link_button(
     return _StaticLinkButton(url, emoji, label, is_disabled)
 
 
-class _SelectMenu(_CallableSubComponent[_SelfCallbackSigT]):
+class _SelectMenu(_CallableSubComponent[_SelfT, _P]):
     __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
-        callback: _SelfCallbackSigT,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
         type_: typing.Union[hikari.ComponentType, int],
         custom_id: typing.Optional[str] = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -2893,16 +2891,18 @@ def as_select_menu(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[[_SelfCallbackSigT], _SelectMenu[_SelfCallbackSigT]]:
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+]:
     return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
 
 
-class _ChannelSelect(_CallableSubComponent[_SelfCallbackSigT]):
+class _ChannelSelect(_CallableSubComponent[_SelfT, _P]):
     __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
-        callback: _SelfCallbackSigT,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
         custom_id: typing.Optional[str] = None,
         channel_types: typing.Optional[
             collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
@@ -2933,7 +2933,9 @@ class _ChannelSelect(_CallableSubComponent[_SelfCallbackSigT]):
 
 
 @typing.overload
-def as_channel_select(callback: _SelfCallbackSigT, /) -> _ChannelSelect[_SelfCallbackSigT]:
+def as_channel_select(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _ChannelSelect[_SelfT, _P]:
     ...
 
 
@@ -2948,12 +2950,14 @@ def as_channel_select(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[[_SelfCallbackSigT], _ChannelSelect[_SelfCallbackSigT]]:
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+]:
     ...
 
 
 def as_channel_select(
-    callback: typing.Optional[_SelfCallbackSigT] = None,
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
     /,
     *,
     custom_id: typing.Optional[str] = None,
@@ -2965,9 +2969,14 @@ def as_channel_select(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> typing.Union[
-    collections.Callable[[_SelfCallbackSigT], _ChannelSelect[_SelfCallbackSigT]], _ChannelSelect[_SelfCallbackSigT]
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+    ],
+    _ChannelSelect[_SelfT, _P],
 ]:
-    def decorator(callback: _SelfCallbackSigT, /) -> _ChannelSelect[_SelfCallbackSigT]:
+    def decorator(
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    ) -> _ChannelSelect[_SelfT, _P]:
         return _ChannelSelect(callback, custom_id, channel_types, placeholder, min_values, max_values, is_disabled)
 
     if callback:
@@ -2976,12 +2985,12 @@ def as_channel_select(
     return decorator
 
 
-class _TextSelect(_CallableSubComponent[_SelfCallbackSigT]):
+class _TextSelect(_CallableSubComponent[_SelfT, _P]):
     __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
-        callback: _SelfCallbackSigT,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
         custom_id: typing.Optional[str] = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -3027,7 +3036,9 @@ class _TextSelect(_CallableSubComponent[_SelfCallbackSigT]):
 
 
 @typing.overload
-def as_text_select(callback: _SelfCallbackSigT, /) -> _TextSelect[_SelfCallbackSigT]:
+def as_text_select(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _TextSelect[_SelfT, _P]:
     ...
 
 
@@ -3040,12 +3051,14 @@ def as_text_select(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[[_SelfCallbackSigT], _TextSelect[_SelfCallbackSigT]]:
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextSelect[_SelfT, _P]
+]:
     ...
 
 
 def as_text_select(
-    callback: typing.Optional[_SelfCallbackSigT] = None,
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
     /,
     *,
     custom_id: typing.Optional[str] = None,
@@ -3055,9 +3068,14 @@ def as_text_select(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> typing.Union[
-    collections.Callable[[_SelfCallbackSigT], _TextSelect[_SelfCallbackSigT]], _TextSelect[_SelfCallbackSigT]
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextSelect[_SelfT, _P]
+    ],
+    _TextSelect[_SelfT, _P],
 ]:
-    def decorator(callback: _SelfCallbackSigT, /) -> _TextSelect[_SelfCallbackSigT]:
+    def decorator(
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    ) -> _TextSelect[_SelfT, _P]:
         return _TextSelect(callback, custom_id, options, placeholder, min_values, max_values, is_disabled)
 
     if callback:
