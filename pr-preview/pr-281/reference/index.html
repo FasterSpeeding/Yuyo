@@ -1994,6 +1994,20 @@
   
   
     <li class="md-nav__item">
+      <a href="timeouts/" class="md-nav__link">
+        yuyo.timeouts
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="to_builder/" class="md-nav__link">
         yuyo.to_builder
       </a>
@@ -3602,6 +3616,11 @@ chainable methods on it:</p>
 <p>Alternatively, subclasses of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
 can act as a template where "static" fields are included on all instances
 and subclasses of that class:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since decorators are executed from the bottom upwards fields added
+through decorator calls will follow the same order.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback_1</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
 
@@ -3610,6 +3629,8 @@ and subclasses of that class:</p>
 
 <span class="nd">@components</span><span class="o">.</span><span class="n">with_static_select_menu</span><span class="p">(</span><span class="n">callback_1</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CustomColumn</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;special_string&quot;</span><span class="p">,)</span>  <span class="c1"># ActionColumnExecutor supports slotting.</span>
+
     <span class="c1"># The init can be overridden to store extra data on the column object when subclassing.</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">special_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
@@ -3624,11 +3645,32 @@ and subclasses of that class:</p>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;Option 3&quot;</span><span class="p">,</span> <span class="s2">&quot;value 3&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Since decorators are executed from the bottom upwards fields added
-through decorator calls will follow the same order.</p>
-</div>
+<p>There's also class descriptors which can be used to declare static
+components. The following descriptors work by decorating their
+component's callback:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.as_button">as_button</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.as_select_menu">as_select_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.as_channel_select">as_channel_select</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.as_text_select">as_text_select</a></li>
+</ul>
+<p><a class="autorefs autorefs-internal" href="components/#yuyo.components.link_button">link_button</a> returns a descriptor without
+decorating any callback.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CustomColumn</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_button</span><span class="p">(</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">left_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="n">link_button</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">link_button</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Go to page&quot;</span><span class="p">)</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_button</span><span class="p">(</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">SECONDARY</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;meow&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">right_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_select</span><span class="p">(</span><span class="n">channel_types</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextableChannel</span><span class="p">])</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">text_select_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+</code></pre></div>
 
 
 
@@ -5050,7 +5092,7 @@ displayed label.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a channel select menu to all subclasses and instances of this action column class.</p>
+      <p>Add a text select menu to all subclasses and instances of this action column class.</p>
 
   <table>
     <thead>
@@ -5238,7 +5280,7 @@ should be used to add options to this select menu.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a channel select menu to this action column.</p>
+      <p>Add a text select menu to this action column.</p>
 
   <table>
     <thead>
@@ -6754,7 +6796,7 @@ displayed label.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add a channel select menu to this action row.</p>
+      <p>Add a text select menu to this action row.</p>
 
   <table>
     <thead>
@@ -8668,7 +8710,7 @@ previously set next backoff.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="yuyo.timeouts.AbstractTimeout">AbstractTimeout</span></code></p>
+        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
 
   
       <p>Basic modal timeout strategy.</p>
@@ -13798,11 +13840,11 @@ prefix and is lower priority than normal matching.</p>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
             <p>Timeout strategy for this modal.</p>
-<p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> here will set [NeverTimeout][yuyo.timeouts.NeverTimeout]</p>
+<p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> here will set <a class="autorefs autorefs-internal" href="timeouts/#yuyo.timeouts.NeverTimeout">NeverTimeout</a>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<span title="yuyo.timeouts">timeouts</span>.<span title="yuyo.timeouts.AbstractTimeout">AbstractTimeout</span>, None, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="modals/#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-internal" title="yuyo.timeouts" href="timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a>, None, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="modals/#yuyo.modals.NoDefault">NoDefault</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
