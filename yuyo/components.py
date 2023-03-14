@@ -2047,8 +2047,37 @@ class ComponentClient:
 
         return decorator
 
+    @typing_extensions.deprecated("Passing message as the first argument is deprecated, it's now an optionl kwarg")
+    @typing.overload
     def set_executor(
-        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
+        self,
+        message: hikari.SnowflakeishOr[hikari.Message],
+        executor: AbstractComponentExecutor,
+        /,
+        *,
+        timeout: typing.Optional[timeouts.BasicTimeout] = None,
+    ) -> Self:
+        ...
+
+    @typing.overload
+    def set_executor(
+        self,
+        executor: AbstractComponentExecutor,
+        /,
+        *,
+        message: typing.Optional[hikari.Message],
+        timeout: typing.Optional[timeouts.BasicTimeout] = None,
+    ) -> Self:
+        ...
+
+    def set_executor(
+        self,
+        message_or_executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor],
+        executor:  typing.Optional[AbstractComponentExecutor] = None,
+        /,
+        *,
+        message: typing.Optional[hikari.Message] = None,
+        timeout: typing.Optional[timeouts.BasicTimeout] = None,
     ) -> Self:
         """Set the component executor for a message.
 
@@ -2067,6 +2096,14 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
+        if isinstance(message_or_executor, AbstractComponentExecutor):
+            ...
+
+        else:
+            if executor is None:
+                raise RuntimeError("Executor not passed")
+
+
         self._executors[int(message)] = executor
         return self
 
@@ -2086,6 +2123,15 @@ class ComponentClient:
             The executor set for the message or [None][] if none is set.
         """
         return self._executors.get(int(message))
+
+    @typing.overload
+    @typing_extensions.deprecated("Passing message here is deprecated, it's now a kwarg")
+    def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+        ...
+
+    @typing.overload
+    def remove_executor(self, executor: AbstractComponentExecutor, /) -> Self:
+        ...
 
     def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         """Remove the component executor for a message.
