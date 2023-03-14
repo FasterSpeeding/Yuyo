@@ -80,13 +80,13 @@ _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.
 
 
 AbstractTimeout = timeouts.AbstractTimeout
-"""Deprecated alias of [tanjun.timeouts.AbstractTimeout][]"""
+"""Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
 
 BasicTimeout = timeouts.BasicTimeout
-"""Deprecated alias of [tanjun.timeouts.BasicTimeout][]"""
+"""Deprecated alias of [yuyo.timeouts.BasicTimeout][]."""
 
 NeverTimeout = timeouts.NeverTimeout
-"""Deprecated alias of [tanjun.timeouts.NeverTimeout][]"""
+"""Deprecated alias of [yuyo.timeouts.NeverTimeout][]."""
 
 
 class _NoDefaultEnum(enum.Enum):
@@ -686,7 +686,7 @@ class ModalClient:
         timeout
             Timeout strategy for this modal.
 
-            Passing [None][] here will set [NeverTimeout][yuyo.timeouts.NeverTimeout]
+            Passing [None][] here will set [NeverTimeout][yuyo.timeouts.NeverTimeout].
 
         Returns
         -------
