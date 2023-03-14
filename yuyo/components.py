@@ -63,7 +63,6 @@ from . import timeouts
 if typing.TYPE_CHECKING:
 
     import tanjun
-    import typing_extensions
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
@@ -74,6 +73,7 @@ if typing.TYPE_CHECKING:
     _SelfCallbackSigT = typing.TypeVar("_SelfCallbackSigT", bound="_SelfCallbackSig")
 
 
+_CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _ParentT = typing.TypeVar("_ParentT")
 _PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
@@ -89,13 +89,11 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 if typing.TYPE_CHECKING:
-    __SelfCallbackSig = collections.Callable[
-        typing_extensions.Concatenate[typing.Any, _P], collections.Coroutine[typing.Any, typing.Any, None]
-    ]
+    __SelfCallbackSig = collections.Callable[typing_extensions.Concatenate[typing.Any, _P], _CoroT]
     _SelfCallbackSig = __SelfCallbackSig[...]
 
 else:
-    _SelfCallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
+    _SelfCallbackSig = collections.Callable[..., _CoroT]
 
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
@@ -2757,12 +2755,13 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
     def __get__(self, obj: None, obj_type: type[typing.Any]) -> _SelfCallbackSigT:
         ...
 
+    # Should really be using _T for the return type but that breaks Pyright rn.
     @typing.overload
     def __get__(
-        self: _CallableSubComponent[collections.Callable[typing_extensions.Concatenate[typing.Any, _P], _T]],
+        self: _CallableSubComponent[collections.Callable[typing_extensions.Concatenate[typing.Any, _P], _CoroT]],
         obj: object,
         obj_type: type[typing.Any],
-    ) -> collections.Callable[_P, _T]:
+    ) -> collections.Callable[_P, _CoroT]:
         ...
 
     def __get__(
@@ -4614,6 +4613,6 @@ class ComponentPaginator(ActionRowExecutor):
             await _noop(ctx)
 
 
-def _noop(ctx: ComponentContext, /) -> collections.Coroutine[typing.Any, typing.Any, None]:
+def _noop(ctx: ComponentContext, /) -> _CoroT:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
