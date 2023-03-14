@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Deprecated
-- Moved `tanjun.modals.AbstractTimeout`, `tanjun.modals.BasicTimeout` and `tanjun.modals.NeverTimeout`
-  to new [tanjun.timeouts][] module.
+- Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
+  to new [yuyo.timeouts][] module.
 
 ## [1.9.1a1] - 2023-03-07
 ### Added
