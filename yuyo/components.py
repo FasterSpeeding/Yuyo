@@ -45,7 +45,6 @@ __all__: list[str] = [
 import abc
 import asyncio
 import datetime
-import functools
 import inspect
 import itertools
 import logging
@@ -2749,13 +2748,13 @@ class _SubComponent(abc.ABC):
 class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
     """Base class used to represent components by decorating a callback."""
 
+    __slots__ = ("_callback",)
+
     def __init__(self, callback: _SelfCallbackSigT, /) -> None:
-        # TODO: is this neccessary?
-        self.__call__: _SelfCallbackSigT = callback
-        functools.update_wrapper(self, callback)
+        self._callback = callback
 
     @typing.overload
-    def __get__(self, obj: None, obj_type: type[typing.Any]) -> Self:
+    def __get__(self, obj: None, obj_type: type[typing.Any]) -> _SelfCallbackSigT:
         ...
 
     @typing.overload
@@ -2770,13 +2769,15 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfCallbackSigT]):
         self, obj: typing.Optional[object], obj_type: type[typing.Any]
     ) -> typing.Union[Self, collections.Callable[..., typing.Any]]:
         if obj is not None:
-            return types.MethodType(self.__call__, obj)
+            return types.MethodType(self._callback, obj)
 
-        return self
+        return self._callback
 
 
 class _StaticButton(_CallableSubComponent[_SelfCallbackSigT]):
     """Used to represent a button method."""
+
+    __slots__ = ("_style", "_callback", "_custom_id", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2819,7 +2820,7 @@ def as_static_button(
 
 
 class _StaticLinkButton(_SubComponent):
-    __slots__ = ("_style", "_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2849,6 +2850,8 @@ def static_link_button(
 
 
 class _SelectMenu(_CallableSubComponent[_SelfCallbackSigT]):
+    __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
     def __init__(
         self,
         callback: _SelfCallbackSigT,
@@ -2869,7 +2872,7 @@ class _SelectMenu(_CallableSubComponent[_SelfCallbackSigT]):
 
     def add(self, executor: type[ActionColumnExecutor], /) -> None:
         executor.add_static_select_menu(
-            types.MethodType(self.__call__, executor),
+            types.MethodType(self._callback, executor),
             self._type,
             custom_id=self._custom_id,
             placeholder=self._placeholder,
@@ -2893,6 +2896,8 @@ def as_select_menu(
 
 
 class _ChannelSelect(_CallableSubComponent[_SelfCallbackSigT]):
+    __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
     def __init__(
         self,
         callback: _SelfCallbackSigT,
@@ -2915,7 +2920,7 @@ class _ChannelSelect(_CallableSubComponent[_SelfCallbackSigT]):
 
     def add(self, executor: type[ActionColumnExecutor], /) -> None:
         executor.add_static_channel_select(
-            types.MethodType(self.__call__, executor),
+            types.MethodType(self._callback, executor),
             custom_id=self._custom_id,
             channel_types=self._channel_types,
             placeholder=self._placeholder,
@@ -2970,6 +2975,8 @@ def as_channel_select(
 
 
 class _TextSelect(_CallableSubComponent[_SelfCallbackSigT]):
+    __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
     def __init__(
         self,
         callback: _SelfCallbackSigT,
@@ -2990,7 +2997,7 @@ class _TextSelect(_CallableSubComponent[_SelfCallbackSigT]):
 
     def add(self, executor: type[ActionColumnExecutor], /) -> None:
         executor.add_static_text_select(
-            types.MethodType(self.__call__, executor),
+            types.MethodType(self._callback, executor),
             custom_id=self._custom_id,
             options=self._options,
             placeholder=self._placeholder,
