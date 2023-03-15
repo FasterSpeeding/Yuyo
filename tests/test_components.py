@@ -455,3 +455,23 @@ class TestActionRowExecutor:
         )
 
         assert action_row.build()["components"][0]["max_values"] == 3
+
+
+class TestActionColumnExecutor:
+    def test_with_button_descriptor(self):
+        ...
+
+    def test_with_link_button_descriptor(self):
+        ...
+
+    def test_with_select_menu_descriptor(self):
+        ...
+
+    def test_with_channel_select_descriptor(self):
+        ...
+
+    def test_with_text_select_descriptor(self):
+        ...
+
+    def test_with_text_select_descriptor_passed_options(self):
+        ...

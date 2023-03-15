@@ -2767,10 +2767,10 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
     def __get__(
         self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
     ) -> typing.Union[Self, collections.Callable[..., typing.Any]]:
-        if obj is not None:
-            return types.MethodType(self._callback, obj)
+        if obj is None:
+            return self
 
-        return self
+        return types.MethodType(self._callback, obj)
 
 
 class _StaticButton(_CallableSubComponent[_SelfT, _P]):
