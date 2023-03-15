@@ -34,12 +34,10 @@ from __future__ import annotations
 __all__: list[str] = [
     "ActionColumnExecutor",
     "ActionRowExecutor",
-    "ChildActionRowExecutor",
     "ComponentClient",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "MultiComponentExecutor",
     "WaitFor",
     "WaitForExecutor",
 ]
@@ -51,7 +49,6 @@ import itertools
 import logging
 import os
 import typing
-import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -2347,38 +2344,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._components.append(component)
         return self
 
-    @typing.overload
     def add_button(
         self,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    @typing_extensions.deprecated("Use add_link_button")
-    @typing.overload
-    def add_button(
-        self,
-        style: typing.Literal[hikari.ButtonStyle.LINK, 5],
-        url: str,
-        /,
-        *,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    def add_button(
-        self,
-        style: typing.Union[int, hikari.ButtonStyle],
-        callback_or_url: typing.Union[CallbackSig, str],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2394,21 +2363,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Parameters
         ----------
         style
-            The button's style.
-
-            Passing the LINK type here is deprecated, use
-            [add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
-            instead.
-        callback_or_url
-            The button's url if it is a Link button, otherwise its callback.
-
-            Passing a URL here is deprecated, use
-            [add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
-            instead.
+            The interactive button's style.
+        callback
+            The interactive button's callback.
         custom_id
             The button's custom ID.
-
-            This is ignored for url buttons.
         emoji
             The button's emoji.
         label
@@ -2429,29 +2388,18 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             * If a string is passed for `callback_or_url` for an interactive button.
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
-        if style in hikari.InteractiveButtonTypes:
-            if custom_id is None:
-                custom_id = _internal.random_custom_id()
+        if custom_id is None:
+            custom_id = _internal.random_custom_id()
 
-            if isinstance(callback_or_url, str):
-                raise ValueError(f"Callback must be passed for an interactive button, not {type(callback_or_url)}")
-
-            return self.set_callback(custom_id, callback_or_url).add_component(
-                hikari.impl.InteractiveButtonBuilder(
-                    container=NotImplemented,
-                    custom_id=custom_id,
-                    style=hikari.ButtonStyle(style),
-                    label=label,
-                    is_disabled=is_disabled,
-                ).set_emoji(emoji)
-            )
-
-        warnings.warn("Use `add_link_button` to add link buttons", category=DeprecationWarning, stacklevel=2)
-
-        if not isinstance(callback_or_url, str):
-            raise TypeError(f"String url must be passed for Link style buttons, not {type(callback_or_url)}")
-
-        return self.add_link_button(callback_or_url, emoji=emoji, label=label, is_disabled=is_disabled)
+        return self.set_callback(custom_id, callback).add_component(
+            hikari.impl.InteractiveButtonBuilder(
+                container=NotImplemented,
+                custom_id=custom_id,
+                style=hikari.ButtonStyle(style),
+                label=label,
+                is_disabled=is_disabled,
+            ).set_emoji(emoji)
+        )
 
     def add_link_button(
         self,
@@ -3713,131 +3661,6 @@ def with_static_channel_select(
 
 
 # TODO: with_static_text_select
-
-
-@typing_extensions.deprecated("Use the ActionColumnExecutor")
-class ChildActionRowExecutor(ActionRowExecutor, typing.Generic[_ParentT]):
-    """Deprecated action row impl used by [MultiComponentExecutor][yuyo.components.MultiComponentExecutor]."""
-
-    __slots__ = ("_parent",)
-
-    def __init__(self, parent: _ParentT, /, *, ephemeral_default: bool = False) -> None:
-        super().__init__(ephemeral_default=ephemeral_default)
-        self._parent = parent
-
-    @property
-    def parent(self) -> _ParentT:
-        """The parent executor."""
-        return self._parent
-
-
-@typing_extensions.deprecated("Use the ActionColumnExecutor")
-class MultiComponentExecutor(AbstractComponentExecutor):
-    """Deprecated implementation of a multi-component executor.
-
-    You should use  [yuyo.components.ActionColumnExecutor][] instead.
-
-    This implementation allows for multiple top-level components to be used
-    as a single executor.
-    """
-
-    __slots__ = ("_builders", "_executors", "_last_triggered", "_lock", "_timeout")
-
-    def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
-        """Initialise a multi-component executor.
-
-        Parameters
-        ----------
-        timeout
-            The amount of time to wait after the component's last execution or creation
-            until it times out.
-        """
-        self._builders: list[hikari.api.ComponentBuilder] = []
-        self._executors: list[AbstractComponentExecutor] = []
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
-        self._lock = asyncio.Lock()
-        self._timeout = _to_timeout(timeout)
-
-    @property
-    def builders(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
-        """Sequence of the component builders within this executor."""
-        return self._builders
-
-    @property
-    def custom_ids(self) -> collections.Collection[str]:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return list(itertools.chain.from_iterable(component.custom_ids for component in self._executors))
-
-    @property
-    def executors(self) -> collections.Sequence[AbstractComponentExecutor]:
-        """Sequence of the child executors within this multi-executor."""
-        return self._executors.copy()
-
-    @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
-
-    def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
-        """Add a non-executable component builder to this executor.
-
-        This is useful for adding components that are not meant to be executed, such as a
-        a row of link buttons.
-
-        Parameters
-        ----------
-        builder
-            The component builder to add.
-
-        Returns
-        -------
-        Self
-        """
-        self._builders.append(builder)
-        return self
-
-    def add_action_row(self) -> ChildActionRowExecutor[Self]:  # pyright: ignore [ reportDeprecated ]
-        """Builder object for the added action row.
-
-        Returns
-        -------
-        ChildActionRowExecutor[Self]
-            Builder class used to modify the added action row.
-
-            This functions exactly like [yuyo.components.ActionRowExecutor][]
-            but comes with the `ChildActionRowExecutor.parent` property which
-            can be used to get back to this multi-component executor.
-        """
-        child = ChildActionRowExecutor(self)  # pyright: ignore [ reportDeprecated ]
-        self.add_executor(child).add_builder(child)
-        return child
-
-    def add_executor(self, executor: AbstractComponentExecutor, /) -> Self:
-        """Add a component executor to this multi-component executor.
-
-        This method is internally used by the `add_{component}` methods.
-
-        Parameters
-        ----------
-        executor
-            The component executor to add.
-
-        Returns
-        -------
-        Self
-            The multi-component executor instance to enable chained calls.
-        """
-        self._executors.append(executor)
-        return self
-
-    async def execute(self, ctx: ComponentContext, /) -> None:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        for executor in self._executors:
-            if ctx.interaction.custom_id in executor.custom_ids:
-                await executor.execute(ctx)
-                return
-
-        raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
 
 
 class ComponentPaginator(ActionRowExecutor):
