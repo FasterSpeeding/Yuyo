@@ -459,19 +459,59 @@ class TestActionRowExecutor:
 
 class TestActionColumnExecutor:
     def test_with_button_descriptor(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_button(hikari.ButtonStyle.DANGER, label="nyaa")
+            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        Column()
 
     def test_with_link_button_descriptor(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            link_button = yuyo.components.link_button("https://example.com", label="meow")
+
+        Column()
 
     def test_with_select_menu_descriptor(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        Column()
 
     def test_with_channel_select_descriptor(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_select
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        Column()
 
     def test_with_text_select_descriptor(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_text_select
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        Column()
 
     def test_with_text_select_descriptor_passed_options(self):
-        ...
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_text_select
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        Column()
