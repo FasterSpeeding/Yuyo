@@ -53,8 +53,8 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
-import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
-import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
+
+
 
 from . import _internal
 from . import pagination
@@ -63,9 +63,9 @@ from . import timeouts
 if typing.TYPE_CHECKING:
     import types
 
-    import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports  # noqa: TC004
-    import hikari.api.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
-    import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
+
+
+
     import tanjun
     from typing_extensions import Self
 
