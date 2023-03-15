@@ -46,13 +46,13 @@ import typing
 from collections import abc as collections
 
 import hikari
-import hikari.components  # TODO: import temporarily needed due to hikari not exporting TL.
-import hikari.impl.special_endpoints  # TODO: import temporarily needed to missing impl exports.
+
+
 
 if typing.TYPE_CHECKING:
-    import hikari.api  # TODO: import temporarily needed to missing api exports.  # noqa: TC004
-    import hikari.api.special_endpoints  # TODO: import temporarily needed to missing impl exports.
-    import hikari.impl  # TODO: import temporarily needed to missing impl exports.  # noqa: TC004
+
+
+
     from typing_extensions import Self
 
 
