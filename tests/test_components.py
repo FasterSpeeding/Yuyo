@@ -38,6 +38,8 @@ from unittest import mock
 import alluka
 import hikari
 import pytest
+import hikari.impl.special_endpoints
+import typing
 
 import yuyo
 
@@ -462,21 +464,100 @@ class TestActionColumnExecutor:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_button(hikari.ButtonStyle.DANGER, label="nyaa")
+            @yuyo.components.as_button(hikari.ButtonStyle.DANGER, label="nyaa", emoji="eeper", is_disabled=True, custom_id="meow")
             async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
-        Column()
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.custom_id == "meow"
+        assert component.style is hikari.ButtonStyle.DANGER
+        assert component.emoji == "eeper"
+        assert component.label ==  "nyaa"
+        assert component.is_disabled is True
+
+    def test_with_button_descriptor_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_button(hikari.ButtonStyle.PRIMARY)
+            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.style is hikari.ButtonStyle.PRIMARY
+        assert component.emoji is hikari.UNDEFINED
+        assert component.label is hikari.UNDEFINED
+        assert component.is_disabled is False
 
     def test_with_link_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            link_button = yuyo.components.link_button("https://example.com", label="meow")
+            link_button = yuyo.components.link_button("https://example.com", label="x", emoji="y", is_disabled=True)
 
         Column()
 
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.style is hikari.ButtonStyle.LINK
+        assert component.url == "https://example.com"
+        assert component.emoji == "y"
+        assert component.label =="x"
+        assert component.is_disabled is True
+
+    def test_with_link_button_descriptor_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            link_button = yuyo.components.link_button("https://example.com/eepers")
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://example.com/eepers"
+        assert component.style is hikari.ButtonStyle.LINK
+        assert component.emoji is hikari.UNDEFINED
+        assert component.label is hikari.UNDEFINED
+        assert component.is_disabled is False
+
     def test_with_select_menu_descriptor(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12)
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "cust"
+        assert component.is_disabled is True
+        assert component.placeholder == "place me"
+        assert component.min_values == 3
+        assert component.max_values == 12
+
+    def test_with_select_menu_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -484,9 +565,38 @@ class TestActionColumnExecutor:
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
-        Column()
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
 
     def test_with_channel_select_descriptor(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_select(channel_types=[hikari.PrivateChannel, hikari.ChannelType.GUILD_NEWS], is_disabled=True, placeholder="me", min_values=2, max_values=5)
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.channel_types == [hikari.ChannelType.DM, hikari.ChannelType.GROUP_DM, hikari.ChannelType.GUILD_NEWS]
+        assert component.is_disabled is True
+        assert component.placeholder == "me"
+        assert component.min_values == 2
+        assert component.max_values == 5
+
+    def test_with_channel_select_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -494,24 +604,70 @@ class TestActionColumnExecutor:
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
-        Column()
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.channel_types == []
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
 
     def test_with_text_select_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_text_select
+            @yuyo.components.as_text_select(
+                options=[
+                    hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="echo", value="zulu"),
+                    hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True)
+                ],
+                is_disabled=True, placeholder="hello there", min_values=11, max_values=15
+            )
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
-        Column()
+        rows = Column().rows
 
-    def test_with_text_select_descriptor_passed_options(self):
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.options == [
+            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="echo", value="zulu"),
+            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True)
+        ]
+        assert component.is_disabled is True
+        assert component.placeholder == "hello there"
+        assert component.min_values == 11
+        assert component.max_values == 15
+
+    def test_with_text_select_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
+            @yuyo.components.with_option("lab", "man", description="last", emoji=123321, is_default=False)
+            @yuyo.components.with_option("label", "value")
+            @yuyo.components.with_option("aaa", "bbb", description="descript", emoji="em", is_default=True)
             @yuyo.components.as_text_select
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
-        Column()
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.options == [
+            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="aaa", value="bbb", description="descript", emoji="em", emoji_name="em", is_default=True),
+            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="value"),
+            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="lab", value="man", description="last", emoji=123321, emoji_id="123321", is_default=False)
+        ]
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1

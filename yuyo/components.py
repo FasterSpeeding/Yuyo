@@ -3135,7 +3135,7 @@ class _TextSelect(_CallableSubComponent[_SelfT, _P]):
         is_default: bool = False,
     ) -> Self:
         self._options.append(
-            hikari.impl.special_endpoints._SelectOptionBuilder[typing.NoReturn](
+            hikari.impl.special_endpoints._SelectOptionBuilder(
                 menu=typing.NoReturn, label=label, value=value, description=description, is_default=is_default
             ).set_emoji(emoji)
         )
