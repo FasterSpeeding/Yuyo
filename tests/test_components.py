@@ -33,13 +33,13 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
+import typing
 from unittest import mock
 
 import alluka
 import hikari
-import pytest
 import hikari.impl.special_endpoints
-import typing
+import pytest
 
 import yuyo
 
@@ -464,7 +464,9 @@ class TestActionColumnExecutor:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_button(hikari.ButtonStyle.DANGER, label="nyaa", emoji="eeper", is_disabled=True, custom_id="meow")
+            @yuyo.components.as_button(
+                hikari.ButtonStyle.DANGER, label="nyaa", emoji="eeper", is_disabled=True, custom_id="meow"
+            )
             async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
@@ -477,7 +479,7 @@ class TestActionColumnExecutor:
         assert component.custom_id == "meow"
         assert component.style is hikari.ButtonStyle.DANGER
         assert component.emoji == "eeper"
-        assert component.label ==  "nyaa"
+        assert component.label == "nyaa"
         assert component.is_disabled is True
 
     def test_with_button_descriptor_with_defaults(self):
@@ -516,7 +518,7 @@ class TestActionColumnExecutor:
         assert component.style is hikari.ButtonStyle.LINK
         assert component.url == "https://example.com"
         assert component.emoji == "y"
-        assert component.label =="x"
+        assert component.label == "x"
         assert component.is_disabled is True
 
     def test_with_link_button_descriptor_with_defaults(self):
@@ -541,7 +543,14 @@ class TestActionColumnExecutor:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12)
+            @yuyo.components.as_select_menu(
+                hikari.ComponentType.USER_SELECT_MENU,
+                custom_id="cust",
+                is_disabled=True,
+                placeholder="place me",
+                min_values=3,
+                max_values=12,
+            )
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
@@ -580,7 +589,13 @@ class TestActionColumnExecutor:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_channel_select(channel_types=[hikari.PrivateChannel, hikari.ChannelType.GUILD_NEWS], is_disabled=True, placeholder="me", min_values=2, max_values=5)
+            @yuyo.components.as_channel_select(
+                channel_types=[hikari.PrivateChannel, hikari.ChannelType.GUILD_NEWS],
+                is_disabled=True,
+                placeholder="me",
+                min_values=2,
+                max_values=5,
+            )
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
@@ -590,7 +605,11 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
-        assert component.channel_types == [hikari.ChannelType.DM, hikari.ChannelType.GROUP_DM, hikari.ChannelType.GUILD_NEWS]
+        assert component.channel_types == [
+            hikari.ChannelType.DM,
+            hikari.ChannelType.GROUP_DM,
+            hikari.ChannelType.GUILD_NEWS,
+        ]
         assert component.is_disabled is True
         assert component.placeholder == "me"
         assert component.min_values == 2
@@ -622,10 +641,17 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_text_select(
                 options=[
-                    hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="echo", value="zulu"),
-                    hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True)
+                    hikari.impl.special_endpoints._SelectOptionBuilder(
+                        menu=typing.NoReturn, label="echo", value="zulu"
+                    ),
+                    hikari.impl.special_endpoints._SelectOptionBuilder(
+                        menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True
+                    ),
                 ],
-                is_disabled=True, placeholder="hello there", min_values=11, max_values=15
+                is_disabled=True,
+                placeholder="hello there",
+                min_values=11,
+                max_values=15,
             )
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
@@ -638,7 +664,9 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
         assert component.options == [
             hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="echo", value="zulu"),
-            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True)
+            hikari.impl.special_endpoints._SelectOptionBuilder(
+                menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True
+            ),
         ]
         assert component.is_disabled is True
         assert component.placeholder == "hello there"
@@ -663,9 +691,25 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
         assert component.options == [
-            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="aaa", value="bbb", description="descript", emoji="em", emoji_name="em", is_default=True),
+            hikari.impl.special_endpoints._SelectOptionBuilder(
+                menu=typing.NoReturn,
+                label="aaa",
+                value="bbb",
+                description="descript",
+                emoji="em",
+                emoji_name="em",
+                is_default=True,
+            ),
             hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="value"),
-            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="lab", value="man", description="last", emoji=123321, emoji_id="123321", is_default=False)
+            hikari.impl.special_endpoints._SelectOptionBuilder(
+                menu=typing.NoReturn,
+                label="lab",
+                value="man",
+                description="last",
+                emoji=123321,
+                emoji_id="123321",
+                is_default=False,
+            ),
         ]
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
