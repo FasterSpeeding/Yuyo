@@ -335,7 +335,7 @@ def to_channel_select_menu_builder(
     hikari.api.ChannelSelectMenuBuilder
         The select menu builder.
     """
-    return hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+    return hikari.impl.ChannelSelectMenuBuilder(
         channel_types=[hikari.ChannelType(channel_type) for channel_type in select_menu.channel_types],
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
@@ -374,7 +374,7 @@ def to_text_select_menu_builder(
         for opt in select_menu.options
     ]
 
-    return hikari.impl.special_endpoints.TextSelectMenuBuilder(
+    return hikari.impl.TextSelectMenuBuilder(
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
         options=options,
