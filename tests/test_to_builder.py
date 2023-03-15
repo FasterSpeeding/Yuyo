@@ -35,9 +35,9 @@ import typing
 from unittest import mock
 
 import hikari
-import hikari.api  # TODO: import temporarily needed to missing impl exports.
-import hikari.api.special_endpoints  # TODO: import temporarily needed to missing impl exports.
-import hikari.components  # TODO: import temporarily needed due to hikari not exporting TL.
+
+
+
 import pytest
 
 import yuyo
