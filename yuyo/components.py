@@ -55,7 +55,6 @@ import alluka as alluka_
 import hikari
 import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
 import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
-import typing_extensions
 
 from . import _internal
 from . import pagination
