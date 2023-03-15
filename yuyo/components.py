@@ -59,6 +59,7 @@ import os
 import types
 import typing
 from collections import abc as collections
+import typing_extensions
 
 import alluka as alluka_
 import hikari
@@ -80,7 +81,6 @@ if typing.TYPE_CHECKING:
 
 _P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
-_ParentT = typing.TypeVar("_ParentT")
 _SelfT = typing.TypeVar("_SelfT")
 _PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
