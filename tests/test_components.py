@@ -38,7 +38,7 @@ from unittest import mock
 
 import alluka
 import hikari
-import hikari.impl.special_endpoints
+import hikari.impl.special_endpoints  # TODO: get rid of import when type is exposed publicly.
 import pytest
 
 import yuyo
