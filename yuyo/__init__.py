@@ -50,7 +50,6 @@ __all__: list[str] = [
     "FinishedChunkingEvent",
     "ModalClient",
     "ModalContext",
-    "MultiComponentExecutor",
     "ReactionClient",
     "ReactionHandler",
     "ReactionPaginator",
@@ -90,7 +89,6 @@ from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
-from .components import MultiComponentExecutor  # pyright: ignore [ reportDeprecated ]
 from .components import WaitForExecutor
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
   to new [yuyo.timeouts][] module.
 
+### Removed
+- The deprecated `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`
+  types.
+- [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] can no-longer be used
+  to add link buttons.
+
 ## [1.9.1a1] - 2023-03-07
 ### Added
 - Re-exposed `yuyo.reactions.EventT` as [yuyo.reactions.ReactionEventT][].
