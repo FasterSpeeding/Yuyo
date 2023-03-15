@@ -54,17 +54,12 @@ from collections import abc as collections
 import alluka as alluka_
 import hikari
 
-
-
 from . import _internal
 from . import pagination
 from . import timeouts
 
 if typing.TYPE_CHECKING:
     import types
-
-
-
 
     import tanjun
     from typing_extensions import Self
