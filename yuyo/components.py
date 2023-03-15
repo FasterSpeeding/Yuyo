@@ -2344,8 +2344,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row.
 
     You likely want [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-    instead as this provides an interface for handling all the components on a
-    message.
+    which provides an interface for handling all the components on a message
+    instead of this.
     """
 
     __slots__ = ("_components", "_stored_type")
