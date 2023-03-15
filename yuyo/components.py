@@ -59,10 +59,10 @@ import os
 import types
 import typing
 from collections import abc as collections
-import typing_extensions
 
 import alluka as alluka_
 import hikari
+import typing_extensions
 
 from . import _internal
 from . import pagination
