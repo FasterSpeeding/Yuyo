@@ -69,7 +69,6 @@ from . import pagination
 from . import timeouts
 
 if typing.TYPE_CHECKING:
-
     import tanjun
     from typing_extensions import Self
 
