@@ -53,8 +53,6 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
-import hikari.impl  # TODO: import temporarily needed cause of hikari's missing exports
-import hikari.impl.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
 
 from . import _internal
 from . import pagination
@@ -63,9 +61,6 @@ from . import timeouts
 if typing.TYPE_CHECKING:
     import types
 
-    import hikari.api  # TODO: import temporarily needed cause of hikari's missing exports  # noqa: TC004
-    import hikari.api.special_endpoints  # TODO: import temporarily needed cause of hikari's missing exports
-    import hikari.components  # TODO: import temporarily needed cause of hikari's missing exports
     import tanjun
     from typing_extensions import Self
 
@@ -2489,7 +2484,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             self._assert_can_add_type(type_)
             .set_callback(custom_id, callback)
             .add_component(
-                hikari.impl.special_endpoints.SelectMenuBuilder(
+                hikari.impl.SelectMenuBuilder(
                     container=NotImplemented,
                     custom_id=custom_id,
                     type=type_,
@@ -2546,7 +2541,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
             .set_callback(custom_id, callback)
             .add_component(
-                hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+                hikari.impl.ChannelSelectMenuBuilder(
                     container=NotImplemented,
                     custom_id=custom_id,
                     channel_types=_parse_channel_types(*channel_types) if channel_types else [],
@@ -2568,7 +2563,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a channel select menu to this action row.
 
         Parameters
@@ -2600,7 +2595,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if custom_id is None:
             custom_id = _internal.random_custom_id()
 
-        component = hikari.impl.special_endpoints.TextSelectMenuBuilder[typing.NoReturn](
+        component = hikari.impl.TextSelectMenuBuilder[typing.NoReturn](
             container=NotImplemented,  # type: ignore
             custom_id=custom_id,
             placeholder=placeholder,
@@ -3370,7 +3365,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a channel select menu to this action column.
 
         Parameters
@@ -3419,7 +3414,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a channel select menu to all subclasses and instances of this action column class.
 
         Parameters
@@ -3457,9 +3452,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(
-            row: ActionRowExecutor, /
-        ) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.NoReturn]:
+        def _add_element(row: ActionRowExecutor, /) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
             return row.add_text_select(
                 callback,
                 custom_id=custom_id,

@@ -46,13 +46,8 @@ import typing
 from collections import abc as collections
 
 import hikari
-import hikari.components  # TODO: import temporarily needed due to hikari not exporting TL.
-import hikari.impl.special_endpoints  # TODO: import temporarily needed to missing impl exports.
 
 if typing.TYPE_CHECKING:
-    import hikari.api  # TODO: import temporarily needed to missing api exports.  # noqa: TC004
-    import hikari.api.special_endpoints  # TODO: import temporarily needed to missing impl exports.
-    import hikari.impl  # TODO: import temporarily needed to missing impl exports.  # noqa: TC004
     from typing_extensions import Self
 
 
@@ -326,8 +321,8 @@ class _SelectOptionBuilder(hikari.api.SelectOptionBuilder[typing.Any]):
 
 
 def to_channel_select_menu_builder(
-    select_menu: hikari.components.ChannelSelectMenuComponent, /
-) -> hikari.api.special_endpoints.ChannelSelectMenuBuilder[typing.Any]:
+    select_menu: hikari.ChannelSelectMenuComponent, /
+) -> hikari.api.ChannelSelectMenuBuilder[typing.Any]:
     """Convert a channel select menu component to a builder.
 
     Parameters
@@ -340,7 +335,7 @@ def to_channel_select_menu_builder(
     hikari.api.ChannelSelectMenuBuilder
         The select menu builder.
     """
-    return hikari.impl.special_endpoints.ChannelSelectMenuBuilder(
+    return hikari.impl.ChannelSelectMenuBuilder(
         channel_types=[hikari.ChannelType(channel_type) for channel_type in select_menu.channel_types],
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
@@ -352,8 +347,8 @@ def to_channel_select_menu_builder(
 
 
 def to_text_select_menu_builder(
-    select_menu: hikari.components.TextSelectMenuComponent, /
-) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.Any]:
+    select_menu: hikari.TextSelectMenuComponent, /
+) -> hikari.api.TextSelectMenuBuilder[typing.Any]:
     """Convert a text select menu component to a builder.
 
     Parameters
@@ -379,7 +374,7 @@ def to_text_select_menu_builder(
         for opt in select_menu.options
     ]
 
-    return hikari.impl.special_endpoints.TextSelectMenuBuilder(
+    return hikari.impl.TextSelectMenuBuilder(
         container=_DummyContainer(),
         custom_id=select_menu.custom_id,
         options=options,
