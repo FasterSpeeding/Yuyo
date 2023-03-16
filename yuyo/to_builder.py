@@ -321,8 +321,8 @@ class _SelectOptionBuilder(hikari.api.SelectOptionBuilder[typing.Any]):
 
 
 def to_channel_select_menu_builder(
-    select_menu: hikari.components.ChannelSelectMenuComponent, /
-) -> hikari.api.special_endpoints.ChannelSelectMenuBuilder[typing.Any]:
+    select_menu: hikari.ChannelSelectMenuComponent, /
+) -> hikari.api.ChannelSelectMenuBuilder[typing.Any]:
     """Convert a channel select menu component to a builder.
 
     Parameters
@@ -347,8 +347,8 @@ def to_channel_select_menu_builder(
 
 
 def to_text_select_menu_builder(
-    select_menu: hikari.components.TextSelectMenuComponent, /
-) -> hikari.api.special_endpoints.TextSelectMenuBuilder[typing.Any]:
+    select_menu: hikari.TextSelectMenuComponent, /
+) -> hikari.api.TextSelectMenuBuilder[typing.Any]:
     """Convert a text select menu component to a builder.
 
     Parameters
