@@ -3452,9 +3452,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(
-            row: ActionRowExecutor, /
-        ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+        def _add_element(row: ActionRowExecutor, /) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
             return row.add_text_select(
                 callback,
                 custom_id=custom_id,
