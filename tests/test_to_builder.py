@@ -465,7 +465,7 @@ def test_to_msg_action_row_builder():
     assert isinstance(component, hikari.api.SelectMenuBuilder)
     assert component.custom_id is mock_select_menu.custom_id
     assert component.is_disabled is mock_select_menu.is_disabled
-    # assert component.type is mock_select_menu.type  # TODO: missing property
+    assert component.type is mock_select_menu.type
     assert component.placeholder is mock_select_menu.placeholder
     assert component.min_values is mock_select_menu.min_values
     assert component.max_values is mock_select_menu.max_values
@@ -474,7 +474,7 @@ def test_to_msg_action_row_builder():
     assert isinstance(component, hikari.api.TextSelectMenuBuilder)
     component = typing.cast("hikari.api.TextSelectMenuBuilder[typing.Any]", component)
     assert component.custom_id is mock_text_select_menu.custom_id
-    # assert component.type is hikari.ComponentType.TEXT_SELECT_MENU  # TODO: missing property
+    assert component.type is hikari.ComponentType.TEXT_SELECT_MENU
     assert component.is_disabled is mock_text_select_menu.is_disabled
     assert len(component.options) == 1
     assert component.options[0].label is mock_text_select_menu.options[0].label
@@ -489,7 +489,7 @@ def test_to_msg_action_row_builder():
     component = builder.components[4]
     assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
     assert component.channel_types == mock_channel_select_menu.channel_types
-    # assert component.type is hikari.ComponentType.CHANNEL_SELECT_MENU  # TODO: missing property
+    assert component.type is hikari.ComponentType.CHANNEL_SELECT_MENU
     assert component.custom_id is mock_channel_select_menu.custom_id
     assert component.is_disabled is mock_channel_select_menu.is_disabled
     assert component.placeholder is mock_channel_select_menu.placeholder
@@ -775,7 +775,7 @@ def test_to_channel_select_menu_builder():
 
     builder = yuyo.to_builder.to_channel_select_menu_builder(mock_menu)
 
-    # assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU  # TODO: missing in hikari
+    assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU
     assert builder.custom_id is mock_menu.custom_id
     assert builder.channel_types == mock_menu.channel_types
     assert builder.placeholder is mock_menu.placeholder
@@ -830,7 +830,7 @@ def test_to_text_select_menu_builder():
     assert opt.emoji is mock_opt_2.emoji
     assert opt.is_default is mock_opt_2.is_default
 
-    # assert builder.type is hikari.ComponentType.TEXT_SELECT_MENU  # TODO: missing in hikari
+    assert builder.type is hikari.ComponentType.TEXT_SELECT_MENU
     assert builder.placeholder is mock_menu.placeholder
     assert builder.min_values is mock_menu.min_values
     assert builder.max_values is mock_menu.max_values
@@ -855,7 +855,7 @@ def test_to_select_menu_builder():
 
     builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
 
-    # assert builder.type is mock_menu.custom_id.type  # TODO: missing in hikari
+    assert builder.type is mock_menu.type
     assert builder.custom_id is mock_menu.custom_id
     assert builder.placeholder is mock_menu.placeholder
     assert builder.min_values is mock_menu.min_values
@@ -883,7 +883,7 @@ def test_to_select_menu_builder_when_channel():
     builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
 
     assert isinstance(builder, hikari.api.ChannelSelectMenuBuilder)
-    # assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU  # TODO: missing in hikari
+    assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU
 
 
 def test_to_select_menu_builder_when_text():
@@ -899,4 +899,4 @@ def test_to_select_menu_builder_when_text():
     builder = yuyo.to_builder.to_select_menu_builder(mock_menu)
 
     assert isinstance(builder, hikari.api.TextSelectMenuBuilder)
-    # assert builder.type is hikari.ComponentType.TEXT_SELECT_MENU  # TODO: missing in hikari
+    assert builder.type is hikari.ComponentType.TEXT_SELECT_MENU
