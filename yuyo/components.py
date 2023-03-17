@@ -2731,7 +2731,7 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
         raise ValueError(f"Unknown channel type {exc.args[0]}") from exc
 
 
-class _SubComponent(abc.ABC):
+class _ComponentDescriptor(abc.ABC):
     """Abstract class used to mark components on an action column class."""
 
     __slots__ = ()
@@ -2741,7 +2741,7 @@ class _SubComponent(abc.ABC):
         """Add this component to an action column executor."""
 
 
-class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
+class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
     """Base class used to represent components by decorating a callback."""
 
     __slots__ = ("_callback",)
@@ -2772,7 +2772,7 @@ class _CallableSubComponent(_SubComponent, typing.Generic[_SelfT, _P]):
         return types.MethodType(self._callback, obj)
 
 
-class _StaticButton(_CallableSubComponent[_SelfT, _P]):
+class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
     __slots__ = ("_style", "_custom_id", "_emoji", "_label", "_is_disabled")
@@ -2845,7 +2845,7 @@ def as_button(
     return lambda callback: _StaticButton(style, callback, custom_id, emoji, label, is_disabled)
 
 
-class _StaticLinkButton(_SubComponent):
+class _StaticLinkButton(_ComponentDescriptor):
     __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
@@ -2898,7 +2898,7 @@ def link_button(
     return _StaticLinkButton(url, emoji, label, is_disabled)
 
 
-class _SelectMenu(_CallableSubComponent[_SelfT, _P]):
+class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
     __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
@@ -2976,7 +2976,7 @@ def as_select_menu(
     return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
 
 
-class _ChannelSelect(_CallableSubComponent[_SelfT, _P]):
+class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
     __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
@@ -3091,7 +3091,7 @@ def as_channel_select(
     return decorator
 
 
-class _TextSelect(_CallableSubComponent[_SelfT, _P]):
+class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
     __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
@@ -3389,7 +3389,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 callback(cls)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _SubComponent):
+            if isinstance(attr, _ComponentDescriptor):
                 cls._static_fields.append(attr.add)
                 attr.add(cls)
 
