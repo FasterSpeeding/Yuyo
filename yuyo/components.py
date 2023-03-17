@@ -3381,17 +3381,22 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_rows = []
         cls._static_fields = []
 
-        for super_cls in cls.mro()[-2::-1]:
+        memo: set[collections.Callable[[type[ActionColumnExecutor]], object]] = set()
+        # This slice ignores [object, ..., type[Self]] and flips the order.
+        for super_cls in cls.mro()[-2:0:-1]:
             if not issubclass(super_cls, ActionColumnExecutor):
                 continue
 
             for callback in super_cls._static_fields:
-                callback(cls)
+                if callback not in memo:
+                    memo.add(callback)
+                    callback(cls)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor):
+            if isinstance(attr, _ComponentDescriptor) and attr.add not in memo:
                 cls._static_fields.append(attr.add)
                 attr.add(cls)
+                memo.add(attr.add)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
