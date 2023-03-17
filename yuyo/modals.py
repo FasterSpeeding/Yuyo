@@ -48,6 +48,7 @@ import asyncio
 import datetime
 import enum
 import functools
+import inspect
 import itertools
 import typing
 from collections import abc as collections
@@ -908,8 +909,6 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _all_static_fields: typing.ClassVar[list[_TrackedField]] = []
-    _all_static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
     _static_fields: typing.ClassVar[list[_TrackedField]] = []
     _static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
 
@@ -922,20 +921,16 @@ class Modal(AbstractModal):
             Whether this executor's responses should default to being ephemeral.
         """
         self._ephemeral_default = ephemeral_default
-        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
+        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._static_rows.copy()
         # TODO: don't duplicate fields when re-declared
-        self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
+        self._tracked_fields: list[_TrackedField] = self._static_fields.copy()
 
-    def __init_subclass__(cls) -> None:
-        cls._all_static_fields = []
-        cls._all_static_rows = []
+    def __init_subclass__(cls, parse_signature: bool = True) -> None:
         cls._static_fields = []
         cls._static_rows = []
 
-        for super_cls in cls.mro()[-2::-1]:
-            if issubclass(super_cls, Modal):
-                cls._all_static_fields.extend(super_cls._static_fields)
-                cls._all_static_rows.extend(super_cls._static_rows)
+        if not parse_signature:
+            return
 
         try:
             cls.callback
@@ -944,7 +939,8 @@ class Modal(AbstractModal):
             pass
 
         else:
-            ...
+            for name, descriptor in _parse_descriptors(cls.callback):
+                descriptor.add_static(name, cls)
 
     callback: typing.ClassVar[collections.Callable[_SelfishSig[Self], _CoroT[None]]]
 
@@ -1037,7 +1033,6 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        cls._all_static_rows.append(row)
         cls._static_rows.append(row)
 
         if parameter:
@@ -1048,7 +1043,6 @@ class Modal(AbstractModal):
                 prefix_match=prefix_match,
                 type_=hikari.ComponentType.TEXT_INPUT,
             )
-            cls._all_static_fields.append(field)
             cls._static_fields.append(field)
 
         return cls
@@ -1214,7 +1208,7 @@ def _make_text_input(
     return (custom_id, row)
 
 
-class _DynamicModal(Modal, typing.Generic[_P]):
+class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
     __slots__ = ("_callback",)
 
     def __init__(self, callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> None:
@@ -1225,7 +1219,13 @@ class _DynamicModal(Modal, typing.Generic[_P]):
         return self._callback(*args, **kwargs)
 
 
-def modal(callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> _DynamicModal[_P]:
+def modal(
+    callback: collections.Callable[_P, _CoroT[None]],
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = False,
+) -> _DynamicModal[_P]:
     """Create a modal instance for a callback.
 
     Parameters
@@ -1240,7 +1240,12 @@ def modal(callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_defa
     Modal
         The created modal.
     """
-    return _DynamicModal(callback, ephemeral_default=ephemeral_default)
+    modal = _DynamicModal(callback, ephemeral_default=ephemeral_default)
+    if parse_signature:
+        for name, descriptor in _parse_descriptors(callback):
+            descriptor.add(name, modal)
+
+    return modal
 
 
 @typing.overload
@@ -1256,7 +1261,11 @@ def as_modal(
 
 
 def as_modal(
-    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
+    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None,
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = False,
 ) -> typing.Union[_DynamicModal[_P], collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]]:
     """Create a modal instance through a decorator call.
 
@@ -1272,7 +1281,7 @@ def as_modal(
     """
 
     def decorator(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
-        return modal(callback, ephemeral_default=ephemeral_default)
+        return modal(callback, ephemeral_default=ephemeral_default, parse_signature=parse_signature)
 
     if callback:
         return decorator(callback)
@@ -1281,7 +1290,7 @@ def as_modal(
 
 
 # Putting typing.Generic after Modal here breaks Python's generic handling.
-class _GenericModal(typing.Generic[_P], Modal):
+class _GenericModal(typing.Generic[_P], Modal, parse_signature=False):
     __slots__ = ()
 
     async def callback(self, *arg: _P.args, **kwargs: _P.kwargs) -> None:
@@ -1491,11 +1500,23 @@ def with_text_input(
     )
 
 
+def _parse_descriptors(
+    callback: collections.Callable[..., typing.Any], /
+) -> collections.Iterable[tuple[str, _ComponentDescriptor]]:
+    for name, parameter in inspect.signature(callback).parameters.items():
+        if parameter.default is not parameter.empty and isinstance(parameter.default, _ComponentDescriptor):
+            yield name, parameter.default
+
+
 class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, keyword: str, modal: type[Modal], /) -> None:
+    def add(self, keyword: str, modal: Modal, /) -> None:
+        ...
+
+    @abc.abstractmethod
+    def add_static(self, keyword: str, modal: type[Modal], /) -> None:
         ...
 
 
@@ -1536,7 +1557,21 @@ class _TextInputDescriptor(_ComponentDescriptor):
         self._max_length = max_length
         self._prefix_match = prefix_match
 
-    def add(self, keyword: str, modal: type[Modal], /) -> None:
+    def add(self, keyword: str, modal: Modal, /) -> None:
+        modal.add_text_input(
+            self._label,
+            parameter=keyword,
+            custom_id=self._custom_id,
+            style=self._style,
+            placeholder=self._placeholder,
+            value=self._value,
+            default=self._default,
+            min_length=self._min_length,
+            max_length=self._max_length,
+            prefix_match=self._prefix_match,
+        )
+
+    def add_static(self, keyword: str, modal: type[Modal], /) -> None:
         modal.add_static_text_input(
             self._label,
             parameter=keyword,
@@ -1575,4 +1610,4 @@ def text_input(
         max_length=max_length,
         prefix_match=prefix_match,
     )
-    return typing.cast(str, descriptor)
+    return typing.cast("str", descriptor)
