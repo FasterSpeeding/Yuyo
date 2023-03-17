@@ -38,6 +38,7 @@ __all__ = [
     "as_modal",
     "as_modal_template",
     "modal",
+    "text_input",
     "with_static_text_input",
     "with_text_input",
 ]
@@ -922,6 +923,7 @@ class Modal(AbstractModal):
         """
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
+        # TODO: don't duplicate fields when re-declared
         self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
 
     def __init_subclass__(cls) -> None:
@@ -934,6 +936,15 @@ class Modal(AbstractModal):
             if issubclass(super_cls, Modal):
                 cls._all_static_fields.extend(super_cls._static_fields)
                 cls._all_static_rows.extend(super_cls._static_rows)
+
+        try:
+            cls.callback
+
+        except AttributeError:
+            pass
+
+        else:
+            ...
 
     callback: typing.ClassVar[collections.Callable[_SelfishSig[Self], _CoroT[None]]]
 
@@ -1478,3 +1489,90 @@ def with_text_input(
         prefix_match=prefix_match,
         parameter=parameter,
     )
+
+
+class _ComponentDescriptor(abc.ABC):
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def add(self, keyword: str, modal: type[Modal], /) -> None:
+        ...
+
+
+class _TextInputDescriptor(_ComponentDescriptor):
+    __slots__ = (
+        "_label",
+        "_custom_id",
+        "_style",
+        "_placeholder",
+        "_value",
+        "_default",
+        "_min_length",
+        "_max_length",
+        "_prefix_match",
+    )
+
+    def __init__(
+        self,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        prefix_match: bool = False,
+    ) -> None:
+        self._label = label
+        self._custom_id = custom_id
+        self._style = style
+        self._placeholder = placeholder
+        self._value = value
+        self._default = default
+        self._min_length = min_length
+        self._max_length = max_length
+        self._prefix_match = prefix_match
+
+    def add(self, keyword: str, modal: type[Modal], /) -> None:
+        modal.add_static_text_input(
+            self._label,
+            parameter=keyword,
+            custom_id=self._custom_id,
+            style=self._style,
+            placeholder=self._placeholder,
+            value=self._value,
+            default=self._default,
+            min_length=self._min_length,
+            max_length=self._max_length,
+            prefix_match=self._prefix_match,
+        )
+
+
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> str:
+    descriptor = _TextInputDescriptor(
+        label,
+        custom_id=custom_id,
+        style=style,
+        placeholder=placeholder,
+        value=value,
+        default=default,
+        min_length=min_length,
+        max_length=max_length,
+        prefix_match=prefix_match,
+    )
+    return typing.cast(str, descriptor)
