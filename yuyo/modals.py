@@ -1610,6 +1610,74 @@ def text_input(
     max_length: int = 4000,
     prefix_match: bool = False,
 ) -> str:
+    """Descriptor used to declare a text input field.
+
+    Parameters
+    ----------
+    label
+        The text input field's display label.
+
+        This cannot be greater than 45 characters long.
+    custom_id
+        The field's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+    style
+        The text input's style.
+    placeholder
+        Placeholder text to display when the text input is empty.
+    value
+        Default text to pre-fill the field with.
+    default
+        Default value to pass if this text input field was not provided.
+
+        The field will be marked as required unless this is supplied.
+    min_length
+        Minimum length the input text can be.
+
+        This can be greater than or equal to 0 and less than or equal to 4000.
+    max_length
+        Maximum length the input text can be.
+
+        This can be greater than or equal to 1 and less than or equal to 4000.
+    prefix_match
+        Whether `custom_id` should be matched as a prefix.
+
+        When this is [True][] `custom_id` will be matched against
+        `.split(":", 1)[0]`.
+
+        This allows for further state to be held in the custom ID after the
+        prefix and is lower priority than normal matching.
+
+    Examples
+    --------
+    This can either be applied to an argument's default
+
+    ```py
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext,
+        text_field: str = modals.text_input("label"),
+        optional_field: str | None = modals.text_input("label", default=None)
+    ) -> None:
+        ...
+    ```
+
+    Or as an attribute to a [ModalOptions][yuyo.modals.ModalOptions] dataclass.
+
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        field: str = modals.text_input("label")
+        optional_field: str | None = modals.text_input("label", default=None)
+
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext, fields: ModalOptions,
+    ) -> None:
+        ...
+    ```
+
+    """
     descriptor = _TextInputDescriptor(
         label,
         custom_id=custom_id,
@@ -1645,6 +1713,23 @@ class _ModalOptionsMeta(type):
 
 
 class ModalOptions(metaclass=_ModalOptionsMeta):
+    """Data class used to define a modal's options.
+
+    Examples
+    --------
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        field: str = modals.text_input("label")
+        optional_field: str | None = modals.text_input("label", default=None)
+
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext, fields: ModalOptions,
+    ) -> None:
+        ...
+    ```
+    """
+
     __slots__ = ()
 
     _modal_fields: typing.ClassVar[types.MappingProxyType[str, _ComponentDescriptor]]
