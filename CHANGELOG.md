@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   raising an exception.
 - Handling of defaulting empty modal text inputs.
 - Add `type` property to [yuyo.components.ActionRowExecutor][] and
-  [yuyo.components.ChildActionRowExecutor][] to fix compatibility with `Hikari>=2.0.0.dev117`.
+  `yuyo.components.ChildActionRowExecutor` to fix compatibility with `Hikari>=2.0.0.dev117`.
 
 ## [1.9.0a1] - 2023-02-27
 ### Added
@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in [ComponentContext.defer][yuyo.components.ComponentContext.defer].
 
 ### Deprecated
-- [yuyo.components.MultiComponentExecutor][] and [yuyo.components.ChildActionRowExecutor][].
+- `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`.
   [yuyo.components.ActionColumnExecutor][] should be used instead.
 - Using [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] to add
   specifically link buttons. [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
@@ -224,7 +224,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow [None][] to be passed for `attachment` and `attachments` to edit response methods.
 - Star imports are no-longer used on the top level (at [yuyo][]) so only the attributes present
   in `yuyo.__all__` can be accessed there now.
-- [yuyo.components.AbstractComponentExecutor][], [yuyo.components.ChildActionRowExecutor][],
+- [yuyo.components.AbstractComponentExecutor][], `yuyo.components.ChildActionRowExecutor`,
   `InteractiveButtonBuilder`, `yuyo.components.as_child_executor`,
   `yuyo.components.as_component_callback`, [yuyo.reactions.AbstractReactionHandler][], and
   `yuyo.reactions.as_reaction_callback` are no longer included in `yuyo.__all__`/exported
