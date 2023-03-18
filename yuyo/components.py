@@ -2788,7 +2788,7 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._custom_id = custom_id
+        self._custom_id = custom_id or _internal.random_custom_id()
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
@@ -2913,7 +2913,7 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._type = hikari.ComponentType(type_)
-        self._custom_id = custom_id
+        self._custom_id = custom_id or _internal.random_custom_id()
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
@@ -2992,7 +2992,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id
+        self._custom_id = custom_id or _internal.random_custom_id()
         self._channel_types = channel_types
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3105,7 +3105,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id
+        self._custom_id = custom_id or _internal.random_custom_id()
         self._options = list(options)
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3525,6 +3525,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
+        custom_id = custom_id or _internal.random_custom_id()
         _append_row(cls._all_static_rows, is_button=True).add_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -3766,6 +3767,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
+        custom_id = custom_id or _internal.random_custom_id()
         _append_row(cls._all_static_rows).add_select_menu(
             callback,
             type_,
@@ -3943,6 +3945,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
+        custom_id = custom_id or _internal.random_custom_id()
         _append_row(cls._all_static_rows).add_channel_select(
             callback,
             custom_id=custom_id,
@@ -4131,6 +4134,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
+        custom_id = custom_id or _internal.random_custom_id()
         select = _append_row(cls._all_static_rows).add_text_select(
             callback,
             custom_id=custom_id,
