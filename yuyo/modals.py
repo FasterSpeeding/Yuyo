@@ -35,6 +35,7 @@ __all__ = [
     "Modal",
     "ModalClient",
     "ModalContext",
+    "ModalOptions",
     "as_modal",
     "as_modal_template",
     "modal",
