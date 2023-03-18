@@ -1793,7 +1793,7 @@ class _ModalOptionsMeta(type):
 
         namespace["_modal_fields"] = types.MappingProxyType(fields)
         namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore [ reportUntypedNamedTuple ]
-        return super().__new__(cls, name, (*bases, namedtuple), namespace)
+        return super().__new__(cls, name, (namedtuple, *bases), namespace)
 
 
 class ModalOptions(metaclass=_ModalOptionsMeta):
