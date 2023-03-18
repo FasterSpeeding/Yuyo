@@ -45,13 +45,14 @@ __all__ = [
 
 import abc
 import asyncio
+import collections
+import collections.abc
 import datetime
 import enum
 import functools
-import inspect
 import itertools
+import types
 import typing
-from collections import abc as collections
 
 import alluka as alluka_
 import hikari
@@ -60,13 +61,12 @@ import typing_extensions
 from . import _internal
 from . import components as components_
 from . import timeouts
+from ._internal import inspect
 
 _P = typing_extensions.ParamSpec("_P")
 _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
-    import types
-
     import tanjun
     from typing_extensions import Self
 
@@ -75,11 +75,10 @@ if typing.TYPE_CHECKING:
     _SelfishSig = __SelfishSig[_T, ...]
 
 
-_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
+_CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
-
 
 AbstractTimeout = timeouts.AbstractTimeout
 """Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
@@ -111,7 +110,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         self,
         client: ModalClient,
         interaction: hikari.ModalInteraction,
-        register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
+        register_task: collections.abc.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
@@ -134,11 +133,11 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.abc.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.abc.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.abc.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -942,10 +941,10 @@ class Modal(AbstractModal):
             for name, descriptor in _parse_descriptors(cls.callback):
                 descriptor.add_static(name, cls)
 
-    callback: typing.ClassVar[collections.Callable[_SelfishSig[Self], _CoroT[None]]]
+    callback: typing.ClassVar[collections.abc.Callable[_SelfishSig[Self], _CoroT[None]]]
 
     @property
-    def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
+    def rows(self) -> collections.abc.Sequence[hikari.api.ModalActionRowBuilder]:
         """Builder objects of the rows in this modal."""
         return self._rows
 
@@ -1211,7 +1210,9 @@ def _make_text_input(
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> None:
+    def __init__(
+        self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
+    ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
         self._callback = callback
 
@@ -1220,7 +1221,7 @@ class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
 
 
 def modal(
-    callback: collections.Callable[_P, _CoroT[None]],
+    callback: collections.abc.Callable[_P, _CoroT[None]],
     /,
     *,
     ephemeral_default: bool = False,
@@ -1249,24 +1250,26 @@ def modal(
 
 
 @typing.overload
-def as_modal(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
+def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
     ...
 
 
 @typing.overload
 def as_modal(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
     ...
 
 
 def as_modal(
-    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None,
+    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
     /,
     *,
     ephemeral_default: bool = False,
     parse_signature: bool = False,
-) -> typing.Union[_DynamicModal[_P], collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]]:
+) -> typing.Union[
+    _DynamicModal[_P], collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]
+]:
     """Create a modal instance through a decorator call.
 
     Parameters
@@ -1280,7 +1283,7 @@ def as_modal(
         The new decorated modal.
     """
 
-    def decorator(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
+    def decorator(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
         return modal(callback, ephemeral_default=ephemeral_default, parse_signature=parse_signature)
 
     if callback:
@@ -1298,21 +1301,22 @@ class _GenericModal(typing.Generic[_P], Modal, parse_signature=False):
 
 
 @typing.overload
-def as_modal_template(callback: collections.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
+def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
     ...
 
 
 @typing.overload
 def as_modal_template(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[collections.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
     ...
 
 
 def as_modal_template(
-    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
+    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
 ) -> typing.Union[
-    type[_GenericModal[_P]], collections.Callable[[collections.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]
+    type[_GenericModal[_P]],
+    collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]],
 ]:
     """Create a modal template through a decorator callback.
 
@@ -1327,7 +1331,7 @@ def as_modal_template(
         The new decorated modal class.
     """
 
-    def decorator(callback_: collections.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
+    def decorator(callback_: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
         class ModalTemplate(_GenericModal[_P]):
             __slots__ = ()
 
@@ -1359,7 +1363,7 @@ def with_static_text_input(
     max_length: int = 4000,
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
-) -> collections.Callable[[type[_ModalT]], type[_ModalT]]:
+) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
 
     Parameters
@@ -1436,7 +1440,7 @@ def with_text_input(
     max_length: int = 4000,
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
-) -> collections.Callable[[_ModalT], _ModalT]:
+) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
 
     Parameters
@@ -1501,11 +1505,17 @@ def with_text_input(
 
 
 def _parse_descriptors(
-    callback: collections.Callable[..., typing.Any], /
-) -> collections.Iterable[tuple[str, _ComponentDescriptor]]:
-    for name, parameter in inspect.signature(callback).parameters.items():
+    callback: collections.abc.Callable[..., typing.Any], /
+) -> collections.abc.Iterable[tuple[str, _ComponentDescriptor]]:
+    for name, parameter in inspect.signature(callback, eval_str=True).parameters.items():
         if parameter.default is not parameter.empty and isinstance(parameter.default, _ComponentDescriptor):
             yield name, parameter.default
+
+        elif parameter.annotation is parameter.empty:
+            continue
+
+        if isinstance(parameter.annotation, type) and issubclass(parameter.annotation, ModalOptions):
+            yield from parameter.annotation._modal_fields.items()  # pyright: ignore [ reportPrivateUsage ]
 
 
 class _ComponentDescriptor(abc.ABC):
@@ -1611,3 +1621,29 @@ def text_input(
         prefix_match=prefix_match,
     )
     return typing.cast("str", descriptor)
+
+
+class _ModalOptionsMeta(type):
+    def __new__(
+        cls, name: str, bases: tuple[type[typing.Any], ...], namespace: dict[str, typing.Any]
+    ) -> _ModalOptionsMeta:
+        bases = types.resolve_bases(bases)
+        fields: dict[str, _ComponentDescriptor] = {}
+
+        for sub_cls in bases:
+            if issubclass(sub_cls, ModalOptions):
+                fields.update(sub_cls._modal_fields)  # type: ignore [ reportPrivateUsage ]
+
+        for key, value in namespace.items():
+            if isinstance(value, _ComponentDescriptor):
+                fields[key] = value
+
+        namespace["_modal_fields"] = types.MappingProxyType(fields)
+        namedtuple = collections.namedtuple(name, fields.keys())  # type: ignore [ reportUntypedNamedTuple ]
+        return super().__new__(cls, name, (*bases, namedtuple), namespace)
+
+
+class ModalOptions(metaclass=_ModalOptionsMeta):
+    __slots__ = ()
+
+    _modal_fields: typing.ClassVar[types.MappingProxyType[str, _ComponentDescriptor]]
