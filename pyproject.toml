@@ -174,7 +174,7 @@ python_versions = ["3.9", "3.10", "3.11"]
 [tool.piped.github_actions.verify_types]
 
 [tool.pyright]
-exclude = ["tanjun/_internal/vendor"]
+exclude = ["yuyo/_internal/vendor"]
 include = ["examples", "noxfile.py", "tests", "yuyo"]
 
 pythonVersion = "3.9"
@@ -209,5 +209,5 @@ required_plugins = ["pytest-asyncio"]
 strict-imports = true
 require-superclass = true
 require-subclass = true
-exclude-classes = """.*Proto"""
+exclude-classes = """.*(Proto|Meta)"""
 exclude-modules = "yuyo._internal.vendor"
