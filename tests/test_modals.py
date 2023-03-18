@@ -33,6 +33,7 @@
 # pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
 
+import typing
 from unittest import mock
 
 import alluka
@@ -299,7 +300,7 @@ class TestModal:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext,
-            a_field: str = modals.text_input(
+            a_field: typing.Union[str, int] = modals.text_input(
                 "bababooi",
                 custom_id="yeet:me",
                 style=hikari.TextInputStyle.PARAGRAPH,

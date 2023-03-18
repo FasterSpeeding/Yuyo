@@ -1681,6 +1681,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         )
 
 
+@typing.overload
 def text_input(
     label: str,
     /,
@@ -1689,11 +1690,44 @@ def text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    default: NoDefault = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
 ) -> str:
+    ...
+
+
+@typing.overload
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: _T,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> typing.Union[str, _T]:
+    ...
+
+
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Union[_T, NoDefault] = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> typing.Union[str, _T]:
     """Descriptor used to declare a text input field.
 
     Parameters
