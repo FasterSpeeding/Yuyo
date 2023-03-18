@@ -1558,7 +1558,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         prefix_match: bool = False,
     ) -> None:
         self._label = label
-        self._custom_id = custom_id
+        self._custom_id = custom_id or _internal.random_custom_id()
         self._style = style
         self._placeholder = placeholder
         self._value = value
