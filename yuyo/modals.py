@@ -797,6 +797,50 @@ class _TrackedField:
         self.prefix_match = prefix_match
         self.type = type_
 
+    def process(
+        self,
+        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
+        components: dict[str, hikari.ModalComponentTypesT],
+    ) -> typing.Any:
+        if self.prefix_match:
+            component = compiled_prefixes.get(self.custom_id)
+
+        else:
+            component = components.get(self.custom_id)
+
+        # Discord still provides text components when no input was given just with
+        # an empty string for `value` but we also want to support possible future
+        # cases where they just just don't provide the component.
+        if not component or not component.value:
+            if self.default is NO_DEFAULT:
+                raise RuntimeError(f"Missing required component `{self.custom_id}`")
+
+            return self.default
+
+        if component.type is not self.type:
+            raise RuntimeError(
+                f"Mismatched component type, expected {self.type} for `{self.custom_id}` but got {component.type}"
+            )
+
+        return component.value
+
+
+class _TrackedDataclass:
+    __slots__ = ("_dataclass", "_fields", "parameter")
+
+    def __init__(self, keyword: str, dataclass: type[ModalOptions], fields: list[_TrackedField], /) -> None:
+        self._dataclass = dataclass
+        self._fields = fields
+        self.parameter = keyword
+
+    def process(
+        self,
+        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
+        components: dict[str, hikari.ModalComponentTypesT],
+    ) -> typing.Any:
+        sub_fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._fields}
+        return self._dataclass(**sub_fields)
+
 
 class Modal(AbstractModal):
     """Standard implementation of a modal executor.
@@ -909,7 +953,7 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _static_fields: typing.ClassVar[list[_TrackedField]] = []
+    _static_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
 
     def __init__(self, *, ephemeral_default: bool = False) -> None:
@@ -923,7 +967,7 @@ class Modal(AbstractModal):
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.impl.ModalActionRowBuilder] = self._static_rows.copy()
         # TODO: don't duplicate fields when re-declared
-        self._tracked_fields: list[_TrackedField] = self._static_fields.copy()
+        self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_fields.copy()
 
     def __init_subclass__(cls, parse_signature: bool = True) -> None:
         cls._static_fields = []
@@ -948,6 +992,39 @@ class Modal(AbstractModal):
     def rows(self) -> collections.abc.Sequence[hikari.api.ModalActionRowBuilder]:
         """Builder objects of the rows in this modal."""
         return self._rows
+
+    @classmethod
+    def add_static_dataclass(cls, options: type[ModalOptions], /, *, keyword: str | None = None) -> type[Self]:
+        if keyword:
+            fields: list[_TrackedField] = []
+
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add_static(None, cls)
+                fields.append(descriptor.to_tracked_field(name))
+
+            cls._static_fields.append(_TrackedDataclass(keyword, options, fields))
+
+        else:
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add_static(None, cls)
+
+        return cls
+
+    def add_dataclass(self, options: type[ModalOptions], /, *, keyword: str | None = None) -> Self:
+        if keyword:
+            fields: list[_TrackedField] = []
+
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add(None, self)
+                fields.append(descriptor.to_tracked_field(name))
+
+            self._static_fields.append(_TrackedDataclass(keyword, options, fields))
+
+        else:
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add(None, self)
+
+        return self
 
     @classmethod
     def add_static_text_input(
@@ -1151,29 +1228,7 @@ class Modal(AbstractModal):
             compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
 
         for field in self._tracked_fields:
-            if field.prefix_match:
-                component = compiled_prefixes.get(field.custom_id)
-
-            else:
-                component = components.get(field.custom_id)
-
-            # Discord still provides text components when no input was given just with
-            # an empty string for `value` but we also want to support possible future
-            # cases where they just just don't provide the component.
-            if not component or not component.value:
-                if field.default is NO_DEFAULT:
-                    raise RuntimeError(f"Missing required component `{field.custom_id}`")
-
-                fields[field.parameter] = field.default
-                continue
-
-            if component.type is not field.type:
-                raise RuntimeError(
-                    f"Mismatched component type, expected {field.type} "
-                    f"for `{field.custom_id}` but got {component.type}"
-                )
-
-            fields[field.parameter] = component.value
+            fields[field.parameter] = field.process(compiled_prefixes, components)
 
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
 
@@ -1516,19 +1571,39 @@ def _parse_descriptors(
             continue
 
         if isinstance(parameter.annotation, type) and issubclass(parameter.annotation, ModalOptions):
-            yield from parameter.annotation._modal_fields.items()  # pyright: ignore [ reportPrivateUsage ]
+            yield name, _ModalOptionsDescriptor(parameter.annotation)
 
 
 class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, keyword: str, modal: Modal, /) -> None:
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
         ...
 
     @abc.abstractmethod
-    def add_static(self, keyword: str, modal: type[Modal], /) -> None:
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
         ...
+
+    @abc.abstractmethod
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        ...
+
+
+class _ModalOptionsDescriptor(_ComponentDescriptor):
+    __slots__ = ("_options",)
+
+    def __init__(self, options: type[ModalOptions], /) -> None:
+        self._options = options
+
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
+        modal.add_dataclass(self._options, keyword=keyword)
+
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+        modal.add_static_dataclass(self._options, keyword=keyword)
+
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        raise NotADirectoryError
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
@@ -1568,7 +1643,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         self._max_length = max_length
         self._prefix_match = prefix_match
 
-    def add(self, keyword: str, modal: Modal, /) -> None:
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
         modal.add_text_input(
             self._label,
             parameter=keyword,
@@ -1582,7 +1657,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
             prefix_match=self._prefix_match,
         )
 
-    def add_static(self, keyword: str, modal: type[Modal], /) -> None:
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
         modal.add_static_text_input(
             self._label,
             parameter=keyword,
@@ -1594,6 +1669,15 @@ class _TextInputDescriptor(_ComponentDescriptor):
             min_length=self._min_length,
             max_length=self._max_length,
             prefix_match=self._prefix_match,
+        )
+
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        return _TrackedField(
+            custom_id=self._custom_id,
+            default=self._default,
+            parameter=keyword,
+            prefix_match=self._prefix_match,
+            type_=hikari.ComponentType.TEXT_INPUT,
         )
 
 

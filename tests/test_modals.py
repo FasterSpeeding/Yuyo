@@ -331,6 +331,7 @@ class TestModal:
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
         assert field.custom_id == "yeet:me"  # TODO: should this be split before?
         assert field.default == 123
         assert field.parameter == "a_field"
@@ -355,6 +356,7 @@ class TestModal:
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
         assert field.custom_id == "meow:meow"
 
     def test_with_text_input_descriptor_with_defaults(self):
@@ -380,6 +382,7 @@ class TestModal:
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
         assert isinstance(field.custom_id, str)
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "b_field"
