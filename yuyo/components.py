@@ -2801,6 +2801,7 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
             emoji=self._emoji,
             label=self._label,
             is_disabled=self._is_disabled,
+            _magic=True,
         )
 
 
@@ -2861,7 +2862,9 @@ class _StaticLinkButton(_ComponentDescriptor):
         self._is_disabled = is_disabled
 
     def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_link_button(self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled)
+        executor.add_static_link_button(
+            self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled, _magic=True
+        )
 
 
 def link_button(
@@ -2928,6 +2931,7 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
             min_values=self._min_values,
             max_values=self._max_values,
             is_disabled=self._is_disabled,
+            _magic=True,
         )
 
 
@@ -3008,6 +3012,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
             min_values=self._min_values,
             max_values=self._max_values,
             is_disabled=self._is_disabled,
+            _magic=True,
         )
 
 
@@ -3121,6 +3126,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
             min_values=self._min_values,
             max_values=self._max_values,
             is_disabled=self._is_disabled,
+            _magic=True,
         )
 
     def add_option(
@@ -3490,6 +3496,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add an interactive button to all subclasses and instances of this action column class.
 
@@ -3529,11 +3536,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         _append_row(cls._all_static_rows, is_button=True).add_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
-        cls._static_fields.append(
-            lambda executor: executor.add_static_button(
-                style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_button(
+                    style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+                )
             )
-        )
+
         return cls
 
     @classmethod
@@ -3627,6 +3636,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a link button to all subclasses and instances of this action column class.
 
@@ -3661,9 +3671,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         _append_row(cls._all_static_rows, is_button=True).add_link_button(
             url, emoji=emoji, label=label, is_disabled=is_disabled
         )
-        cls._static_fields.append(
-            lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
-        )
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+            )
+
         return cls
 
     def add_select_menu(
@@ -3729,6 +3742,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
@@ -3777,17 +3791,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        cls._static_fields.append(
-            lambda executor: executor.add_static_select_menu(
-                callback,
-                type_,
-                custom_id=custom_id,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_select_menu(
+                    callback,
+                    type_,
+                    custom_id=custom_id,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
-        )
+
         return cls
 
     @classmethod
@@ -3911,6 +3928,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a channel select menu to all subclasses and instances of this action column class.
 
@@ -3955,17 +3973,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        cls._static_fields.append(
-            lambda executor: executor.add_static_channel_select(
-                callback,
-                custom_id=custom_id,
-                channel_types=channel_types,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_channel_select(
+                    callback,
+                    custom_id=custom_id,
+                    channel_types=channel_types,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
-        )
+
         return cls
 
     @classmethod
@@ -4091,6 +4112,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a text select menu to all subclasses and instances of this action column class.
 
@@ -4144,17 +4166,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        cls._static_fields.append(
-            lambda executor: executor.add_static_text_select(
-                callback,
-                custom_id=custom_id,
-                options=options,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_text_select(
+                    callback,
+                    custom_id=custom_id,
+                    options=options,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
-        )
+
         return select
 
 
