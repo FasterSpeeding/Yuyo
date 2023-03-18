@@ -1632,14 +1632,14 @@ class _ModalOptionsMeta(type):
 
         for sub_cls in bases:
             if issubclass(sub_cls, ModalOptions):
-                fields.update(sub_cls._modal_fields)  # type: ignore [ reportPrivateUsage ]
+                fields.update(sub_cls._modal_fields)  # pyright: ignore [ reportPrivateUsage ]
 
         for key, value in namespace.items():
             if isinstance(value, _ComponentDescriptor):
                 fields[key] = value
 
         namespace["_modal_fields"] = types.MappingProxyType(fields)
-        namedtuple = collections.namedtuple(name, fields.keys())  # type: ignore [ reportUntypedNamedTuple ]
+        namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore [ reportUntypedNamedTuple ]
         return super().__new__(cls, name, (*bases, namedtuple), namespace)
 
 
