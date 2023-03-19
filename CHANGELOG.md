@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to new [yuyo.timeouts][] module.
 
 ### Fixed
-- Modals now correctly default to an expire time of 10 seconds rather than 10 das.
+- Modals now correctly default to a timeout time of 10 seconds rather than 10 das.
 
 ### Removed
 - The deprecated `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`
