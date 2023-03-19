@@ -1216,7 +1216,6 @@ class Modal(AbstractModal):
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
-        fields: dict[str, typing.Any] = {}
         compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
         components: dict[str, hikari.ModalComponentTypesT] = {}
 
@@ -1227,9 +1226,7 @@ class Modal(AbstractModal):
             components[component.custom_id] = component
             compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
 
-        for field in self._tracked_fields:
-            fields[field.parameter] = field.process(compiled_prefixes, components)
-
+        fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._tracked_fields}
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
 
 
