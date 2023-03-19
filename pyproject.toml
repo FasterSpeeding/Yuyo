@@ -209,5 +209,5 @@ required_plugins = ["pytest-asyncio"]
 strict-imports = true
 require-superclass = true
 require-subclass = true
-exclude-classes = """.*(Proto|Meta)"""
+exclude-classes = """.*(Proto|Meta)|yuyo.modals:ModalOptions"""
 exclude-modules = "yuyo._internal.vendor"

@@ -390,6 +390,59 @@ class TestModal:
         assert field.prefix_match is False
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
+    def test_handles_overflowing_text_input_descriptor(self):
+        @modals.as_modal_template
+        async def modal_template(
+            ctx: modals.ModalContext,
+            field_1: str = modals.text_input("erwe"),
+            field_2: str = modals.text_input("sdfsd"),
+        ) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 2
+
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "erwe"
+
+        row = modal.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "sdfsd"
+
+    def test_with_text_modals_options_class(self):
+        class ModalOptions(modals.ModalOptions):
+            fieldy: str = modals.text_input("fieldy")
+            meowy: typing.Union[str, None] = modals.text_input(
+                "x3",
+                custom_id="nyeep",
+                style=hikari.TextInputStyle.PARAGRAPH,
+                placeholder="e",
+                value="aaaaa",
+                default=None,
+                min_length=4,
+                max_length=421,
+                prefix_match=True,
+            )
+
+    def test_with_text_modals_options_class_handles_inheritance(self):
+        class ModalOptions(modals.ModalOptions):
+            ...
+
+        class MiddleModalOptions(ModalOptions):
+            ...
+
+        class FinalModalOptions(MiddleModalOptions):
+            ...
+
+    def test_with_text_modals_options_class_handles_mixed_inheritance(self):
+        ...
+
 
 @pytest.mark.asyncio()
 async def test_modal():

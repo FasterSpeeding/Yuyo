@@ -1600,7 +1600,7 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
         modal.add_static_dataclass(self._options, keyword=keyword)
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
-        raise NotADirectoryError
+        raise NotImplementedError
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
@@ -1844,7 +1844,5 @@ class ModalOptions(metaclass=_ModalOptionsMeta):
         ...
     ```
     """
-
-    __slots__ = ()
 
     _modal_fields: typing.ClassVar[types.MappingProxyType[str, _ComponentDescriptor]]
