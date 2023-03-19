@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
   to new [yuyo.timeouts][] module.
 
+### Fixed
+- Modals now correctly default to a timeout duration of 10 seconds rather than 10 das.
+
 ### Removed
 - The deprecated `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`
   types.
