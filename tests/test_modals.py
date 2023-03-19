@@ -374,6 +374,7 @@ class TestModal:
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.label == "eaaaaaaa"
         assert isinstance(component.custom_id, str)
+        custom_id_1 = component.custom_id
         assert component.style is hikari.TextInputStyle.SHORT
         assert component.placeholder is hikari.UNDEFINED
         assert component.value is hikari.UNDEFINED
@@ -384,7 +385,7 @@ class TestModal:
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
         assert isinstance(field, modals._TrackedField)
-        assert isinstance(field.custom_id, str)
+        assert field.custom_id == custom_id_1
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "b_field"
         assert field.prefix_match is False
@@ -402,7 +403,6 @@ class TestModal:
         modal = modal_template()
 
         assert len(modal.rows) == 2
-
         row = modal.rows[0]
         assert len(row.components) == 1
         component = row.components[0]
@@ -430,18 +430,198 @@ class TestModal:
                 prefix_match=True,
             )
 
+        @modals.as_modal_template
+        async def modal_template(ctx: modals.ModalContext, options: ModalOptions) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 2
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "fieldy"
+        assert isinstance(component.custom_id, str)
+        custom_id_1 = component.custom_id
+        assert component.style is hikari.TextInputStyle.SHORT
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.value is hikari.UNDEFINED
+        assert component.required is True  # TODO: rename to is_required
+        assert component.min_length == 0
+        assert component.max_length == 4000
+
+        row = modal.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "x3"
+        assert component.custom_id == "nyeep"
+        assert component.style is hikari.TextInputStyle.PARAGRAPH
+        assert component.placeholder == "e"
+        assert component.value == "aaaaa"
+        assert component.required is False  # TODO: rename to is_required
+        assert component.min_length == 4
+        assert component.max_length == 421
+
+        assert len(modal._tracked_fields) == 1
+        tracked = modal._tracked_fields[0]
+        assert isinstance(tracked, modals._TrackedDataclass)
+        assert tracked._dataclass is ModalOptions
+        assert tracked.parameter == "options"
+
+        assert len(tracked._fields) == 2
+        field = tracked._fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.custom_id == custom_id_1
+        assert field.default is modals.NO_DEFAULT
+        assert field.parameter == "fieldy"
+        assert field.prefix_match is False
+        assert field.type is hikari.ComponentType.TEXT_INPUT
+
+        field = tracked._fields[1]
+        assert isinstance(field, modals._TrackedField)
+        assert field.custom_id == "nyeep"
+        assert field.default is None
+        assert field.parameter == "meowy"
+        assert field.prefix_match is True
+        assert field.type is hikari.ComponentType.TEXT_INPUT
+
     def test_with_text_modals_options_class_handles_inheritance(self):
         class ModalOptions(modals.ModalOptions):
-            ...
+            fieldy: str = modals.text_input("field")
 
         class MiddleModalOptions(ModalOptions):
-            ...
+            meowy: str = modals.text_input("meow")
 
         class FinalModalOptions(MiddleModalOptions):
+            booy: str = modals.text_input("bababooi")
+
+        @modals.as_modal_template
+        async def modal_template(ctx: modals.ModalContext, banana: FinalModalOptions) -> None:
             ...
 
+        modal = modal_template()
+
+        assert len(modal.rows) == 3
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "field"
+        custom_id_1 = component.custom_id
+
+        row = modal.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "meow"
+        custom_id_2 = component.custom_id
+
+        row = modal.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "bababooi"
+        custom_id_3 = component.custom_id
+
+        assert len(modal._tracked_fields) == 1
+        tracked = modal._tracked_fields[0]
+        assert isinstance(tracked, modals._TrackedDataclass)
+        assert tracked._dataclass is FinalModalOptions
+        assert tracked.parameter == "banana"
+
+        assert len(tracked._fields) == 3
+        field = tracked._fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "fieldy"
+        assert field.custom_id == custom_id_1
+
+        field = tracked._fields[1]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "meowy"
+        assert field.custom_id == custom_id_2
+
+        field = tracked._fields[2]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "booy"
+        assert field.custom_id == custom_id_3
+
     def test_with_text_modals_options_class_handles_mixed_inheritance(self):
-        ...
+        class ModalOptions(modals.ModalOptions):
+            fallen: str = modals.text_input("flat")
+
+        class OtherModalOptions(modals.ModalOptions):
+            felen: str = modals.text_input("hihi")
+            patman: str = modals.text_input("pat me")
+
+        class Both(ModalOptions, OtherModalOptions):
+            me: str = modals.text_input("ow")
+
+        @modals.as_modal_template
+        async def modal_template(ctx: modals.ModalContext, extra: Both) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 4
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "flat"
+        custom_id_1 = component.custom_id
+
+        row = modal.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "hihi"
+        custom_id_2 = component.custom_id
+
+        row = modal.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "pat me"
+        custom_id_3 = component.custom_id
+
+        row = modal.rows[3]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.label == "ow"
+        custom_id_4 = component.custom_id
+
+        row = modal.rows[0]
+        assert len(row.components) == 1
+
+        assert len(modal._tracked_fields) == 1
+        tracked = modal._tracked_fields[0]
+        assert isinstance(tracked, modals._TrackedDataclass)
+        assert tracked._dataclass is Both
+        assert tracked.parameter == "extra"
+
+        assert len(tracked._fields) == 4
+        field = tracked._fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "fallen"
+        assert field.custom_id == custom_id_1
+
+        field = tracked._fields[1]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "felen"
+        assert field.custom_id == custom_id_2
+
+        field = tracked._fields[2]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "patman"
+        assert field.custom_id == custom_id_3
+
+        field = tracked._fields[3]
+        assert isinstance(field, modals._TrackedField)
+        assert field.parameter == "me"
+        assert field.custom_id == custom_id_4
 
 
 @pytest.mark.asyncio()
