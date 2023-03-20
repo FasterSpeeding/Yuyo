@@ -35,21 +35,25 @@ __all__ = [
     "Modal",
     "ModalClient",
     "ModalContext",
+    "ModalOptions",
     "as_modal",
     "as_modal_template",
     "modal",
+    "text_input",
     "with_static_text_input",
     "with_text_input",
 ]
 
 import abc
 import asyncio
+import collections
+import collections.abc
 import datetime
 import enum
 import functools
 import itertools
+import types
 import typing
-from collections import abc as collections
 
 import alluka as alluka_
 import hikari
@@ -58,13 +62,12 @@ import typing_extensions
 from . import _internal
 from . import components as components_
 from . import timeouts
+from ._internal import inspect
 
 _P = typing_extensions.ParamSpec("_P")
 _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
-    import types
-
     import tanjun
     from typing_extensions import Self
 
@@ -73,11 +76,10 @@ if typing.TYPE_CHECKING:
     _SelfishSig = __SelfishSig[_T, ...]
 
 
-_CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
+_CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
-
 
 AbstractTimeout = timeouts.AbstractTimeout
 """Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
@@ -109,7 +111,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         self,
         client: ModalClient,
         interaction: hikari.ModalInteraction,
-        register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
+        register_task: collections.abc.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
@@ -132,11 +134,11 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
         ephemeral: bool = False,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.abc.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.abc.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.abc.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
         user_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
@@ -795,6 +797,51 @@ class _TrackedField:
         self.prefix_match = prefix_match
         self.type = type_
 
+    def process(
+        self,
+        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
+        components: dict[str, hikari.ModalComponentTypesT],
+        /,
+    ) -> typing.Any:
+        if self.prefix_match:
+            component = compiled_prefixes.get(self.custom_id)
+
+        else:
+            component = components.get(self.custom_id)
+
+        # Discord still provides text components when no input was given just with
+        # an empty string for `value` but we also want to support possible future
+        # cases where they just just don't provide the component.
+        if not component or not component.value:
+            if self.default is NO_DEFAULT:
+                raise RuntimeError(f"Missing required component `{self.custom_id}`")
+
+            return self.default
+
+        if component.type is not self.type:
+            raise RuntimeError(
+                f"Mismatched component type, expected {self.type} for `{self.custom_id}` but got {component.type}"
+            )
+
+        return component.value
+
+
+class _TrackedDataclass:
+    __slots__ = ("_dataclass", "_fields", "parameter")
+
+    def __init__(self, keyword: str, dataclass: type[ModalOptions], fields: list[_TrackedField], /) -> None:
+        self._dataclass = dataclass
+        self._fields = fields
+        self.parameter = keyword
+
+    def process(
+        self,
+        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
+        components: dict[str, hikari.ModalComponentTypesT],
+    ) -> typing.Any:
+        sub_fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._fields}
+        return self._dataclass(**sub_fields)
+
 
 class Modal(AbstractModal):
     """Standard implementation of a modal executor.
@@ -805,7 +852,7 @@ class Modal(AbstractModal):
     Examples
     --------
 
-    There's a few different ways this can be used to for a modal.
+    There's a few different ways this can be used to create a modal.
 
     Sub-components can be added to an instance of a modal using chainable
     methods:
@@ -840,7 +887,7 @@ class Modal(AbstractModal):
     @modals.with_text_input("Title A", parameter="field")
     @modals.as_modal(ephemeral_default=True)
     async def callback(
-        ctx: modals.ModalContext, field: str, field: str
+        ctx: modals.ModalContext, field: str, other_field: str | None
     ) -> None:
         await ctx.respond("bye")
     ```
@@ -899,17 +946,39 @@ class Modal(AbstractModal):
     ```
 
     or by using [as_modal_template][yuyo.modals.as_modal_template] (which returns
-    a class which functions like a [Modal][yuyo.modals.Modal] subclass).
+    a class which functions like a [Modal][yuyo.modals.Modal] subclass) The
+    chainable `add_static_{}()` classmethods can also be used to add static fields
+    to a [Modal][yuyo.modals.Modal] subclass.
 
-    The chainable `add_static_{}()` classmethods can also be used to add static
-    fields to a [Modal][yuyo.modals.Modal] subclass.
+    Modals also support declaring entries using the following parameter descriptors:
+
+    * [text_input][yuyo.modals.text_input]
+
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        foo: str = modals.text_input("label")
+        bar: str | None = modals.text_unput(
+            "label", style=hikari.TextInputStyle.PARAGRAPH, default=None
+        )
+
+    @yuyo.modals.as_modal_template
+    async def callback(
+        ctx: modals.ModalContext,
+        options: ModalOptions,
+        field: str = modals.text_input("label", value="yeet")
+    )
+    ```
+
+    These can either be applied to the default of an argument or defined as an
+    attribute on a [ModalOptions][yuyo.modals.ModalOptions] subclass (
+    `ModalOptions` should then be used as an argument's type-hint). This also
+    works for [Modal][yuyo.modals.Modal] subclasses which have a
+    `Modal.callback` method.
     """
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _all_static_fields: typing.ClassVar[list[_TrackedField]] = []
-    _all_static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
-    _static_fields: typing.ClassVar[list[_TrackedField]] = []
+    _static_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
 
     def __init__(self, *, ephemeral_default: bool = False) -> None:
@@ -921,26 +990,66 @@ class Modal(AbstractModal):
             Whether this executor's responses should default to being ephemeral.
         """
         self._ephemeral_default = ephemeral_default
-        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._all_static_rows.copy()
-        self._tracked_fields: list[_TrackedField] = self._all_static_fields.copy()
+        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._static_rows.copy()
+        # TODO: don't duplicate fields when re-declared
+        self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_fields.copy()
 
-    def __init_subclass__(cls) -> None:
-        cls._all_static_fields = []
-        cls._all_static_rows = []
+    def __init_subclass__(cls, parse_signature: bool = True) -> None:
         cls._static_fields = []
         cls._static_rows = []
 
-        for super_cls in cls.mro()[-2::-1]:
-            if issubclass(super_cls, Modal):
-                cls._all_static_fields.extend(super_cls._static_fields)
-                cls._all_static_rows.extend(super_cls._static_rows)
+        if not parse_signature:
+            return
 
-    callback: typing.ClassVar[collections.Callable[_SelfishSig[Self], _CoroT[None]]]
+        try:
+            cls.callback
+
+        except AttributeError:
+            pass
+
+        else:
+            for name, descriptor in _parse_descriptors(cls.callback):
+                descriptor.add_static(name, cls)
+
+    callback: typing.ClassVar[collections.abc.Callable[_SelfishSig[Self], _CoroT[None]]]
 
     @property
-    def rows(self) -> collections.Sequence[hikari.api.ModalActionRowBuilder]:
+    def rows(self) -> collections.abc.Sequence[hikari.api.ModalActionRowBuilder]:
         """Builder objects of the rows in this modal."""
         return self._rows
+
+    @classmethod
+    def add_static_dataclass(cls, options: type[ModalOptions], /, *, keyword: str | None = None) -> type[Self]:
+        if keyword:
+            fields: list[_TrackedField] = []
+
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add_static(None, cls)
+                fields.append(descriptor.to_tracked_field(name))
+
+            cls._static_fields.append(_TrackedDataclass(keyword, options, fields))
+
+        else:
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add_static(None, cls)
+
+        return cls
+
+    def add_dataclass(self, options: type[ModalOptions], /, *, keyword: str | None = None) -> Self:
+        if keyword:
+            fields: list[_TrackedField] = []
+
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add(None, self)
+                fields.append(descriptor.to_tracked_field(name))
+
+            self._static_fields.append(_TrackedDataclass(keyword, options, fields))
+
+        else:
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+                descriptor.add(None, self)
+
+        return self
 
     @classmethod
     def add_static_text_input(
@@ -1026,7 +1135,6 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        cls._all_static_rows.append(row)
         cls._static_rows.append(row)
 
         if parameter:
@@ -1037,7 +1145,6 @@ class Modal(AbstractModal):
                 prefix_match=prefix_match,
                 type_=hikari.ComponentType.TEXT_INPUT,
             )
-            cls._all_static_fields.append(field)
             cls._static_fields.append(field)
 
         return cls
@@ -1134,7 +1241,6 @@ class Modal(AbstractModal):
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
-        fields: dict[str, typing.Any] = {}
         compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
         components: dict[str, hikari.ModalComponentTypesT] = {}
 
@@ -1145,31 +1251,7 @@ class Modal(AbstractModal):
             components[component.custom_id] = component
             compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
 
-        for field in self._tracked_fields:
-            if field.prefix_match:
-                component = compiled_prefixes.get(field.custom_id)
-
-            else:
-                component = components.get(field.custom_id)
-
-            # Discord still provides text components when no input was given just with
-            # an empty string for `value` but we also want to support possible future
-            # cases where they just just don't provide the component.
-            if not component or not component.value:
-                if field.default is NO_DEFAULT:
-                    raise RuntimeError(f"Missing required component `{field.custom_id}`")
-
-                fields[field.parameter] = field.default
-                continue
-
-            if component.type is not field.type:
-                raise RuntimeError(
-                    f"Mismatched component type, expected {field.type} "
-                    f"for `{field.custom_id}` but got {component.type}"
-                )
-
-            fields[field.parameter] = component.value
-
+        fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._tracked_fields}
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
 
 
@@ -1203,10 +1285,12 @@ def _make_text_input(
     return (custom_id, row)
 
 
-class _DynamicModal(Modal, typing.Generic[_P]):
+class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
     __slots__ = ("_callback",)
 
-    def __init__(self, callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> None:
+    def __init__(
+        self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
+    ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
         self._callback = callback
 
@@ -1214,8 +1298,20 @@ class _DynamicModal(Modal, typing.Generic[_P]):
         return self._callback(*args, **kwargs)
 
 
-def modal(callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False) -> _DynamicModal[_P]:
+def modal(
+    callback: collections.abc.Callable[_P, _CoroT[None]],
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = False,
+) -> _DynamicModal[_P]:
     """Create a modal instance for a callback.
+
+    !!! info
+        This won't parse the callback for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] unless `parse_signature=True`
+        is passed, unlike [as_modal_template][yuyo.modals.as_modal_template]
+        and [Modal][yuyo.modals.Modal] subclasses.
 
     Parameters
     ----------
@@ -1223,36 +1319,59 @@ def modal(callback: collections.Callable[_P, _CoroT[None]], /, *, ephemeral_defa
         Callback to use for modal execution.
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
     Modal
         The created modal.
     """
-    return _DynamicModal(callback, ephemeral_default=ephemeral_default)
+    modal = _DynamicModal(callback, ephemeral_default=ephemeral_default)
+    if parse_signature:
+        for name, descriptor in _parse_descriptors(callback):
+            descriptor.add(name, modal)
+
+    return modal
 
 
 @typing.overload
-def as_modal(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
+def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
     ...
 
 
 @typing.overload
 def as_modal(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
     ...
 
 
 def as_modal(
-    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
-) -> typing.Union[_DynamicModal[_P], collections.Callable[[collections.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]]:
+    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = False,
+) -> typing.Union[
+    _DynamicModal[_P], collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]
+]:
     """Create a modal instance through a decorator call.
+
+    !!! info
+        This won't parse the callback for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] unless `parse_signature=True`
+        is passed, unlike [as_modal_template][yuyo.modals.as_modal_template]
+        and [Modal][yuyo.modals.Modal] subclasses.
 
     Parameters
     ----------
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
@@ -1260,8 +1379,8 @@ def as_modal(
         The new decorated modal.
     """
 
-    def decorator(callback: collections.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
-        return modal(callback, ephemeral_default=ephemeral_default)
+    def decorator(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
+        return modal(callback, ephemeral_default=ephemeral_default, parse_signature=parse_signature)
 
     if callback:
         return decorator(callback)
@@ -1270,7 +1389,7 @@ def as_modal(
 
 
 # Putting typing.Generic after Modal here breaks Python's generic handling.
-class _GenericModal(typing.Generic[_P], Modal):
+class _GenericModal(typing.Generic[_P], Modal, parse_signature=False):
     __slots__ = ()
 
     async def callback(self, *arg: _P.args, **kwargs: _P.kwargs) -> None:
@@ -1278,28 +1397,39 @@ class _GenericModal(typing.Generic[_P], Modal):
 
 
 @typing.overload
-def as_modal_template(callback: collections.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
+def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
     ...
 
 
 @typing.overload
 def as_modal_template(
     *, ephemeral_default: bool = False
-) -> collections.Callable[[collections.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
     ...
 
 
 def as_modal_template(
-    callback: typing.Optional[collections.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
+    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = True,
 ) -> typing.Union[
-    type[_GenericModal[_P]], collections.Callable[[collections.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]
+    type[_GenericModal[_P]],
+    collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]],
 ]:
     """Create a modal template through a decorator callback.
+
+    This supports the same decorators and parameter descriptors for declaring
+    the modal's entries as a normal modal class.
 
     Parameters
     ----------
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
@@ -1307,8 +1437,8 @@ def as_modal_template(
         The new decorated modal class.
     """
 
-    def decorator(callback_: collections.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
-        class ModalTemplate(_GenericModal[_P]):
+    def decorator(callback_: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
+        class ModalTemplate(_GenericModal[_P], parse_signature=parse_signature):
             __slots__ = ()
 
             def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
@@ -1339,7 +1469,7 @@ def with_static_text_input(
     max_length: int = 4000,
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
-) -> collections.Callable[[type[_ModalT]], type[_ModalT]]:
+) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
 
     Parameters
@@ -1416,7 +1546,7 @@ def with_text_input(
     max_length: int = 4000,
     prefix_match: bool = False,
     parameter: typing.Optional[str] = None,
-) -> collections.Callable[[_ModalT], _ModalT]:
+) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
 
     Parameters
@@ -1478,3 +1608,295 @@ def with_text_input(
         prefix_match=prefix_match,
         parameter=parameter,
     )
+
+
+def _parse_descriptors(
+    callback: collections.abc.Callable[..., typing.Any], /
+) -> collections.abc.Iterable[tuple[str, _ComponentDescriptor]]:
+    for name, parameter in inspect.signature(callback, eval_str=True).parameters.items():
+        if parameter.default is not parameter.empty and isinstance(parameter.default, _ComponentDescriptor):
+            yield name, parameter.default
+
+        elif parameter.annotation is parameter.empty:
+            continue
+
+        if isinstance(parameter.annotation, type) and issubclass(parameter.annotation, ModalOptions):
+            yield name, _ModalOptionsDescriptor(parameter.annotation)
+
+
+class _ComponentDescriptor(abc.ABC):
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
+        ...
+
+    @abc.abstractmethod
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+        ...
+
+    @abc.abstractmethod
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        ...
+
+
+class _ModalOptionsDescriptor(_ComponentDescriptor):
+    __slots__ = ("_options",)
+
+    def __init__(self, options: type[ModalOptions], /) -> None:
+        self._options = options
+
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
+        modal.add_dataclass(self._options, keyword=keyword)
+
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+        modal.add_static_dataclass(self._options, keyword=keyword)
+
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        raise NotImplementedError
+
+
+class _TextInputDescriptor(_ComponentDescriptor):
+    __slots__ = (
+        "_label",
+        "_custom_id",
+        "_style",
+        "_placeholder",
+        "_value",
+        "_default",
+        "_min_length",
+        "_max_length",
+        "_prefix_match",
+    )
+
+    def __init__(
+        self,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        prefix_match: bool = False,
+    ) -> None:
+        self._label = label
+        self._custom_id = custom_id or _internal.random_custom_id()
+        self._style = style
+        self._placeholder = placeholder
+        self._value = value
+        self._default = default
+        self._min_length = min_length
+        self._max_length = max_length
+        self._prefix_match = prefix_match
+
+    def add(self, keyword: str | None, modal: Modal, /) -> None:
+        modal.add_text_input(
+            self._label,
+            parameter=keyword,
+            custom_id=self._custom_id,
+            style=self._style,
+            placeholder=self._placeholder,
+            value=self._value,
+            default=self._default,
+            min_length=self._min_length,
+            max_length=self._max_length,
+            prefix_match=self._prefix_match,
+        )
+
+    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+        modal.add_static_text_input(
+            self._label,
+            parameter=keyword,
+            custom_id=self._custom_id,
+            style=self._style,
+            placeholder=self._placeholder,
+            value=self._value,
+            default=self._default,
+            min_length=self._min_length,
+            max_length=self._max_length,
+            prefix_match=self._prefix_match,
+        )
+
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
+        return _TrackedField(
+            custom_id=self._custom_id,
+            default=self._default,
+            parameter=keyword,
+            prefix_match=self._prefix_match,
+            type_=hikari.ComponentType.TEXT_INPUT,
+        )
+
+
+@typing.overload
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: NoDefault = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> str:
+    ...
+
+
+@typing.overload
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: _T,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> typing.Union[str, _T]:
+    ...
+
+
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Union[_T, NoDefault] = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = False,
+) -> typing.Union[str, _T]:
+    """Descriptor used to declare a text input field.
+
+    Parameters
+    ----------
+    label
+        The text input field's display label.
+
+        This cannot be greater than 45 characters long.
+    custom_id
+        The field's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+    style
+        The text input's style.
+    placeholder
+        Placeholder text to display when the text input is empty.
+    value
+        Default text to pre-fill the field with.
+    default
+        Default value to pass if this text input field was not provided.
+
+        The field will be marked as required unless this is supplied.
+    min_length
+        Minimum length the input text can be.
+
+        This can be greater than or equal to 0 and less than or equal to 4000.
+    max_length
+        Maximum length the input text can be.
+
+        This can be greater than or equal to 1 and less than or equal to 4000.
+    prefix_match
+        Whether `custom_id` should be matched as a prefix.
+
+        When this is [True][] `custom_id` will be matched against
+        `.split(":", 1)[0]`.
+
+        This allows for further state to be held in the custom ID after the
+        prefix and is lower priority than normal matching.
+
+    Examples
+    --------
+    This can either be applied to an argument's default
+
+    ```py
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext,
+        text_field: str = modals.text_input("label"),
+        optional_field: str | None = modals.text_input("label", default=None)
+    ) -> None:
+        ...
+    ```
+
+    Or as an attribute to a [ModalOptions][yuyo.modals.ModalOptions] dataclass.
+
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        field: str = modals.text_input("label")
+        optional_field: str | None = modals.text_input("label", default=None)
+
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext, fields: ModalOptions,
+    ) -> None:
+        ...
+    ```
+
+    """
+    descriptor = _TextInputDescriptor(
+        label,
+        custom_id=custom_id,
+        style=style,
+        placeholder=placeholder,
+        value=value,
+        default=default,
+        min_length=min_length,
+        max_length=max_length,
+        prefix_match=prefix_match,
+    )
+    return typing.cast("str", descriptor)
+
+
+@typing_extensions.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
+class _ModalOptionsMeta(type):
+    def __new__(
+        cls, name: str, bases: tuple[type[typing.Any], ...], namespace: dict[str, typing.Any]
+    ) -> _ModalOptionsMeta:
+        bases = types.resolve_bases(bases)
+        fields: dict[str, _ComponentDescriptor] = {}
+
+        for sub_cls in bases:
+            if issubclass(sub_cls, ModalOptions):
+                fields.update(sub_cls._modal_fields)  # pyright: ignore [ reportPrivateUsage ]
+
+        for key, value in namespace.items():
+            if isinstance(value, _ComponentDescriptor):
+                fields[key] = value
+
+        namespace["_modal_fields"] = types.MappingProxyType(fields)
+        namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore [ reportUntypedNamedTuple ]
+        return super().__new__(cls, name, (namedtuple, *bases), namespace)
+
+
+class ModalOptions(metaclass=_ModalOptionsMeta):
+    """Data class used to define a modal's options.
+
+    Examples
+    --------
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        field: str = modals.text_input("label")
+        optional_field: str | None = modals.text_input("label", default=None)
+
+    @modals.as_modal_template
+    async def modal_template(
+        ctx: modals.ModalContext, fields: ModalOptions,
+    ) -> None:
+        ...
+    ```
+    """
+
+    _modal_fields: typing.ClassVar[types.MappingProxyType[str, _ComponentDescriptor]]

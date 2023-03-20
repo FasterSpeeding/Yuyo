@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for declaring modal options in the modal callback's signature.
+
 ### Deprecated
 - Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
   to new [yuyo.timeouts][] module.
@@ -17,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   types.
 - [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] can no-longer be used
   to add link buttons.
+- [yuyo.modals.Modal][] subclasses will no-longer inherits fields.
 
 ## [1.9.1a1] - 2023-03-07
 ### Added
