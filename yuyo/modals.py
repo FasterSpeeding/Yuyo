@@ -801,6 +801,7 @@ class _TrackedField:
         self,
         compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
         components: dict[str, hikari.ModalComponentTypesT],
+        /,
     ) -> typing.Any:
         if self.prefix_match:
             component = compiled_prefixes.get(self.custom_id)
@@ -886,7 +887,7 @@ class Modal(AbstractModal):
     @modals.with_text_input("Title A", parameter="field")
     @modals.as_modal(ephemeral_default=True)
     async def callback(
-        ctx: modals.ModalContext, field: str, field: str
+        ctx: modals.ModalContext, field: str, other_field: str | None
     ) -> None:
         await ctx.respond("bye")
     ```
@@ -945,10 +946,33 @@ class Modal(AbstractModal):
     ```
 
     or by using [as_modal_template][yuyo.modals.as_modal_template] (which returns
-    a class which functions like a [Modal][yuyo.modals.Modal] subclass).
+    a class which functions like a [Modal][yuyo.modals.Modal] subclass) The
+    chainable `add_static_{}()` classmethods can also be used to add static fields
+    to a [Modal][yuyo.modals.Modal] subclass.
 
-    The chainable `add_static_{}()` classmethods can also be used to add static
-    fields to a [Modal][yuyo.modals.Modal] subclass.
+    Modals also support declaring entries using the following parameter descriptors:
+
+    * [text_input][yuyo.modals.text_input]
+
+    ```py
+    class ModalOptions(modals.ModalOptions):
+        foo: str = modals.text_input("label")
+        bar: str | None = modals.text_unput(
+            "label", style=hikari.TextInputStyle.PARAGRAPH, default=None
+        )
+
+    @yuyo.modals.as_modal_template
+    async def callback(
+        ctx: modals.ModalContext,
+        options: ModalOptions,
+        field: str = modals.text_input("label", value="yeet")
+    )
+    ```
+
+    These can either be applied to the default of an argument or defined as an
+    attribute on a [ModalOptions][yuyo.modals.ModalOptions] subclass (
+    `ModalOptions` should then be used as an argument's type-hint). This also
+    works for [Modal][yuyo.modals.Modal] subclasses with `Modal.callback` methods.
     """
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
@@ -1282,12 +1306,21 @@ def modal(
 ) -> _DynamicModal[_P]:
     """Create a modal instance for a callback.
 
+    !!! info
+        This won't parse the callback for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] unless `parse_signature=True`
+        is passed, unlike [as_modal_template][yuyo.modals.as_modal_template]
+        and [Modal][yuyo.modals.Modal] subclasses.
+
     Parameters
     ----------
     callback
         Callback to use for modal execution.
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
@@ -1325,10 +1358,19 @@ def as_modal(
 ]:
     """Create a modal instance through a decorator call.
 
+    !!! info
+        This won't parse the callback for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] unless `parse_signature=True`
+        is passed, unlike [as_modal_template][yuyo.modals.as_modal_template]
+        and [Modal][yuyo.modals.Modal] subclasses.
+
     Parameters
     ----------
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
@@ -1366,17 +1408,27 @@ def as_modal_template(
 
 
 def as_modal_template(
-    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None, /, *, ephemeral_default: bool = False
+    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
+    /,
+    *,
+    ephemeral_default: bool = False,
+    parse_signature: bool = True,
 ) -> typing.Union[
     type[_GenericModal[_P]],
     collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]],
 ]:
     """Create a modal template through a decorator callback.
 
+    This supports the same decorators and parameter descriptors for declaring
+    the modal's entries as a normal modal class.
+
     Parameters
     ----------
     ephemeral_default
         Whether this modal's responses should default to ephemeral.
+    parse_signature
+        Whether to parse the signature for parameter descriptors and
+        [ModalOptions][yuyo.modals.ModalOptions] type-hints.
 
     Returns
     -------
@@ -1385,7 +1437,7 @@ def as_modal_template(
     """
 
     def decorator(callback_: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
-        class ModalTemplate(_GenericModal[_P]):
+        class ModalTemplate(_GenericModal[_P], parse_signature=parse_signature):
             __slots__ = ()
 
             def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
