@@ -1411,7 +1411,7 @@ methods:</p>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;Title A&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
-    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;bye&quot;</span><span class="p">)</span>
 </code></pre></div>
@@ -1464,9 +1464,30 @@ defining the method <code>callback</code> for handling context  menu execution
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;Bye&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>or by using <a class="autorefs autorefs-internal" href="#yuyo.modals.as_modal_template">as_modal_template</a> (which returns
-a class which functions like a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclass).</p>
-<p>The chainable <code>add_static_{}()</code> classmethods can also be used to add static
-fields to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclass.</p>
+a class which functions like a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclass) The
+chainable <code>add_static_{}()</code> classmethods can also be used to add static fields
+to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclass.</p>
+<p>Modals also support declaring entries using the following parameter descriptors:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="#yuyo.modals.text_input">text_input</a></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModalOptions</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">ModalOptions</span><span class="p">):</span>
+    <span class="n">foo</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+    <span class="n">bar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_unput</span><span class="p">(</span>
+        <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+
+<span class="nd">@yuyo</span><span class="o">.</span><span class="n">modals</span><span class="o">.</span><span class="n">as_modal_template</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalContext</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">ModalOptions</span><span class="p">,</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;yeet&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>These can either be applied to the default of an argument or defined as an
+attribute on a <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> subclass (
+<code>ModalOptions</code> should then be used as an argument's type-hint). This also
+works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclasses with <code>Modal.callback</code> methods.</p>
 
 
 
@@ -3550,6 +3571,13 @@ passed flags.</p>
   <div class="doc doc-contents ">
   
       <p>Create a modal instance through a decorator call.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>This won't parse the callback for parameter descriptors and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> unless <code>parse_signature=True</code>
+is passed, unlike <a class="autorefs autorefs-internal" href="#yuyo.modals.as_modal_template">as_modal_template</a>
+and <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclasses.</p>
+</div>
 
   <table>
     <thead>
@@ -3563,6 +3591,23 @@ passed flags.</p>
           <td><code>ephemeral_default</code></td>
           <td class="doc-param-details">
             <p>Whether this modal's responses should default to ephemeral.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>parse_signature</code></td>
+          <td class="doc-param-details">
+            <p>Whether to parse the signature for parameter descriptors and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> type-hints.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3612,12 +3657,14 @@ passed flags.</p>
 
 
 <a href="#yuyo.modals.as_modal_template" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">as_modal_template</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">as_modal_template</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
       <p>Create a modal template through a decorator callback.</p>
+<p>This supports the same decorators and parameter descriptors for declaring
+the modal's entries as a normal modal class.</p>
 
   <table>
     <thead>
@@ -3639,6 +3686,23 @@ passed flags.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>parse_signature</code></td>
+          <td class="doc-param-details">
+            <p>Whether to parse the signature for parameter descriptors and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> type-hints.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>True</code>
                 </span>
             </p>
           </td>
@@ -3686,6 +3750,13 @@ passed flags.</p>
   <div class="doc doc-contents ">
   
       <p>Create a modal instance for a callback.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>This won't parse the callback for parameter descriptors and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> unless <code>parse_signature=True</code>
+is passed, unlike <a class="autorefs autorefs-internal" href="#yuyo.modals.as_modal_template">as_modal_template</a>
+and <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclasses.</p>
+</div>
 
   <table>
     <thead>
@@ -3711,6 +3782,23 @@ passed flags.</p>
           <td><code>ephemeral_default</code></td>
           <td class="doc-param-details">
             <p>Whether this modal's responses should default to ephemeral.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>parse_signature</code></td>
+          <td class="doc-param-details">
+            <p>Whether to parse the signature for parameter descriptors and
+<a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> type-hints.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
