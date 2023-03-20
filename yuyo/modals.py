@@ -1860,7 +1860,7 @@ def text_input(
     return typing.cast("str", descriptor)
 
 
-@typing_extensions.dataclass_transform(eq_default=True, kw_only_default=True, field_specifiers=(text_input,))
+@typing_extensions.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
 class _ModalOptionsMeta(type):
     def __new__(
         cls, name: str, bases: tuple[type[typing.Any], ...], namespace: dict[str, typing.Any]
