@@ -852,7 +852,7 @@ class Modal(AbstractModal):
     Examples
     --------
 
-    There's a few different ways this can be used to for a modal.
+    There's a few different ways this can be used to create a modal.
 
     Sub-components can be added to an instance of a modal using chainable
     methods:
@@ -972,7 +972,8 @@ class Modal(AbstractModal):
     These can either be applied to the default of an argument or defined as an
     attribute on a [ModalOptions][yuyo.modals.ModalOptions] subclass (
     `ModalOptions` should then be used as an argument's type-hint). This also
-    works for [Modal][yuyo.modals.Modal] subclasses with `Modal.callback` methods.
+    works for [Modal][yuyo.modals.Modal] subclasses which have a
+    `Modal.callback` method.
     """
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
