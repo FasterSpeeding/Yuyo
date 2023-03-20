@@ -62,6 +62,8 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
+import hikari.impl  # TODO: get rid of import when type is exposed publicly.
+import hikari.impl.special_endpoints  # TODO: get rid of import when type is exposed publicly.
 import typing_extensions
 
 from . import _internal
