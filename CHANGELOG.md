@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for declaring modal options in the modal callback's signature.
 
-### Deprecated
+### Changed
 - Moved `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout`
   to new [yuyo.timeouts][] module.
+
+### Deprecated
+- `yuyo.modals.AbstractTimeout`, `yuyo.modals.BasicTimeout` and `yuyo.modals.NeverTimeout` as deprecated aliases
 
 ### Fixed
 - Modals now correctly default to a timeout duration of 10 seconds rather than 10 days.
