@@ -1314,8 +1314,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1382,7 +1382,7 @@
 when calling <code>create_modal_response</code>.</p>
 
 <p><strong>Examples:</strong></p>
-    <p>There's a few different ways this can be used to for a modal.</p>
+    <p>There's a few different ways this can be used to create a modal.</p>
 <p>Sub-components can be added to an instance of a modal using chainable
 methods:</p>
 <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
@@ -1487,7 +1487,8 @@ to a <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> s
 <p>These can either be applied to the default of an argument or defined as an
 attribute on a <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalOptions">ModalOptions</a> subclass (
 <code>ModalOptions</code> should then be used as an argument's type-hint). This also
-works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclasses with <code>Modal.callback</code> methods.</p>
+works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> subclasses which have a
+<code>Modal.callback</code> method.</p>
 
 
 
