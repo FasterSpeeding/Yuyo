@@ -602,7 +602,7 @@ class ChunkTracker:
             shard_info.any_received = True
             shard_info.last_received_at = date
 
-        data = self._requests.get(nonce)
+        data = self._requests.get(nonce)  # noqa: S113
         if data:
             if data.missing_chunks is None:
                 data.chunk_count = chunk_count
