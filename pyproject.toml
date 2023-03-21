@@ -107,6 +107,7 @@ ignore = [
     "E231",    # missing whitespace after ','
 ]
 per-file-ignores = [
+    "docs_src/*.py: D100, D101, FA101, INP001",
     "examples/*.py: D103, FA101",
     "noxfile.py: D100, FA101, F401, F403, INP001",
     "tests/*.py: CCE002, CFQ001, D100, D101, D103, D104, FA100, FA101",
@@ -152,9 +153,9 @@ default_sessions = [
 extra_test_installs = ["."]
 path_ignore = "yuyo\\/_internal\\/vendor\\/"
 mypy_allowed_to_fail = true
-mypy_targets = ["yuyo"]
+mypy_targets = ["docs_src", "yuyo"]
 project_name = "yuyo"
-top_level_targets = ["./examples", "./noxfile.py", "./yuyo", "./tests"]
+top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./tests"]
 
 [tool.piped.github_actions.freeze_for_pr]
 [tool.piped.github_actions.lint]
@@ -175,7 +176,7 @@ python_versions = ["3.9", "3.10", "3.11"]
 
 [tool.pyright]
 exclude = ["yuyo/_internal/vendor"]
-include = ["examples", "noxfile.py", "tests", "yuyo"]
+include = ["docs_src", "examples", "noxfile.py", "tests", "yuyo"]
 
 pythonVersion = "3.9"
 typeCheckingMode = "strict"
