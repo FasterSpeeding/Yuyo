@@ -78,6 +78,7 @@ if typing.TYPE_CHECKING:
     _OtherT = typing.TypeVar("_OtherT")
     _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
     _TextSelectT = typing.TypeVar("_TextSelectT", bound="_TextSelect[typing.Any, typing.Any]")
+    _Type = type[_T]  # This is used to fix an issue with name shadowing which only effects MyPy.
 
 
 _P = typing_extensions.ParamSpec("_P")
@@ -2575,7 +2576,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         *,
         custom_id: typing.Optional[str] = None,
         channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+            collections.Sequence[typing.Union[hikari.ChannelType, _Type[hikari.PartialChannel]]]
         ] = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
