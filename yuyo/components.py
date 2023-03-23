@@ -1227,6 +1227,41 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         self._response_future = response_future
 
     @property
+    def select_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
+        """Sequence of the users passed for a channel select menu."""
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.channels
+
+    @property
+    def select_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
+        """Sequence of the users passed for a role select menu.
+
+        This will also include some of the values for a mentionable select menu.
+        """
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.roles
+
+    @property
+    def select_texts(self) -> collections.Sequence[str]:
+        """Sequence of the values passed for a text select menu."""
+        return self._interaction.values
+
+    @property
+    def select_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
+        """Sequence of the users passed for a user select menu.
+
+        This will also include some of the values for a mentionable select menu.
+        """
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.users
+
+    @property
     def client(self) -> ComponentClient:
         """The component client this context is bound to."""
         return self._client
