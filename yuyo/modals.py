@@ -325,6 +325,10 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
                 )
 
 
+Context = ModalContext
+"""Alias of [ModalContext][yuyo.modals.ModalContext]."""
+
+
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
