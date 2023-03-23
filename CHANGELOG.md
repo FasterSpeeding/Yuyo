@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   menu values. These are
   [ComponentContext.select_channels][yuyo.components.ComponentContext.select_channels],
   [ComponentContext.select_roles][yuyo.components.ComponentContext.select_roles],
-  [ComponentContext.select_texts][yuyo.components.ComponentContext.select_texts], and
-  [ComponentContext.select_users][yuyo.components.ComponentContext.select_users].
+  [ComponentContext.select_texts][yuyo.components.ComponentContext.select_texts],
+  [ComponentContext.select_users][yuyo.components.ComponentContext.select_users], and
+  [ComponentContext.select_members][yuyo.components.ComponentContext.select_members].
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 
 ## [1.10.0a1] - 2023-03-20
