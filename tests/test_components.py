@@ -48,6 +48,57 @@ except ModuleNotFoundError:
     tanjun = None
 
 
+class TestBaseContext:
+    ...
+
+
+class TestComponentContext:
+    def test_select_channels_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+
+        assert context.select_channels is mock_interaction.resolved.channels
+
+    def test_select_channels_property_when_no_resolved(self):
+        context = yuyo.components.Context(
+            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
+        )
+
+        assert context.select_channels == {}
+
+    def test_select_roles_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+
+        assert context.select_roles is mock_interaction.resolved.roles
+
+    def test_select_roles_property_when_no_resolved(self):
+        context = yuyo.components.Context(
+            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
+        )
+
+        assert context.select_roles == {}
+
+    def test_select_texts_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+
+        assert context.select_texts is mock_interaction.values
+
+    def test_select_users_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+
+        assert context.select_users is mock_interaction.resolved.users
+
+    def test_select_users_property_when_no_resolved(self):
+        context = yuyo.components.Context(
+            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
+        )
+
+        assert context.select_users == {}
+
+
 class TestComponentClient:
     def test___init___when_event_managed(self):
         mock_event_manger = mock.Mock()
