@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Some convenience properties to [ComponentContext][yuyo.components.ComponentContext] for getting select
   menu values. These are
-  [ComponentContext.select_channel][yuyo.components.ComponentContext.select_channel],
+  [ComponentContext.select_channels][yuyo.components.ComponentContext.select_channels],
   [ComponentContext.select_roles][yuyo.components.ComponentContext.select_roles],
   [ComponentContext.select_texts][yuyo.components.ComponentContext.select_texts], and
-  [ComponentContext.select_users][yuyo.components.ComponentContext.select_users]
+  [ComponentContext.select_users][yuyo.components.ComponentContext.select_users].
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 
 ## [1.10.0a1] - 2023-03-20
