@@ -68,6 +68,18 @@ if typing.TYPE_CHECKING:
     _OtherT = typing.TypeVar("_OtherT")
     _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
 
+    class _ComponentSigProto(typing.Protocol):
+        def __call__(
+            self,
+            client: ComponentClient,
+            interaction: hikari.ComponentInteraction,
+            register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
+            *,
+            ephemeral_default: bool = False,
+            response_future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
+        ) -> ComponentContext:
+            raise NotImplementedError
+
 
 _ParentT = typing.TypeVar("_ParentT")
 _PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
@@ -1235,33 +1247,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.channels
 
     @property
-    def select_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
-        """Sequence of the users passed for a role select menu.
-
-        This will also include some of the values for a mentionable select menu.
-        """
-        if not self.interaction.resolved:
-            return {}
-
-        return self.interaction.resolved.roles
-
-    @property
-    def select_texts(self) -> collections.Sequence[str]:
-        """Sequence of the values passed for a text select menu."""
-        return self._interaction.values
-
-    @property
-    def select_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
-        """Sequence of the users passed for a user select menu.
-
-        This will also include some of the values for a mentionable select menu.
-        """
-        if not self.interaction.resolved:
-            return {}
-
-        return self.interaction.resolved.users
-
-    @property
     def client(self) -> ComponentClient:
         """The component client this context is bound to."""
         return self._client
@@ -1542,6 +1527,63 @@ Context = ComponentContext
 """Alias of [ComponentContext][yuyo.components.ComponentContext]."""
 
 
+class RoleSelectContext(ComponentContext):
+    """Specalised component context class for role select menus."""
+
+    __slots__ = ()
+
+    @property
+    def select_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
+        """Sequence of the users passed for a role select menu.
+
+        This will also include some of the values for a mentionable select menu.
+        """
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.roles
+
+
+class TextSelectContext(ComponentContext):
+    """Specalised component context class for text select menus."""
+
+    __slots__ = ()
+
+    @property
+    def select_texts(self) -> collections.Sequence[str]:
+        """Sequence of the values passed for a text select menu."""
+        return self._interaction.values
+
+
+class UserSelectContext(ComponentContext):
+    """Specalised component context class for user select menus."""
+
+    __slots__ = ()
+
+    @property
+    def select_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
+        """Sequence of the users passed for a user select menu.
+
+        This will also include some of the values for a mentionable select menu.
+        """
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.users
+
+
+class MentionableSelectContext(UserSelectContext, RoleSelectContext):
+    """Specalised component context class for mentionable select menus."""
+
+    __slots__ = ()
+
+
+_CONTEXTS: dict[int, _ComponentSigProto] = {
+    hikari.ComponentType.USER_SELECT_MENU: UserSelectContext,
+    hikari.ComponentType.ROLE_SELECT_MENU: RoleSelectContext,
+    hikari.ComponentType.MENTIONABLE_SELECT_MENU: MentionableSelectContext,
+    hikari.ComponentType.TEXT_INPUT: TextSelectContext,
+}
 _ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikari.files.RAWISH_TYPES, os.PathLike)
 
 
@@ -1839,7 +1881,8 @@ class ComponentClient:
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
     ) -> None:
-        ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+        ctx_cls = _CONTEXTS[interaction.type]
+        ctx = ctx_cls(self, interaction, self._add_task, response_future=future)
 
         try:
             await executor.execute(ctx)
@@ -1858,7 +1901,8 @@ class ComponentClient:
             return
 
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
+            ctx_cls = _CONTEXTS[event.interaction.type]
+            ctx = ctx_cls(self, event.interaction, self._add_task, ephemeral_default=False)
             await self._alluka.call_with_async_di(constant_callback, ctx)
 
         elif executor := self._executors.get(event.interaction.message.id):
@@ -1884,7 +1928,8 @@ class ComponentClient:
         """
         if constant_callback := self._match_constant_id(interaction.custom_id):
             future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-            ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
+            ctx_cls = _CONTEXTS[interaction.type]
+            ctx = ctx_cls(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
             self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
 
