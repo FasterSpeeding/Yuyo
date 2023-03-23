@@ -98,6 +98,19 @@ class TestComponentContext:
 
         assert context.select_users == {}
 
+    def test_select_members_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+
+        assert context.select_members is mock_interaction.resolved.members
+
+    def test_select_members_property_when_no_resolved(self):
+        context = yuyo.components.Context(
+            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
+        )
+
+        assert context.select_members == {}
+
 
 class TestComponentClient:
     def test___init___when_event_managed(self):

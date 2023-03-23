@@ -1255,11 +1255,25 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         """Sequence of the users passed for a user select menu.
 
         This will also include some of the values for a mentionable select menu.
+
+        [ComponentContext.select_members][yuyo.components.ComponentContext.select_members]
+        has the full member objects.
         """
         if not self.interaction.resolved:
             return {}
 
         return self.interaction.resolved.users
+
+    @property
+    def select_members(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionMember]:
+        """Sequence of the members passed for a user select menu.
+
+        This will also include some of the values for a mentionable select menu.
+        """
+        if not self.interaction.resolved:
+            return {}
+
+        return self.interaction.resolved.members
 
     @property
     def client(self) -> ComponentClient:
