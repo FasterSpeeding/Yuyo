@@ -1503,7 +1503,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
                 await self._interaction.create_initial_response(defer_type, flags=flags)
 
 
-ComponentContext = Context
+Context = ComponentContext
 """Alias of [ComponentContext][yuyo.components.ComponentContext]."""
 
 
