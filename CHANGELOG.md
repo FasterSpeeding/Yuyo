@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * [.select_members][yuyo.components.ComponentContext.select_members]
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 - The [yuyo.components.Client][], [yuyo.modals.Client][], and [yuyo.reactions.Client][] aliases.
+- Message components have support for loading components from class attributes again.
+  This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
 
 ### Changed
 - A Modal text input's `default` will now also be used for `value` when `value` is left undefined and
