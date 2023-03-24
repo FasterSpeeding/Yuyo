@@ -1093,6 +1093,9 @@ class Modal(AbstractModal):
             Default value to pass if this text input field was not provided.
 
             The field will be marked as required unless this is supplied.
+
+            This will also be used for `value` when it has been left undefined
+            and the default is a string that's <=4000 characters in length.
         min_length
             Minimum length the input text can be.
 
@@ -1134,7 +1137,7 @@ class Modal(AbstractModal):
             label=label,
             style=style,
             placeholder=placeholder,
-            value=value,
+            value=_workout_value(default, value),
             default=default,
             min_length=min_length,
             max_length=max_length,
@@ -1190,6 +1193,9 @@ class Modal(AbstractModal):
             Default value to pass if this text input field was not provided.
 
             The field will be marked as required unless this is supplied.
+
+            This will also be used for `value` when it has been left undefined
+            and the default is a string that's <=4000 characters in length.
         min_length
             Minimum length the input text can be.
 
@@ -1222,7 +1228,7 @@ class Modal(AbstractModal):
             label=label,
             style=style,
             placeholder=placeholder,
-            value=value,
+            value=_workout_value(default, value),
             default=default,
             min_length=min_length,
             max_length=max_length,
@@ -1257,6 +1263,16 @@ class Modal(AbstractModal):
 
         fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._tracked_fields}
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
+
+
+def _workout_value(default: typing.Any, value: hikari.UndefinedOr[str]) -> hikari.UndefinedOr[str]:
+    if value is not hikari.UNDEFINED or default is hikari.UNDEFINED:
+        return value
+
+    if isinstance(default, str) and len(default) <= 4000:
+        return default
+
+    return value
 
 
 def _make_text_input(
@@ -1496,6 +1512,9 @@ def with_static_text_input(
         Default value to pass if this text input field was not provided.
 
         The field will be marked as required unless this is supplied.
+
+        This will also be used for `value` when it has been left undefined
+        and the default is a string that's <=4000 characters in length.
     min_length
         Minimum length the input text can be.
 
@@ -1573,6 +1592,9 @@ def with_text_input(
         Default value to pass if this text input field was not provided.
 
         The field will be marked as required unless this is supplied.
+
+        This will also be used for `value` when it has been left undefined
+        and the default is a string that's <=4000 characters in length.
     min_length
         Minimum length the input text can be.
 
@@ -1804,6 +1826,9 @@ def text_input(
         Default value to pass if this text input field was not provided.
 
         The field will be marked as required unless this is supplied.
+
+        This will also be used for `value` when it has been left undefined
+        and the default is a string that's <=4000 characters in length.
     min_length
         Minimum length the input text can be.
 

@@ -339,6 +339,74 @@ class TestModal:
         assert field.prefix_match is True
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
+    @pytest.mark.parametrize("default", ["meep", "x" * 4000, "a"])
+    def test_with_text_input_descriptor_uses_string_default_as_value(self, default: str):
+        @modals.as_modal_template()
+        async def modal_template(
+            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=default)
+        ) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 1
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.value == default
+        assert component.required is False  # TODO: rename to is_required
+
+        assert len(modal._tracked_fields) == 1
+        field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.default == default
+
+    def test_with_text_input_descriptor_with_non_str_default(self):
+        @modals.as_modal_template()
+        async def modal_template(
+            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=123)
+        ) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 1
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.value is hikari.UNDEFINED
+        assert component.required is False  # TODO: rename to is_required
+
+        assert len(modal._tracked_fields) == 1
+        field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.default == 123
+
+    def test_with_text_input_descriptor_when_string_default_over_4000_chars(self):
+        @modals.as_modal_template()
+        async def modal_template(
+            ctx: modals.ModalContext,
+            a_field: typing.Union[str, int] = modals.text_input("bababooi", default="x" * 4001),
+        ) -> None:
+            ...
+
+        modal = modal_template()
+
+        assert len(modal.rows) == 1
+        row = modal.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextInputBuilder)
+        assert component.value is hikari.UNDEFINED
+        assert component.required is False  # TODO: rename to is_required
+
+        assert len(modal._tracked_fields) == 1
+        field = modal._tracked_fields[0]
+        assert isinstance(field, modals._TrackedField)
+        assert field.default == "x" * 4001
+
     def test_with_text_input_descriptor_when_not_prefix_matched(self):
         @modals.as_modal_template()
         async def modal_template(

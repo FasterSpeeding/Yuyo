@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ComponentContext.select_members][yuyo.components.ComponentContext.select_members].
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 
+### Changed
+- A Modal text input's `default` will now also be used for `value` when `value` is left undefined and
+  `default` is a string of `<=4000` characters.
+
 ## [1.10.0a1] - 2023-03-20
 ### Added
 - Support for declaring modal options in the modal callback's signature.
