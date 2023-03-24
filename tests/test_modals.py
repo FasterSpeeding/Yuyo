@@ -343,11 +343,7 @@ class TestModal:
     def test_with_text_input_descriptor_uses_string_default_as_value(self, default: str):
         @modals.as_modal_template()
         async def modal_template(
-            ctx: modals.ModalContext,
-            a_field: typing.Union[str, int] = modals.text_input(
-                "bababooi",
-                default=default
-            ),
+            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=default)
         ) -> None:
             ...
 
@@ -369,11 +365,7 @@ class TestModal:
     def test_with_text_input_descriptor_with_non_str_default(self):
         @modals.as_modal_template()
         async def modal_template(
-            ctx: modals.ModalContext,
-            a_field: typing.Union[str, int] = modals.text_input(
-                "bababooi",
-                default=123
-            ),
+            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=123)
         ) -> None:
             ...
 
@@ -396,10 +388,7 @@ class TestModal:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext,
-            a_field: typing.Union[str, int] = modals.text_input(
-                "bababooi",
-                default="x" * 4001
-            ),
+            a_field: typing.Union[str, int] = modals.text_input("bababooi", default="x" * 4001),
         ) -> None:
             ...
 
