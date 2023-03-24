@@ -1,6 +1,6 @@
-### Asgi
+# Asgi
 
-The [ASGIBot][yuyo.asgi.ASGIBot] acts as an ASGI application which will handle
+The [AsgiBot][yuyo.asgi.AsgiBot] acts as an ASGI application which will handle
 the interaction requests received from Discord for slash commands, context menus,
 message components and modals as part of an ASGI server.
 
