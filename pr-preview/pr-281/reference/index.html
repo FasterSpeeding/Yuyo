@@ -1054,6 +1054,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.select_members" class="md-nav__link">
+    select_members
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.select_roles" class="md-nav__link">
     select_roles
   </a>
@@ -2710,6 +2717,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.select_channels" class="md-nav__link">
     select_channels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.select_members" class="md-nav__link">
+    select_members
   </a>
   
 </li>
@@ -10761,6 +10775,30 @@ prefix and is lower priority than normal custom id match.</p>
 
 
 
+<h3 id="yuyo.components.ComponentContext.select_members" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">select_members</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.select_members" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">select_members</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">InteractionMember</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the members passed for a user select menu.</p>
+<p>This will also include some of the values for a mentionable select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="yuyo.components.ComponentContext.select_roles" class="doc doc-heading">
         <span class="doc doc-object-name doc-attribute-name">select_roles</span>
 
@@ -10824,6 +10862,8 @@ prefix and is lower priority than normal custom id match.</p>
   
       <p>Sequence of the users passed for a user select menu.</p>
 <p>This will also include some of the values for a mentionable select menu.</p>
+<p><a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.select_members">ComponentContext.select_members</a>
+has the full member objects.</p>
   </div>
 
 </div>
