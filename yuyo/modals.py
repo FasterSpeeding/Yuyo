@@ -766,6 +766,9 @@ class ModalClient:
 
         return self
 
+Client = ModalClient
+"""Alias of [ModalClient][yuyo.modals.ModalClient]."""
+
 
 class AbstractModal(abc.ABC):
     """Base class for a modal execution handler."""
