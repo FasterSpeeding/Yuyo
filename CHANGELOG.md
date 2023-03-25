@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `default` is a string of `<=4000` characters.
 - Increased the default timeout for modals to 2 minutes.
 
+### Fixed
+- Text select menus will no-lonegr lead to an error being returned by Discord when `max_values` is
+  greater then the count of its choices.
+
 ## [1.10.0a1] - 2023-03-20
 ### Added
 - Support for declaring modal options in the modal callback's signature.

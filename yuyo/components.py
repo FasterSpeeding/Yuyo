@@ -2319,6 +2319,16 @@ WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
 
+class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[typing.NoReturn]):
+    __slots__ = ()
+
+    def build(self) -> collections.MutableMapping[str, typing.Any]:
+        payload = super().build()
+        max_values = min(len(self.options), self.max_values)
+        payload["max_values"] = max_values
+        return payload
+
+
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row.
 
@@ -2652,7 +2662,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if custom_id is None:
             custom_id = _internal.random_custom_id()
 
-        component = hikari.impl.TextSelectMenuBuilder[typing.NoReturn](
+        component = _TextSelectMenuBuilder(
             container=NotImplemented,  # type: ignore
             custom_id=custom_id,
             placeholder=placeholder,
