@@ -2324,8 +2324,7 @@ class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[typing.NoReturn])
 
     def build(self) -> typing.MutableMapping[str, typing.Any]:
         payload = super().build()
-        # TODO: check if it still errors when max_values > len(options)
-        max_values = max(len(self.options), self.max_values)
+        max_values = min(len(self.options), self.max_values)
         payload["max_values"] = max_values
         return payload
 
