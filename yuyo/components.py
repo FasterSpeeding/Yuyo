@@ -2092,6 +2092,10 @@ class ComponentClient:
         return self
 
 
+Client = ComponentClient
+"""Alias of [ComponentClient][yuyo.components.ComponentClient]."""
+
+
 class AbstractComponentExecutor(abc.ABC):
     """Abstract interface of an object which handles the execution of a message component."""
 

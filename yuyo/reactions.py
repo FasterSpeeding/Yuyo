@@ -273,6 +273,10 @@ class ReactionHandler(AbstractReactionHandler):
             self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
+Client = ReactionHandler
+"""Alias of [ReactionHandler][yuyo.reactions.ReactionHandler]."""
+
+
 class ReactionPaginator(ReactionHandler):
     """Standard implementation of a reaction handler for pagination."""
 
