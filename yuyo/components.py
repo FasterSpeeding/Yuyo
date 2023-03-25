@@ -2322,7 +2322,7 @@ WaitFor = WaitForExecutor
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[typing.NoReturn]):
     __slots__ = ()
 
-    def build(self) -> typing.MutableMapping[str, typing.Any]:
+    def build(self) -> collections.MutableMapping[str, typing.Any]:
         payload = super().build()
         max_values = min(len(self.options), self.max_values)
         payload["max_values"] = max_values
