@@ -355,7 +355,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value == default
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
@@ -377,7 +377,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value is hikari.UNDEFINED
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
@@ -400,7 +400,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value is hikari.UNDEFINED
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
