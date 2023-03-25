@@ -426,3 +426,43 @@ class TestComponentClient:
 
         assert result is client
         assert client.get_executor(555555) is None
+
+
+class TestActionRowExecutor:
+    def test_text_select_builder_uses_option_count_when_max_values_too_high(self):
+        action_row = yuyo.components.ActionRowExecutor()
+
+        (
+            action_row
+            .add_text_select(mock.AsyncMock(), max_values=20)
+            .add_option("meow", "blah")
+            .add_to_menu()
+            .add_option("arrest", "me")
+            .add_to_menu()
+            .add_option("with", "your")
+            .add_to_menu()
+            .add_option("sweet", "lullaby")
+            .add_to_menu()
+        )
+
+        assert action_row.build()["components"][0]["max_values"] == 4
+
+    def test_text_select_builder_uses_max_values_when_enough_options(self):
+        action_row = yuyo.components.ActionRowExecutor()
+
+        (
+            action_row
+            .add_text_select(mock.AsyncMock(), max_values=3)
+            .add_option("meow", "blah")
+            .add_to_menu()
+            .add_option("arrest", "me")
+            .add_to_menu()
+            .add_option("with", "your")
+            .add_to_menu()
+            .add_option("sweet", "lullaby")
+            .add_to_menu()
+            .add_option("get up", "get up")
+            .add_to_menu()
+        )
+
+        assert action_row.build()["components"][0]["max_values"] == 3
