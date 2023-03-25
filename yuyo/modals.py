@@ -766,6 +766,7 @@ class ModalClient:
 
         return self
 
+
 Client = ModalClient
 """Alias of [ModalClient][yuyo.modals.ModalClient]."""
 
