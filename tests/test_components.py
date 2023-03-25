@@ -433,8 +433,7 @@ class TestActionRowExecutor:
         action_row = yuyo.components.ActionRowExecutor()
 
         (
-            action_row
-            .add_text_select(mock.AsyncMock(), max_values=20)
+            action_row.add_text_select(mock.AsyncMock(), max_values=20)
             .add_option("meow", "blah")
             .add_to_menu()
             .add_option("arrest", "me")
@@ -451,8 +450,7 @@ class TestActionRowExecutor:
         action_row = yuyo.components.ActionRowExecutor()
 
         (
-            action_row
-            .add_text_select(mock.AsyncMock(), max_values=3)
+            action_row.add_text_select(mock.AsyncMock(), max_values=3)
             .add_option("meow", "blah")
             .add_to_menu()
             .add_option("arrest", "me")
