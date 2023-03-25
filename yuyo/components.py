@@ -2091,7 +2091,7 @@ class ComponentClient:
         self._executors.pop(int(message))
         return self
 
-    
+
 Client = ComponentClient
 """Alias of [ComponentClient][yuyo.components.ComponentClient]."""
 
