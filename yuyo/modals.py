@@ -694,6 +694,8 @@ class ModalClient:
 
             Passing [None][] here will set [NeverTimeout][yuyo.timeouts.NeverTimeout].
 
+            This defaults to single use with a 2 minute timeout.
+
         Returns
         -------
         Self
