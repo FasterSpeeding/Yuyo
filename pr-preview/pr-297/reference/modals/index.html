@@ -482,6 +482,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.modals.Client" class="md-nav__link">
+    Client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.modals.Context" class="md-nav__link">
+    Context
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.modals.NO_DEFAULT" class="md-nav__link">
     NO_DEFAULT
   </a>
@@ -862,6 +876,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.modals.Client" class="md-nav__link">
+    Client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.modals.Context" class="md-nav__link">
+    Context
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.modals.NO_DEFAULT" class="md-nav__link">
     NO_DEFAULT
   </a>
@@ -1209,6 +1237,52 @@
 
 
 
+<h2 id="yuyo.modals.Client" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">Client</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.modals.Client" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">Client</span> <span class="o">=</span> <span class="n">ModalClient</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalClient">ModalClient</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="yuyo.modals.Context" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">Context</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.modals.Context" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">Context</span> <span class="o">=</span> <span class="n">ModalContext</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.modals.ModalContext">ModalContext</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h2 id="yuyo.modals.NO_DEFAULT" class="doc doc-heading">
         <span class="doc doc-object-name doc-attribute-name">NO_DEFAULT</span>
 
@@ -1316,8 +1390,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1687,6 +1761,8 @@ works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal<
           <td class="doc-param-details">
             <p>Default value to pass if this text input field was not provided.</p>
 <p>The field will be marked as required unless this is supplied.</p>
+<p>This will also be used for <code>value</code> when it has been left undefined
+and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1928,6 +2004,8 @@ prefix and is lower priority than normal matching.</p>
           <td class="doc-param-details">
             <p>Default value to pass if this text input field was not provided.</p>
 <p>The field will be marked as required unless this is supplied.</p>
+<p>This will also be used for <code>value</code> when it has been left undefined
+and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2903,6 +2981,7 @@ prefix and is lower priority than normal matching.</p>
           <td class="doc-param-details">
             <p>Timeout strategy for this modal.</p>
 <p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> here will set <a class="autorefs autorefs-internal" href="../timeouts/#yuyo.timeouts.NeverTimeout">NeverTimeout</a>.</p>
+<p>This defaults to single use with a 2 minute timeout.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3949,6 +4028,8 @@ and <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> su
           <td class="doc-param-details">
             <p>Default value to pass if this text input field was not provided.</p>
 <p>The field will be marked as required unless this is supplied.</p>
+<p>This will also be used for <code>value</code> when it has been left undefined
+and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4151,6 +4232,8 @@ prefix and is lower priority than normal matching.</p>
           <td class="doc-param-details">
             <p>Default value to pass if this text input field was not provided.</p>
 <p>The field will be marked as required unless this is supplied.</p>
+<p>This will also be used for <code>value</code> when it has been left undefined
+and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4370,6 +4453,8 @@ prefix and is lower priority than normal matching.</p>
           <td class="doc-param-details">
             <p>Default value to pass if this text input field was not provided.</p>
 <p>The field will be marked as required unless this is supplied.</p>
+<p>This will also be used for <code>value</code> when it has been left undefined
+and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
