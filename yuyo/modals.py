@@ -711,7 +711,7 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is NO_DEFAULT:
-            timeout = timeouts.BasicTimeout(datetime.timedelta(seconds=10))
+            timeout = timeouts.BasicTimeout(datetime.timedelta(minutes=2))
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()
