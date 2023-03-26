@@ -31,7 +31,7 @@
 """Classes used for handling timing out components and reaction handlers."""
 from __future__ import annotations
 
-__all__ = ["BasicTimeout", "NeverTimeout", "SlidingTimeout"]
+__all__ = ["BasicTimeout", "NeverTimeout", "SlidingTimeout", "StaticTimeout"]
 
 import abc
 import datetime
