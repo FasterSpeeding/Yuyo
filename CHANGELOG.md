@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
+
 ### [1.10.1a1] - 2023-03-25
 ### Added
 - Some convenience properties to [ComponentContext][yuyo.components.ComponentContext] for getting select
