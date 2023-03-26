@@ -2499,7 +2499,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li><code>WaitForExecutor</code> now has better semantics/behaviour around being called when it's inactive:<ul>
 <li>Timeouts are now handled better meaning that a wait for executor timeout will mark it to be de-registered.</li>
-<li>Execute calls to an executor that hasn't been waited for yet will</li>
+<li>Execute calls to an executor that hasn't been waited for yet now return a not active message.</li>
 </ul>
 </li>
 </ul>
