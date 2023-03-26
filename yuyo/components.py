@@ -94,7 +94,7 @@ def _to_timeout(value: typing.Optional[datetime.timedelta], /) -> timeouts.Abstr
     if value is None:
         return timeouts.NeverTimeout()
 
-    return timeouts.BasicTimeout(value, max_uses=-1)
+    return timeouts.SlidingTimeout(value, max_uses=-1)
 
 
 class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):

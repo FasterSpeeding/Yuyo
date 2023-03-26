@@ -63,6 +63,7 @@ __all__: list[str] = [
     "backoff",
     "chunk_tracker",
     "components",
+    "SlidingTimeout",
     "links",
     "modals",
     "paginate_string",
@@ -104,3 +105,4 @@ from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
 from .timeouts import BasicTimeout
+from .timeouts import SlidingTimeout
