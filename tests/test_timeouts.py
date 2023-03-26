@@ -61,12 +61,8 @@ class TestSlidingTimeout:
             frozen.tick(datetime.timedelta(seconds=3))
             assert timeout.has_expired is False
 
-            timeout.increment_uses()
-
             frozen.tick(datetime.timedelta(seconds=26))
             assert timeout.has_expired is False
-
-            timeout.increment_uses()
 
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
@@ -134,6 +130,7 @@ class TestStaticTimeout:
             for _ in range(0, 59):
                 frozen.tick(datetime.timedelta(seconds=1))
                 assert timeout.has_expired is False
+                timeout.increment_uses()
 
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
@@ -145,6 +142,7 @@ class TestStaticTimeout:
             for _ in range(0, 59):
                 frozen.tick(datetime.timedelta(seconds=1))
                 assert timeout.has_expired is False
+                timeout.increment_uses()
 
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
