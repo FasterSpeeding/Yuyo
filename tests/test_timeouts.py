@@ -51,7 +51,7 @@ class TestSlidingTimeout:
 
     def test_slides(self):
         with freezegun.freeze_time() as frozen:
-            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=4)
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=10)
 
             frozen.tick(datetime.timedelta(seconds=28))
             assert timeout.has_expired is False
@@ -61,8 +61,12 @@ class TestSlidingTimeout:
             frozen.tick(datetime.timedelta(seconds=3))
             assert timeout.has_expired is False
 
+            timeout.increment_uses()
+
             frozen.tick(datetime.timedelta(seconds=26))
             assert timeout.has_expired is False
+
+            timeout.increment_uses()
 
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
