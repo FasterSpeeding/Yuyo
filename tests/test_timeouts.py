@@ -90,8 +90,6 @@ class TestSlidingTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
-        assert timeout.has_expired is True
-
     def test_increment_uses_when_unlimited(self):
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=-1)
 
