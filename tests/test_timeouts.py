@@ -153,6 +153,21 @@ class TestStaticTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
+    def test_increment_uses(self):
+        timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=6000), max_uses=4)
+
+        assert timeout.increment_uses() is False
+        assert timeout.has_expired is False
+
+        assert timeout.increment_uses() is False
+        assert timeout.has_expired is False
+
+        assert timeout.increment_uses() is False
+        assert timeout.has_expired is False
+
+        assert timeout.increment_uses() is True
+        assert timeout.has_expired is True
+
     def test_increment_uses_when_unlimited(self):
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=40), max_uses=-1)
 
