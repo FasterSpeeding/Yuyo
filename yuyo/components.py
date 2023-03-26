@@ -2073,7 +2073,7 @@ class ComponentClient:
     def set_executor(
         self,
         message_or_executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor],
-        executor:  typing.Optional[AbstractComponentExecutor] = None,
+        executor: typing.Optional[AbstractComponentExecutor] = None,
         /,
         *,
         message: typing.Optional[hikari.Message] = None,
@@ -2102,7 +2102,6 @@ class ComponentClient:
         else:
             if executor is None:
                 raise RuntimeError("Executor not passed")
-
 
         self._executors[int(message)] = executor
         return self
