@@ -5,14 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### [1.10.1a1] - 2023-03-25
 ### Added
 - Some convenience properties to [ComponentContext][yuyo.components.ComponentContext] for getting select
-  menu values. These are
-  [ComponentContext.select_channels][yuyo.components.ComponentContext.select_channels],
-  [ComponentContext.select_roles][yuyo.components.ComponentContext.select_roles],
-  [ComponentContext.select_texts][yuyo.components.ComponentContext.select_texts],
-  [ComponentContext.select_users][yuyo.components.ComponentContext.select_users], and
-  [ComponentContext.select_members][yuyo.components.ComponentContext.select_members].
+  menu values:
+    * [.select_channels][yuyo.components.ComponentContext.select_channels]
+    * [.select_roles][yuyo.components.ComponentContext.select_roles]
+    * [.select_texts][yuyo.components.ComponentContext.select_texts]
+    * [.select_users][yuyo.components.ComponentContext.select_users]
+    * [.select_members][yuyo.components.ComponentContext.select_members]
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 - The [yuyo.components.Client][], [yuyo.modals.Client][], and [yuyo.reactions.Client][] aliases.
 
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased the default timeout for modals to 2 minutes.
 
 ### Fixed
-- Text select menus will no-lonegr lead to an error being returned by Discord when `max_values` is
+- Text select menus will no-longer lead to an error being returned by Discord when `max_values` is
   greater then the count of its choices.
 
 ## [1.10.0a1] - 2023-03-20
@@ -338,10 +339,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped the minimum hikari version to dev108.
 
 ### Fixed
-- `WaitForExecutor` now has better semantics/behaviour around being called when it's inactive.
-  Timeouts are now handled better meaning that a wait for executor timeout will mark it to be
-  de-registered.
-  Execute calls to an executor that hasn't been waited for yet will
+- `WaitForExecutor` now has better semantics/behaviour around being called when it's inactive:
+    * Timeouts are now handled better meaning that a wait for executor timeout will mark it to be de-registered.
+    * Execute calls to an executor that hasn't been waited for yet now return a not active message.
 
 ## [1.0.5a1.post1] - 2021-12-21
 ### Changed
@@ -417,7 +417,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.0a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...HEAD
+[1.10.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.10.0a1...v1.10.1a1
 [1.10.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.9.1a1...v1.10.0a1
 [1.9.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.9.0a1...v1.9.1a1
 [1.9.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1.post1...v1.9.0a1
