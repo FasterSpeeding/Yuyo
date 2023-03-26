@@ -138,7 +138,7 @@ class StaticTimeout(AbstractTimeout):
     @property
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractTimeout>>.
-        return self._uses_left == 0 or datetime.datetime.now(tz=datetime.timezone.utc) > self._timeout_at
+        return self._uses_left == 0 or datetime.datetime.now(tz=self._timeout_at.tzinfo) > self._timeout_at
 
     def increment_uses(self) -> bool:
         # <<inherited docstring from AbstractTimeout>>.
