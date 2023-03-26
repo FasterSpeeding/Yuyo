@@ -124,3 +124,28 @@ class NeverTimeout(AbstractTimeout):
     def increment_uses(self) -> bool:
         # <<inherited docstring from AbstractTimeout>>.
         return False
+
+
+class StaticTimeout(AbstractTimeout):
+    """Timeout at a specific time."""
+
+    __slots__ = ("_timeout_at", "_uses_left")
+
+    def __init__(self, timeout_at: datetime.datetime, /, *, max_uses: int = 1) -> None:
+        self._timeout_at = timeout_at
+        self._uses_left = max_uses
+
+    @property
+    def has_expired(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
+        return self._uses_left == 0 or datetime.datetime.now(tz=datetime.timezone.utc) > self._timeout_at
+
+    def increment_uses(self) -> bool:
+        # <<inherited docstring from AbstractTimeout>>.
+        if self._uses_left > 0:
+            self._uses_left -= 1
+
+        elif self._uses_left == 0:
+            raise RuntimeError("Uses already depleted")
+
+        return self._uses_left == 0
