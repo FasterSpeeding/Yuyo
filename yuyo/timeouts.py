@@ -39,44 +39,44 @@ import typing
 
 
 class AbstractTimeout(abc.ABC):
-    """Abstract interface used to manage timing out a modal."""
+    """Abstract interface used to manage timing out a modals and components."""
 
     __slots__ = ()
 
     @property
     @abc.abstractmethod
     def has_expired(self) -> bool:
-        """Whether this modal has timed-out."""
+        """Whether this has timed-out."""
 
     @abc.abstractmethod
     def increment_uses(self) -> bool:
-        """Add a use to the modal.
+        """Add a use to this.
 
         Returns
         -------
         bool
-            Whether the modal has now timed-out.
+            Whether this has now timed-out.
         """
 
 
 class SlidingTimeout(AbstractTimeout):
     """Timeout strategy which resets every use.
 
-    This implementation timeouts if `timeout` passes since the last call or
-    when `max_uses` reaches `0`.
+    This implementation times out if `timeout` passes since the last call or
+    when `max_uses` is reached.
     """
 
     __slots__ = ("_last_triggered", "_timeout", "_uses_left")
 
     def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = 1) -> None:
-        """Initialise a basic timeout.
+        """Initialise a sliding timeout.
 
         Parameters
         ----------
         timeout
-            How long this modal should wait between calls before timing-out.
+            How long this should wait between calls before timing-out.
         max_uses
-            The maximum amount of uses this modal allows.
+            The maximum amount of uses this allows.
 
             Setting this to `-1` marks it as unlimited.
         """
@@ -127,11 +127,26 @@ class NeverTimeout(AbstractTimeout):
 
 
 class StaticTimeout(AbstractTimeout):
-    """Timeout at a specific time."""
+    """Timeout at a specific time.
+
+    This implementation times out when `timeout_at` is reached or
+    when `max_uses` is reached.
+    """
 
     __slots__ = ("_timeout_at", "_uses_left")
 
     def __init__(self, timeout_at: datetime.datetime, /, *, max_uses: int = 1) -> None:
+        """Initialise a static timeout.
+
+        Parameters
+        ----------
+        timeout_at
+            When this should time out.
+        max_uses
+            The maximum amount of uses this allows.
+
+            Setting this to `-1` marks it as unlimited.
+        """
         self._timeout_at = timeout_at
         self._uses_left = max_uses
 
