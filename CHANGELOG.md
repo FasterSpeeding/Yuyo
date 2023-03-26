@@ -339,10 +339,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped the minimum hikari version to dev108.
 
 ### Fixed
-- `WaitForExecutor` now has better semantics/behaviour around being called when it's inactive.
-  Timeouts are now handled better meaning that a wait for executor timeout will mark it to be
-  de-registered.
-  Execute calls to an executor that hasn't been waited for yet will
+- `WaitForExecutor` now has better semantics/behaviour around being called when it's inactive:
+    * Timeouts are now handled better meaning that a wait for executor timeout will mark it to be de-registered.
+    * Execute calls to an executor that hasn't been waited for yet now return a not active message.
 
 ## [1.0.5a1.post1] - 2021-12-21
 ### Changed
