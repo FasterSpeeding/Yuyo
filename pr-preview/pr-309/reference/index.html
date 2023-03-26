@@ -14727,8 +14727,8 @@ complete for guilds covered by this shard.</p>
 
   
       <p>Timeout strategy which resets every use.</p>
-<p>This implementation timeouts if <code>timeout</code> passes since the last call or
-when <code>max_uses</code> reaches <code>0</code>.</p>
+<p>This implementation times out if <code>timeout</code> passes since the last call or
+when <code>max_uses</code> is reached.</p>
 
 
 
@@ -14758,7 +14758,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Initialise a basic timeout.</p>
+      <p>Initialise a sliding timeout.</p>
 
   <table>
     <thead>
@@ -14771,7 +14771,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
-            <p>How long this modal should wait between calls before timing-out.</p>
+            <p>How long this should wait between calls before timing-out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -14783,7 +14783,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>max_uses</code></td>
           <td class="doc-param-details">
-            <p>The maximum amount of uses this modal allows.</p>
+            <p>The maximum amount of uses this allows.</p>
 <p>Setting this to <code>-1</code> marks it as unlimited.</p>
             <p>
                 <span class="doc-param-annotation">

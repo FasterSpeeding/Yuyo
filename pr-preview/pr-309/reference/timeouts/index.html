@@ -575,6 +575,19 @@
     StaticTimeout
   </a>
   
+    <nav class="md-nav" aria-label="StaticTimeout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.timeouts.StaticTimeout.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -705,6 +718,19 @@
     StaticTimeout
   </a>
   
+    <nav class="md-nav" aria-label="StaticTimeout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.timeouts.StaticTimeout.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -783,7 +809,7 @@
         Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/abc.html#module-abc">abc</a>.<a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3.9/library/abc.html#abc.ABC">ABC</a></code></p>
 
   
-      <p>Abstract interface used to manage timing out a modal.</p>
+      <p>Abstract interface used to manage timing out a modals and components.</p>
 
 
 
@@ -806,8 +832,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.timeouts.AbstractTimeout.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -816,7 +842,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Whether this modal has timed-out.</p>
+      <p>Whether this has timed-out.</p>
   </div>
 
 </div>
@@ -841,7 +867,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Add a use to the modal.</p>
+      <p>Add a use to this.</p>
 
   <table>
     <thead>
@@ -858,7 +884,7 @@
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>Whether the modal has now timed-out.</p>
+            <p>Whether this has now timed-out.</p>
           </td>
         </tr>
     </tbody>
@@ -933,8 +959,8 @@
 
   
       <p>Timeout strategy which resets every use.</p>
-<p>This implementation timeouts if <code>timeout</code> passes since the last call or
-when <code>max_uses</code> reaches <code>0</code>.</p>
+<p>This implementation times out if <code>timeout</code> passes since the last call or
+when <code>max_uses</code> is reached.</p>
 
 
 
@@ -964,7 +990,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Initialise a basic timeout.</p>
+      <p>Initialise a sliding timeout.</p>
 
   <table>
     <thead>
@@ -977,7 +1003,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
-            <p>How long this modal should wait between calls before timing-out.</p>
+            <p>How long this should wait between calls before timing-out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -989,7 +1015,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>max_uses</code></td>
           <td class="doc-param-details">
-            <p>The maximum amount of uses this modal allows.</p>
+            <p>The maximum amount of uses this allows.</p>
 <p>Setting this to <code>-1</code> marks it as unlimited.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -1035,6 +1061,8 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
   
       <p>Timeout at a specific time.</p>
+<p>This implementation times out when <code>timeout_at</code> is reached or
+when <code>max_uses</code> is reached.</p>
 
 
 
@@ -1049,6 +1077,66 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.timeouts.StaticTimeout.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.timeouts.StaticTimeout.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">timeout_at</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_uses</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise a static timeout.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>timeout_at</code></td>
+          <td class="doc-param-details">
+            <p>When this should time out.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.datetime" href="https://docs.python.org/3.9/library/datetime.html#datetime.datetime">datetime</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_uses</code></td>
+          <td class="doc-param-details">
+            <p>The maximum amount of uses this allows.</p>
+<p>Setting this to <code>-1</code> marks it as unlimited.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>1</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
