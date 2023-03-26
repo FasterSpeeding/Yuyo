@@ -147,7 +147,7 @@ class ReactionHandler(AbstractReactionHandler):
             self._timeout = timeouts.NeverTimeout()
 
         else:
-            self._timeout = timeouts.BasicTimeout(timeout, max_uses=-1)
+            self._timeout = timeouts.SlidingTimeout(timeout, max_uses=-1)
 
     @property
     def authors(self) -> collections.Set[hikari.Snowflake]:

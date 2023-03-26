@@ -55,6 +55,7 @@ __all__: list[str] = [
     "ReactionPaginator",
     "ServiceManager",
     "ShardFinishedChunkingEvent",
+    "SlidingTimeout",
     "TopGGService",
     "WaitForExecutor",
     "aenumerate",
@@ -104,3 +105,4 @@ from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
 from .timeouts import BasicTimeout
+from .timeouts import SlidingTimeout

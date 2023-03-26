@@ -84,8 +84,8 @@ _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.
 AbstractTimeout = timeouts.AbstractTimeout
 """Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
 
-BasicTimeout = timeouts.BasicTimeout
-"""Deprecated alias of [yuyo.timeouts.BasicTimeout][]."""
+BasicTimeout = timeouts.SlidingTimeout
+"""Deprecated alias of [yuyo.timeouts.SlidingTimeout][]."""
 
 NeverTimeout = timeouts.NeverTimeout
 """Deprecated alias of [yuyo.timeouts.NeverTimeout][]."""
@@ -713,7 +713,7 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is NO_DEFAULT:
-            timeout = timeouts.BasicTimeout(datetime.timedelta(minutes=2))
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(minutes=2))
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()

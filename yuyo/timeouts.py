@@ -31,7 +31,7 @@
 """Classes used for handling timing out components and reaction handlers."""
 from __future__ import annotations
 
-__all__ = ["BasicTimeout", "NeverTimeout"]
+__all__ = ["BasicTimeout", "NeverTimeout", "SlidingTimeout"]
 
 import abc
 import datetime
@@ -59,8 +59,8 @@ class AbstractTimeout(abc.ABC):
         """
 
 
-class BasicTimeout(AbstractTimeout):
-    """Basic modal timeout strategy.
+class SlidingTimeout(AbstractTimeout):
+    """Timeout strategy which resets every use.
 
     This implementation timeouts if `timeout` passes since the last call or
     when `max_uses` reaches `0`.
@@ -105,6 +105,10 @@ class BasicTimeout(AbstractTimeout):
 
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         return self._uses_left == 0
+
+
+BasicTimeout = SlidingTimeout
+"""Deprecated alias of [SlidingTimeout][yuyo.timeouts.SlidingTimeout]."""
 
 
 class NeverTimeout(AbstractTimeout):
