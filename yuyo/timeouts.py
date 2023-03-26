@@ -60,7 +60,7 @@ class AbstractTimeout(abc.ABC):
 
 
 class SlidingTimeout(AbstractTimeout):
-    """Timeout timer which resets every use.
+    """Timeout strategy which resets every use.
 
     This implementation timeouts if `timeout` passes since the last call or
     when `max_uses` reaches `0`.
