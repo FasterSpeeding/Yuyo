@@ -510,6 +510,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.timeouts.BasicTimeout" class="md-nav__link">
+    BasicTimeout
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.timeouts.AbstractTimeout" class="md-nav__link">
     AbstractTimeout
   </a>
@@ -537,15 +544,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yuyo.timeouts.BasicTimeout" class="md-nav__link">
-    BasicTimeout
+  <a href="#yuyo.timeouts.NeverTimeout" class="md-nav__link">
+    NeverTimeout
   </a>
   
-    <nav class="md-nav" aria-label="BasicTimeout">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.timeouts.SlidingTimeout" class="md-nav__link">
+    SlidingTimeout
+  </a>
+  
+    <nav class="md-nav" aria-label="SlidingTimeout">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#yuyo.timeouts.BasicTimeout.__init__" class="md-nav__link">
+  <a href="#yuyo.timeouts.SlidingTimeout.__init__" class="md-nav__link">
     __init__()
   </a>
   
@@ -553,13 +567,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#yuyo.timeouts.NeverTimeout" class="md-nav__link">
-    NeverTimeout
-  </a>
   
 </li>
       
@@ -626,6 +633,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.timeouts.BasicTimeout" class="md-nav__link">
+    BasicTimeout
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.timeouts.AbstractTimeout" class="md-nav__link">
     AbstractTimeout
   </a>
@@ -653,15 +667,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yuyo.timeouts.BasicTimeout" class="md-nav__link">
-    BasicTimeout
+  <a href="#yuyo.timeouts.NeverTimeout" class="md-nav__link">
+    NeverTimeout
   </a>
   
-    <nav class="md-nav" aria-label="BasicTimeout">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.timeouts.SlidingTimeout" class="md-nav__link">
+    SlidingTimeout
+  </a>
+  
+    <nav class="md-nav" aria-label="SlidingTimeout">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#yuyo.timeouts.BasicTimeout.__init__" class="md-nav__link">
+  <a href="#yuyo.timeouts.SlidingTimeout.__init__" class="md-nav__link">
     __init__()
   </a>
   
@@ -669,13 +690,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#yuyo.timeouts.NeverTimeout" class="md-nav__link">
-    NeverTimeout
-  </a>
   
 </li>
       
@@ -714,6 +728,29 @@
 
 
 
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="yuyo.timeouts.BasicTimeout" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">BasicTimeout</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.timeouts.BasicTimeout" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">BasicTimeout</span> <span class="o">=</span> <span class="n">SlidingTimeout</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="#yuyo.timeouts.SlidingTimeout">SlidingTimeout</a>.</p>
+  </div>
+
+</div>
 
 
 <div class="doc doc-object doc-class">
@@ -755,8 +792,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.timeouts.AbstractTimeout.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -829,11 +866,11 @@
 
 
 
-<h2 id="yuyo.timeouts.BasicTimeout" class="doc doc-heading">
-        <span class="doc doc-object-name doc-class-name">BasicTimeout</span>
+<h2 id="yuyo.timeouts.NeverTimeout" class="doc doc-heading">
+        <span class="doc doc-object-name doc-class-name">NeverTimeout</span>
 
 
-<a href="#yuyo.timeouts.BasicTimeout" class="headerlink" title="Permanent link">#</a></h2>
+<a href="#yuyo.timeouts.NeverTimeout" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
@@ -841,7 +878,47 @@
         Bases: <code><a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
 
   
-      <p>Basic modal timeout strategy.</p>
+      <p>Timeout implementation which never expires.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="yuyo.timeouts.SlidingTimeout" class="doc doc-heading">
+        <span class="doc doc-object-name doc-class-name">SlidingTimeout</span>
+
+
+<a href="#yuyo.timeouts.SlidingTimeout" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
+
+  
+      <p>Timeout strategy which resets every use.</p>
 <p>This implementation timeouts if <code>timeout</code> passes since the last call or
 when <code>max_uses</code> reaches <code>0</code>.</p>
 
@@ -863,11 +940,11 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
 
 
-<h3 id="yuyo.timeouts.BasicTimeout.__init__" class="doc doc-heading">
+<h3 id="yuyo.timeouts.SlidingTimeout.__init__" class="doc doc-heading">
         <span class="doc doc-object-name doc-function-name">__init__</span>
 
 
-<a href="#yuyo.timeouts.BasicTimeout.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#yuyo.timeouts.SlidingTimeout.__init__" class="headerlink" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_uses</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </code></pre></div>
 
@@ -918,46 +995,6 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
   </div>
 
 </div>
-
-
-
-  </div>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-class">
-
-
-
-<h2 id="yuyo.timeouts.NeverTimeout" class="doc doc-heading">
-        <span class="doc doc-object-name doc-class-name">NeverTimeout</span>
-
-
-<a href="#yuyo.timeouts.NeverTimeout" class="headerlink" title="Permanent link">#</a></h2>
-
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
-
-  
-      <p>Timeout implementation which never expires.</p>
-
-
-
-  
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
 
 
 
