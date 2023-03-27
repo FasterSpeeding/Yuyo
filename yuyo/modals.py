@@ -1188,7 +1188,7 @@ class Modal(AbstractModal):
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
-        custom_id, row = _make_text_input(
+        custom_id, component = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1198,7 +1198,7 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        cls._static_builders.append(row)
+        cls._static_builders.append(component)
 
         if parameter:
             field = _TrackedField(
