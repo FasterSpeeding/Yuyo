@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
+- Marked deprecated timeout class aliases using `typing.deprecated`.
 
 ### [1.10.1a1] - 2023-03-25
 ### Added
