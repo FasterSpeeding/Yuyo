@@ -56,6 +56,7 @@ __all__: list[str] = [
     "ServiceManager",
     "ShardFinishedChunkingEvent",
     "SlidingTimeout",
+    "StaticTimeout",
     "TopGGService",
     "WaitForExecutor",
     "aenumerate",
@@ -72,7 +73,6 @@ __all__: list[str] = [
     "sync_paginate_string",
     "timeouts",
     "to_builder",
-    "StaticTimeout",
 ]
 
 from . import links
