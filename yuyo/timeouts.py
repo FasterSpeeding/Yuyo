@@ -36,6 +36,7 @@ __all__ = ["BasicTimeout", "NeverTimeout", "SlidingTimeout", "StaticTimeout"]
 import abc
 import datetime
 import typing
+import typing_extensions
 
 
 class AbstractTimeout(abc.ABC):
@@ -107,8 +108,11 @@ class SlidingTimeout(AbstractTimeout):
         return self._uses_left == 0
 
 
-BasicTimeout = SlidingTimeout
-"""Deprecated alias of [SlidingTimeout][yuyo.timeouts.SlidingTimeout]."""
+@typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
+class BasicTimeout(SlidingTimeout):
+    """Deprecated alias of [SlidingTimeout][yuyo.timeouts.SlidingTimeout]."""
+
+    __slots__ = ()
 
 
 class NeverTimeout(AbstractTimeout):
