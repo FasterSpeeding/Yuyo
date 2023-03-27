@@ -89,7 +89,7 @@ class AbstractTimeout(timeouts.AbstractTimeout):
     __slots__ = ()
 
 
-@typing_extensions.deprecated("Use yuyo.timeouts.BasicTimeout")
+@typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
 class BasicTimeout(timeouts.SlidingTimeout):
     """Deprecated alias of [yuyo.timeouts.SlidingTimeout][]."""
 
