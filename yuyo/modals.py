@@ -48,6 +48,7 @@ import abc
 import asyncio
 import collections
 import collections.abc
+import copy
 import datetime
 import enum
 import functools
@@ -978,10 +979,12 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _static_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
-    _static_rows: typing.ClassVar[list[hikari.impl.ModalActionRowBuilder]] = []
+    _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
+    _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder[typing.Any]]] = []
 
-    def __init__(self, *, ephemeral_default: bool = False) -> None:
+    def __init__(
+        self, *, ephemeral_default: bool = False, id_postfixes: typing.Union[collections.Mapping[str, str], None] = None
+    ) -> None:
         """Initialise a component executor.
 
         Parameters
@@ -990,13 +993,30 @@ class Modal(AbstractModal):
             Whether this executor's responses should default to being ephemeral.
         """
         self._ephemeral_default = ephemeral_default
-        self._rows: list[hikari.impl.ModalActionRowBuilder] = self._static_rows.copy()
+        self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
+
         # TODO: don't duplicate fields when re-declared
-        self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_fields.copy()
+        self._rows: list[hikari.api.ComponentBuilder]
+        if id_postfixes is not None:
+            self._rows = [
+                hikari.impl.MessageActionRowBuilder(
+                    components=[
+                        copy.copy(component).set_custom_id(f"{component.custom_id}:{postfix}")
+                        if (postfix := id_postfixes.get(component.custom_id))
+                        else component
+                    ]
+                )
+                for component in self._static_builders
+            ]
+
+        else:
+            self._rows = [
+                hikari.impl.ModalActionRowBuilder(components=[component]) for component in self._static_builders
+            ]
 
     def __init_subclass__(cls, parse_signature: bool = True) -> None:
-        cls._static_fields = []
-        cls._static_rows = []
+        cls._static_tracked_fields = []
+        cls._static_builders = []
 
         if not parse_signature:
             return
@@ -1027,7 +1047,7 @@ class Modal(AbstractModal):
                 descriptor.add_static(None, cls)
                 fields.append(descriptor.to_tracked_field(name))
 
-            cls._static_fields.append(_TrackedDataclass(keyword, options, fields))
+            cls._static_tracked_fields.append(_TrackedDataclass(keyword, options, fields))
 
         else:
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
@@ -1043,7 +1063,7 @@ class Modal(AbstractModal):
                 descriptor.add(None, self)
                 fields.append(descriptor.to_tracked_field(name))
 
-            self._static_fields.append(_TrackedDataclass(keyword, options, fields))
+            self._static_tracked_fields.append(_TrackedDataclass(keyword, options, fields))
 
         else:
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
@@ -1178,13 +1198,13 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        cls._static_rows.append(row)
+        cls._static_builders.append(row)
 
         if parameter:
             field = _TrackedField(
                 custom_id=custom_id, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
             )
-            cls._static_fields.append(field)
+            cls._static_tracked_fields.append(field)
 
         return cls
 
