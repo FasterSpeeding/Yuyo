@@ -72,6 +72,7 @@ __all__: list[str] = [
     "sync_paginate_string",
     "timeouts",
     "to_builder",
+    "StaticTimeout",
 ]
 
 from . import links
@@ -104,5 +105,6 @@ from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
-from .timeouts import BasicTimeout
+from .timeouts import BasicTimeout  # pyright: ignore [ reportDeprecated ]
 from .timeouts import SlidingTimeout
+from .timeouts import StaticTimeout
