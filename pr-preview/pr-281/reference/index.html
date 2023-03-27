@@ -15,7 +15,7 @@
         <link rel="next" href="asgi/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.2">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.3">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7bf56d0a.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.c4a75a56.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -17357,8 +17357,8 @@ complete for guilds covered by this shard.</p>
 
   
       <p>Timeout strategy which resets every use.</p>
-<p>This implementation timeouts if <code>timeout</code> passes since the last call or
-when <code>max_uses</code> reaches <code>0</code>.</p>
+<p>This implementation times out if <code>timeout</code> passes since the last call or
+when <code>max_uses</code> is reached.</p>
 
 
 
@@ -17388,7 +17388,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Initialise a basic timeout.</p>
+      <p>Initialise a sliding timeout.</p>
 
   <table>
     <thead>
@@ -17401,7 +17401,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
-            <p>How long this modal should wait between calls before timing-out.</p>
+            <p>How long this should wait between calls before timing-out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -17413,7 +17413,7 @@ when <code>max_uses</code> reaches <code>0</code>.</p>
         <tr>
           <td><code>max_uses</code></td>
           <td class="doc-param-details">
-            <p>The maximum amount of uses this modal allows.</p>
+            <p>The maximum amount of uses this allows.</p>
 <p>Setting this to <code>-1</code> marks it as unlimited.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -18188,7 +18188,7 @@ to be replaced by the page's content.</p>
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fc8c2696.min.js"></script>
+      <script src="../assets/javascripts/bundle.efa0ade1.min.js"></script>
       
     
   </body>
