@@ -81,14 +81,26 @@ _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
 
-AbstractTimeout = timeouts.AbstractTimeout
-"""Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
 
-BasicTimeout = timeouts.SlidingTimeout
-"""Deprecated alias of [yuyo.timeouts.SlidingTimeout][]."""
+@typing_extensions.deprecated("Use yuyo.timeouts.AbstractTimeout")
+class AbstractTimeout(timeouts.AbstractTimeout):
+    """Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
 
-NeverTimeout = timeouts.NeverTimeout
-"""Deprecated alias of [yuyo.timeouts.NeverTimeout][]."""
+    __slots__ = ()
+
+
+@typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
+class BasicTimeout(timeouts.SlidingTimeout):
+    """Deprecated alias of [yuyo.timeouts.SlidingTimeout][]."""
+
+    __slots__ = ()
+
+
+@typing_extensions.deprecated("Use yuyo.timeouts.NeverTimeout")
+class NeverTimeout(timeouts.NeverTimeout):
+    """Deprecated alias of [yuyo.timeouts.NeverTimeout][]."""
+
+    __slots__ = ()
 
 
 class _NoDefaultEnum(enum.Enum):
