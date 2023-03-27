@@ -1323,8 +1323,7 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        self._rows.append(hikari.impl.ModalActionRowBuilder(components=[component])
-)
+        self._rows.append(hikari.impl.ModalActionRowBuilder(components=[component]))
 
         if parameter:
             self._tracked_fields.append(
