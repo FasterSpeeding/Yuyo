@@ -996,8 +996,7 @@ class Modal(AbstractModal):
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
         # TODO: don't duplicate fields when re-declared
-        self._rows: list[hikari.api.ModalActionRowBuilder]
-        if id_postfixes is not None:
+        if id_postfixes: list[hikari.api.ModalActionRowBuilder] is not None:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
