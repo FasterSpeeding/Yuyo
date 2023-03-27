@@ -58,6 +58,7 @@ import logging
 import os
 import types
 import typing
+import typing_extensions
 from collections import abc as collections
 
 import alluka as alluka_
@@ -1607,6 +1608,7 @@ class ComponentClient:
         "_event_manager",
         "_executors",
         "_gc_task",
+        "_message_executors",
         "_prefix_ids",
         "_server",
         "_tasks",
@@ -1660,9 +1662,15 @@ class ComponentClient:
 
         self._alluka = alluka
         self._constant_ids: dict[str, CallbackSig] = {}
+
+        self._executors: dict[str, AbstractComponentExecutor] = {}
+        """Dict of custom IDs to executors."""
+
         self._event_manager = event_manager
-        self._executors: dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._message_executors: dict[int, AbstractComponentExecutor] = {}
+        """Dict of message IDs to executors."""
+
         self._prefix_ids: dict[str, CallbackSig] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
@@ -1813,11 +1821,11 @@ class ComponentClient:
 
     async def _gc(self) -> None:
         while True:
-            for message_id, executor in tuple(self._executors.items()):
-                if not executor.has_expired or message_id not in self._executors:
+            for message_id, executor in tuple(self._message_executors.items()):
+                if not executor.has_expired or message_id not in self._message_executors:
                     continue
 
-                del self._executors[message_id]
+                del self._message_executors[message_id]
                 # This may slow this gc task down but the more we yield the better.
                 # await executor.close()  # TODO: this
 
@@ -1836,7 +1844,7 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-        self._executors = {}
+        self._message_executors = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
@@ -1870,7 +1878,7 @@ class ComponentClient:
         try:
             await executor.execute(ctx)
         except ExecutorClosed:
-            self._executors.pop(interaction.message.id, None)
+            self._message_executors.pop(interaction.message.id, None)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -1887,7 +1895,7 @@ class ComponentClient:
             ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
             await self._alluka.call_with_async_di(constant_callback, ctx)
 
-        elif executor := self._executors.get(event.interaction.message.id):
+        elif executor := self._message_executors.get(event.interaction.message.id):
             await self._execute_executor(executor, event.interaction)
 
         else:
@@ -1914,13 +1922,13 @@ class ComponentClient:
             self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
 
-        if executor := self._executors.get(interaction.message.id):
+        if executor := self._message_executors.get(interaction.message.id):
             if not executor.has_expired:
                 future = asyncio.Future()
                 self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
                 return await future
 
-            del self._executors[interaction.message.id]
+            del self._message_executors[interaction.message.id]
 
         return (
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
@@ -2054,8 +2062,6 @@ class ComponentClient:
         message: hikari.SnowflakeishOr[hikari.Message],
         executor: AbstractComponentExecutor,
         /,
-        *,
-        timeout: typing.Optional[timeouts.BasicTimeout] = None,
     ) -> Self:
         ...
 
@@ -2066,6 +2072,7 @@ class ComponentClient:
         /,
         *,
         message: typing.Optional[hikari.Message],
+        prefix_match: bool = False,
         timeout: typing.Optional[timeouts.BasicTimeout] = None,
     ) -> Self:
         ...
@@ -2076,7 +2083,8 @@ class ComponentClient:
         executor: typing.Optional[AbstractComponentExecutor] = None,
         /,
         *,
-        message: typing.Optional[hikari.Message] = None,
+        message: typing.Union[hikari.Snowflakeish, hikari.Message, None] = None,
+        prefix_match: bool = False,
         timeout: typing.Optional[timeouts.BasicTimeout] = None,
     ) -> Self:
         """Set the component executor for a message.
@@ -2097,13 +2105,25 @@ class ComponentClient:
             The component client to allow chaining.
         """
         if isinstance(message_or_executor, AbstractComponentExecutor):
-            ...
+            executor = message_or_executor
 
         else:
             if executor is None:
                 raise RuntimeError("Executor not passed")
 
-        self._executors[int(message)] = executor
+            message = message_or_executor
+
+        if message:
+            self._message_executors[int(message)] = executor
+
+        elif prefix_match:
+            for custom_id in executor.custom_ids:
+                ...
+
+        else:
+            for custom_id in executor.custom_ids:
+                self._executors[custom_id] = executor
+
         return self
 
     def get_executor(
@@ -2121,10 +2141,10 @@ class ComponentClient:
         yuyo.components.AbstractComponentExecutor | None
             The executor set for the message or [None][] if none is set.
         """
-        return self._executors.get(int(message))
+        return self._message_executors.get(int(message))
 
     @typing.overload
-    @typing_extensions.deprecated("Passing message here is deprecated, it's now a kwarg")
+    @typing_extensions.deprecated("Passing message here is deprecated, use `.remove_message`")
     def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         ...
 
@@ -2132,7 +2152,7 @@ class ComponentClient:
     def remove_executor(self, executor: AbstractComponentExecutor, /) -> Self:
         ...
 
-    def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+    def remove_executor(self, executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor], /) -> Self:
         """Remove the component executor for a message.
 
         Parameters
@@ -2145,7 +2165,24 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        self._executors.pop(int(message))
+        if not isinstance(executor, AbstractComponentExecutor):
+            return self.remove_message(executor)
+
+        for custom_id in executor.custom_ids:
+            try:
+                is_registered = self._executors[custom_id]
+
+            except KeyError:
+                pass
+
+            else:
+                if is_registered:
+                    del self._executors[custom_id]
+
+        return self
+
+    def remove_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+        self._message_executors.pop(int(message))
         return self
 
 
