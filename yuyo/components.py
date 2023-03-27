@@ -58,7 +58,6 @@ import logging
 import os
 import types
 import typing
-import typing_extensions
 from collections import abc as collections
 
 import alluka as alluka_
@@ -2058,10 +2057,7 @@ class ComponentClient:
     @typing_extensions.deprecated("Passing message as the first argument is deprecated, it's now an optionl kwarg")
     @typing.overload
     def set_executor(
-        self,
-        message: hikari.SnowflakeishOr[hikari.Message],
-        executor: AbstractComponentExecutor,
-        /,
+        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
         ...
 
@@ -2152,7 +2148,9 @@ class ComponentClient:
     def remove_executor(self, executor: AbstractComponentExecutor, /) -> Self:
         ...
 
-    def remove_executor(self, executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor], /) -> Self:
+    def remove_executor(
+        self, executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor], /
+    ) -> Self:
         """Remove the component executor for a message.
 
         Parameters
