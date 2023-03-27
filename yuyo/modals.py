@@ -996,10 +996,10 @@ class Modal(AbstractModal):
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
         # TODO: don't duplicate fields when re-declared
-        self._rows: list[hikari.api.ComponentBuilder]
+        self._rows: list[hikari.api.ModalActionRowBuilder]
         if id_postfixes is not None:
             self._rows = [
-                hikari.impl.MessageActionRowBuilder(
+                hikari.impl.ModalActionRowBuilder(
                     components=[
                         copy.copy(component).set_custom_id(f"{component.custom_id}:{postfix}")
                         if (postfix := id_postfixes.get(component.custom_id))
@@ -1313,7 +1313,7 @@ class Modal(AbstractModal):
         if prefix_match is not None:
             warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
 
-        custom_id, row = _make_text_input(
+        custom_id, component = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1323,7 +1323,8 @@ class Modal(AbstractModal):
             min_length=min_length,
             max_length=max_length,
         )
-        self._rows.append(row)
+        self._rows.append(hikari.impl.ModalActionRowBuilder(components=[component])
+)
 
         if parameter:
             self._tracked_fields.append(
@@ -1380,7 +1381,7 @@ def _make_text_input(
     default: typing.Any,
     min_length: int,
     max_length: int,
-) -> tuple[str, hikari.impl.ModalActionRowBuilder]:
+) -> tuple[str, hikari.impl.TextInputBuilder[typing.Any]]:
     if custom_id is None:
         custom_id = _internal.random_custom_id()
 
@@ -1394,8 +1395,7 @@ def _make_text_input(
         min_length=min_length,
         max_length=max_length,
     )
-    row = hikari.impl.ModalActionRowBuilder(components=[component])
-    return (custom_id, row)
+    return (custom_id, component)
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
