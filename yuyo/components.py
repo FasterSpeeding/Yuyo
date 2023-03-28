@@ -2345,7 +2345,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
 
     @typing.overload
-    @typing_extensions.deprecated("Component executors")
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
     def __init__(
         self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
     ) -> None:
