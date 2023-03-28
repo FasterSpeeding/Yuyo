@@ -1150,6 +1150,19 @@
     SingleExecutor
   </a>
   
+    <nav class="md-nav" aria-label="SingleExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.SingleExecutor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1176,6 +1189,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.components.as_single_executor" class="md-nav__link">
+    as_single_executor()
+  </a>
   
 </li>
       
@@ -2078,6 +2098,19 @@
     SingleExecutor
   </a>
   
+    <nav class="md-nav" aria-label="SingleExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.SingleExecutor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2104,6 +2137,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.components.as_single_executor" class="md-nav__link">
+    as_single_executor()
+  </a>
   
 </li>
       
@@ -2329,8 +2369,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -6149,8 +6189,8 @@ and <code>components</code> are passed or both <code>embed</code> and <code>embe
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.create_initial_response" class="headerlink" title="Permanent link">#</a></h3>
@@ -6549,8 +6589,8 @@ longer than <code>max_rate_limit</code> when making a request.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.defer" class="headerlink" title="Permanent link">#</a></h3>
@@ -11102,6 +11142,77 @@ and will still internally store the entry and increment the position of the pagi
 
 
 
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.SingleExecutor.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.components.SingleExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise an executor with a single callback.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>custom_id</code></td>
+          <td class="doc-param-details">
+            <p>The custom ID this executor is triggered for.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback</code></td>
+          <td class="doc-param-details">
+            <p>The executor's  callback.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="#yuyo.components.CallbackSig">CallbackSig</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ephemeral_default</code></td>
+          <td class="doc-param-details">
+            <p>Whether this executor's responses should default to being ephemeral.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
 
 
   </div>
@@ -11316,6 +11427,86 @@ should default to ephemeral (meaning only the author can see them) unless
 
 </div>
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="yuyo.components.as_single_executor" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">as_single_executor</span>
+
+
+<a href="#yuyo.components.as_single_executor" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">as_single_executor</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Create an executor with a single callback by decorating the callback.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>custom_id</code></td>
+          <td class="doc-param-details">
+            <p>The custom ID this executor is triggered for.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ephemeral_default</code></td>
+          <td class="doc-param-details">
+            <p>Whether this executor's responses should default to being ephemeral.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" title="yuyo.components.SingleExecutor" href="#yuyo.components.SingleExecutor">SingleExecutor</a></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The created executor.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
