@@ -82,11 +82,8 @@ _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.
 """Type hint of the builder response types allows for modal interactions."""
 
 
-@typing_extensions.deprecated("Use yuyo.timeouts.AbstractTimeout")
-class AbstractTimeout(timeouts.AbstractTimeout):
-    """Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
-
-    __slots__ = ()
+AbstractTimeout = timeouts.AbstractTimeout
+"""Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
 
 
 @typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
