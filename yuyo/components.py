@@ -1639,6 +1639,21 @@ def _gc_executors(executors: dict[typing.Any, tuple[timeouts.AbstractTimeout, Ab
 class ExecutorClosed(Exception):
     """Error used to indicate that an executor is now closed during execution."""
 
+    def __init__(self, *, already_closed: bool = True) -> None:
+        """Initialise an executor closed error.
+
+        Parameters
+        ----------
+        already_closed
+            Whether this error is a result of the executor having been in a
+            closed state when it was called.
+
+            If so then this will lead to a "timed-out" message being sent
+            as the initial response.
+        """
+        self.was_already_closed: bool = already_closed
+
+
 
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
@@ -1922,8 +1937,11 @@ class ComponentClient:
 
         try:
             await executor.execute(ctx)
-        except ExecutorClosed:
+        except ExecutorClosed as exc:
             remove_from.pop(key, None)
+            if not ctx.has_responded and exc.was_already_closed:
+                # TODO: properly handle deferals and going over the 3 minute mark?
+                await ctx.create_initial_response("This message has timed-out.", ephemeral=True)
 
         return True
 
@@ -5710,7 +5728,7 @@ class ComponentPaginator(ActionRowExecutor):
         self._iterator = None
         await ctx.defer(defer_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
         await ctx.delete_initial_response()
-        raise ExecutorClosed
+        raise ExecutorClosed(already_closed=False)
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:
         if self._iterator:
