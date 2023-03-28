@@ -1616,13 +1616,11 @@ class ComponentClient:
 
     __slots__ = (
         "_alluka",
-        "_constant_ids",
         "_event_manager",
         "_executors",
         "_gc_task",
         "_message_executors",
         "_prefix_executors",
-        "_prefix_ids",
         "_server",
         "_tasks",
     )
@@ -1674,7 +1672,6 @@ class ComponentClient:
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
-        self._constant_ids: dict[str, CallbackSig] = {}
 
         self._executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of custom IDs to executors."""
@@ -1686,9 +1683,6 @@ class ComponentClient:
 
         self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of prefix IDs to executors."""
-
-        self._prefix_ids: dict[str, CallbackSig] = {}
-        """Dict of prefix IDs to callbacks."""
 
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
@@ -1875,11 +1869,6 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-    def _match_constant_id(self, custom_id: str) -> typing.Optional[CallbackSig]:
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(
-            next(filter(custom_id.startswith, self._prefix_ids.keys()), "")
-        )
-
     async def _execute_executor(
         self,
         remove_from: dict[_T, typing.Any],
@@ -1906,11 +1895,6 @@ class ComponentClient:
             The interaction create gateway event to process.
         """
         if not isinstance(event.interaction, hikari.ComponentInteraction):
-            return
-
-        if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await self._alluka.call_with_async_di(constant_callback, ctx)
             return
 
         if entry := self._message_executors.get(event.interaction.message.id):
@@ -1974,12 +1958,6 @@ class ComponentClient:
         ResponseT
             The REST re sponse.
         """
-        if constant_callback := self._match_constant_id(interaction.custom_id):
-            future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-            ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
-            self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
-            return await future
-
         if entry := self._message_executors.get(interaction.message.id):
             timeout, executor = entry
             if not timeout.has_expired:
@@ -2013,6 +1991,7 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
+    @typing_extensions.deprecated("Use SingleExecutor with set_executor")
     def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
         """Add a constant "custom_id" callback.
 
@@ -2044,19 +2023,9 @@ class ComponentClient:
         ValueError
             If the custom_id is already registered.
         """
-        if custom_id in self._prefix_ids:
-            raise ValueError(f"{custom_id!r} is already registered as a prefix match")
+        return self.set_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
-        if custom_id in self._constant_ids:
-            raise ValueError(f"{custom_id!r} is already registered as a constant id")
-
-        if prefix_match:
-            self._prefix_ids[custom_id] = callback
-            return self
-
-        self._constant_ids[custom_id] = callback
-        return self
-
+    @typing_extensions.deprecated("Use SingleExecutor with set_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
         """Get a set constant "custom_id" callback.
 
@@ -2070,8 +2039,15 @@ class ComponentClient:
         CallbackSig | None
             The callback for the custom_id, or [None][] if it doesn't exist.
         """
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
+        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
 
+        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
+
+        return None
+
+    @typing_extensions.deprecated("Use SingleExecutor with set_executor")
     def remove_constant_id(self, custom_id: str, /) -> Self:
         """Remove a constant "custom_id" callback.
 
@@ -2090,13 +2066,21 @@ class ComponentClient:
         KeyError
             If the custom_id is not registered.
         """
-        try:
-            del self._constant_ids[custom_id]
-        except KeyError:
-            del self._prefix_ids[custom_id]
+        removed = False
+        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            removed = True
+            del self._prefix_executors[custom_id]
+
+        elif (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            removed = True
+            del self._executors[custom_id]
+
+        if not removed:
+            raise KeyError(custom_id)
 
         return self
 
+    @typing_extensions.deprecated("Use SingleExecutor with set_executor")
     def with_constant_id(
         self, custom_id: str, /, *, prefix_match: bool = False
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
@@ -2127,7 +2111,7 @@ class ComponentClient:
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.set_constant_id(custom_id, callback, prefix_match=prefix_match)
+            self.set_constant_id(custom_id, callback, prefix_match=prefix_match)  # pyright: ignore [ reportDeprecated ]
             return callback
 
         return decorator
@@ -2145,7 +2129,7 @@ class ComponentClient:
         executor: AbstractComponentExecutor,
         /,
         *,
-        message: typing.Optional[hikari.Message],
+        message: typing.Optional[hikari.Message] = None,
         prefix_match: bool = False,
         timeout: typing.Union[timeouts.BasicTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
@@ -2336,8 +2320,27 @@ class AbstractComponentExecutor(abc.ABC):
         """
 
 
+class SingleExecutor(AbstractComponentExecutor):
+    """Component executor with a single callback."""
+
+    __slots__ = ("_callback", "_custom_id", "_ephemeral_default")
+
+    def __init__(self, custom_id: str, callback: CallbackSig, /, *, ephemeral_default: bool = False) -> None:
+        self._callback = callback
+        self._custom_id = custom_id
+        self._ephemeral_default = ephemeral_default
+
+    @property
+    def custom_ids(self) -> collections.Collection[str]:
+        return (self._custom_id,)
+
+    async def execute(self, ctx: ComponentContext, /) -> None:
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        await ctx.client.alluka.call_with_async_di(self._callback, ctx)
+
+
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
-    """Basic implementation of a class used for handling the execution of a message component."""
+    """implementation of a component executor with per-custom ID callbacks."""
 
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
 
