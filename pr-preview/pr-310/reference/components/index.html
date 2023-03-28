@@ -906,6 +906,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentClient.remove_message" class="md-nav__link">
+    remove_message()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ComponentClient.set_constant_id" class="md-nav__link">
     set_constant_id()
   </a>
@@ -1806,6 +1813,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentClient.remove_message" class="md-nav__link">
+    remove_message()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ComponentClient.set_constant_id" class="md-nav__link">
     set_constant_id()
   </a>
@@ -2271,7 +2285,6 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
@@ -2477,39 +2490,12 @@ through decorator calls will follow the same order.</p>
 
 
 <a href="#yuyo.components.ActionColumnExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
       <p>Initialise an action column executor.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>timeout</code></td>
-          <td class="doc-param-details">
-            <p>How long this should wait for a matching component interaction until it times-out.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>datetime.timedelta(seconds=30)</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 
@@ -4756,7 +4742,7 @@ message.</p>
 
 
 <a href="#yuyo.components.ActionRowExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4794,11 +4780,11 @@ message.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>, None, <span title="yuyo._internal">_internal</span>.<span title="yuyo._internal.NoDefault">NoDefault</span>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>datetime.timedelta(seconds=30)</code>
+                    <code>_internal.NO_DEFAULT</code>
                 </span>
             </p>
           </td>
@@ -8831,7 +8817,71 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Remove the component executor for a message.</p>
+      <p>Remove a component executor by its custom IDs.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>executor</code></td>
+          <td class="doc-param-details">
+            <p>The executor to remove.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The component client to allow chaining.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.ComponentClient.remove_message" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">remove_message</span>
+
+
+<a href="#yuyo.components.ComponentClient.remove_message" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">remove_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove a component executor by its message.</p>
 
   <table>
     <thead>
@@ -8846,6 +8896,10 @@ closed based on the Tanjun client's lifetime client callback.</p>
           <td class="doc-param-details">
             <p>The message to remove the executor for.</p>
             <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.Message">Message</span>]</code>
+                </span>
             </p>
           </td>
         </tr>
@@ -9005,12 +9059,12 @@ prefix and is lower priority than normal custom id match.</p>
 
 
 <a href="#yuyo.components.ComponentClient.set_executor" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">set_executor</span><span class="p">(</span><span class="n">message_or_executor</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">set_executor</span><span class="p">(</span><span class="n">message_or_executor</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
-      <p>Set the component executor for a message.</p>
+      <p>Set the component executor for a message or its custom IDs.</p>
 
   <table>
     <thead>
@@ -9021,9 +9075,27 @@ prefix and is lower priority than normal custom id match.</p>
     </thead>
     <tbody>
         <tr>
+          <td><code>executor</code></td>
+          <td class="doc-param-details">
+            <p>The executor to register.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
           <td><code>message</code></td>
           <td class="doc-param-details">
-            <p>The message to set the executor for.</p>
+            <p>The message to register this executor for.</p>
+<p>If this is left as <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> then this executor will be registered
+globally for its custom IDs.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -9037,19 +9109,36 @@ prefix and is lower priority than normal custom id match.</p>
           </td>
         </tr>
         <tr>
-          <td><code>executor</code></td>
+          <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>The executor to set.</p>
-<p>This will be called for every component interaction for the message
-unless the component's custom_id is registered as a constant id callback.</p>
+            <p>Whether this component's custom IDs should be prefix checked.</p>
+<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> then the component's custom IDs will be matched against
+<code>component.split(":")[0]</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>None</code>
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td class="doc-param-details">
+            <p>The executor's timeout.</p>
+<p>This defaults to a 30 second sliding timeout.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts" href="../timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="../timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a>]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>_internal.NO_DEFAULT</code>
                 </span>
             </p>
           </td>
@@ -10125,7 +10214,7 @@ passed flags.</p>
 
 
 <a href="#yuyo.components.ComponentExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -10152,22 +10241,6 @@ passed flags.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>timeout</code></td>
-          <td class="doc-param-details">
-            <p>How long this component should last until its marked as timed out.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>datetime.timedelta(seconds=30)</code>
                 </span>
             </p>
           </td>
@@ -10348,7 +10421,7 @@ passed flags.</p>
 
 
 <a href="#yuyo.components.ComponentPaginator.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -10436,11 +10509,11 @@ until it times out.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>, <span title="yuyo._internal">_internal</span>.<span title="yuyo._internal.NoDefault">NoDefault</span>, None]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>datetime.timedelta(seconds=30)</code>
+                    <code>_internal.NO_DEFAULT</code>
                 </span>
             </p>
           </td>
@@ -11229,7 +11302,7 @@ and will still internally store the entry and increment the position of the pagi
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code></p>
+        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code>, <code><a class="autorefs autorefs-internal" title="yuyo.timeouts" href="../timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="../timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
 
   
       <p>Component executor used to wait for a single component interaction.</p>
