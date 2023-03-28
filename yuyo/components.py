@@ -1869,22 +1869,34 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-    async def _execute_executor(
+    async def _execute(
         self,
         remove_from: dict[_T, typing.Any],
         key: _T,
-        executor: AbstractComponentExecutor,
+        entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
-    ) -> None:
+    ) -> bool:
+        timeout, executor = entry
+        if timeout.has_expired:
+            del remove_from[key]
+            if future:
+                future.set_exception(ExecutorClosed)
+
+            return False
+
         ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+        if timeout.increment_uses():
+            del remove_from[key]
 
         try:
             await executor.execute(ctx)
         except ExecutorClosed:
             remove_from.pop(key, None)
+
+        return True
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -1898,52 +1910,41 @@ class ComponentClient:
             return
 
         if entry := self._message_executors.get(event.interaction.message.id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                await self._execute_executor(
-                    self._message_executors, event.interaction.message.id, executor, event.interaction
-                )
+            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
+            if ran:
                 return
 
             del self._message_executors[event.interaction.message.id]
 
         if entry := self._executors.get(event.interaction.custom_id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                await self._execute_executor(self._executors, event.interaction.custom_id, executor, event.interaction)
+            ran = await self._execute(self._executors, event.interaction.custom_id, entry, event.interaction)
+            if ran:
                 return
-
-            del self._executors[event.interaction.custom_id]
 
         prefix_id = _to_prefix_id(event.interaction.custom_id)
         if entry := self._prefix_executors.get(prefix_id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                await self._execute_executor(self._prefix_executors, prefix_id, executor, event.interaction)
+            ran = await self._execute(self._prefix_executors, prefix_id, entry, event.interaction)
+            if ran:
                 return
-
-            del self._prefix_executors[prefix_id]
 
         await event.interaction.create_initial_response(
             hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
         )
 
-    async def _execute_executor_task(
+    async def _execute_task(
         self,
         remove_from: dict[_T, typing.Any],
         key: _T,
-        executor: AbstractComponentExecutor,
+        entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
         /,
-    ) -> _ComponentResponseT:
+    ) -> typing.Optional[_ComponentResponseT]:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-        self._add_task(
-            asyncio.create_task(self._execute_executor(remove_from, key, executor, interaction, future=future))
-        )
-        return await future
+        self._add_task(asyncio.create_task(self._execute(remove_from, key, entry, interaction, future=future)))
+        try:
+            return await future
+        except ExecutorClosed:
+            return None  # MyPy
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ComponentResponseT:
         """Process a component interaction REST request.
@@ -1956,34 +1957,23 @@ class ComponentClient:
         Returns
         -------
         ResponseT
-            The REST re sponse.
+            The REST response.
         """
         if entry := self._message_executors.get(interaction.message.id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                return await self._execute_executor_task(
-                    self._message_executors, interaction.message.id, executor, interaction
-                )
-
-            del self._message_executors[interaction.message.id]
+            result = await self._execute_task(self._message_executors, interaction.message.id, entry, interaction)
+            if result:
+                return result
 
         if entry := self._executors.get(interaction.custom_id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                return await self._execute_executor_task(self._executors, interaction.custom_id, executor, interaction)
-
-            del self._executors[interaction.custom_id]
+            result = await self._execute_task(self._executors, interaction.custom_id, entry, interaction)
+            if result:
+                return result
 
         prefix_id = _to_prefix_id(interaction.custom_id)
         if entry := self._prefix_executors.get(prefix_id):
-            timeout, executor = entry
-            if not timeout.has_expired:
-                timeout.increment_uses()
-                return await self._execute_executor_task(self._prefix_executors, prefix_id, executor, interaction)
-
-            del self._executors[interaction.custom_id]
+            result = await self._execute_task(self._prefix_executors, prefix_id, entry, interaction)
+            if result:
+                return result
 
         return (
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
