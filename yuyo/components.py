@@ -1983,51 +1983,32 @@ class ComponentClient:
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
-        """Add a constant "custom_id" callback.
+        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
-        These are callbacks which'll always be called for a specific custom_id
-        while taking priority over executors.
+        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
+        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        (making sure to pass `timeout=None`).
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to register the callback for.
-        callback
-            The callback to register.
+        Examples
+        --------
+        ```py
+        @yuyo.components.as_single_executor("custom_id")
+        async def callback(ctx: yuyo.components.Context) -> None:
+            await ctx.respond("hi")
 
-            This should take a single argument of type [yuyo.components.ComponentContext][],
-            be asynchronous and return [None][].
-        prefix_match
-            Whether the custom_id should be treated as a prefix match.
-
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
-
-        Returns
-        -------
-        Self
-            The component client to allow chaining.
-
-        Raises
-        ------
-        ValueError
-            If the custom_id is already registered.
+        (
+            yuyo.components.Client()
+            .register_executor(callback, timeout=None)
+        )
+        ```
         """
         return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
-        """Get a set constant "custom_id" callback.
+        """Deprecated method for getting the constant callback for a custom ID.
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to get the callback for.
-
-        Returns
-        -------
-        CallbackSig | None
-            The callback for the custom_id, or [None][] if it doesn't exist.
+        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
         if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
@@ -2039,22 +2020,9 @@ class ComponentClient:
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def remove_constant_id(self, custom_id: str, /) -> Self:
-        """Remove a constant "custom_id" callback.
+        """Deprecated method for removing a constant callback by custom ID.
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to remove the callback for.
-
-        Returns
-        -------
-        Self
-            The component client to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If the custom_id is not registered.
+        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
         removed = False
         if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
@@ -2074,30 +2042,24 @@ class ComponentClient:
     def with_constant_id(
         self, custom_id: str, /, *, prefix_match: bool = False
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Add a constant "custom_id" callback through a decorator call.
+        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
-        These are callbacks which'll always be called for a specific custom_id
-        while taking priority over executors.
+        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
+        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        (making sure to pass `timeout=None`).
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to register the callback for.
-        prefix_match
-            Whether the custom_id should be treated as a prefix match.
+        Examples
+        --------
+        ```py
+        @yuyo.components.as_single_executor("custom_id")
+        async def callback(ctx: yuyo.components.Context) -> None:
+            await ctx.respond("hi")
 
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
-
-        Returns
-        -------
-        collections.abc.Callable[[CallbackSig], CallbackSig]
-            A decorator to register the callback.
-
-        Raises
-        ------
-        KeyError
-            If the custom_id is already registered.
+        (
+            yuyo.components.Client()
+            .register_executor(callback, timeout=None)
+        )
+        ```
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
@@ -2183,18 +2145,7 @@ class ComponentClient:
     def get_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractComponentExecutor]:
-        """Get the component executor set for a message.
-
-        Parameters
-        ----------
-        message
-            The message to get the executor for.
-
-        Returns
-        -------
-        yuyo.components.AbstractComponentExecutor | None
-            The executor set for the message or [None][] if none is set.
-        """
+        """Deprecated alias of [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message]."""  # noqa: E501
         return self.get_executor_for_message(message)
 
     def get_executor_for_message(
@@ -2241,18 +2192,7 @@ class ComponentClient:
 
     @typing_extensions.deprecated("Use `.deregister_message`")
     def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
-        """Remove a component executor by its message.
-
-        Parameters
-        ----------
-        message
-            The message to remove the executor for.
-
-        Returns
-        -------
-        Self
-            The component client to allow chaining.
-        """
+        """Deprecated alias for [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message]."""
         return self.deregister_message(message)
 
     def deregister_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
@@ -2289,7 +2229,6 @@ class AbstractComponentExecutor(abc.ABC):
     @property
     @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def has_expired(self) -> bool:
-        """Whether this executor has ended."""
         return False
 
     @property
@@ -2330,6 +2269,12 @@ class SingleExecutor(AbstractComponentExecutor):
     async def execute(self, ctx: ComponentContext, /) -> None:
         ctx.set_ephemeral_default(self._ephemeral_default)
         await ctx.client.alluka.call_with_async_di(self._callback, ctx)
+
+
+def as_single_executor(
+    custom_id: str, /, *, ephemeral_default: bool = False
+) -> collections.Callable[[CallbackSig], SingleExecutor]:
+    return lambda callback: SingleExecutor(custom_id, callback, ephemeral_default=ephemeral_default)
 
 
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
@@ -2576,8 +2521,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
-        timeout
-            How long this component should last until its marked as timed out.
         """
         super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
         self._components: list[hikari.api.ComponentBuilder] = []
@@ -4719,9 +4662,6 @@ class ComponentPaginator(ActionRowExecutor):
             As of current the only usable emojis are [yuyo.pagination.LEFT_TRIANGLE][],
             [yuyo.pagination.RIGHT_TRIANGLE][], [yuyo.pagination.STOP_SQUARE][],
             [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_TRIANGLE][].
-        timeout
-            The amount of time to wait after the component's last execution or creation
-            until it times out.
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
