@@ -1654,7 +1654,6 @@ class ExecutorClosed(Exception):
         self.was_already_closed: bool = already_closed
 
 
-
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
