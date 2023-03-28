@@ -1678,7 +1678,7 @@ class ComponentClient:
 
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._message_executors: dict[int, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
+        self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
 
         self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
@@ -2023,7 +2023,7 @@ class ComponentClient:
         ValueError
             If the custom_id is already registered.
         """
-        return self.set_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
+        return self.add_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
     @typing_extensions.deprecated("Use SingleExecutor with set_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
@@ -2116,36 +2116,33 @@ class ComponentClient:
 
         return decorator
 
-    @typing.overload
     @typing_extensions.deprecated("Passing message as the first argument is deprecated, it's now an optionl kwarg")
     def set_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
-        ...
+        """Deprecated method for setting the component executor for a message.
 
-    @typing.overload
-    def set_executor(
+        Use [yuyo.components.ComponentClient.add_executor] with the `message`
+        kwarg instead.
+        """
+        if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
+            timeout = executor.timeout
+
+        else:
+            timeout = timeouts.SlidingTimeout(executor.timeout)
+
+        return self.add_executor(executor, message=message, timeout=timeout)
+
+    def add_executor(
         self,
         executor: AbstractComponentExecutor,
         /,
         *,
-        message: typing.Optional[hikari.Message] = None,
-        prefix_match: bool = False,
-        timeout: typing.Union[timeouts.BasicTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
-    ) -> Self:
-        ...
-
-    def set_executor(
-        self,
-        message_or_executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor],
-        executor: typing.Optional[AbstractComponentExecutor] = None,
-        /,
-        *,
-        message: typing.Union[hikari.Snowflakeish, hikari.Message, None] = None,
+        message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None,
         prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
-        """Set the component executor for a message or its custom IDs.
+        """Add an executor to this client.
 
         Parameters
         ----------
@@ -2171,23 +2168,6 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        if isinstance(message_or_executor, AbstractComponentExecutor):
-            executor = message_or_executor
-
-        else:
-            if executor is None:
-                raise RuntimeError("Executor not passed")
-
-            message = message_or_executor
-            if timeout is _internal.NO_DEFAULT or executor.timeout is _internal.NO_DEFAULT:
-                pass
-
-            elif executor.timeout is None:
-                timeout = timeouts.NeverTimeout()
-
-            else:
-                timeout = timeouts.SlidingTimeout(executor.timeout)
-
         if timeout is _internal.NO_DEFAULT:
             timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
 
@@ -2197,7 +2177,7 @@ class ComponentClient:
         entry = (timeout, executor)
 
         if message:
-            self._message_executors[int(message)] = entry
+            self._message_executors[hikari.Snowflake(message)] = entry
 
         elif prefix_match:
             for custom_id in executor.custom_ids:
@@ -2224,7 +2204,7 @@ class ComponentClient:
         yuyo.components.AbstractComponentExecutor | None
             The executor set for the message or [None][] if none is set.
         """
-        if entry := self._message_executors.get(int(message)):
+        if entry := self._message_executors.get(hikari.Snowflake(message)):
             return entry[1]
 
         return None  # MyPy
@@ -2275,7 +2255,7 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        self._message_executors.pop(int(message))
+        self._message_executors.pop(hikari.Snowflake(message))
         return self
 
 
