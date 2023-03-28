@@ -2130,7 +2130,7 @@ class AbstractComponentExecutor(abc.ABC):
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     """Basic implementation of a class used for handling the execution of a message component."""
 
-    __slots__ = ("_ephemeral_default", "_id_to_callback", "_last_triggered", "_timeout")
+    __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
 
     def __init__(
         self,
@@ -2149,7 +2149,6 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         """
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._timeout = _to_timeout(timeout)
 
     @property
@@ -2786,7 +2785,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         through decorator calls will follow the same order.
     """
 
-    __slots__ = ("_last_triggered", "_rows", "_timeout")
+    __slots__ = ("_rows", "_timeout")
 
     _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
     _static_fields: typing.ClassVar[
@@ -2801,7 +2800,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         timeout
             How long this should wait for a matching component interaction until it times-out.
         """
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
         self._timeout = _to_timeout(timeout)
 
