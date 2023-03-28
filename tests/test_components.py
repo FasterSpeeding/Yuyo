@@ -414,15 +414,15 @@ class TestComponentClient:
         mock_executor = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.set_executor(555555, mock_executor)
+        result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
         assert client.get_executor(555555) is mock_executor
 
     def test_remove_executor(self):
-        client = yuyo.ComponentClient().set_executor(555555, mock.Mock())
+        client = yuyo.ComponentClient().set_executor(555555, mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
-        result = client.remove_executor(555555)
+        result = client.remove_executor(555555)  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
         assert client.get_executor(555555) is None

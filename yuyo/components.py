@@ -102,11 +102,12 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _to_timeout(value: typing.Optional[datetime.timedelta], /) -> timeouts.AbstractTimeout:
-    if value is None:
-        return timeouts.NeverTimeout()
+def _to_prefix_id(custom_id: str) -> str:
+    return custom_id.split(":", 1)[0]
 
-    return timeouts.SlidingTimeout(value, max_uses=-1)
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
@@ -1872,6 +1873,8 @@ class ComponentClient:
 
     async def _execute_executor(
         self,
+        remove_from: dict[_T, typing.Any],
+        key: _T,
         executor: AbstractComponentExecutor,
         interaction: hikari.ComponentInteraction,
         /,
@@ -1883,7 +1886,7 @@ class ComponentClient:
         try:
             await executor.execute(ctx)
         except ExecutorClosed:
-            self._message_executors.pop(interaction.message.id, None)
+            remove_from.pop(key, None)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -1899,22 +1902,55 @@ class ComponentClient:
         if constant_callback := self._match_constant_id(event.interaction.custom_id):
             ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
             await self._alluka.call_with_async_di(constant_callback, ctx)
+            return
 
-        elif entry := self._message_executors.get(event.interaction.message.id):
+        if entry := self._message_executors.get(event.interaction.message.id):
             timeout, executor = entry
-            # TODO: check timeout
-            await self._execute_executor(executor, event.interaction)
+            if not timeout.has_expired:
+                timeout.increment_uses()
+                await self._execute_executor(
+                    self._message_executors, event.interaction.message.id, executor, event.interaction
+                )
+                return
 
-        elif entry := self._executors.get(event.interaction.custom_id):
-            ...
+            del self._message_executors[event.interaction.message.id]
 
-        elif entry := self._prefix_executors.get(event.interaction.custom_id.split(":", 1)[0]):
-            ...
+        if entry := self._executors.get(event.interaction.custom_id):
+            timeout, executor = entry
+            if not timeout.has_expired:
+                timeout.increment_uses()
+                await self._execute_executor(self._executors, event.interaction.custom_id, executor, event.interaction)
+                return
 
-        else:
-            await event.interaction.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
-            )
+            del self._executors[event.interaction.custom_id]
+
+        prefix_id = _to_prefix_id(event.interaction.custom_id)
+        if entry := self._prefix_executors.get(prefix_id):
+            timeout, executor = entry
+            if not timeout.has_expired:
+                timeout.increment_uses()
+                await self._execute_executor(self._prefix_executors, prefix_id, executor, event.interaction)
+                return
+
+            del self._prefix_executors[prefix_id]
+
+        await event.interaction.create_initial_response(
+            hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
+        )
+
+    async def _execute_executor_task(
+        self,
+        remove_from: dict[_T, typing.Any],
+        key: _T,
+        executor: AbstractComponentExecutor,
+        interaction: hikari.ComponentInteraction,
+        /,
+    ) -> _ComponentResponseT:
+        future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
+        self._add_task(
+            asyncio.create_task(self._execute_executor(remove_from, key, executor, interaction, future=future))
+        )
+        return await future
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ComponentResponseT:
         """Process a component interaction REST request.
@@ -1938,17 +1974,29 @@ class ComponentClient:
         if entry := self._message_executors.get(interaction.message.id):
             timeout, executor = entry
             if not timeout.has_expired:
-                future = asyncio.Future()
-                self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
-                return await future
+                timeout.increment_uses()
+                return await self._execute_executor_task(
+                    self._message_executors, interaction.message.id, executor, interaction
+                )
 
             del self._message_executors[interaction.message.id]
 
-        elif entry := self._executors.get(interaction.custom_id):
-            ...
+        if entry := self._executors.get(interaction.custom_id):
+            timeout, executor = entry
+            if not timeout.has_expired:
+                timeout.increment_uses()
+                return await self._execute_executor_task(self._executors, interaction.custom_id, executor, interaction)
 
-        elif entry := self._prefix_executors.get(interaction.custom_id.split(":", 1)[0]):
-            ...
+            del self._executors[interaction.custom_id]
+
+        prefix_id = _to_prefix_id(interaction.custom_id)
+        if entry := self._prefix_executors.get(prefix_id):
+            timeout, executor = entry
+            if not timeout.has_expired:
+                timeout.increment_uses()
+                return await self._execute_executor_task(self._prefix_executors, prefix_id, executor, interaction)
+
+            del self._executors[interaction.custom_id]
 
         return (
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
@@ -2075,8 +2123,8 @@ class ComponentClient:
 
         return decorator
 
-    @typing_extensions.deprecated("Passing message as the first argument is deprecated, it's now an optionl kwarg")
     @typing.overload
+    @typing_extensions.deprecated("Passing message as the first argument is deprecated, it's now an optionl kwarg")
     def set_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
@@ -2090,7 +2138,7 @@ class ComponentClient:
         *,
         message: typing.Optional[hikari.Message],
         prefix_match: bool = False,
-        timeout: typing.Optional[timeouts.BasicTimeout] = None,
+        timeout: typing.Union[timeouts.BasicTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
         ...
 
@@ -2102,19 +2150,28 @@ class ComponentClient:
         *,
         message: typing.Union[hikari.Snowflakeish, hikari.Message, None] = None,
         prefix_match: bool = False,
-        timeout: typing.Optional[timeouts.BasicTimeout] = None,
+        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
-        """Set the component executor for a message.
+        """Set the component executor for a message or its custom IDs.
 
         Parameters
         ----------
+        executor : AbstractComponentExecutor
+            The executor to register.
         message
-            The message to set the executor for.
-        executor
-            The executor to set.
+            The message to register this executor for.
 
-            This will be called for every component interaction for the message
-            unless the component's custom_id is registered as a constant id callback.
+            If this is left as [None][] then this executor will be registered
+            globally for its custom IDs.
+        prefix_match
+            Whether this component's custom IDs should be prefix checked.
+
+            If [True][] then the component's custom IDs will be matched against
+            `component.split(":")[0]`.
+        timeout : typing.Optional[yuyo.timeouts.AbstractTimeout]
+            The executor's timeout.
+
+            This defaults to a 30 second sliding timeout.
 
         Returns
         -------
@@ -2129,8 +2186,21 @@ class ComponentClient:
                 raise RuntimeError("Executor not passed")
 
             message = message_or_executor
+            if timeout is _internal.NO_DEFAULT or executor.timeout is _internal.NO_DEFAULT:
+                pass
 
-        timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
+            elif executor.timeout is None:
+                timeout = timeouts.NeverTimeout()
+
+            else:
+                timeout = timeouts.SlidingTimeout(executor.timeout)
+
+        if timeout is _internal.NO_DEFAULT:
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
+
+        elif timeout is None:
+            timeout = timeouts.NeverTimeout()
+
         entry = (timeout, executor)
 
         if message:
@@ -2178,7 +2248,29 @@ class ComponentClient:
     def remove_executor(
         self, executor: typing.Union[hikari.SnowflakeishOr[hikari.Message], AbstractComponentExecutor], /
     ) -> Self:
-        """Remove the component executor for a message.
+        """Remove a component executor by its custom IDs.
+
+        Parameters
+        ----------
+        executor : AbstractComponentExecutor
+            The executor to remove.
+
+        Returns
+        -------
+        Self
+            The component client to allow chaining.
+        """
+        if not isinstance(executor, AbstractComponentExecutor):
+            return self.remove_message(executor)
+
+        for custom_id in executor.custom_ids:
+            if (entry := self._executors.get(custom_id)) and entry[1] == executor:
+                del self._executors[custom_id]
+
+        return self
+
+    def remove_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+        """Remove a component executor by its message.
 
         Parameters
         ----------
@@ -2190,23 +2282,6 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        if not isinstance(executor, AbstractComponentExecutor):
-            return self.remove_message(executor)
-
-        for custom_id in executor.custom_ids:
-            try:
-                is_registered = self._executors[custom_id]
-
-            except KeyError:
-                pass
-
-            else:
-                if is_registered:
-                    del self._executors[custom_id]
-
-        return self
-
-    def remove_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         self._message_executors.pop(int(message))
         return self
 
@@ -2226,9 +2301,15 @@ class AbstractComponentExecutor(abc.ABC):
         """Collection of the custom IDs this executor is listening for."""
 
     @property
-    @abc.abstractmethod
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def has_expired(self) -> bool:
         """Whether this executor has ended."""
+        return False
+
+    @property
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, None, _internal.NoDefault]:
+        return _internal.NO_DEFAULT
 
     @abc.abstractmethod
     async def execute(self, ctx: ComponentContext, /) -> None:
@@ -2251,11 +2332,22 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
 
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
 
+    @typing.overload
+    @typing_extensions.deprecated("Component executors")
+    def __init__(
+        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(self, *, ephemeral_default: bool = False) -> None:
+        ...
+
     def __init__(
         self,
         *,
         ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise a component executor.
 
@@ -2263,12 +2355,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
-        timeout
-            How long this component should last until its marked as timed out.
         """
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
-        self._timeout = _to_timeout(timeout)
+        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
     @property
     def callbacks(self) -> collections.Mapping[str, CallbackSig]:
@@ -2281,9 +2371,9 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         return self._id_to_callback.keys()
 
     @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
+        return self._timeout
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -2325,7 +2415,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         return decorator
 
 
-class WaitForExecutor(AbstractComponentExecutor):
+class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Component executor used to wait for a single component interaction.
 
     Examples
@@ -2346,7 +2436,7 @@ class WaitForExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_raw_timeout", "_timeout")
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
 
     def __init__(
         self,
@@ -2375,9 +2465,8 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
-        self._made_at: typing.Optional[datetime.datetime] = None
-        self._raw_timeout = None if timeout is None else timeout.total_seconds()
-        self._timeout = _to_timeout(timeout)
+        self._timeout = timeout
+        self._timeout_at: typing.Optional[datetime.datetime] = None
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2386,8 +2475,10 @@ class WaitForExecutor(AbstractComponentExecutor):
 
     @property
     def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+        return bool(self._finished or self._timeout_at and _now() > self._timeout_at)
+
+    def increment_uses(self) -> bool:
+        return True
 
     async def wait_for(self) -> ComponentContext:
         """Wait for the next matching interaction.
@@ -2407,10 +2498,10 @@ class WaitForExecutor(AbstractComponentExecutor):
         if self._future:
             raise RuntimeError("This executor is already being waited for")
 
-        self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._timeout_at = _now() + self._timeout if self._timeout else None
         self._future = asyncio.get_running_loop().create_future()
         try:
-            return await asyncio.wait_for(self._future, self._raw_timeout)
+            return await asyncio.wait_for(self._future, self._timeout.total_seconds() if self._timeout else None)
 
         finally:
             self._finished = True
@@ -2457,11 +2548,22 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     __slots__ = ("_components", "_stored_type")
 
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
+    def __init__(
+        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(self, *, ephemeral_default: bool = False) -> None:
+        ...
+
     def __init__(
         self,
         *,
         ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise an action row executor.
 
@@ -2472,7 +2574,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         timeout
             How long this component should last until its marked as timed out.
         """
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
         self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -3480,16 +3582,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     This doesn't include inherited fields.
     """
 
-    def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
-        """Initialise an action column executor.
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
+    def __init__(self, *, timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None]) -> None:
+        ...
 
-        Parameters
-        ----------
-        timeout
-            How long this should wait for a matching component interaction until it times-out.
-        """
+    @typing.overload
+    def __init__(self) -> None:
+        ...
+
+    def __init__(
+        self, *, timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT
+    ) -> None:
+        """Initialise an action column executor."""
         self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
-        self._timeout = _to_timeout(timeout)
+        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
     def __init_subclass__(cls) -> None:
         cls._all_static_rows = []
@@ -3518,9 +3625,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return list(itertools.chain.from_iterable(row.custom_ids for row in self._rows))
 
     @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
+        return self._timeout
 
     @property
     def rows(self) -> collections.Sequence[ActionRowExecutor]:
@@ -4535,6 +4642,8 @@ class ComponentPaginator(ActionRowExecutor):
 
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
 
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def __init__(
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
@@ -4547,7 +4656,39 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        ephemeral_default: bool = False,
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        ephemeral_default: bool = False,
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise a component paginator.
 
@@ -4582,7 +4723,7 @@ class ComponentPaginator(ActionRowExecutor):
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: list[pagination.Page] = []
