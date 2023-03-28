@@ -2258,6 +2258,17 @@ class SingleExecutor(AbstractComponentExecutor):
     __slots__ = ("_callback", "_custom_id", "_ephemeral_default")
 
     def __init__(self, custom_id: str, callback: CallbackSig, /, *, ephemeral_default: bool = False) -> None:
+        """Initialise an executor with a single callback.
+
+        Parameters
+        ----------
+        custom_id
+            The custom ID this executor is triggered for.
+        callback
+            The executor's  callback.
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        """
         self._callback = callback
         self._custom_id = custom_id
         self._ephemeral_default = ephemeral_default
@@ -2274,6 +2285,20 @@ class SingleExecutor(AbstractComponentExecutor):
 def as_single_executor(
     custom_id: str, /, *, ephemeral_default: bool = False
 ) -> collections.Callable[[CallbackSig], SingleExecutor]:
+    """Create an executor with a single callback by decorating the callback.
+
+    Parameters
+    ----------
+    custom_id
+        The custom ID this executor is triggered for.
+    ephemeral_default
+        Whether this executor's responses should default to being ephemeral.
+
+    Returns
+    -------
+    SingleExecutor
+        The created executor.
+    """
     return lambda callback: SingleExecutor(custom_id, callback, ephemeral_default=ephemeral_default)
 
 
