@@ -1981,7 +1981,7 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    @typing_extensions.deprecated("Use SingleExecutor with track_executor")
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
         """Add a constant "custom_id" callback.
 
@@ -2013,9 +2013,9 @@ class ComponentClient:
         ValueError
             If the custom_id is already registered.
         """
-        return self.track_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
+        return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
-    @typing_extensions.deprecated("Use SingleExecutor with track_executor")
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
         """Get a set constant "custom_id" callback.
 
@@ -2037,7 +2037,7 @@ class ComponentClient:
 
         return None
 
-    @typing_extensions.deprecated("Use SingleExecutor with track_executor")
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def remove_constant_id(self, custom_id: str, /) -> Self:
         """Remove a constant "custom_id" callback.
 
@@ -2070,7 +2070,7 @@ class ComponentClient:
 
         return self
 
-    @typing_extensions.deprecated("Use SingleExecutor with track_executor")
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def with_constant_id(
         self, custom_id: str, /, *, prefix_match: bool = False
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
@@ -2106,7 +2106,7 @@ class ComponentClient:
 
         return decorator
 
-    @typing_extensions.deprecated("Use `.track_executor` with the message kwarg")
+    @typing_extensions.deprecated("Use `.register_executor` with the message kwarg")
     def set_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
@@ -2121,9 +2121,9 @@ class ComponentClient:
         else:
             timeout = timeouts.SlidingTimeout(executor.timeout)
 
-        return self.track_executor(executor, message=message, timeout=timeout)
+        return self.register_executor(executor, message=message, timeout=timeout)
 
-    def track_executor(
+    def register_executor(
         self,
         executor: AbstractComponentExecutor,
         /,
@@ -2217,7 +2217,7 @@ class ComponentClient:
 
         return None  # MyPy
 
-    def untrack_executor(self, executor: AbstractComponentExecutor, /) -> Self:
+    def deregister_executor(self, executor: AbstractComponentExecutor, /) -> Self:
         """Remove a component executor by its custom IDs.
 
         Parameters
@@ -2239,7 +2239,7 @@ class ComponentClient:
 
         return self
 
-    @typing_extensions.deprecated("Use `.untrack_message`")
+    @typing_extensions.deprecated("Use `.deregister_message`")
     def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         """Remove a component executor by its message.
 
@@ -2253,9 +2253,9 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        return self.untrack_message(message)
+        return self.deregister_message(message)
 
-    def untrack_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+    def deregister_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         """Remove a component executor by its message.
 
         Parameters

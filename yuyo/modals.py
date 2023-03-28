@@ -670,7 +670,7 @@ class ModalClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    @typing_extensions.deprecated("Use .track_modal")
+    @typing_extensions.deprecated("Use .register_modal")
     def set_modal(
         self,
         custom_id: str,
@@ -680,9 +680,9 @@ class ModalClient:
         prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
-        return self.track_modal(custom_id, modal, prefix_match=prefix_match, timeout=timeout)
+        return self.register_modal(custom_id, modal, prefix_match=prefix_match, timeout=timeout)
 
-    def track_modal(
+    def register_modal(
         self,
         custom_id: str,
         modal: AbstractModal,
@@ -761,11 +761,11 @@ class ModalClient:
 
         return None
 
-    @typing_extensions.deprecated("Use .untrack_modal")
+    @typing_extensions.deprecated("Use .deregister_modal")
     def remove_modal(self, custom_id: str, /) -> Self:
-        return self.untrack_modal(custom_id)
+        return self.deregister_modal(custom_id)
 
-    def untrack_modal(self, custom_id: str, /) -> Self:
+    def deregister_modal(self, custom_id: str, /) -> Self:
         """Remove the modal set for a custom ID.
 
         Parameters
