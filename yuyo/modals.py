@@ -107,9 +107,6 @@ class _NoDefaultEnum(enum.Enum):
 NO_DEFAULT: NoDefault = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
 
-NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
-"""Type of [yuyo.modals.NO_DEFAULT][]."""
-
 
 class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
@@ -680,7 +677,7 @@ class ModalClient:
         /,
         *,
         prefix_match: bool = False,
-        timeout: typing.Union[timeouts.AbstractTimeout, None, NoDefault] = NO_DEFAULT,
+        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
         """Register a modal for a custom ID.
 
@@ -721,7 +718,7 @@ class ModalClient:
         if custom_id in self._modals:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
-        if timeout is NO_DEFAULT:
+        if timeout is _internal.NO_DEFAULT:
             timeout = timeouts.SlidingTimeout(datetime.timedelta(minutes=2))
 
         elif timeout is None:
@@ -802,13 +799,7 @@ class _TrackedField:
     __slots__ = ("custom_id", "default", "parameter", "prefix_match", "type")
 
     def __init__(
-        self,
-        *,
-        custom_id: str,
-        default: typing.Union[typing.Any, NoDefault],
-        parameter: str,
-        prefix_match: bool,
-        type_: hikari.ComponentType,
+        self, *, custom_id: str, default: typing.Any, parameter: str, prefix_match: bool, type_: hikari.ComponentType
     ) -> None:
         self.custom_id = custom_id
         self.default = default
@@ -1080,7 +1071,7 @@ class Modal(AbstractModal):
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
         prefix_match: bool = False,
@@ -1180,7 +1171,7 @@ class Modal(AbstractModal):
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
         prefix_match: bool = False,
@@ -1297,7 +1288,7 @@ def _make_text_input(
     style: hikari.TextInputStyle,
     placeholder: hikari.UndefinedOr[str],
     value: hikari.UndefinedOr[str],
-    default: typing.Union[typing.Any, NoDefault],
+    default: typing.Any,
     min_length: int,
     max_length: int,
 ) -> tuple[str, hikari.impl.ModalActionRowBuilder]:
@@ -1497,7 +1488,7 @@ def with_static_text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
@@ -1577,7 +1568,7 @@ def with_text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+    default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
@@ -1717,7 +1708,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Union[typing.Any, NoDefault] = NO_DEFAULT,
+        default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
         prefix_match: bool = False,
@@ -1779,11 +1770,11 @@ def text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: NoDefault = NO_DEFAULT,
+    default: _T,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
-) -> str:
+) -> typing.Union[str, _T]:
     ...
 
 
@@ -1796,11 +1787,10 @@ def text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: _T,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
-) -> typing.Union[str, _T]:
+) -> str:
     ...
 
 
@@ -1812,7 +1802,7 @@ def text_input(
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Union[_T, NoDefault] = NO_DEFAULT,
+    default: typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]] = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
     prefix_match: bool = False,
