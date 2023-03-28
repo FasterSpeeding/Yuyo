@@ -1595,6 +1595,18 @@ def _to_list(
     return hikari.UNDEFINED, other
 
 
+def _gc_executors(executors: dict[typing.Any, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]]) -> None:
+    for key, (timeout, _) in tuple(executors.items()):
+        if timeout.has_expired:
+            try:
+                del executors[key]
+                # This may slow this gc task down but the more we yield the better.
+                # await executor.close()  # TODO: this
+
+            except KeyError:
+                pass
+
+
 class ExecutorClosed(Exception):
     """Error used to indicate that an executor is now closed during execution."""
 
@@ -1827,14 +1839,9 @@ class ComponentClient:
 
     async def _gc(self) -> None:
         while True:
-            for message_id, (timeout, _) in tuple(self._message_executors.items()):
-                if not timeout.has_expired or message_id not in self._message_executors.values():
-                    continue
-
-                del self._message_executors[message_id]
-                # This may slow this gc task down but the more we yield the better.
-                # await executor.close()  # TODO: this
-
+            _gc_executors(self._executors)
+            _gc_executors(self._message_executors)
+            _gc_executors(self._prefix_executors)
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
@@ -1850,7 +1857,9 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
+        self._executors = {}
         self._message_executors = {}
+        self._prefix_executors = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:

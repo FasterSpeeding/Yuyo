@@ -335,6 +335,16 @@ Context = ModalContext
 """Alias of [ModalContext][yuyo.modals.ModalContext]."""
 
 
+def _gc_modals(modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]]) -> None:
+    for key, (timeout, _) in tuple(modals.items()):
+        if timeout.has_expired:
+            try:
+                del modals[key]
+
+            except KeyError:
+                pass
+
+
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
@@ -539,18 +549,8 @@ class ModalClient:
 
     async def _gc(self) -> None:
         while True:
-            for custom_id, (timeout, _) in tuple(self._modals.items()):
-                if not timeout.has_expired or custom_id not in self._modals:
-                    continue
-
-                del self._modals[custom_id]
-
-            for prefix, (timeout, _) in tuple(self._prefix_ids.items()):
-                if not timeout.has_expired or prefix not in self._prefix_ids:
-                    continue
-
-                del self._prefix_ids[prefix]
-
+            _gc_modals(self._modals)
+            _gc_modals(self._prefix_ids)
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
