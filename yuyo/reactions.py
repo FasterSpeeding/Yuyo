@@ -287,7 +287,7 @@ class ReactionPaginator(ReactionHandler):
         iterator: _internal.IteratorT[pagination.EntryT],
         /,
         *,
-        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]],
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
         triggers: collections.Collection[str] = (
             pagination.LEFT_TRIANGLE,
             pagination.STOP_SQUARE,
