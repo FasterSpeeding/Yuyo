@@ -1608,6 +1608,7 @@ class ComponentClient:
         "_executors",
         "_gc_task",
         "_message_executors",
+        "_prefix_executors",
         "_prefix_ids",
         "_server",
         "_tasks",
@@ -1662,15 +1663,20 @@ class ComponentClient:
         self._alluka = alluka
         self._constant_ids: dict[str, CallbackSig] = {}
 
-        self._executors: dict[str, AbstractComponentExecutor] = {}
+        self._executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of custom IDs to executors."""
 
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._message_executors: dict[int, AbstractComponentExecutor] = {}
+        self._message_executors: dict[int, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
 
+        self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
+        """Dict of prefix IDs to executors."""
+
         self._prefix_ids: dict[str, CallbackSig] = {}
+        """Dict of prefix IDs to callbacks."""
+
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -1820,8 +1826,8 @@ class ComponentClient:
 
     async def _gc(self) -> None:
         while True:
-            for message_id, executor in tuple(self._message_executors.items()):
-                if not executor.has_expired or message_id not in self._message_executors:
+            for message_id, (timeout, _) in tuple(self._message_executors.items()):
+                if not timeout.has_expired or message_id not in self._message_executors.values():
                     continue
 
                 del self._message_executors[message_id]
@@ -1894,8 +1900,16 @@ class ComponentClient:
             ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
             await self._alluka.call_with_async_di(constant_callback, ctx)
 
-        elif executor := self._message_executors.get(event.interaction.message.id):
+        elif entry := self._message_executors.get(event.interaction.message.id):
+            timeout, executor = entry
+            # TODO: check timeout
             await self._execute_executor(executor, event.interaction)
+
+        elif entry := self._executors.get(event.interaction.custom_id):
+            ...
+
+        elif entry := self._prefix_executors.get(event.interaction.custom_id.split(":", 1)[0]):
+            ...
 
         else:
             await event.interaction.create_initial_response(
@@ -1921,13 +1935,20 @@ class ComponentClient:
             self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
             return await future
 
-        if executor := self._message_executors.get(interaction.message.id):
-            if not executor.has_expired:
+        if entry := self._message_executors.get(interaction.message.id):
+            timeout, executor = entry
+            if not timeout.has_expired:
                 future = asyncio.Future()
                 self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
                 return await future
 
             del self._message_executors[interaction.message.id]
+
+        elif entry := self._executors.get(interaction.custom_id):
+            ...
+
+        elif entry := self._prefix_executors.get(interaction.custom_id.split(":", 1)[0]):
+            ...
 
         return (
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
@@ -2109,16 +2130,19 @@ class ComponentClient:
 
             message = message_or_executor
 
+        timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
+        entry = (timeout, executor)
+
         if message:
-            self._message_executors[int(message)] = executor
+            self._message_executors[int(message)] = entry
 
         elif prefix_match:
             for custom_id in executor.custom_ids:
-                ...
+                self._prefix_executors[custom_id] = entry
 
         else:
             for custom_id in executor.custom_ids:
-                self._executors[custom_id] = executor
+                self._executors[custom_id] = entry
 
         return self
 
@@ -2137,7 +2161,10 @@ class ComponentClient:
         yuyo.components.AbstractComponentExecutor | None
             The executor set for the message or [None][] if none is set.
         """
-        return self._message_executors.get(int(message))
+        if entry := self._message_executors.get(int(message)):
+            return entry[1]
+
+        return None  # MyPy
 
     @typing.overload
     @typing_extensions.deprecated("Passing message here is deprecated, use `.remove_message`")
