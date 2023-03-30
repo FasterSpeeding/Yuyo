@@ -2919,9 +2919,14 @@ class _ComponentDescriptor(abc.ABC):
 
     __slots__ = ()
 
+    @property
     @abc.abstractmethod
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        """Add this component to an action column executor."""
+    def custom_id(self) -> str:
+        """Unique identifier of the component."""
+
+    @abc.abstractmethod
+    def to_field(self) -> _StaticField:
+        """Convert this descriptor to a static field."""
 
 
 class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
@@ -2976,15 +2981,23 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         self._label = label
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_button(
-            self._style,
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            emoji=self._emoji,
-            label=self._label,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.InteractiveButtonBuilder(
+                container=typing.Any,
+                style=self._style,
+                custom_id=self._custom_id,
+                emoji=self._emoji,
+                label=self._label,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
 
@@ -3030,7 +3043,7 @@ def as_button(
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -3039,14 +3052,31 @@ class _StaticLinkButton(_ComponentDescriptor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
+        # While Link buttons don't actually have custom IDs, this is currently
+        # neccessary to avoid duplication.
+        self._custom_id = _internal.random_custom_id()
         self._url = url
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_link_button(
-            self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled, _magic=True
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            None,
+            hikari.impl.LinkButtonBuilder(
+                container=typing.Any,
+                style=hikari.ButtonStyle.LINK,
+                url=self._url,
+                emoji=self._emoji,
+                label=self._label,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
 
@@ -3105,16 +3135,24 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_select_menu(
-            types.MethodType(self._callback, executor),
-            self._type,
-            custom_id=self._custom_id,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.SelectMenuBuilder(
+                container=typing.Any,
+                type=self._type,
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
 
@@ -3180,22 +3218,30 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._custom_id = custom_id or _internal.random_custom_id()
-        self._channel_types = channel_types
+        self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_channel_select(
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            channel_types=self._channel_types,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.ChannelSelectMenuBuilder(
+                container=typing.Any,
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+                channel_types=self._channel_types,
+            ),
+            self_bound=True,
         )
 
 
@@ -3300,16 +3346,24 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_text_select(
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            options=self._options,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            _TextSelectMenuBuilder(
+                container=typing.Any,
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                options=self._options.copy(),
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
     def add_option(
@@ -3450,6 +3504,24 @@ def with_option(
     )
 
 
+class _StaticField:
+    __slots__ = ("builder", "callback", "custom_id", "self_bound")
+
+    def __init__(
+        self,
+        custom_id: str,
+        callback: typing.Optional[CallbackSig],
+        builder: hikari.api.ComponentBuilder,
+        /,
+        *,
+        self_bound: bool = False,
+    ) -> None:
+        self.builder = builder
+        self.callback = callback
+        self.custom_id = custom_id
+        self.self_bound = self_bound
+
+
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
@@ -3543,13 +3615,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     __slots__ = ("_rows", "_timeout")
 
-    _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
-    """Sequence of all the static rows on this class.
+    _all_static_fields: typing.ClassVar[list[_StaticField]] = []
+    """Atomic sequence of all the static fields on this class.
 
     This includes inherited fields.
     """
 
-    _static_fields: typing.ClassVar[list[collections.Callable[[type[Self]], object]]] = []
+    _static_fields: typing.ClassVar[list[_StaticField]] = []
     """Atomic sequence of the static fields declared on this specific class.
 
     This doesn't include inherited fields.
@@ -3557,40 +3629,58 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @typing.overload
     @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
-    def __init__(self, *, timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None]) -> None:
+    def __init__(
+        self,
+        *,
+        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
+    ) -> None:
         ...
 
     @typing.overload
-    def __init__(self) -> None:
+    def __init__(self, *, postfix_ids: typing.Optional[collections.Mapping[str, str]] = None) -> None:
         ...
 
     def __init__(
-        self, *, timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT
+        self,
+        *,
+        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise an action column executor."""
-        self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
+        self._rows: list[ActionRowExecutor] = []
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
+        for field in self._all_static_fields.copy():
+            row = _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(
+                field.builder
+            )
+
+            # TODO: flatten callback handling and return hikari.abc.AcionRowBuilder from .rows
+            if field.callback:
+                callback = types.MethodType(field.callback, self) if field.self_bound else field.callback
+                row.set_callback(field.custom_id, callback)
+
     def __init_subclass__(cls) -> None:
-        cls._all_static_rows = []
+        cls._all_static_fields = []
         cls._static_fields = []
 
-        memo: set[collections.Callable[[type[ActionColumnExecutor]], object]] = set()
+        memo: set[str] = set()
         # This slice ignores [object, ..., type[Self]] and flips the order.
         for super_cls in cls.mro()[-2:0:-1]:
             if not issubclass(super_cls, ActionColumnExecutor):
                 continue
 
-            for callback in super_cls._static_fields:
-                if callback not in memo:
-                    memo.add(callback)
-                    callback(cls)
+            for field in super_cls._static_fields:
+                if field.custom_id not in memo:
+                    memo.add(field.custom_id)
+                    cls._all_static_fields.append(field)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor) and attr.add not in memo:
-                cls._static_fields.append(attr.add)
-                attr.add(cls)
-                memo.add(attr.add)
+            if isinstance(attr, _ComponentDescriptor) and attr.custom_id not in memo:
+                field = attr.to_field()
+                cls._static_fields.append(field)
+                memo.add(field.custom_id)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -3684,7 +3774,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add an interactive button to all subclasses and instances of this action column class.
 
@@ -3721,16 +3810,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows, is_button=True).add_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        field = _StaticField(
+            custom_id,
+            callback,
+            hikari.impl.InteractiveButtonBuilder(
+                container=typing.Any,
+                style=style,
+                custom_id=custom_id,
+                emoji=emoji,
+                label=label,
+                is_disabled=is_disabled,
+            ),
         )
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_button(
-                    style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -3856,15 +3949,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._all_static_rows, is_button=True).add_link_button(
-            url, emoji=emoji, label=label, is_disabled=is_disabled
+        field = _StaticField(
+            _internal.random_custom_id(),
+            None,
+            hikari.impl.LinkButtonBuilder(
+                container=typing.Any,
+                style=hikari.ButtonStyle.LINK,
+                url=url,
+                emoji=emoji,
+                label=label,
+                is_disabled=is_disabled,
+            ),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     def add_select_menu(
@@ -3970,29 +4068,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows).add_select_menu(
+        field = _StaticField(
+            custom_id,
             callback,
-            type_,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
+            hikari.impl.SelectMenuBuilder(
+                container=typing.Any,
+                type=type_,
+                custom_id=custom_id,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            ),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_select_menu(
-                    callback,
-                    type_,
-                    custom_id=custom_id,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -4152,29 +4242,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows).add_channel_select(
+        field = _StaticField(
+            custom_id,
             callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
+            hikari.impl.ChannelSelectMenuBuilder(
+                container=typing.Any,
+                custom_id=custom_id,
+                channel_types=_parse_channel_types(*channel_types) if channel_types else [],
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            ),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_channel_select(
-                    callback,
-                    custom_id=custom_id,
-                    channel_types=channel_types,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -4345,30 +4427,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        select = _append_row(cls._all_static_rows).add_text_select(
-            callback,
+        component = _TextSelectMenuBuilder(
+            container=typing.Any,
             custom_id=custom_id,
-            options=options,
+            options=list(options),
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_text_select(
-                    callback,
-                    custom_id=custom_id,
-                    options=options,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
-        return select
+        field = _StaticField(custom_id, callback, component)
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
+        return component
 
 
 def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) -> ActionRowExecutor:
