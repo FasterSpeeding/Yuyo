@@ -51,6 +51,7 @@ __all__: list[str] = [
 
 import abc
 import asyncio
+import copy
 import datetime
 import inspect
 import itertools
@@ -2557,6 +2558,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         return self._components.copy()
 
     @property
+    @typing_extensions.deprecated("This is no-longer used")
     def is_full(self) -> bool:
         """Whether this row is considered "full".
 
@@ -2990,7 +2992,6 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
             self._custom_id,
             self._callback,
             hikari.impl.InteractiveButtonBuilder(
-                container=typing.Any,
                 style=self._style,
                 custom_id=self._custom_id,
                 emoji=self._emoji,
@@ -3053,7 +3054,7 @@ class _StaticLinkButton(_ComponentDescriptor):
         is_disabled: bool = False,
     ) -> None:
         # While Link buttons don't actually have custom IDs, this is currently
-        # neccessary to avoid duplication.
+        # necessary to avoid duplication.
         self._custom_id = _internal.random_custom_id()
         self._url = url
         self._emoji = emoji
@@ -3069,12 +3070,7 @@ class _StaticLinkButton(_ComponentDescriptor):
             self._custom_id,
             None,
             hikari.impl.LinkButtonBuilder(
-                container=typing.Any,
-                style=hikari.ButtonStyle.LINK,
-                url=self._url,
-                emoji=self._emoji,
-                label=self._label,
-                is_disabled=self._is_disabled,
+                url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
             ),
             self_bound=True,
         )
@@ -3144,7 +3140,6 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
             self._custom_id,
             self._callback,
             hikari.impl.SelectMenuBuilder(
-                container=typing.Any,
                 type=self._type,
                 custom_id=self._custom_id,
                 placeholder=self._placeholder,
@@ -3233,7 +3228,6 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
             self._custom_id,
             self._callback,
             hikari.impl.ChannelSelectMenuBuilder(
-                container=typing.Any,
                 custom_id=self._custom_id,
                 placeholder=self._placeholder,
                 min_values=self._min_values,
@@ -3355,7 +3349,6 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
             self._custom_id,
             self._callback,
             _TextSelectMenuBuilder(
-                container=typing.Any,
                 custom_id=self._custom_id,
                 placeholder=self._placeholder,
                 options=self._options.copy(),
@@ -3378,8 +3371,8 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> Self:
         self._options.append(
             hikari.impl.SelectOptionBuilder(
-                label=label, value=value, description=description, is_default=is_default
-            ).set_emoji(emoji)
+                label=label, value=value, description=description, is_default=is_default, emoji=emoji
+            )
         )
         return self
 
@@ -3522,6 +3515,21 @@ class _StaticField:
         self.self_bound = self_bound
 
 
+class _CustomIdProto(typing.Protocol):
+    def set_custom_id(self, value: str, /) -> object:
+        raise NotImplementedError
+
+    @classmethod
+    def __subclasshook__(cls, value: typing.Any) -> bool:
+        try:
+            value.set_custom_id
+
+        except AttributeError:
+            return False
+
+        return True
+
+
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
@@ -3648,18 +3656,26 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise an action column executor."""
-        self._rows: list[ActionRowExecutor] = []
+        self._callbacks: dict[str, CallbackSig] = {}
+        self._rows: list[hikari.api.MessageActionRowBuilder] = []
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
         for field in self._all_static_fields.copy():
-            row = _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(
-                field.builder
-            )
+            if postfix_ids and (postfix := postfix_ids.get(field.custom_id)):
+                builder = copy.copy(field.builder)
+                assert isinstance(builder, _CustomIdProto)
+                builder.set_custom_id(f"{field.custom_id}:{postfix}")
+
+            else:
+                builder = field.builder
+
+            _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
 
             # TODO: flatten callback handling and return hikari.abc.AcionRowBuilder from .rows
             if field.callback:
-                callback = types.MethodType(field.callback, self) if field.self_bound else field.callback
-                row.set_callback(field.custom_id, callback)
+                self._callbacks[field.custom_id] = (
+                    types.MethodType(field.callback, self) if field.self_bound else field.callback
+                )
 
     def __init_subclass__(cls) -> None:
         cls._all_static_fields = []
@@ -3685,7 +3701,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return list(itertools.chain.from_iterable(row.custom_ids for row in self._rows))
+        return self._callbacks
 
     @property
     @typing_extensions.deprecated("Component executors no-longer track their own expiration")
@@ -3693,11 +3709,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self._timeout
 
     @property
-    def rows(self) -> collections.Sequence[ActionRowExecutor]:
+    def rows(self) -> collections.Sequence[hikari.api.MessageActionRowBuilder]:
         """The rows in this column."""
         return self._rows.copy()
 
-    def add_row(self, row: ActionRowExecutor, /) -> Self:
+    def add_row(self, row: hikari.api.MessageActionRowBuilder, /) -> Self:
         """Add an action row executor to this column.
 
         Parameters
@@ -3715,12 +3731,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        for executor in self._rows:
-            if ctx.interaction.custom_id in executor.custom_ids:
-                await executor.execute(ctx)
-                return
-
-        raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        # ctx.set_ephemeral_default(self._ephem)
+        callback = self._callbacks[ctx.interaction.custom_id.split(":", 1)[0]]
+        await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def add_button(
         self,
@@ -3758,9 +3772,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        _append_row(self._rows, is_button=True).add_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(self._rows, is_button=True).add_interactive_button(
+            style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -3814,12 +3830,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             custom_id,
             callback,
             hikari.impl.InteractiveButtonBuilder(
-                container=typing.Any,
-                style=style,
-                custom_id=custom_id,
-                emoji=emoji,
-                label=label,
-                is_disabled=is_disabled,
+                style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
             ),
         )
         cls._all_static_fields.append(field)
@@ -3917,7 +3928,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a link button to all subclasses and instances of this action column class.
 
@@ -3952,14 +3962,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         field = _StaticField(
             _internal.random_custom_id(),
             None,
-            hikari.impl.LinkButtonBuilder(
-                container=typing.Any,
-                style=hikari.ButtonStyle.LINK,
-                url=url,
-                emoji=emoji,
-                label=label,
-                is_disabled=is_disabled,
-            ),
+            hikari.impl.LinkButtonBuilder(url=url, emoji=emoji, label=label, is_disabled=is_disabled),
         )
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
@@ -4005,15 +4008,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
+        custom_id = custom_id or _internal.random_custom_id()
         _append_row(self._rows).add_select_menu(
-            callback,
             type_,
-            custom_id=custom_id,
+            custom_id,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -4028,7 +4032,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
@@ -4072,7 +4075,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             custom_id,
             callback,
             hikari.impl.SelectMenuBuilder(
-                container=typing.Any,
                 type=type_,
                 custom_id=custom_id,
                 placeholder=placeholder,
@@ -4181,15 +4183,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        _append_row(self._rows).add_channel_select(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(self._rows).add_channel_menu(
+            custom_id,
+            channel_types=_parse_channel_types(*channel_types) if channel_types else [],
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -4206,7 +4209,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a channel select menu to all subclasses and instances of this action column class.
 
@@ -4246,7 +4248,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             custom_id,
             callback,
             hikari.impl.ChannelSelectMenuBuilder(
-                container=typing.Any,
                 custom_id=custom_id,
                 channel_types=_parse_channel_types(*channel_types) if channel_types else [],
                 placeholder=placeholder,
@@ -4360,15 +4361,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        return _append_row(self._rows).add_text_select(
-            callback,
+        custom_id = custom_id or _internal.random_custom_id()
+        menu = hikari.impl.TextSelectMenuBuilder(
             custom_id=custom_id,
-            options=options,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
+            options=options,
         )
+        _append_row(self._rows).add_component(menu)
+        self._callbacks[custom_id] = callback
+        return menu
 
     @classmethod
     def add_static_text_select(
@@ -4382,7 +4386,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a text select menu to all subclasses and instances of this action column class.
 
@@ -4428,7 +4431,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         custom_id = custom_id or _internal.random_custom_id()
         component = _TextSelectMenuBuilder(
-            container=typing.Any,
             custom_id=custom_id,
             options=list(options),
             placeholder=placeholder,
@@ -4442,9 +4444,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return component
 
 
-def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) -> ActionRowExecutor:
-    if not rows or rows[-1].is_full:
-        row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
+    components = row.components
+    if components and isinstance(components[0], hikari.api.ButtonBuilder):
+        return len(components) >= 5
+
+    return bool(components)
+
+
+def _append_row(
+    rows: list[hikari.api.MessageActionRowBuilder], /, *, is_button: bool = False
+) -> hikari.api.MessageActionRowBuilder:
+    if not rows or _row_is_full(rows[-1]):
+        row = hikari.impl.MessageActionRowBuilder()
         rows.append(row)
         return row
 
@@ -4452,7 +4464,7 @@ def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) ->
     if is_button or not rows[-1].components:
         return rows[-1]
 
-    row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+    row = hikari.impl.MessageActionRowBuilder()
     rows.append(row)
     return row
 

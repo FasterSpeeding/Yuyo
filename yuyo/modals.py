@@ -104,7 +104,7 @@ class _NoDefaultEnum(enum.Enum):
     VALUE = object()
 
 
-NO_DEFAULT: NoDefault = _NoDefaultEnum.VALUE
+NO_DEFAULT: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
 
 
