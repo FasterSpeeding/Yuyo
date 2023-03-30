@@ -70,11 +70,12 @@ from . import _internal
 from . import pagination
 from . import timeouts
 
+_T = typing.TypeVar("_T")
+
 if typing.TYPE_CHECKING:
     import tanjun
     from typing_extensions import Self
 
-    _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
     _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
     _TextSelectT = typing.TypeVar("_TextSelectT", bound="_TextSelect[typing.Any, typing.Any]")
@@ -2514,7 +2515,7 @@ WaitFor = WaitForExecutor
 """Alias of [yuyo.components.WaitForExecutor][]."""
 
 
-class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[typing.NoReturn]):
+class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
     __slots__ = ()
 
     def build(self) -> collections.MutableMapping[str, typing.Any]:
@@ -2881,7 +2882,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[Self]:
         """Add a text select menu to this action row.
 
         Parameters
@@ -2916,6 +2917,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             custom_id = _internal.random_custom_id()
 
         component = _TextSelectMenuBuilder(
+            parent=self,
             custom_id=custom_id,
             options=list(options),
             placeholder=placeholder,
@@ -3412,6 +3414,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
             self._custom_id,
             self._callback,
             _TextSelectMenuBuilder(
+                parent=self,
                 custom_id=self._custom_id,
                 placeholder=self._placeholder,
                 options=self._options.copy(),
@@ -4402,7 +4405,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[Self]:
         """Add a text select menu to this action column.
 
         Parameters
@@ -4461,7 +4464,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[type[Self]]:
         """Add a text select menu to all subclasses and instances of this action column class.
 
         Parameters
@@ -4506,6 +4509,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         custom_id = custom_id or _internal.random_custom_id()
         component = _TextSelectMenuBuilder(
+            parent=cls,
             custom_id=custom_id,
             options=list(options),
             placeholder=placeholder,
