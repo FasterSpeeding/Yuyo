@@ -62,8 +62,6 @@ from collections import abc as collections
 
 import alluka as alluka_
 import hikari
-import hikari.impl  # TODO: get rid of import when type is exposed publicly.
-import hikari.impl.special_endpoints  # TODO: get rid of import when type is exposed publicly.
 import typing_extensions
 
 from . import _internal
@@ -2631,7 +2629,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         /,
         *,
         custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3106,7 +3104,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self,
         callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
         custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3143,8 +3141,8 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_default: bool = False,
     ) -> Self:
         self._options.append(
-            hikari.impl.special_endpoints._SelectOptionBuilder(
-                menu=typing.NoReturn, label=label, value=value, description=description, is_default=is_default
+            hikari.impl.SelectOptionBuilder(
+                label=label, value=value, description=description, is_default=is_default
             ).set_emoji(emoji)
         )
         return self
@@ -3161,7 +3159,7 @@ def as_text_select(
 def as_text_select(
     *,
     custom_id: typing.Optional[str] = None,
-    options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
@@ -3177,7 +3175,7 @@ def as_text_select(
     /,
     *,
     custom_id: typing.Optional[str] = None,
-    options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
@@ -4054,7 +4052,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         /,
         *,
         custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -4110,7 +4108,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         /,
         *,
         custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -4376,7 +4374,7 @@ def with_static_text_select(
     /,
     *,
     custom_id: typing.Optional[str] = None,
-    options: collections.Sequence[hikari.api.SelectOptionBuilder[typing.NoReturn]] = (),
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,

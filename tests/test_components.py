@@ -33,12 +33,10 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from unittest import mock
 
 import alluka
 import hikari
-import hikari.impl.special_endpoints  # TODO: get rid of import when type is exposed publicly.
 import pytest
 
 import yuyo
@@ -641,11 +639,9 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_text_select(
                 options=[
-                    hikari.impl.special_endpoints._SelectOptionBuilder(
-                        menu=typing.NoReturn, label="echo", value="zulu"
-                    ),
-                    hikari.impl.special_endpoints._SelectOptionBuilder(
-                        menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True
+                    hikari.impl.SelectOptionBuilder(label="echo", value="zulu"),
+                    hikari.impl.SelectOptionBuilder(
+                        label="label", value="but", description="echo", emoji="a", is_default=True
                     ),
                 ],
                 is_disabled=True,
@@ -663,10 +659,8 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
         assert component.options == [
-            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="echo", value="zulu"),
-            hikari.impl.special_endpoints._SelectOptionBuilder(
-                menu=typing.NoReturn, label="label", value="but", description="echo", emoji="a", is_default=True
-            ),
+            hikari.impl.SelectOptionBuilder(label="echo", value="zulu"),
+            hikari.impl.SelectOptionBuilder(label="label", value="but", description="echo", emoji="a", is_default=True),
         ]
         assert component.is_disabled is True
         assert component.placeholder == "hello there"
@@ -691,24 +685,12 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
         assert component.options == [
-            hikari.impl.special_endpoints._SelectOptionBuilder(
-                menu=typing.NoReturn,
-                label="aaa",
-                value="bbb",
-                description="descript",
-                emoji="em",
-                emoji_name="em",
-                is_default=True,
+            hikari.impl.SelectOptionBuilder(
+                label="aaa", value="bbb", description="descript", emoji="em", is_default=True
             ),
-            hikari.impl.special_endpoints._SelectOptionBuilder(menu=typing.NoReturn, label="label", value="value"),
-            hikari.impl.special_endpoints._SelectOptionBuilder(
-                menu=typing.NoReturn,
-                label="lab",
-                value="man",
-                description="last",
-                emoji=123321,
-                emoji_id="123321",
-                is_default=False,
+            hikari.impl.SelectOptionBuilder(label="label", value="value"),
+            hikari.impl.SelectOptionBuilder(
+                label="lab", value="man", description="last", emoji=123321, is_default=False
             ),
         ]
         assert component.is_disabled is False
