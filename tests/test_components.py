@@ -295,116 +295,179 @@ class TestComponentClient:
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.set_constant_id("123", mock_callback)  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            result = client.set_constant_id("123", mock_callback)  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
-        assert client.get_constant_id("123") is mock_callback  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("123") is mock_callback  # pyright: ignore [ reportDeprecated ]
 
     def test_set_constant_id_when_already_present_as_custom_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
 
-        with pytest.raises(ValueError, match="'trans' is already registered as a constant id"):
+        client = yuyo.ComponentClient()
+
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning), pytest.raises(
+            ValueError, match="'trans' is already registered as a constant id"
+        ):
             client.set_constant_id("trans", mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
     def test_set_constant_id_when_already_present_as_prefix_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
-            "trans2", mock_callback, prefix_match=True
-        )
+        client = yuyo.ComponentClient()
 
-        with pytest.raises(ValueError, match="'trans2' is already registered as a constant id"):
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("trans2", mock_callback, prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning), pytest.raises(
+            ValueError, match="'trans2' is already registered as a constant id"
+        ):
             client.set_constant_id("trans2", mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
     def test_set_constant_id_when_prefix_match(self):
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.set_constant_id("456", mock_callback, prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            result = client.set_constant_id(  # pyright: ignore [ reportDeprecated ]
+                "456", mock_callback, prefix_match=True
+            )
 
         assert result is client
-        assert client.get_constant_id("456") is mock_callback  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("456") is mock_callback  # pyright: ignore [ reportDeprecated ]
 
     def test_remove_constant_id(self):
-        client = yuyo.ComponentClient().set_constant_id("yuri", mock.Mock())  # type: ignore [ reportPrivateUsage ]
+        client = yuyo.ComponentClient()
 
-        result = client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("yuri", mock.Mock())  # type: ignore [ reportPrivateUsage ]
+
+        with pytest.warns(DeprecationWarning):
+            result = client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
-        assert client.get_constant_id("yuri") is None  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("yuri") is None  # pyright: ignore [ reportDeprecated ]
 
     def test_remove_constant_id_for_prefix_id(self):
-        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
-            "yuro", mock.Mock(), prefix_match=True
-        )
+        client = yuyo.ComponentClient()
 
-        result = client.remove_constant_id("yuro")  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("yuro", mock.Mock(), prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            result = client.remove_constant_id("yuro")  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
-        assert client.get_constant_id("yuro") is None  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("yuro") is None  # pyright: ignore [ reportDeprecated ]
 
     def test_remove_constant_id_when_not_present(self):
-        client = (
-            yuyo.ComponentClient()
-            .set_constant_id("e", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-            .set_constant_id("h", mock.Mock(), prefix_match=True)  # pyright: ignore [ reportDeprecated ]
-        )
+        with pytest.warns(DeprecationWarning):
+            client = (
+                yuyo.ComponentClient()
+                .set_constant_id("e", mock.Mock())  # pyright: ignore [ reportDeprecated ]
+                .set_constant_id("h", mock.Mock(), prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+            )
 
-        with pytest.raises(KeyError):
+        with pytest.warns(DeprecationWarning), pytest.raises(KeyError):
             client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
 
     def test_with_constant_id(self):
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.with_constant_id("yuri")(mock_callback)  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            result = client.with_constant_id("yuri")(mock_callback)  # pyright: ignore [ reportDeprecated ]
 
         assert result is mock_callback
-        assert client.get_constant_id("yuri") is mock_callback  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("yuri") is mock_callback  # pyright: ignore [ reportDeprecated ]
 
     def test_with_constant_id_when_prefix_match(self):
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.with_constant_id("yuru", prefix_match=True)(  # pyright: ignore [ reportDeprecated ]
-            mock_callback
-        )
+        with pytest.warns(DeprecationWarning):
+            result = client.with_constant_id("yuru", prefix_match=True)(  # pyright: ignore [ reportDeprecated ]
+                mock_callback
+            )
 
         assert result is mock_callback
-        assert client.get_constant_id("yuru") is mock_callback  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_constant_id("yuru") is mock_callback  # pyright: ignore [ reportDeprecated ]
 
     def test_with_constant_id_when_already_present_as_custom_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
+        client = yuyo.ComponentClient()
 
-        with pytest.raises(ValueError, match="'trans' is already registered as a constant id"):
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning), pytest.raises(
+            ValueError, match="'trans' is already registered as a constant id"
+        ):
             client.with_constant_id("trans")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
     def test_with_constant_id_when_already_present_as_prefix_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
-            "trans2", mock_callback, prefix_match=True
-        )
+        client = yuyo.ComponentClient()
 
-        with pytest.raises(ValueError, match="'trans2' is already registered as a constant id"):
+        with pytest.warns(DeprecationWarning):
+            client.set_constant_id("trans2", mock_callback, prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning), pytest.raises(
+            ValueError, match="'trans2' is already registered as a constant id"
+        ):
             client.with_constant_id("trans2")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
     def test_set_executor(self):
-        mock_executor = mock.Mock()
+        mock_executor = mock.Mock(timeout=None)
         client = yuyo.ComponentClient()
 
-        result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
-        assert client.get_executor(555555) is mock_executor  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_executor(555555) is mock_executor  # pyright: ignore [ reportDeprecated ]
+
+    def test_set_executor_when_timeout_set(self):
+        mock_executor = mock.Mock(timeout=123)
+        client = yuyo.ComponentClient()
+
+        with pytest.warns(DeprecationWarning):
+            result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
+
+        assert result is client
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_executor(555555) is mock_executor  # pyright: ignore [ reportDeprecated ]
 
     def test_remove_executor(self):
-        client = yuyo.ComponentClient().set_executor(555555, mock.Mock())  # pyright: ignore [ reportDeprecated ]
+        client = yuyo.ComponentClient()
 
-        result = client.remove_executor(555555)  # pyright: ignore [ reportDeprecated ]
+        with pytest.warns(DeprecationWarning):
+            client.set_executor(555555, mock.Mock(timeout=None))  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            result = client.remove_executor(555555)  # pyright: ignore [ reportDeprecated ]
 
         assert result is client
-        assert client.get_executor(555555) is None  # pyright: ignore [ reportDeprecated ]
+
+        with pytest.warns(DeprecationWarning):
+            assert client.get_executor(555555) is None  # pyright: ignore [ reportDeprecated ]
 
 
 class TestActionRowExecutor:

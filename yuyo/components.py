@@ -59,6 +59,7 @@ import logging
 import os
 import types
 import typing
+import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -2067,7 +2068,13 @@ class ComponentClient:
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.set_constant_id(custom_id, callback, prefix_match=prefix_match)  # pyright: ignore [ reportDeprecated ]
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+                self.set_constant_id(  # pyright: ignore [ reportDeprecated ]
+                    custom_id, callback, prefix_match=prefix_match
+                )
+
             return callback
 
         return decorator
@@ -2082,7 +2089,7 @@ class ComponentClient:
         kwarg instead.
         """
         if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
-            timeout = executor.timeout
+            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor.timeout
 
         else:
             timeout = timeouts.SlidingTimeout(executor.timeout)
@@ -3674,7 +3681,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
             _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
 
-            # TODO: flatten callback handling and return hikari.abc.AcionRowBuilder from .rows
             if field.callback:
                 self._callbacks[field.custom_id] = (
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
@@ -3698,6 +3704,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         for _, attr in inspect.getmembers(cls):
             if isinstance(attr, _ComponentDescriptor) and attr.custom_id not in memo:
                 field = attr.to_field()
+                cls._all_static_fields.append(field)
                 cls._static_fields.append(field)
                 memo.add(field.custom_id)
 
