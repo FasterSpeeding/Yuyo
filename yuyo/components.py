@@ -2654,7 +2654,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             custom_id = _internal.random_custom_id()
 
         component = _TextSelectMenuBuilder(
-            container=NotImplemented,  # type: ignore
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
