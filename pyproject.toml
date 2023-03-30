@@ -204,6 +204,7 @@ reportUnknownVariableType = "warning"           # Lotta false-positives, might f
 asyncio_mode = "strict"
 testpaths = ["tests"]
 required_plugins = ["pytest-asyncio"]
+filterwarnings = ["error::DeprecationWarning"]
 
 [tool.slotscheck]
 strict-imports = true
@@ -211,4 +212,3 @@ require-superclass = true
 require-subclass = true
 exclude-classes = """.*(Proto|Meta)|yuyo.modals:ModalOptions"""
 exclude-modules = "yuyo._internal.vendor"
-filterwarnings = ["error:DeprecationWarning"]
