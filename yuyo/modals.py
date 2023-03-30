@@ -335,20 +335,14 @@ Context = ModalContext
 """Alias of [ModalContext][yuyo.modals.ModalContext]."""
 
 
-def _gc_modals(modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]]) -> None:
-    for key, (timeout, _) in tuple(modals.items()):
-        if timeout.has_expired:
-            try:
-                del modals[key]
-
-            except KeyError:
-                pass
+def _split_custom_id(custom_id: str) -> list[str]:
+    return custom_id.split(":", 1)
 
 
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
-    __slots__ = ("_alluka", "_modals", "_event_manager", "_gc_task", "_prefix_ids", "_server", "_tasks")
+    __slots__ = ("_alluka", "_modals", "_event_manager", "_gc_task", "_server", "_tasks")
 
     def __init__(
         self,
@@ -400,7 +394,6 @@ class ModalClient:
         self._modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -549,8 +542,14 @@ class ModalClient:
 
     async def _gc(self) -> None:
         while True:
-            _gc_modals(self._modals)
-            _gc_modals(self._prefix_ids)
+            for key, (timeout, _) in tuple(self._modals.items()):
+                if timeout.has_expired:
+                    try:
+                        del self._modals[key]
+
+                    except KeyError:
+                        pass
+
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
@@ -584,23 +583,17 @@ class ModalClient:
 
     async def _execute_modal(
         self,
-        modal: AbstractModal,
+        entry: tuple[timeouts.AbstractTimeout, AbstractModal],
         interaction: hikari.ModalInteraction,
+        custom_id: list[str],
         /,
         *,
         future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
-        ctx = ModalContext(self, interaction, self._add_task, response_future=future)
-        await modal.execute(ctx)
+        timeout, modal = entry
+        if timeout.increment_uses():
+            del self._modals[custom_id[0]]
 
-    async def _execute_prefix_modal(
-        self,
-        modal: AbstractModal,
-        interaction: hikari.ModalInteraction,
-        /,
-        *,
-        future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
-    ) -> None:
         ctx = ModalContext(self, interaction, self._add_task, response_future=future)
         await modal.execute(ctx)
 
@@ -615,19 +608,9 @@ class ModalClient:
         if not isinstance(event.interaction, hikari.ModalInteraction):
             return
 
-        if (entry := self._modals.get(event.interaction.custom_id)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._modals[event.interaction.custom_id]
-
-            await self._execute_modal(entry[1], event.interaction)
-            return
-
-        prefix = event.interaction.custom_id.split(":", 1)[0]
-        if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._prefix_ids[prefix]
-
-            await self._execute_prefix_modal(entry[1], event.interaction)
+        custom_id = _split_custom_id(event.interaction.custom_id)
+        if (entry := self._modals.get(custom_id[0])) and not entry[0].has_expired:
+            await self._execute_modal(entry, event.interaction, custom_id)
             return
 
         await event.interaction.create_initial_response(
@@ -647,21 +630,10 @@ class ModalClient:
         hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
             The REST re sponse.
         """
-        if (entry := self._modals.get(interaction.custom_id)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._modals[interaction.custom_id]
-
+        custom_id = _split_custom_id(interaction.custom_id)
+        if (entry := self._modals.get(custom_id[0])) and not entry[0].has_expired:
             future: asyncio.Future[_ModalResponseT] = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_modal(entry[1], interaction, future=future)))
-            return await future
-
-        prefix = interaction.custom_id.split(":", 1)[0]
-        if (entry := self._prefix_ids.get(prefix)) and not entry[0].has_expired:
-            if entry[0].increment_uses():
-                del self._prefix_ids[prefix]
-
-            future = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_prefix_modal(entry[1], interaction, future=future)))
+            self._add_task(asyncio.create_task(self._execute_modal(entry, interaction, custom_id, future=future)))
             return await future
 
         return (
@@ -680,7 +652,7 @@ class ModalClient:
         prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
-        return self.register_modal(custom_id, modal, prefix_match=prefix_match, timeout=timeout)
+        return self.register_modal(custom_id, modal, timeout=timeout)
 
     def register_modal(
         self,
@@ -688,7 +660,6 @@ class ModalClient:
         modal: AbstractModal,
         /,
         *,
-        prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
         """Register a modal for a custom ID.
@@ -699,14 +670,6 @@ class ModalClient:
             The custom_id to register the modal for.
         modal
             The modal to register.
-        prefix_match
-            Whether `custom_id` should be matched as a prefix.
-
-            When this is [True][] `custom_id` will be matched against
-            `.split(":", 1)[0]`.
-
-            This allows for further state to be held in the custom ID after the
-            prefix and is lower priority than normal matching.
         timeout
             Timeout strategy for this modal.
 
@@ -724,9 +687,6 @@ class ModalClient:
         ValueError
             If the custom_id is already registered.
         """
-        if custom_id in self._prefix_ids:
-            raise ValueError(f"{custom_id!r} is already registered as a prefix match")
-
         if custom_id in self._modals:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
@@ -735,10 +695,6 @@ class ModalClient:
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()
-
-        if prefix_match:
-            self._prefix_ids[custom_id] = (timeout, modal)
-            return self
 
         self._modals[custom_id] = (timeout, modal)
         return self
@@ -756,7 +712,7 @@ class ModalClient:
         AbstractModal | None
             The callback for the custom_id, or [None][] if it doesn't exist.
         """
-        if entry := self._modals.get(custom_id) or self._prefix_ids.get(custom_id):
+        if entry := self._modals.get(custom_id):
             return entry[1]
 
         return None
@@ -783,11 +739,7 @@ class ModalClient:
         KeyError
             If the custom_id is not registered.
         """
-        try:
-            del self._modals[custom_id]
-        except KeyError:
-            del self._prefix_ids[custom_id]
-
+        del self._modals[custom_id]
         return self
 
 
@@ -812,28 +764,16 @@ class AbstractModal(abc.ABC):
 
 
 class _TrackedField:
-    __slots__ = ("custom_id", "default", "parameter", "prefix_match", "type")
+    __slots__ = ("custom_id", "default", "parameter", "type")
 
-    def __init__(
-        self, *, custom_id: str, default: typing.Any, parameter: str, prefix_match: bool, type_: hikari.ComponentType
-    ) -> None:
+    def __init__(self, *, custom_id: str, default: typing.Any, parameter: str, type_: hikari.ComponentType) -> None:
         self.custom_id = custom_id
         self.default = default
         self.parameter = parameter
-        self.prefix_match = prefix_match
         self.type = type_
 
-    def process(
-        self,
-        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
-        components: dict[str, hikari.ModalComponentTypesT],
-        /,
-    ) -> typing.Any:
-        if self.prefix_match:
-            component = compiled_prefixes.get(self.custom_id)
-
-        else:
-            component = components.get(self.custom_id)
+    def process(self, components: dict[str, hikari.ModalComponentTypesT], /) -> typing.Any:
+        component = components.get(self.custom_id)
 
         # Discord still provides text components when no input was given just with
         # an empty string for `value` but we also want to support possible future
@@ -860,12 +800,8 @@ class _TrackedDataclass:
         self._fields = fields
         self.parameter = keyword
 
-    def process(
-        self,
-        compiled_prefixes: dict[str, hikari.ModalComponentTypesT],
-        components: dict[str, hikari.ModalComponentTypesT],
-    ) -> typing.Any:
-        sub_fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._fields}
+    def process(self, components: dict[str, hikari.ModalComponentTypesT], /) -> typing.Any:
+        sub_fields = {field.parameter: field.process(components) for field in self._fields}
         return self._dataclass(**sub_fields)
 
 
@@ -1078,6 +1014,7 @@ class Modal(AbstractModal):
         return self
 
     @classmethod
+    @typing.overload
     def add_static_text_input(
         cls,
         label: str,
@@ -1090,7 +1027,44 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        prefix_match: bool = False,
+        parameter: typing.Optional[str] = None,
+    ) -> type[Self]:
+        ...
+
+    @classmethod
+    @typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+    @typing.overload
+    def add_static_text_input(
+        cls,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Any = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        prefix_match: bool = True,
+        parameter: typing.Optional[str] = None,
+    ) -> type[Self]:
+        ...
+
+    @classmethod
+    def add_static_text_input(
+        cls,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Any = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        prefix_match: bool = True,
         parameter: typing.Optional[str] = None,
     ) -> type[Self]:
         """Add a text input field to all instances and subclasses of this modal class.
@@ -1127,13 +1101,9 @@ class Modal(AbstractModal):
 
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
-            Whether `custom_id` should be matched as a prefix.
+            Deprecated config.
 
-            When this is [True][] `custom_id` will be matched against
-            `.split(":", 1)[0]`.
-
-            This allows for further state to be held in the custom ID after the
-            prefix and is lower priority than normal matching.
+            This behaviour is now always enabled.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1168,15 +1138,47 @@ class Modal(AbstractModal):
 
         if parameter:
             field = _TrackedField(
-                custom_id=custom_id,
-                default=default,
-                parameter=parameter,
-                prefix_match=prefix_match,
-                type_=hikari.ComponentType.TEXT_INPUT,
+                custom_id=custom_id, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
             )
             cls._static_fields.append(field)
 
         return cls
+
+    @typing.overload
+    def add_text_input(
+        self,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Any = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        parameter: typing.Optional[str] = None,
+    ) -> Self:
+        ...
+
+    @typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+    @typing.overload
+    def add_text_input(
+        self,
+        label: str,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        default: typing.Any = NO_DEFAULT,
+        min_length: int = 0,
+        max_length: int = 4000,
+        prefix_match: bool = True,
+        parameter: typing.Optional[str] = None,
+    ) -> Self:
+        ...
 
     def add_text_input(
         self,
@@ -1190,7 +1192,7 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        prefix_match: bool = False,
+        prefix_match: bool = True,
         parameter: typing.Optional[str] = None,
     ) -> Self:
         """Add a text input field to this modal instance.
@@ -1227,13 +1229,9 @@ class Modal(AbstractModal):
 
             This can be greater than or equal to 1 and less than or equal to 4000.
         prefix_match
-            Whether `custom_id` should be matched as a prefix.
+            Deprecated config.
 
-            When this is [True][] `custom_id` will be matched against
-            `.split(":", 1)[0]`.
-
-            This allows for further state to be held in the custom ID after the
-            prefix and is lower priority than normal matching.
+            This behaviour is now always enabled.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1260,11 +1258,7 @@ class Modal(AbstractModal):
         if parameter:
             self._tracked_fields.append(
                 _TrackedField(
-                    custom_id=custom_id,
-                    default=default,
-                    parameter=parameter,
-                    prefix_match=prefix_match,
-                    type_=hikari.ComponentType.TEXT_INPUT,
+                    custom_id=custom_id, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
                 )
             )
 
@@ -1273,17 +1267,15 @@ class Modal(AbstractModal):
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
-        compiled_prefixes: dict[str, hikari.ModalComponentTypesT] = {}
         components: dict[str, hikari.ModalComponentTypesT] = {}
 
         component: typing.Optional[hikari.ModalComponentTypesT]  # MyPy compat
         for component in itertools.chain.from_iterable(
             component_.components for component_ in ctx.interaction.components
         ):
-            components[component.custom_id] = component
-            compiled_prefixes[component.custom_id.split(":", 1)[0]] = component
+            components[_split_custom_id(component.custom_id)[0]] = component
 
-        fields = {field.parameter: field.process(compiled_prefixes, components) for field in self._tracked_fields}
+        fields = {field.parameter: field.process(components) for field in self._tracked_fields}
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
 
 
@@ -1496,6 +1488,7 @@ def as_modal_template(
     return decorator
 
 
+@typing.overload
 def with_static_text_input(
     label: str,
     /,
@@ -1507,7 +1500,42 @@ def with_static_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = False,
+    parameter: typing.Optional[str] = None,
+) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
+    ...
+
+
+@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+@typing.overload
+def with_static_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Any = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = True,
+    parameter: typing.Optional[str] = None,
+) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
+    ...
+
+
+def with_static_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Any = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = True,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
@@ -1544,13 +1572,9 @@ def with_static_text_input(
 
         This can be greater than or equal to 1 and less than or equal to 4000.
     prefix_match
-        Whether `custom_id` should be matched as a prefix.
+        Deprecated config.
 
-        When this is [True][] `custom_id` will be matched against
-        `.split(":", 1)[0]`.
-
-        This allows for further state to be held in the custom ID after the
-        prefix and is lower priority than normal matching.
+        This behaviour is now always enabled.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1571,9 +1595,44 @@ def with_static_text_input(
         default=default,
         min_length=min_length,
         max_length=max_length,
-        prefix_match=prefix_match,
         parameter=parameter,
     )
+
+
+@typing.overload
+def with_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Any = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    parameter: typing.Optional[str] = None,
+) -> collections.abc.Callable[[_ModalT], _ModalT]:
+    ...
+
+
+@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+@typing.overload
+def with_text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: typing.Any = NO_DEFAULT,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = True,
+    parameter: typing.Optional[str] = None,
+) -> collections.abc.Callable[[_ModalT], _ModalT]:
+    ...
 
 
 def with_text_input(
@@ -1587,7 +1646,7 @@ def with_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = False,
+    prefix_match: bool = True,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
@@ -1624,13 +1683,9 @@ def with_text_input(
 
         This can be greater than or equal to 1 and less than or equal to 4000.
     prefix_match
-        Whether `custom_id` should be matched as a prefix.
+        Deprecated config.
 
-        When this is [True][] `custom_id` will be matched against
-        `.split(":", 1)[0]`.
-
-        This allows for further state to be held in the custom ID after the
-        prefix and is lower priority than normal matching.
+        This behaviour is now always enabled.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1651,7 +1706,6 @@ def with_text_input(
         default=default,
         min_length=min_length,
         max_length=max_length,
-        prefix_match=prefix_match,
         parameter=parameter,
     )
 
@@ -1703,17 +1757,7 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
-    __slots__ = (
-        "_label",
-        "_custom_id",
-        "_style",
-        "_placeholder",
-        "_value",
-        "_default",
-        "_min_length",
-        "_max_length",
-        "_prefix_match",
-    )
+    __slots__ = ("_label", "_custom_id", "_style", "_placeholder", "_value", "_default", "_min_length", "_max_length")
 
     def __init__(
         self,
@@ -1727,7 +1771,6 @@ class _TextInputDescriptor(_ComponentDescriptor):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        prefix_match: bool = False,
     ) -> None:
         self._label = label
         self._custom_id = custom_id or _internal.random_custom_id()
@@ -1737,7 +1780,6 @@ class _TextInputDescriptor(_ComponentDescriptor):
         self._default = default
         self._min_length = min_length
         self._max_length = max_length
-        self._prefix_match = prefix_match
 
     def add(self, keyword: str | None, modal: Modal, /) -> None:
         modal.add_text_input(
@@ -1750,7 +1792,6 @@ class _TextInputDescriptor(_ComponentDescriptor):
             default=self._default,
             min_length=self._min_length,
             max_length=self._max_length,
-            prefix_match=self._prefix_match,
         )
 
     def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
@@ -1764,16 +1805,11 @@ class _TextInputDescriptor(_ComponentDescriptor):
             default=self._default,
             min_length=self._min_length,
             max_length=self._max_length,
-            prefix_match=self._prefix_match,
         )
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
         return _TrackedField(
-            custom_id=self._custom_id,
-            default=self._default,
-            parameter=keyword,
-            prefix_match=self._prefix_match,
-            type_=hikari.ComponentType.TEXT_INPUT,
+            custom_id=self._custom_id, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
         )
 
 
@@ -1789,7 +1825,24 @@ def text_input(
     default: _T,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = False,
+) -> typing.Union[str, _T]:
+    ...
+
+
+@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+@typing.overload
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    default: _T,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = True,
 ) -> typing.Union[str, _T]:
     ...
 
@@ -1805,7 +1858,23 @@ def text_input(
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = False,
+) -> str:
+    ...
+
+
+@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
+@typing.overload
+def text_input(
+    label: str,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_length: int = 0,
+    max_length: int = 4000,
+    prefix_match: bool = True,
 ) -> str:
     ...
 
@@ -1821,7 +1890,7 @@ def text_input(
     default: typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]] = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = False,
+    prefix_match: bool = True,
 ) -> typing.Union[str, _T]:
     """Descriptor used to declare a text input field.
 
@@ -1857,13 +1926,9 @@ def text_input(
 
         This can be greater than or equal to 1 and less than or equal to 4000.
     prefix_match
-        Whether `custom_id` should be matched as a prefix.
+        Deprecated config.
 
-        When this is [True][] `custom_id` will be matched against
-        `.split(":", 1)[0]`.
-
-        This allows for further state to be held in the custom ID after the
-        prefix and is lower priority than normal matching.
+        This behaviour is now always enabled.
 
     Examples
     --------
@@ -1903,7 +1968,6 @@ def text_input(
         default=default,
         min_length=min_length,
         max_length=max_length,
-        prefix_match=prefix_match,
     )
     return typing.cast("str", descriptor)
 

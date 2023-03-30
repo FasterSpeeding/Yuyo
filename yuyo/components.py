@@ -105,8 +105,8 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _to_prefix_id(custom_id: str) -> str:
-    return custom_id.split(":", 1)[0]
+def _split_custom_id(custom_id: str) -> list[str]:
+    return custom_id.split(":", 1)
 
 
 def _now() -> datetime.datetime:
@@ -1617,16 +1617,7 @@ class ExecutorClosed(Exception):
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
-    __slots__ = (
-        "_alluka",
-        "_event_manager",
-        "_executors",
-        "_gc_task",
-        "_message_executors",
-        "_prefix_executors",
-        "_server",
-        "_tasks",
-    )
+    __slots__ = ("_alluka", "_event_manager", "_executors", "_gc_task", "_message_executors", "_server", "_tasks")
 
     def __init__(
         self,
@@ -1683,9 +1674,6 @@ class ComponentClient:
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
-
-        self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
-        """Dict of prefix IDs to executors."""
 
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
@@ -1838,7 +1826,6 @@ class ComponentClient:
         while True:
             _gc_executors(self._executors)
             _gc_executors(self._message_executors)
-            _gc_executors(self._prefix_executors)
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
@@ -1856,7 +1843,6 @@ class ComponentClient:
 
         self._executors = {}
         self._message_executors = {}
-        self._prefix_executors = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
@@ -1874,7 +1860,7 @@ class ComponentClient:
 
     async def _execute(
         self,
-        remove_from: dict[_T, typing.Any],
+        remove_from: dict[_T, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]],
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
@@ -1919,14 +1905,10 @@ class ComponentClient:
 
             del self._message_executors[event.interaction.message.id]
 
-        if entry := self._executors.get(event.interaction.custom_id):
-            ran = await self._execute(self._executors, event.interaction.custom_id, entry, event.interaction)
-            if ran:
-                return
-
-        prefix_id = _to_prefix_id(event.interaction.custom_id)
-        if entry := self._prefix_executors.get(prefix_id):
-            ran = await self._execute(self._prefix_executors, prefix_id, entry, event.interaction)
+        custom_id = _split_custom_id(event.interaction.custom_id)
+        prefix = custom_id[0]
+        if entry := self._executors.get(prefix):
+            ran = await self._execute(self._executors, prefix, entry, event.interaction)
             if ran:
                 return
 
@@ -1936,7 +1918,7 @@ class ComponentClient:
 
     async def _execute_task(
         self,
-        remove_from: dict[_T, typing.Any],
+        remove_from: dict[_T, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]],
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
@@ -1967,14 +1949,10 @@ class ComponentClient:
             if result:
                 return result
 
-        if entry := self._executors.get(interaction.custom_id):
-            result = await self._execute_task(self._executors, interaction.custom_id, entry, interaction)
-            if result:
-                return result
-
-        prefix_id = _to_prefix_id(interaction.custom_id)
-        if entry := self._prefix_executors.get(prefix_id):
-            result = await self._execute_task(self._prefix_executors, prefix_id, entry, interaction)
+        custom_id = _split_custom_id(interaction.custom_id)
+        prefix = custom_id[0]
+        if entry := self._executors.get(prefix):
+            result = await self._execute_task(self._executors, prefix, entry, interaction)
             if result:
                 return result
 
@@ -1985,7 +1963,7 @@ class ComponentClient:
         )
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
+    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = True) -> Self:
         """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
         You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
@@ -2008,7 +1986,7 @@ class ComponentClient:
         if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
             raise ValueError(f"{custom_id!r} is already registered as a constant id")
 
-        return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
+        return self.register_executor(SingleExecutor(custom_id, callback))
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
@@ -2016,9 +1994,6 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
-
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
 
@@ -2030,23 +2005,17 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        removed = False
-        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            removed = True
-            del self._prefix_executors[custom_id]
-
-        elif (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            removed = True
+        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             del self._executors[custom_id]
 
-        if not removed:
+        else:
             raise KeyError(custom_id)
 
         return self
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def with_constant_id(
-        self, custom_id: str, /, *, prefix_match: bool = False
+        self, custom_id: str, /, *, prefix_match: bool = True
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
@@ -2072,9 +2041,7 @@ class ComponentClient:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-                self.set_constant_id(  # pyright: ignore [ reportDeprecated ]
-                    custom_id, callback, prefix_match=prefix_match
-                )
+                self.set_constant_id(custom_id, callback)  # pyright: ignore [ reportDeprecated ]
 
             return callback
 
@@ -2103,7 +2070,6 @@ class ComponentClient:
         /,
         *,
         message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None,
-        prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
         """Add an executor to this client.
@@ -2117,11 +2083,6 @@ class ComponentClient:
 
             If this is left as [None][] then this executor will be registered
             globally for its custom IDs.
-        prefix_match
-            Whether this component's custom IDs should be prefix checked.
-
-            If [True][] then the component's custom IDs will be matched against
-            `component.split(":")[0]`.
         timeout : typing.Optional[yuyo.timeouts.AbstractTimeout]
             The executor's timeout.
 
@@ -2142,10 +2103,6 @@ class ComponentClient:
 
         if message:
             self._message_executors[hikari.Snowflake(message)] = entry
-
-        elif prefix_match:
-            for custom_id in executor.custom_ids:
-                self._prefix_executors[custom_id] = entry
 
         else:
             for custom_id in executor.custom_ids:
@@ -2196,9 +2153,6 @@ class ComponentClient:
         for custom_id in executor.custom_ids:
             if (entry := self._executors.get(custom_id)) and entry[1] == executor:
                 del self._executors[custom_id]
-
-            if (entry := self._prefix_executors.get(custom_id)) and entry[1] == executor:
-                del self._prefix_executors[custom_id]
 
         return self
 
