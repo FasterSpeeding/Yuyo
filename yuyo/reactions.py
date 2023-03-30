@@ -144,7 +144,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._message: typing.Optional[hikari.Message] = None
 
         if timeout is None:
-            self._timeout = timeouts.NeverTimeout()
+            self._timeout: timeouts.AbstractTimeout = timeouts.NeverTimeout()
 
         else:
             self._timeout = timeouts.SlidingTimeout(timeout, max_uses=-1)

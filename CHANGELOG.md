@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - A static timeout implementation.
+- Message components have support for loading components from class attributes again.
+  This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.

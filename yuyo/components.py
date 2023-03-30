@@ -40,48 +40,60 @@ __all__: list[str] = [
     "ComponentPaginator",
     "WaitFor",
     "WaitForExecutor",
+    "as_button",
+    "as_channel_select",
+    "as_select_menu",
+    "as_text_select",
+    "link_button",
+    "with_option",
+    "with_static_text_select",
 ]
 
 import abc
 import asyncio
 import datetime
+import inspect
 import itertools
 import logging
 import os
+import types
 import typing
 from collections import abc as collections
 
 import alluka as alluka_
 import hikari
+import typing_extensions
 
 from . import _internal
 from . import pagination
 from . import timeouts
 
 if typing.TYPE_CHECKING:
-    import types
-
     import tanjun
     from typing_extensions import Self
 
     _T = typing.TypeVar("_T")
     _OtherT = typing.TypeVar("_OtherT")
     _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
+    _TextSelectT = typing.TypeVar("_TextSelectT", bound="_TextSelect[typing.Any, typing.Any]")
+    _Type = type[_T]  # This is used to fix an issue with name shadowing which only effects MyPy.
 
 
-_ParentT = typing.TypeVar("_ParentT")
+_P = typing_extensions.ParamSpec("_P")
+_CoroT = collections.Coroutine[typing.Any, typing.Any, None]
+_SelfT = typing.TypeVar("_SelfT")
 _PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
-
-CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
-"""Type hint of a component callback."""
-
-_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 _ComponentResponseT = typing.Union[
     hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
 ]
 """Type hint of the builder response types allows for component interactions."""
+
+CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
+"""Type hint of a component callback."""
+
+_CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
 
@@ -2332,8 +2344,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row.
 
     You likely want [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-    instead as this provides an interface for handling all the components on a
-    message.
+    which provides an interface for handling all the components on a message
+    instead of this.
     """
 
     __slots__ = ("_components", "_stored_type")
@@ -2562,7 +2574,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         *,
         custom_id: typing.Optional[str] = None,
         channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+            collections.Sequence[typing.Union[hikari.ChannelType, _Type[hikari.PartialChannel]]]
         ] = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -2617,12 +2629,13 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         /,
         *,
         custom_id: typing.Optional[str] = None,
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
-        """Add a channel select menu to this action row.
+        """Add a text select menu to this action row.
 
         Parameters
         ----------
@@ -2630,6 +2643,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+        options
+            The text select's options.
+
+            These can also be added by calling
+            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option].
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2644,9 +2662,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         hikari.api.special_endpoints.TextSelectMenuBuilder
             Builder for the added text select menu.
 
-            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option]
-            should be used to add options to this select menu.
-
             And the parent action row can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
@@ -2655,6 +2670,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         component = _TextSelectMenuBuilder(
             custom_id=custom_id,
+            options=list(options),
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
@@ -2716,6 +2732,542 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
         raise ValueError(f"Unknown channel type {exc.args[0]}") from exc
 
 
+class _ComponentDescriptor(abc.ABC):
+    """Abstract class used to mark components on an action column class."""
+
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        """Add this component to an action column executor."""
+
+
+class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
+    """Base class used to represent components by decorating a callback."""
+
+    __slots__ = ("_callback",)
+
+    def __init__(self, callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /) -> None:
+        self._callback = callback
+
+    async def __call__(self, self_: _SelfT, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
+        return await self._callback(self_, *args, **kwargs)
+
+    @typing.overload
+    def __get__(self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None) -> Self:
+        ...
+
+    # Should really be using _T for the return type but that breaks Pyright rn.
+    @typing.overload
+    def __get__(
+        self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
+    ) -> collections.Callable[_P, _CoroT]:
+        ...
+
+    def __get__(
+        self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
+    ) -> typing.Union[Self, collections.Callable[..., typing.Any]]:
+        if obj is None:
+            return self
+
+        return types.MethodType(self._callback, obj)
+
+
+class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
+    """Used to represent a button method."""
+
+    __slots__ = ("_style", "_custom_id", "_emoji", "_label", "_is_disabled")
+
+    def __init__(
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> None:
+        super().__init__(callback)
+        self._style: hikari.InteractiveButtonTypesT = style
+        self._custom_id = custom_id or _internal.random_custom_id()
+        self._emoji = emoji
+        self._label = label
+        self._is_disabled = is_disabled
+
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        executor.add_static_button(
+            self._style,
+            types.MethodType(self._callback, executor),
+            custom_id=self._custom_id,
+            emoji=self._emoji,
+            label=self._label,
+            is_disabled=self._is_disabled,
+            _magic=True,
+        )
+
+
+def as_button(
+    style: hikari.InteractiveButtonTypesT,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
+]:
+    """Declare an interactive button on an action column class.
+
+    Either `emoji` xor `label` must be provided to be the button's
+    displayed label.
+
+    Parameters
+    ----------
+    style
+        The button's style.
+    custom_id
+        The button's custom ID.
+    emoji
+        The button's emoji.
+    label
+        The button's label.
+    is_disabled
+        Whether the button should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_button(ButtonStyle.DANGER, label="label")
+        async def on_button(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+    return lambda callback: _StaticButton(style, callback, custom_id, emoji, label, is_disabled)
+
+
+class _StaticLinkButton(_ComponentDescriptor):
+    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
+
+    def __init__(
+        self,
+        url: str,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> None:
+        self._url = url
+        self._emoji = emoji
+        self._label = label
+        self._is_disabled = is_disabled
+
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        executor.add_static_link_button(
+            self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled, _magic=True
+        )
+
+
+def link_button(
+    url: str,
+    /,
+    *,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> _StaticLinkButton:
+    """Declare an link button on an action column class.
+
+    Either `emoji` xor `label` must be provided to be the button's
+    displayed label.
+
+    Parameters
+    ----------
+    url
+        The button's url.
+    emoji
+        The button's emoji.
+    label
+        The button's label.
+    is_disabled
+        Whether the button should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        link_button = components.link_button("https://example.com", label="label")
+    ```
+    """
+    return _StaticLinkButton(url, emoji, label, is_disabled)
+
+
+class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
+    __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
+    def __init__(
+        self,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        type_: typing.Union[hikari.ComponentType, int],
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        super().__init__(callback)
+        self._type = hikari.ComponentType(type_)
+        self._custom_id = custom_id or _internal.random_custom_id()
+        self._placeholder = placeholder
+        self._min_values = min_values
+        self._max_values = max_values
+        self._is_disabled = is_disabled
+
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        executor.add_static_select_menu(
+            types.MethodType(self._callback, executor),
+            self._type,
+            custom_id=self._custom_id,
+            placeholder=self._placeholder,
+            min_values=self._min_values,
+            max_values=self._max_values,
+            is_disabled=self._is_disabled,
+            _magic=True,
+        )
+
+
+def as_select_menu(
+    type_: typing.Union[hikari.ComponentType, int],
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+]:
+    """Declare a select menu on an action column class.
+
+    For channel select menus and text select menus see
+    [as_channel_select][yuyo.components.as_channel_select] and
+    [as_text_select][yuyo.components.as_text_select] respectively.
+
+    Parameters
+    ----------
+    type_
+        The type of select menu to add.
+    custom_id
+        The select menu's custom ID.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_select_menu(ComponentType.USER_SELECT_MENU, max_values=5)
+        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+    return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
+
+
+class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
+    __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
+    def __init__(
+        self,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: typing.Optional[str] = None,
+        channel_types: typing.Optional[
+            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+        ] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        super().__init__(callback)
+        self._custom_id = custom_id or _internal.random_custom_id()
+        self._channel_types = channel_types
+        self._placeholder = placeholder
+        self._min_values = min_values
+        self._max_values = max_values
+        self._is_disabled = is_disabled
+
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        executor.add_static_channel_select(
+            types.MethodType(self._callback, executor),
+            custom_id=self._custom_id,
+            channel_types=self._channel_types,
+            placeholder=self._placeholder,
+            min_values=self._min_values,
+            max_values=self._max_values,
+            is_disabled=self._is_disabled,
+            _magic=True,
+        )
+
+
+@typing.overload
+def as_channel_select(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _ChannelSelect[_SelfT, _P]:
+    ...
+
+
+@typing.overload
+def as_channel_select(
+    *,
+    custom_id: typing.Optional[str] = None,
+    channel_types: typing.Optional[
+        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+    ] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+]:
+    ...
+
+
+def as_channel_select(
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    channel_types: typing.Optional[
+        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+    ] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+    ],
+    _ChannelSelect[_SelfT, _P],
+]:
+    """Declare a channel select menu on an action column class.
+
+    Parameters
+    ----------
+    channel_types
+        Sequence of the types of channels this select menu should show as options.
+    custom_id
+        The select menu's custom ID.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_channel_select(channel_types=[hikari.TextableChannel])
+        async def on_channel_select(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+
+    def decorator(
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    ) -> _ChannelSelect[_SelfT, _P]:
+        return _ChannelSelect(callback, custom_id, channel_types, placeholder, min_values, max_values, is_disabled)
+
+    if callback:
+        return decorator(callback)
+
+    return decorator
+
+
+class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
+    __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+
+    def __init__(
+        self,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: typing.Optional[str] = None,
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> None:
+        super().__init__(callback)
+        self._custom_id = custom_id or _internal.random_custom_id()
+        self._options = list(options)
+        self._placeholder = placeholder
+        self._min_values = min_values
+        self._max_values = max_values
+        self._is_disabled = is_disabled
+
+    def add(self, executor: type[ActionColumnExecutor], /) -> None:
+        executor.add_static_text_select(
+            types.MethodType(self._callback, executor),
+            custom_id=self._custom_id,
+            options=self._options,
+            placeholder=self._placeholder,
+            min_values=self._min_values,
+            max_values=self._max_values,
+            is_disabled=self._is_disabled,
+            _magic=True,
+        )
+
+    def add_option(
+        self,
+        label: str,
+        value: str,
+        /,
+        *,
+        description: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        is_default: bool = False,
+    ) -> Self:
+        self._options.append(
+            hikari.impl.SelectOptionBuilder(
+                label=label, value=value, description=description, is_default=is_default
+            ).set_emoji(emoji)
+        )
+        return self
+
+
+@typing.overload
+def as_text_select(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _TextSelect[_SelfT, _P]:
+    ...
+
+
+@typing.overload
+def as_text_select(
+    *,
+    custom_id: typing.Optional[str] = None,
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextSelect[_SelfT, _P]
+]:
+    ...
+
+
+def as_text_select(
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextSelect[_SelfT, _P]
+    ],
+    _TextSelect[_SelfT, _P],
+]:
+    """Declare a text select menu on an action column class.
+
+    Parameters
+    ----------
+    custom_id
+        The select menu's custom ID.
+    options
+        The text select's options.
+
+        These can also be added by using [yuyo.components.with_option][].
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.with_option("label", "value")
+        @components.as_text_select(
+            options=[special_endpoints.SelectOptionBuilder(label="label", value="value")]
+        )
+        async def on_text_select(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+
+    def decorator(
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    ) -> _TextSelect[_SelfT, _P]:
+        return _TextSelect(callback, custom_id, options, placeholder, min_values, max_values, is_disabled)
+
+    if callback:
+        return decorator(callback)
+
+    return decorator
+
+
+def with_option(
+    label: str,
+    value: str,
+    /,
+    *,
+    description: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    is_default: bool = False,
+) -> collections.Callable[[_TextSelectT], _TextSelectT]:
+    """Add an option to a text select menu descriptor through a decorator call.
+
+    Parameters
+    ----------
+    label
+        The option's label.
+    value
+        The option's value.
+    description
+        The option's description.
+    emoji
+        Emoji to display for the option.
+    is_default
+        Whether the option should be marked as selected by default.
+
+    Examples
+    --------
+    ```py
+        @components.with_option("other label", "other value")
+        @components.with_option("label", "value")
+        @components.as_text_select
+        async def on_text_select(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+    return lambda text_select: text_select.add_option(
+        label, value, description=description, emoji=emoji, is_default=is_default
+    )
+
+
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
@@ -2747,6 +3299,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     can act as a template where "static" fields are included on all instances
     and subclasses of that class:
 
+    !!! note
+        Since decorators are executed from the bottom upwards fields added
+        through decorator calls will follow the same order.
+
     ```py
     async def callback_1(ctx: components.ComponentContext) -> None:
         await ctx.respond("meow")
@@ -2756,6 +3312,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
     class CustomColumn(components.ActionColumnExecutor):
+        __slots__ = ("special_string",)  # ActionColumnExecutor supports slotting.
+
         # The init can be overridden to store extra data on the column object when subclassing.
         def __init__(self, special_string: str, timeout: typing.Optional[datetime.timedelta] = None):
             super().__init__(timeout=timeout)
@@ -2771,17 +3329,49 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     )
     ```
 
-    !!! note
-        Since decorators are executed from the bottom upwards fields added
-        through decorator calls will follow the same order.
+    There's also class descriptors which can be used to declare static
+    components. The following descriptors work by decorating their
+    component's callback:
+
+    * [as_button][yuyo.components.as_button]
+    * [as_select_menu][yuyo.components.as_select_menu]
+    * [as_channel_select][yuyo.components.as_channel_select]
+    * [as_text_select][yuyo.components.as_text_select]
+
+    [link_button][yuyo.components.link_button] returns a descriptor without
+    decorating any callback.
+
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_button(ButtonStyle.PRIMARY, label="label")
+        async def left_button(self, ctx: components.ComponentContext) -> None:
+            ...
+
+        link_button = components.link_button(url="https://example.com", label="Go to page")
+
+        @components.as_button(ButtonStyle.SECONDARY, label="meow")
+        async def right_button(self, ctx: components.ComponentContext) -> None:
+            ...
+
+        @components.as_channel_select(channel_types=[hikari.TextableChannel])
+        async def text_select_menu(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
     """
 
     __slots__ = ("_rows", "_timeout")
 
     _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
-    _static_fields: typing.ClassVar[
-        list[tuple[hikari.ComponentType, collections.Callable[[ActionRowExecutor], object]]]
-    ] = []
+    """Sequence of all the static rows on this class.
+
+    This includes inherited fields.
+    """
+
+    _static_fields: typing.ClassVar[list[collections.Callable[[type[Self]], object]]] = []
+    """Atomic sequence of the static fields declared on this specific class.
+
+    This doesn't include inherited fields.
+    """
 
     def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
         """Initialise an action column executor.
@@ -2798,13 +3388,22 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_rows = []
         cls._static_fields = []
 
-        for super_cls in cls.mro()[-2::-1]:
+        memo: set[collections.Callable[[type[ActionColumnExecutor]], object]] = set()
+        # This slice ignores [object, ..., type[Self]] and flips the order.
+        for super_cls in cls.mro()[-2:0:-1]:
             if not issubclass(super_cls, ActionColumnExecutor):
                 continue
 
-            for component_type, callback in super_cls._static_fields:
-                row = _append_row(cls._all_static_rows, is_button=component_type is hikari.ComponentType.BUTTON)
-                callback(row)
+            for callback in super_cls._static_fields:
+                if callback not in memo:
+                    memo.add(callback)
+                    callback(cls)
+
+        for _, attr in inspect.getmembers(cls):
+            if isinstance(attr, _ComponentDescriptor) and attr.add not in memo:
+                cls._static_fields.append(attr.add)
+                attr.add(cls)
+                memo.add(attr.add)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2898,6 +3497,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add an interactive button to all subclasses and instances of this action column class.
 
@@ -2933,11 +3533,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(row: ActionRowExecutor, /) -> None:
-            row.add_button(style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled)
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(cls._all_static_rows, is_button=True).add_button(
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_button(
+                    style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+                )
+            )
 
-        _add_element(_append_row(cls._all_static_rows, is_button=True))
-        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
         return cls
 
     @classmethod
@@ -3031,6 +3637,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a link button to all subclasses and instances of this action column class.
 
@@ -3062,11 +3669,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(row: ActionRowExecutor, /) -> None:
-            row.add_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+        _append_row(cls._all_static_rows, is_button=True).add_link_button(
+            url, emoji=emoji, label=label, is_disabled=is_disabled
+        )
 
-        _add_element(_append_row(cls._all_static_rows, is_button=True))
-        cls._static_fields.append((hikari.ComponentType.BUTTON, _add_element))
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
+            )
+
         return cls
 
     def add_select_menu(
@@ -3132,6 +3743,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
@@ -3170,19 +3782,30 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(row: ActionRowExecutor, /) -> None:
-            row.add_select_menu(
-                callback,
-                type_,
-                custom_id=custom_id,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(cls._all_static_rows).add_select_menu(
+            callback,
+            type_,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_select_menu(
+                    callback,
+                    type_,
+                    custom_id=custom_id,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
 
-        _add_element(_append_row(cls._all_static_rows))
-        cls._static_fields.append((hikari.ComponentType(type_), _add_element))
         return cls
 
     @classmethod
@@ -3306,6 +3929,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> type[Self]:
         """Add a channel select menu to all subclasses and instances of this action column class.
 
@@ -3340,19 +3964,30 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(row: ActionRowExecutor, /) -> None:
-            row.add_channel_select(
-                callback,
-                custom_id=custom_id,
-                channel_types=channel_types,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(cls._all_static_rows).add_channel_select(
+            callback,
+            custom_id=custom_id,
+            channel_types=channel_types,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_channel_select(
+                    callback,
+                    custom_id=custom_id,
+                    channel_types=channel_types,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
 
-        _add_element(_append_row(cls._all_static_rows))
-        cls._static_fields.append((hikari.ComponentType.CHANNEL_SELECT_MENU, _add_element))
         return cls
 
     @classmethod
@@ -3417,12 +4052,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         /,
         *,
         custom_id: typing.Optional[str] = None,
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
-        """Add a channel select menu to this action column.
+        """Add a text select menu to this action column.
 
         Parameters
         ----------
@@ -3430,6 +4066,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+        options
+            The text select's options.
+
+            These can also be added by calling
+            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option].
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -3453,6 +4094,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return _append_row(self._rows).add_text_select(
             callback,
             custom_id=custom_id,
+            options=options,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
@@ -3466,12 +4108,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         /,
         *,
         custom_id: typing.Optional[str] = None,
+        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
+        _magic: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
-        """Add a channel select menu to all subclasses and instances of this action column class.
+        """Add a text select menu to all subclasses and instances of this action column class.
 
         Parameters
         ----------
@@ -3479,6 +4123,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+        options
+            The text select's options.
+
+            These can also be added by calling
+            [TextSelectMenuBuilder.add_option][hikari.api.special_endpoints.TextSelectMenuBuilder.add_option].
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -3508,18 +4157,30 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        def _add_element(row: ActionRowExecutor, /) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
-            return row.add_text_select(
-                callback,
-                custom_id=custom_id,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
+        custom_id = custom_id or _internal.random_custom_id()
+        select = _append_row(cls._all_static_rows).add_text_select(
+            callback,
+            custom_id=custom_id,
+            options=options,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+        if not _magic:
+            cls._static_fields.append(
+                lambda executor: executor.add_static_text_select(
+                    callback,
+                    custom_id=custom_id,
+                    options=options,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                )
             )
 
-        select = _add_element(_append_row(cls._all_static_rows))
-        cls._static_fields.append((hikari.ComponentType.TEXT_SELECT_MENU, _add_element))
         return select
 
 
@@ -3570,7 +4231,7 @@ def with_static_button(
 
     Returns
     -------
-    type[Self]
+    type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
     return lambda executor: executor.add_static_button(
@@ -3604,7 +4265,7 @@ def with_static_link_button(
 
     Returns
     -------
-    type[Self]
+    type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
     return lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
@@ -3646,7 +4307,7 @@ def with_static_select_menu(
 
     Returns
     -------
-    type[Self]
+    type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
     return lambda executor: executor.add_static_select_menu(
@@ -3694,7 +4355,7 @@ def with_static_channel_select(
 
     Returns
     -------
-    type[Self]
+    type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
     return lambda executor: executor.add_static_channel_select(
@@ -3708,7 +4369,55 @@ def with_static_channel_select(
     )
 
 
-# TODO: with_static_text_select
+def with_static_text_select(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Add a static text select menu to the decorated action column class.
+
+    Parameters
+    ----------
+    callback
+        Callback which is called when this select menu is used.
+    custom_id
+        The select menu's custom ID.
+    options
+        The text select's options.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Returns
+    -------
+    type[tanjun.components.ActionColumnExecutor]
+        The decorated action column class.
+    """
+
+    def decorator(executor: type[_ActionColumnExecutorT], /) -> type[_ActionColumnExecutorT]:
+        executor.add_static_text_select(
+            callback,
+            custom_id=custom_id,
+            options=options,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+        return executor
+
+    return decorator
 
 
 class ComponentPaginator(ActionRowExecutor):
@@ -4154,6 +4863,6 @@ class ComponentPaginator(ActionRowExecutor):
             await _noop(ctx)
 
 
-def _noop(ctx: ComponentContext, /) -> collections.Coroutine[typing.Any, typing.Any, None]:
+def _noop(ctx: ComponentContext, /) -> _CoroT:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)

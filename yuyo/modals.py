@@ -104,7 +104,7 @@ class _NoDefaultEnum(enum.Enum):
     VALUE = object()
 
 
-NO_DEFAULT = _NoDefaultEnum.VALUE
+NO_DEFAULT: NoDefault = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
 
 NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
@@ -654,7 +654,7 @@ class ModalClient:
             if entry[0].increment_uses():
                 del self._modals[interaction.custom_id]
 
-            future = asyncio.Future()
+            future: asyncio.Future[_ModalResponseT] = asyncio.Future()
             self._add_task(asyncio.create_task(self._execute_modal(entry[1], interaction, future=future)))
             return await future
 
@@ -663,7 +663,7 @@ class ModalClient:
             if entry[0].increment_uses():
                 del self._prefix_ids[prefix]
 
-            future: asyncio.Future[_ModalResponseT] = asyncio.Future()
+            future = asyncio.Future()
             self._add_task(asyncio.create_task(self._execute_prefix_modal(entry[1], interaction, future=future)))
             return await future
 
