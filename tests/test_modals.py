@@ -446,7 +446,7 @@ class TestModal:
         assert component.style is hikari.TextInputStyle.SHORT
         assert component.placeholder is hikari.UNDEFINED
         assert component.value is hikari.UNDEFINED
-        assert component.required is True
+        assert component.is_required is True
         assert component.min_length == 0
         assert component.max_length == 4000
 
