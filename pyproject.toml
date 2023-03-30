@@ -211,3 +211,4 @@ require-superclass = true
 require-subclass = true
 exclude-classes = """.*(Proto|Meta)|yuyo.modals:ModalOptions"""
 exclude-modules = "yuyo._internal.vendor"
+filterwarnings = ["error:DeprecationWarning"]
