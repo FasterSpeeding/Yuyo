@@ -496,13 +496,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yuyo.modals.NoDefault" class="md-nav__link">
-    NoDefault
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#yuyo.modals.AbstractModal" class="md-nav__link">
     AbstractModal
   </a>
@@ -600,6 +593,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalClient.deregister_modal" class="md-nav__link">
+    deregister_modal()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalClient.from_gateway_bot" class="md-nav__link">
     from_gateway_bot()
   </a>
@@ -649,15 +649,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.modals.ModalClient.remove_modal" class="md-nav__link">
-    remove_modal()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.modals.ModalClient.set_modal" class="md-nav__link">
-    set_modal()
+  <a href="#yuyo.modals.ModalClient.register_modal" class="md-nav__link">
+    register_modal()
   </a>
   
 </li>
@@ -890,13 +883,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yuyo.modals.NoDefault" class="md-nav__link">
-    NoDefault
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#yuyo.modals.AbstractModal" class="md-nav__link">
     AbstractModal
   </a>
@@ -994,6 +980,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalClient.deregister_modal" class="md-nav__link">
+    deregister_modal()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalClient.from_gateway_bot" class="md-nav__link">
     from_gateway_bot()
   </a>
@@ -1043,15 +1036,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#yuyo.modals.ModalClient.remove_modal" class="md-nav__link">
-    remove_modal()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yuyo.modals.ModalClient.set_modal" class="md-nav__link">
-    set_modal()
+  <a href="#yuyo.modals.ModalClient.register_modal" class="md-nav__link">
+    register_modal()
   </a>
   
 </li>
@@ -1269,35 +1255,12 @@
   </span>
 
 <a href="#yuyo.modals.NO_DEFAULT" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">NO_DEFAULT</span><span class="p">:</span> <span class="n">NoDefault</span> <span class="o">=</span> <span class="n">_NoDefaultEnum</span><span class="o">.</span><span class="n">VALUE</span>
+<div class="highlight"><pre><span></span><code><span class="n">NO_DEFAULT</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="n">_NoDefaultEnum</span><span class="o">.</span><span class="n">VALUE</span><span class="p">]</span> <span class="o">=</span> <span class="n">_NoDefaultEnum</span><span class="o">.</span><span class="n">VALUE</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
       <p>Singleton used to signify when a field has no default.</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h2 id="yuyo.modals.NoDefault" class="doc doc-heading">
-        <span class="doc doc-object-name doc-attribute-name">NoDefault</span>
-
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
-  </span>
-
-<a href="#yuyo.modals.NoDefault" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">NoDefault</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="n">_NoDefaultEnum</span><span class="o">.</span><span class="n">VALUE</span><span class="p">]</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Type of <a class="autorefs autorefs-internal" href="#yuyo.modals.NO_DEFAULT">yuyo.modals.NO_DEFAULT</a>.</p>
   </div>
 
 </div>
@@ -1344,8 +1307,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1760,7 +1723,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a></code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -2003,7 +1966,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a></code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -2318,6 +2281,91 @@ from if applicable.</p>
   <div class="doc doc-contents ">
   
       <p>Close the modal client.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.modals.ModalClient.deregister_modal" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">deregister_modal</span>
+
+
+<a href="#yuyo.modals.ModalClient.deregister_modal" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">deregister_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove the modal set for a custom ID.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>custom_id</code></td>
+          <td class="doc-param-details">
+            <p>The custom_id to unset the modal for.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><span title="typing_extensions.Self">Self</span></code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The modal client to allow chaining.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#KeyError">KeyError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the custom_id is not registered.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
@@ -2821,97 +2869,12 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
 
 
-<h3 id="yuyo.modals.ModalClient.remove_modal" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">remove_modal</span>
+<h3 id="yuyo.modals.ModalClient.register_modal" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">register_modal</span>
 
 
-<a href="#yuyo.modals.ModalClient.remove_modal" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">remove_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">)</span>
-</code></pre></div>
-
-  <div class="doc doc-contents ">
-  
-      <p>Remove the modal set for a custom ID.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>custom_id</code></td>
-          <td class="doc-param-details">
-            <p>The custom_id to unset the modal for.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><span title="typing_extensions.Self">Self</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The modal client to allow chaining.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#KeyError">KeyError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>If the custom_id is not registered.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="yuyo.modals.ModalClient.set_modal" class="doc doc-heading">
-        <span class="doc doc-object-name doc-function-name">set_modal</span>
-
-
-<a href="#yuyo.modals.ModalClient.set_modal" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">set_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">modal</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
+<a href="#yuyo.modals.ModalClient.register_modal" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">register_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">modal</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2979,11 +2942,11 @@ prefix and is lower priority than normal matching.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-internal" title="yuyo.timeouts" href="../timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="../timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a>, None, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-internal" title="yuyo.timeouts" href="../timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="../timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a>, None, <span title="yuyo._internal">_internal</span>.<span title="yuyo._internal.NoDefault">NoDefault</span>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>NO_DEFAULT</code>
+                    <code>_internal.NO_DEFAULT</code>
                 </span>
             </p>
           </td>
@@ -4067,7 +4030,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<span title="yuyo.modals._T">_T</span>, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<span title="yuyo.modals._T">_T</span>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3.9/library/typing.html#typing.Literal">Literal</a>[<span title="yuyo.modals._NoDefaultEnum">_NoDefaultEnum</span>.<span title="yuyo.modals._NoDefaultEnum.VALUE">VALUE</span>]]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -4271,7 +4234,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a></code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
@@ -4492,7 +4455,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>, <a class="autorefs autorefs-internal" title="yuyo.modals.NoDefault" href="#yuyo.modals.NoDefault">NoDefault</a>]</code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a></code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
