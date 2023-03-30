@@ -3731,8 +3731,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        # ctx.set_ephemeral_default(self._ephem)
         callback = self._callbacks[ctx.interaction.custom_id.split(":", 1)[0]]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
