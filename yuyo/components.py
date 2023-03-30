@@ -2354,7 +2354,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._id_to_callback.keys()
+        return self._id_to_callback
 
     @property
     @typing_extensions.deprecated("Component executors no-longer track their own expiration")

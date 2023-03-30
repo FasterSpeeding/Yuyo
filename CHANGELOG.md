@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message components have support for loading components from class attributes again.
   This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
 - [yuyo.components.SingleExecutor][] and [yuyo.components.as_single_executor][]
-  to allow registering a component executor for a single callback.
-- New component handling system to component client which uses the timeouts classes in
-  [yuyo.timeouts][] to handle timeouts (rather than the component executors) and makes
-  binding to a specific message optional, allowing component executors to be used statelessly.
+  to allow registering a component executor with a single callback.
+- New component handling system to the component client which allows component executors to be
+  used statelessly. This moves to using the classes in [yuyo.timeouts][] to handle timeouts
+  (rather than the component executors) and makes binding to a specific message optional.
   This consists of [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
 
