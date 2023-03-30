@@ -471,11 +471,11 @@ class TestComponentClient:
 
 
 class TestActionRowExecutor:
-    def test_text_select_builder_uses_option_count_when_max_values_too_high(self):
+    def test_text_menu_builder_uses_option_count_when_max_values_too_high(self):
         action_row = yuyo.components.ActionRowExecutor()
 
         (
-            action_row.add_text_select(mock.AsyncMock(), max_values=20)
+            action_row.add_text_menu(mock.AsyncMock(), max_values=20)
             .add_option("meow", "blah")
             .add_option("arrest", "me")
             .add_option("with", "your")
@@ -484,11 +484,11 @@ class TestActionRowExecutor:
 
         assert action_row.build()["components"][0]["max_values"] == 4
 
-    def test_text_select_builder_uses_max_values_when_enough_options(self):
+    def test_text_menu_builder_uses_max_values_when_enough_options(self):
         action_row = yuyo.components.ActionRowExecutor()
 
         (
-            action_row.add_text_select(mock.AsyncMock(), max_values=3)
+            action_row.add_text_menu(mock.AsyncMock(), max_values=3)
             .add_option("meow", "blah")
             .add_option("arrest", "me")
             .add_option("with", "your")
@@ -500,11 +500,11 @@ class TestActionRowExecutor:
 
 
 class TestActionColumnExecutor:
-    def test_with_button_descriptor(self):
+    def test_with_interactive_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_button(
+            @yuyo.components.as_interactive_button(
                 hikari.ButtonStyle.DANGER, label="nyaa", emoji="eeper", is_disabled=True, custom_id="meow"
             )
             async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
@@ -522,11 +522,11 @@ class TestActionColumnExecutor:
         assert component.label == "nyaa"
         assert component.is_disabled is True
 
-    def test_with_button_descriptor_with_defaults(self):
+    def test_with_interactive_button_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_button(hikari.ButtonStyle.PRIMARY)
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
             async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
@@ -625,11 +625,11 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    def test_with_channel_select_descriptor(self):
+    def test_with_channel_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_channel_select(
+            @yuyo.components.as_channel_menu(
                 channel_types=[hikari.PrivateChannel, hikari.ChannelType.GUILD_NEWS],
                 is_disabled=True,
                 placeholder="me",
@@ -655,11 +655,11 @@ class TestActionColumnExecutor:
         assert component.min_values == 2
         assert component.max_values == 5
 
-    def test_with_channel_select_descriptor_with_defaults(self):
+    def test_with_channel_menu_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_channel_select
+            @yuyo.components.as_channel_menu
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
@@ -675,11 +675,11 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    def test_with_text_select_descriptor(self):
+    def test_with_text_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
-            @yuyo.components.as_text_select(
+            @yuyo.components.as_text_menu(
                 options=[
                     hikari.impl.SelectOptionBuilder(label="echo", value="zulu"),
                     hikari.impl.SelectOptionBuilder(
@@ -709,14 +709,14 @@ class TestActionColumnExecutor:
         assert component.min_values == 11
         assert component.max_values == 15
 
-    def test_with_text_select_descriptor_with_defaults(self):
+    def test_with_text_menu_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
             @yuyo.components.with_option("lab", "man", description="last", emoji=123321, is_default=False)
             @yuyo.components.with_option("label", "value")
             @yuyo.components.with_option("aaa", "bbb", description="descript", emoji="em", is_default=True)
-            @yuyo.components.as_text_select
+            @yuyo.components.as_text_menu
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
 
