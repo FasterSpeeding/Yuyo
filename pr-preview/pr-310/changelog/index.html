@@ -2173,10 +2173,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Message components have support for loading components from class attributes again.
   This time this support has been implemented through <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.SingleExecutor">yuyo.components.SingleExecutor</a> and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.as_single_executor">yuyo.components.as_single_executor</a>
-  to allow registering a component executor for a single callback.</li>
-<li>New component handling system to component client which uses the timeouts classes in
-  <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts">yuyo.timeouts</a> to handle timeouts (rather than the component executors) and makes
-  binding to a specific message optional, allowing component executors to be used statelessly.
+  to allow registering a component executor with a single callback.</li>
+<li>New component handling system to the component client which allows component executors to be
+  used statelessly. This moves to using the classes in <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts">yuyo.timeouts</a> to handle timeouts
+  (rather than the component executors) and makes binding to a specific message optional.
   This consists of <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">ComponentClient.register_executor</a>
   and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_executor">ComponentClient.deregister_executor</a>.</li>
 </ul>
