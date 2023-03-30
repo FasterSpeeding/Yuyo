@@ -1304,9 +1304,7 @@ def _make_text_input(
     if custom_id is None:
         custom_id = _internal.random_custom_id()
 
-    # TODO: TextInputBuilder is inconsistent.
     component = hikari.impl.TextInputBuilder(
-        container=NotImplemented,
         label=label,
         custom_id=custom_id,
         style=style,

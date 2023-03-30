@@ -326,7 +326,7 @@ class TestModal:
         assert component.style is hikari.TextInputStyle.PARAGRAPH
         assert component.placeholder == "place deez"
         assert component.value == "boom"
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
         assert component.min_length == 43
         assert component.max_length == 222
 
@@ -355,7 +355,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value == default
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
@@ -377,7 +377,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value is hikari.UNDEFINED
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
@@ -400,7 +400,7 @@ class TestModal:
         component = row.components[0]
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.value is hikari.UNDEFINED
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
 
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
@@ -515,7 +515,7 @@ class TestModal:
         assert component.style is hikari.TextInputStyle.SHORT
         assert component.placeholder is hikari.UNDEFINED
         assert component.value is hikari.UNDEFINED
-        assert component.required is True  # TODO: rename to is_required
+        assert component.is_required is True
         assert component.min_length == 0
         assert component.max_length == 4000
 
@@ -528,7 +528,7 @@ class TestModal:
         assert component.style is hikari.TextInputStyle.PARAGRAPH
         assert component.placeholder == "e"
         assert component.value == "aaaaa"
-        assert component.required is False  # TODO: rename to is_required
+        assert component.is_required is False
         assert component.min_length == 4
         assert component.max_length == 421
 
