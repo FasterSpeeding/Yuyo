@@ -51,6 +51,7 @@ __all__: list[str] = [
 
 import abc
 import asyncio
+import copy
 import datetime
 import inspect
 import itertools
@@ -58,6 +59,7 @@ import logging
 import os
 import types
 import typing
+import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -102,11 +104,12 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _to_timeout(value: typing.Optional[datetime.timedelta], /) -> timeouts.AbstractTimeout:
-    if value is None:
-        return timeouts.NeverTimeout()
+def _to_prefix_id(custom_id: str) -> str:
+    return custom_id.split(":", 1)[0]
 
-    return timeouts.SlidingTimeout(value, max_uses=-1)
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
@@ -1594,6 +1597,18 @@ def _to_list(
     return hikari.UNDEFINED, other
 
 
+def _gc_executors(executors: dict[typing.Any, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]]) -> None:
+    for key, (timeout, _) in tuple(executors.items()):
+        if timeout.has_expired:
+            try:
+                del executors[key]
+                # This may slow this gc task down but the more we yield the better.
+                # await executor.close()  # TODO: this
+
+            except KeyError:
+                pass
+
+
 class ExecutorClosed(Exception):
     """Error used to indicate that an executor is now closed during execution."""
 
@@ -1603,11 +1618,11 @@ class ComponentClient:
 
     __slots__ = (
         "_alluka",
-        "_constant_ids",
         "_event_manager",
         "_executors",
         "_gc_task",
-        "_prefix_ids",
+        "_message_executors",
+        "_prefix_executors",
         "_server",
         "_tasks",
     )
@@ -1659,11 +1674,18 @@ class ComponentClient:
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
-        self._constant_ids: dict[str, CallbackSig] = {}
+
+        self._executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
+        """Dict of custom IDs to executors."""
+
         self._event_manager = event_manager
-        self._executors: dict[int, AbstractComponentExecutor] = {}
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
-        self._prefix_ids: dict[str, CallbackSig] = {}
+        self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
+        """Dict of message IDs to executors."""
+
+        self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
+        """Dict of prefix IDs to executors."""
+
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
 
@@ -1813,14 +1835,9 @@ class ComponentClient:
 
     async def _gc(self) -> None:
         while True:
-            for message_id, executor in tuple(self._executors.items()):
-                if not executor.has_expired or message_id not in self._executors:
-                    continue
-
-                del self._executors[message_id]
-                # This may slow this gc task down but the more we yield the better.
-                # await executor.close()  # TODO: this
-
+            _gc_executors(self._executors)
+            _gc_executors(self._message_executors)
+            _gc_executors(self._prefix_executors)
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
@@ -1837,6 +1854,8 @@ class ComponentClient:
             self._event_manager.unsubscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
         self._executors = {}
+        self._message_executors = {}
+        self._prefix_executors = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
@@ -1852,25 +1871,34 @@ class ComponentClient:
         if self._event_manager:
             self._event_manager.subscribe(hikari.InteractionCreateEvent, self.on_gateway_event)
 
-    def _match_constant_id(self, custom_id: str) -> typing.Optional[CallbackSig]:
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(
-            next(filter(custom_id.startswith, self._prefix_ids.keys()), "")
-        )
-
-    async def _execute_executor(
+    async def _execute(
         self,
-        executor: AbstractComponentExecutor,
+        remove_from: dict[_T, typing.Any],
+        key: _T,
+        entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
-    ) -> None:
+    ) -> bool:
+        timeout, executor = entry
+        if timeout.has_expired:
+            del remove_from[key]
+            if future:
+                future.set_exception(ExecutorClosed)
+
+            return False
+
         ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+        if timeout.increment_uses():
+            del remove_from[key]
 
         try:
             await executor.execute(ctx)
         except ExecutorClosed:
-            self._executors.pop(interaction.message.id, None)
+            remove_from.pop(key, None)
+
+        return True
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.
@@ -1883,17 +1911,42 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        if constant_callback := self._match_constant_id(event.interaction.custom_id):
-            ctx = ComponentContext(self, event.interaction, self._add_task, ephemeral_default=False)
-            await self._alluka.call_with_async_di(constant_callback, ctx)
+        if entry := self._message_executors.get(event.interaction.message.id):
+            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
+            if ran:
+                return
 
-        elif executor := self._executors.get(event.interaction.message.id):
-            await self._execute_executor(executor, event.interaction)
+            del self._message_executors[event.interaction.message.id]
 
-        else:
-            await event.interaction.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
-            )
+        if entry := self._executors.get(event.interaction.custom_id):
+            ran = await self._execute(self._executors, event.interaction.custom_id, entry, event.interaction)
+            if ran:
+                return
+
+        prefix_id = _to_prefix_id(event.interaction.custom_id)
+        if entry := self._prefix_executors.get(prefix_id):
+            ran = await self._execute(self._prefix_executors, prefix_id, entry, event.interaction)
+            if ran:
+                return
+
+        await event.interaction.create_initial_response(
+            hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
+        )
+
+    async def _execute_task(
+        self,
+        remove_from: dict[_T, typing.Any],
+        key: _T,
+        entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
+        interaction: hikari.ComponentInteraction,
+        /,
+    ) -> typing.Optional[_ComponentResponseT]:
+        future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
+        self._add_task(asyncio.create_task(self._execute(remove_from, key, entry, interaction, future=future)))
+        try:
+            return await future
+        except ExecutorClosed:
+            return None  # MyPy
 
     async def on_rest_request(self, interaction: hikari.ComponentInteraction, /) -> _ComponentResponseT:
         """Process a component interaction REST request.
@@ -1906,21 +1959,23 @@ class ComponentClient:
         Returns
         -------
         ResponseT
-            The REST re sponse.
+            The REST response.
         """
-        if constant_callback := self._match_constant_id(interaction.custom_id):
-            future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-            ctx = ComponentContext(self, interaction, self._add_task, ephemeral_default=False, response_future=future)
-            self._add_task(asyncio.create_task(self._alluka.call_with_async_di(constant_callback, ctx)))
-            return await future
+        if entry := self._message_executors.get(interaction.message.id):
+            result = await self._execute_task(self._message_executors, interaction.message.id, entry, interaction)
+            if result:
+                return result
 
-        if executor := self._executors.get(interaction.message.id):
-            if not executor.has_expired:
-                future = asyncio.Future()
-                self._add_task(asyncio.create_task(self._execute_executor(executor, interaction, future=future)))
-                return await future
+        if entry := self._executors.get(interaction.custom_id):
+            result = await self._execute_task(self._executors, interaction.custom_id, entry, interaction)
+            if result:
+                return result
 
-            del self._executors[interaction.message.id]
+        prefix_id = _to_prefix_id(interaction.custom_id)
+        if entry := self._prefix_executors.get(prefix_id):
+            result = await self._execute_task(self._prefix_executors, prefix_id, entry, interaction)
+            if result:
+                return result
 
         return (
             interaction.build_response(hikari.ResponseType.MESSAGE_CREATE)
@@ -1928,149 +1983,183 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
-        """Add a constant "custom_id" callback.
+        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
-        These are callbacks which'll always be called for a specific custom_id
-        while taking priority over executors.
+        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
+        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        (making sure to pass `timeout=None`).
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to register the callback for.
-        callback
-            The callback to register.
+        Examples
+        --------
+        ```py
+        @yuyo.components.as_single_executor("custom_id")
+        async def callback(ctx: yuyo.components.Context) -> None:
+            await ctx.respond("hi")
 
-            This should take a single argument of type [yuyo.components.ComponentContext][],
-            be asynchronous and return [None][].
-        prefix_match
-            Whether the custom_id should be treated as a prefix match.
-
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
-
-        Returns
-        -------
-        Self
-            The component client to allow chaining.
-
-        Raises
-        ------
-        ValueError
-            If the custom_id is already registered.
+        (
+            yuyo.components.Client()
+            .register_executor(callback, timeout=None)
+        )
+        ```
         """
-        if custom_id in self._prefix_ids:
-            raise ValueError(f"{custom_id!r} is already registered as a prefix match")
-
-        if custom_id in self._constant_ids:
+        if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
             raise ValueError(f"{custom_id!r} is already registered as a constant id")
 
-        if prefix_match:
-            self._prefix_ids[custom_id] = callback
-            return self
+        return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
-        self._constant_ids[custom_id] = callback
-        return self
-
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
-        """Get a set constant "custom_id" callback.
+        """Deprecated method for getting the constant callback for a custom ID.
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to get the callback for.
-
-        Returns
-        -------
-        CallbackSig | None
-            The callback for the custom_id, or [None][] if it doesn't exist.
+        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        return self._constant_ids.get(custom_id) or self._prefix_ids.get(custom_id)
+        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
 
+        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
+
+        return None
+
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def remove_constant_id(self, custom_id: str, /) -> Self:
-        """Remove a constant "custom_id" callback.
+        """Deprecated method for removing a constant callback by custom ID.
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to remove the callback for.
-
-        Returns
-        -------
-        Self
-            The component client to allow chaining.
-
-        Raises
-        ------
-        KeyError
-            If the custom_id is not registered.
+        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        try:
-            del self._constant_ids[custom_id]
-        except KeyError:
-            del self._prefix_ids[custom_id]
+        removed = False
+        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            removed = True
+            del self._prefix_executors[custom_id]
+
+        elif (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
+            removed = True
+            del self._executors[custom_id]
+
+        if not removed:
+            raise KeyError(custom_id)
 
         return self
 
+    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def with_constant_id(
         self, custom_id: str, /, *, prefix_match: bool = False
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Add a constant "custom_id" callback through a decorator call.
+        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
-        These are callbacks which'll always be called for a specific custom_id
-        while taking priority over executors.
+        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
+        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        (making sure to pass `timeout=None`).
 
-        Parameters
-        ----------
-        custom_id
-            The custom_id to register the callback for.
-        prefix_match
-            Whether the custom_id should be treated as a prefix match.
+        Examples
+        --------
+        ```py
+        @yuyo.components.as_single_executor("custom_id")
+        async def callback(ctx: yuyo.components.Context) -> None:
+            await ctx.respond("hi")
 
-            This allows for further state to be held in the custom id after the
-            prefix and is lower priority than normal custom id match.
-
-        Returns
-        -------
-        collections.abc.Callable[[CallbackSig], CallbackSig]
-            A decorator to register the callback.
-
-        Raises
-        ------
-        KeyError
-            If the custom_id is already registered.
+        (
+            yuyo.components.Client()
+            .register_executor(callback, timeout=None)
+        )
+        ```
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.set_constant_id(custom_id, callback, prefix_match=prefix_match)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+                self.set_constant_id(  # pyright: ignore [ reportDeprecated ]
+                    custom_id, callback, prefix_match=prefix_match
+                )
+
             return callback
 
         return decorator
 
+    @typing_extensions.deprecated("Use `.register_executor` with the message kwarg")
     def set_executor(
         self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
     ) -> Self:
-        """Set the component executor for a message.
+        """Deprecated method for setting the component executor for a message.
+
+        Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        with the `message` kwarg instead.
+        """
+        if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
+            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor.timeout
+
+        else:
+            timeout = timeouts.SlidingTimeout(executor.timeout)
+
+        return self.register_executor(executor, message=message, timeout=timeout)
+
+    def register_executor(
+        self,
+        executor: AbstractComponentExecutor,
+        /,
+        *,
+        message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None,
+        prefix_match: bool = False,
+        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
+    ) -> Self:
+        """Add an executor to this client.
 
         Parameters
         ----------
-        message
-            The message to set the executor for.
         executor
-            The executor to set.
+            The executor to register.
+        message
+            The message to register this executor for.
 
-            This will be called for every component interaction for the message
-            unless the component's custom_id is registered as a constant id callback.
+            If this is left as [None][] then this executor will be registered
+            globally for its custom IDs.
+        prefix_match
+            Whether this component's custom IDs should be prefix checked.
+
+            If [True][] then the component's custom IDs will be matched against
+            `component.split(":")[0]`.
+        timeout : typing.Optional[yuyo.timeouts.AbstractTimeout]
+            The executor's timeout.
+
+            This defaults to a 30 second sliding timeout.
 
         Returns
         -------
         Self
             The component client to allow chaining.
         """
-        self._executors[int(message)] = executor
+        if timeout is _internal.NO_DEFAULT:
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
+
+        elif timeout is None:
+            timeout = timeouts.NeverTimeout()
+
+        entry = (timeout, executor)
+
+        if message:
+            self._message_executors[hikari.Snowflake(message)] = entry
+
+        elif prefix_match:
+            for custom_id in executor.custom_ids:
+                self._prefix_executors[custom_id] = entry
+
+        else:
+            for custom_id in executor.custom_ids:
+                self._executors[custom_id] = entry
+
         return self
 
+    @typing_extensions.deprecated("Use `.get_executor_for_message`")
     def get_executor(
+        self, message: hikari.SnowflakeishOr[hikari.Message], /
+    ) -> typing.Optional[AbstractComponentExecutor]:
+        """Deprecated alias of [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message]."""  # noqa: E501
+        return self.get_executor_for_message(message)
+
+    def get_executor_for_message(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractComponentExecutor]:
         """Get the component executor set for a message.
@@ -2085,10 +2174,40 @@ class ComponentClient:
         yuyo.components.AbstractComponentExecutor | None
             The executor set for the message or [None][] if none is set.
         """
-        return self._executors.get(int(message))
+        if entry := self._message_executors.get(hikari.Snowflake(message)):
+            return entry[1]
 
+        return None  # MyPy
+
+    def deregister_executor(self, executor: AbstractComponentExecutor, /) -> Self:
+        """Remove a component executor by its custom IDs.
+
+        Parameters
+        ----------
+        executor
+            The executor to remove.
+
+        Returns
+        -------
+        Self
+            The component client to allow chaining.
+        """
+        for custom_id in executor.custom_ids:
+            if (entry := self._executors.get(custom_id)) and entry[1] == executor:
+                del self._executors[custom_id]
+
+            if (entry := self._prefix_executors.get(custom_id)) and entry[1] == executor:
+                del self._prefix_executors[custom_id]
+
+        return self
+
+    @typing_extensions.deprecated("Use `.deregister_message`")
     def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
-        """Remove the component executor for a message.
+        """Deprecated alias for [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message]."""
+        return self.deregister_message(message)
+
+    def deregister_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
+        """Remove a component executor by its message.
 
         Parameters
         ----------
@@ -2100,7 +2219,7 @@ class ComponentClient:
         Self
             The component client to allow chaining.
         """
-        self._executors.pop(int(message))
+        self._message_executors.pop(hikari.Snowflake(message))
         return self
 
 
@@ -2119,9 +2238,14 @@ class AbstractComponentExecutor(abc.ABC):
         """Collection of the custom IDs this executor is listening for."""
 
     @property
-    @abc.abstractmethod
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def has_expired(self) -> bool:
-        """Whether this executor has ended."""
+        return False
+
+    @property
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, None, _internal.NoDefault]:
+        return _internal.NO_DEFAULT
 
     @abc.abstractmethod
     async def execute(self, ctx: ComponentContext, /) -> None:
@@ -2139,16 +2263,77 @@ class AbstractComponentExecutor(abc.ABC):
         """
 
 
+class SingleExecutor(AbstractComponentExecutor):
+    """Component executor with a single callback."""
+
+    __slots__ = ("_callback", "_custom_id", "_ephemeral_default")
+
+    def __init__(self, custom_id: str, callback: CallbackSig, /, *, ephemeral_default: bool = False) -> None:
+        """Initialise an executor with a single callback.
+
+        Parameters
+        ----------
+        custom_id
+            The custom ID this executor is triggered for.
+        callback
+            The executor's  callback.
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        """
+        self._callback = callback
+        self._custom_id = custom_id
+        self._ephemeral_default = ephemeral_default
+
+    @property
+    def custom_ids(self) -> collections.Collection[str]:
+        return (self._custom_id,)
+
+    async def execute(self, ctx: ComponentContext, /) -> None:
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        await ctx.client.alluka.call_with_async_di(self._callback, ctx)
+
+
+def as_single_executor(
+    custom_id: str, /, *, ephemeral_default: bool = False
+) -> collections.Callable[[CallbackSig], SingleExecutor]:
+    """Create an executor with a single callback by decorating the callback.
+
+    Parameters
+    ----------
+    custom_id
+        The custom ID this executor is triggered for.
+    ephemeral_default
+        Whether this executor's responses should default to being ephemeral.
+
+    Returns
+    -------
+    SingleExecutor
+        The created executor.
+    """
+    return lambda callback: SingleExecutor(custom_id, callback, ephemeral_default=ephemeral_default)
+
+
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
-    """Basic implementation of a class used for handling the execution of a message component."""
+    """implementation of a component executor with per-custom ID callbacks."""
 
     __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
+
+    @typing.overload
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def __init__(
+        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(self, *, ephemeral_default: bool = False) -> None:
+        ...
 
     def __init__(
         self,
         *,
         ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise a component executor.
 
@@ -2156,12 +2341,10 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
-        timeout
-            How long this component should last until its marked as timed out.
         """
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
-        self._timeout = _to_timeout(timeout)
+        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
     @property
     def callbacks(self) -> collections.Mapping[str, CallbackSig]:
@@ -2171,12 +2354,12 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._id_to_callback.keys()
+        return self._id_to_callback
 
     @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
+        return self._timeout
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -2218,7 +2401,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         return decorator
 
 
-class WaitForExecutor(AbstractComponentExecutor):
+class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Component executor used to wait for a single component interaction.
 
     Examples
@@ -2239,7 +2422,7 @@ class WaitForExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_raw_timeout", "_timeout")
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
 
     def __init__(
         self,
@@ -2268,9 +2451,8 @@ class WaitForExecutor(AbstractComponentExecutor):
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
-        self._made_at: typing.Optional[datetime.datetime] = None
-        self._raw_timeout = None if timeout is None else timeout.total_seconds()
-        self._timeout = _to_timeout(timeout)
+        self._timeout = timeout
+        self._timeout_at: typing.Optional[datetime.datetime] = None
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -2279,8 +2461,10 @@ class WaitForExecutor(AbstractComponentExecutor):
 
     @property
     def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+        return bool(self._finished or self._timeout_at and _now() > self._timeout_at)
+
+    def increment_uses(self) -> bool:
+        return True
 
     async def wait_for(self) -> ComponentContext:
         """Wait for the next matching interaction.
@@ -2300,10 +2484,10 @@ class WaitForExecutor(AbstractComponentExecutor):
         if self._future:
             raise RuntimeError("This executor is already being waited for")
 
-        self._made_at = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._timeout_at = _now() + self._timeout if self._timeout else None
         self._future = asyncio.get_running_loop().create_future()
         try:
-            return await asyncio.wait_for(self._future, self._raw_timeout)
+            return await asyncio.wait_for(self._future, self._timeout.total_seconds() if self._timeout else None)
 
         finally:
             self._finished = True
@@ -2350,11 +2534,22 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     __slots__ = ("_components", "_stored_type")
 
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
+    def __init__(
+        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(self, *, ephemeral_default: bool = False) -> None:
+        ...
+
     def __init__(
         self,
         *,
         ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise an action row executor.
 
@@ -2362,10 +2557,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
-        timeout
-            How long this component should last until its marked as timed out.
         """
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
         self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -2375,11 +2568,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         return self._components.copy()
 
     @property
+    @typing_extensions.deprecated("This is no-longer used")
     def is_full(self) -> bool:
-        """Whether this row is considered "full".
-
-        For buttons the limit is 5. For other sub-components the limit is 1.
-        """
         if self._components and isinstance(self._components[0], hikari.api.ButtonBuilder):
             return len(self._components) >= 5
 
@@ -2394,6 +2584,63 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             raise ValueError(f"{type_} component type cannot be added to a container which already holds {type_}")
 
         self._stored_type = type_
+        return self
+
+    @typing_extensions.deprecated("Part of deprecating passing this to `ActionColumnRow.add_row`")
+    def add_to_column(self, column: ActionColumnExecutor, /) -> Self:
+        for component in self._components:
+            if isinstance(component, hikari.api.LinkButtonBuilder):
+                column.add_link_button(
+                    component.url, emoji=component.emoji, label=component.label, is_disabled=component.is_disabled
+                )
+
+            elif isinstance(component, hikari.api.InteractiveButtonBuilder):
+                # TODO: specialise return type of def style for Interactive and Link buttons.
+                column.add_button(
+                    typing.cast("hikari.InteractiveButtonTypesT", component.style),
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    emoji=component.emoji,
+                    label=component.label,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.TextSelectMenuBuilder):
+                column.add_text_select(
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    options=component.options,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
+                column.add_channel_select(
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    channel_types=component.channel_types,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.SelectMenuBuilder):
+                column.add_select_menu(
+                    self._id_to_callback[component.custom_id],
+                    component.type,
+                    custom_id=component.custom_id,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            else:
+                raise NotImplementedError(f"No support for {type(component)} components")
+
         return self
 
     def add_component(self, component: hikari.api.ComponentBuilder, /) -> Self:
@@ -2737,9 +2984,14 @@ class _ComponentDescriptor(abc.ABC):
 
     __slots__ = ()
 
+    @property
     @abc.abstractmethod
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        """Add this component to an action column executor."""
+    def custom_id(self) -> str:
+        """Unique identifier of the component."""
+
+    @abc.abstractmethod
+    def to_field(self) -> _StaticField:
+        """Convert this descriptor to a static field."""
 
 
 class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
@@ -2794,15 +3046,22 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         self._label = label
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_button(
-            self._style,
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            emoji=self._emoji,
-            label=self._label,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.InteractiveButtonBuilder(
+                style=self._style,
+                custom_id=self._custom_id,
+                emoji=self._emoji,
+                label=self._label,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
 
@@ -2848,7 +3107,7 @@ def as_button(
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2857,14 +3116,26 @@ class _StaticLinkButton(_ComponentDescriptor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
+        # While Link buttons don't actually have custom IDs, this is currently
+        # necessary to avoid duplication.
+        self._custom_id = _internal.random_custom_id()
         self._url = url
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_link_button(
-            self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled, _magic=True
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            None,
+            hikari.impl.LinkButtonBuilder(
+                url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
+            ),
+            self_bound=True,
         )
 
 
@@ -2923,16 +3194,23 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_select_menu(
-            types.MethodType(self._callback, executor),
-            self._type,
-            custom_id=self._custom_id,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.SelectMenuBuilder(
+                type=self._type,
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
 
@@ -2998,22 +3276,29 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._custom_id = custom_id or _internal.random_custom_id()
-        self._channel_types = channel_types
+        self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_channel_select(
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            channel_types=self._channel_types,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            hikari.impl.ChannelSelectMenuBuilder(
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+                channel_types=self._channel_types,
+            ),
+            self_bound=True,
         )
 
 
@@ -3118,16 +3403,23 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def add(self, executor: type[ActionColumnExecutor], /) -> None:
-        executor.add_static_text_select(
-            types.MethodType(self._callback, executor),
-            custom_id=self._custom_id,
-            options=self._options,
-            placeholder=self._placeholder,
-            min_values=self._min_values,
-            max_values=self._max_values,
-            is_disabled=self._is_disabled,
-            _magic=True,
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    def to_field(self) -> _StaticField:
+        return _StaticField(
+            self._custom_id,
+            self._callback,
+            _TextSelectMenuBuilder(
+                custom_id=self._custom_id,
+                placeholder=self._placeholder,
+                options=self._options.copy(),
+                min_values=self._min_values,
+                max_values=self._max_values,
+                is_disabled=self._is_disabled,
+            ),
+            self_bound=True,
         )
 
     def add_option(
@@ -3142,8 +3434,8 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> Self:
         self._options.append(
             hikari.impl.SelectOptionBuilder(
-                label=label, value=value, description=description, is_default=is_default
-            ).set_emoji(emoji)
+                label=label, value=value, description=description, is_default=is_default, emoji=emoji
+            )
         )
         return self
 
@@ -3268,6 +3560,39 @@ def with_option(
     )
 
 
+class _StaticField:
+    __slots__ = ("builder", "callback", "custom_id", "self_bound")
+
+    def __init__(
+        self,
+        custom_id: str,
+        callback: typing.Optional[CallbackSig],
+        builder: hikari.api.ComponentBuilder,
+        /,
+        *,
+        self_bound: bool = False,
+    ) -> None:
+        self.builder: hikari.api.ComponentBuilder = builder
+        self.callback: typing.Optional[CallbackSig] = callback
+        self.custom_id: str = custom_id
+        self.self_bound: bool = self_bound
+
+
+class _CustomIdProto(typing.Protocol):
+    def set_custom_id(self, value: str, /) -> object:
+        raise NotImplementedError
+
+    @classmethod
+    def __subclasshook__(cls, value: typing.Any) -> bool:
+        try:
+            value.set_custom_id
+
+        except AttributeError:
+            return False
+
+        return True
+
+
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
@@ -3359,68 +3684,108 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_rows", "_timeout")
+    __slots__ = ("_callbacks", "_rows", "_timeout")
 
-    _all_static_rows: typing.ClassVar[list[ActionRowExecutor]] = []
-    """Sequence of all the static rows on this class.
+    _all_static_fields: typing.ClassVar[list[_StaticField]] = []
+    """Atomic sequence of all the static fields on this class.
 
     This includes inherited fields.
     """
 
-    _static_fields: typing.ClassVar[list[collections.Callable[[type[Self]], object]]] = []
+    _static_fields: typing.ClassVar[list[_StaticField]] = []
     """Atomic sequence of the static fields declared on this specific class.
 
     This doesn't include inherited fields.
     """
 
-    def __init__(self, *, timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30)) -> None:
-        """Initialise an action column executor.
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
+    def __init__(
+        self,
+        *,
+        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
+    ) -> None:
+        ...
 
-        Parameters
-        ----------
-        timeout
-            How long this should wait for a matching component interaction until it times-out.
-        """
-        self._rows: list[ActionRowExecutor] = self._all_static_rows.copy()
-        self._timeout = _to_timeout(timeout)
+    @typing.overload
+    def __init__(self, *, postfix_ids: typing.Optional[collections.Mapping[str, str]] = None) -> None:
+        ...
+
+    def __init__(
+        self,
+        *,
+        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
+    ) -> None:
+        """Initialise an action column executor."""
+        self._callbacks: dict[str, CallbackSig] = {}
+        self._rows: list[hikari.api.MessageActionRowBuilder] = []
+        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
+
+        for field in self._all_static_fields.copy():
+            if postfix_ids and (postfix := postfix_ids.get(field.custom_id)):
+                builder = copy.copy(field.builder)
+                assert isinstance(builder, _CustomIdProto)
+                builder.set_custom_id(f"{field.custom_id}:{postfix}")
+
+            else:
+                builder = field.builder
+
+            _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
+
+            if field.callback:
+                self._callbacks[field.custom_id] = (
+                    types.MethodType(field.callback, self) if field.self_bound else field.callback
+                )
 
     def __init_subclass__(cls) -> None:
-        cls._all_static_rows = []
+        cls._all_static_fields = []
         cls._static_fields = []
 
-        memo: set[collections.Callable[[type[ActionColumnExecutor]], object]] = set()
+        memo: set[str] = set()
         # This slice ignores [object, ..., type[Self]] and flips the order.
         for super_cls in cls.mro()[-2:0:-1]:
             if not issubclass(super_cls, ActionColumnExecutor):
                 continue
 
-            for callback in super_cls._static_fields:
-                if callback not in memo:
-                    memo.add(callback)
-                    callback(cls)
+            for field in super_cls._static_fields:
+                if field.custom_id not in memo:
+                    memo.add(field.custom_id)
+                    cls._all_static_fields.append(field)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor) and attr.add not in memo:
-                cls._static_fields.append(attr.add)
-                attr.add(cls)
-                memo.add(attr.add)
+            if isinstance(attr, _ComponentDescriptor) and attr.custom_id not in memo:
+                field = attr.to_field()
+                cls._all_static_fields.append(field)
+                cls._static_fields.append(field)
+                memo.add(field.custom_id)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return list(itertools.chain.from_iterable(row.custom_ids for row in self._rows))
+        return self._callbacks
 
     @property
-    def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return self._timeout.has_expired
+    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
+    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
+        return self._timeout
 
     @property
-    def rows(self) -> collections.Sequence[ActionRowExecutor]:
+    def rows(self) -> collections.Sequence[hikari.api.MessageActionRowBuilder]:
         """The rows in this column."""
         return self._rows.copy()
 
+    @typing.overload
+    @typing_extensions.deprecated("Use ActionRowExecutor.add_to_column")
     def add_row(self, row: ActionRowExecutor, /) -> Self:
+        ...
+
+    @typing.overload
+    def add_row(self, row: hikari.api.MessageActionRowBuilder, /) -> Self:
+        ...
+
+    def add_row(self, row: typing.Union[hikari.api.MessageActionRowBuilder, ActionRowExecutor], /) -> Self:
         """Add an action row executor to this column.
 
         Parameters
@@ -3433,17 +3798,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The column executor to enable chained calls.
         """
-        self._rows.append(row)
+        if isinstance(row, ActionRowExecutor):
+            row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
+
+        else:
+            self._rows.append(row)
+
         return self
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        for executor in self._rows:
-            if ctx.interaction.custom_id in executor.custom_ids:
-                await executor.execute(ctx)
-                return
-
-        raise KeyError("Custom ID not found")  # TODO: do we want to respond here?
+        callback = self._callbacks[ctx.interaction.custom_id.split(":", 1)[0]]
+        await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def add_button(
         self,
@@ -3481,9 +3847,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        _append_row(self._rows, is_button=True).add_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(self._rows, is_button=True).add_interactive_button(
+            style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -3497,7 +3865,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add an interactive button to all subclasses and instances of this action column class.
 
@@ -3534,16 +3901,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows, is_button=True).add_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        field = _StaticField(
+            custom_id,
+            callback,
+            hikari.impl.InteractiveButtonBuilder(
+                style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+            ),
         )
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_button(
-                    style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -3637,7 +4003,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a link button to all subclasses and instances of this action column class.
 
@@ -3669,15 +4034,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        _append_row(cls._all_static_rows, is_button=True).add_link_button(
-            url, emoji=emoji, label=label, is_disabled=is_disabled
+        field = _StaticField(
+            _internal.random_custom_id(),
+            None,
+            hikari.impl.LinkButtonBuilder(url=url, emoji=emoji, label=label, is_disabled=is_disabled),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     def add_select_menu(
@@ -3720,15 +4083,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
+        custom_id = custom_id or _internal.random_custom_id()
         _append_row(self._rows).add_select_menu(
-            callback,
             type_,
-            custom_id=custom_id,
+            custom_id,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -3743,7 +4107,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
@@ -3783,29 +4146,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows).add_select_menu(
+        field = _StaticField(
+            custom_id,
             callback,
-            type_,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
+            hikari.impl.SelectMenuBuilder(
+                type=type_,
+                custom_id=custom_id,
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            ),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_select_menu(
-                    callback,
-                    type_,
-                    custom_id=custom_id,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -3904,15 +4258,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        _append_row(self._rows).add_channel_select(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
+        custom_id = custom_id or _internal.random_custom_id()
+        _append_row(self._rows).add_channel_menu(
+            custom_id,
+            channel_types=_parse_channel_types(*channel_types) if channel_types else [],
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
+        self._callbacks[custom_id] = callback
         return self
 
     @classmethod
@@ -3929,7 +4284,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> type[Self]:
         """Add a channel select menu to all subclasses and instances of this action column class.
 
@@ -3965,29 +4319,20 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        _append_row(cls._all_static_rows).add_channel_select(
+        field = _StaticField(
+            custom_id,
             callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
+            hikari.impl.ChannelSelectMenuBuilder(
+                custom_id=custom_id,
+                channel_types=_parse_channel_types(*channel_types) if channel_types else [],
+                placeholder=placeholder,
+                min_values=min_values,
+                max_values=max_values,
+                is_disabled=is_disabled,
+            ),
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_channel_select(
-                    callback,
-                    custom_id=custom_id,
-                    channel_types=channel_types,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -4091,15 +4436,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        return _append_row(self._rows).add_text_select(
-            callback,
+        custom_id = custom_id or _internal.random_custom_id()
+        menu = hikari.impl.TextSelectMenuBuilder(
             custom_id=custom_id,
-            options=options,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
+            options=options,
         )
+        _append_row(self._rows).add_component(menu)
+        self._callbacks[custom_id] = callback
+        return menu
 
     @classmethod
     def add_static_text_select(
@@ -4113,7 +4461,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-        _magic: bool = False,
     ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
         """Add a text select menu to all subclasses and instances of this action column class.
 
@@ -4158,35 +4505,33 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             raise RuntimeError("Can only add static components to subclasses")
 
         custom_id = custom_id or _internal.random_custom_id()
-        select = _append_row(cls._all_static_rows).add_text_select(
-            callback,
+        component = _TextSelectMenuBuilder(
             custom_id=custom_id,
-            options=options,
+            options=list(options),
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             is_disabled=is_disabled,
         )
-
-        if not _magic:
-            cls._static_fields.append(
-                lambda executor: executor.add_static_text_select(
-                    callback,
-                    custom_id=custom_id,
-                    options=options,
-                    placeholder=placeholder,
-                    min_values=min_values,
-                    max_values=max_values,
-                    is_disabled=is_disabled,
-                )
-            )
-
-        return select
+        field = _StaticField(custom_id, callback, component)
+        cls._all_static_fields.append(field)
+        cls._static_fields.append(field)
+        return component
 
 
-def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) -> ActionRowExecutor:
-    if not rows or rows[-1].is_full:
-        row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
+    components = row.components
+    if components and isinstance(components[0], hikari.api.ButtonBuilder):
+        return len(components) >= 5
+
+    return bool(components)
+
+
+def _append_row(
+    rows: list[hikari.api.MessageActionRowBuilder], /, *, is_button: bool = False
+) -> hikari.api.MessageActionRowBuilder:
+    if not rows or _row_is_full(rows[-1]):
+        row = hikari.impl.MessageActionRowBuilder()
         rows.append(row)
         return row
 
@@ -4194,7 +4539,7 @@ def _append_row(rows: list[ActionRowExecutor], /, *, is_button: bool = False) ->
     if is_button or not rows[-1].components:
         return rows[-1]
 
-    row = ActionRowExecutor(timeout=datetime.timedelta(days=200000))  # TODO: timeout = None
+    row = hikari.impl.MessageActionRowBuilder()
     rows.append(row)
     return row
 
@@ -4428,6 +4773,8 @@ class ComponentPaginator(ActionRowExecutor):
 
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
 
+    @typing.overload
+    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def __init__(
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
@@ -4440,7 +4787,39 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        ephemeral_default: bool = False,
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        ephemeral_default: bool = False,
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise a component paginator.
 
@@ -4466,16 +4845,13 @@ class ComponentPaginator(ActionRowExecutor):
             As of current the only usable emojis are [yuyo.pagination.LEFT_TRIANGLE][],
             [yuyo.pagination.RIGHT_TRIANGLE][], [yuyo.pagination.STOP_SQUARE][],
             [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_TRIANGLE][].
-        timeout
-            The amount of time to wait after the component's last execution or creation
-            until it times out.
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)
+        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: list[pagination.Page] = []
