@@ -309,9 +309,9 @@ class TestComponentClient:
 
     def test_set_constant_id_when_already_present_as_prefix_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id(
+        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
             "trans2", mock_callback, prefix_match=True
-        )  # pyright: ignore [ reportDeprecated ]
+        )
 
         with pytest.raises(ValueError, match="'trans2' is already registered as a constant id"):
             client.set_constant_id("trans2", mock.Mock())  # pyright: ignore [ reportDeprecated ]
@@ -334,9 +334,9 @@ class TestComponentClient:
         assert client.get_constant_id("yuri") is None  # pyright: ignore [ reportDeprecated ]
 
     def test_remove_constant_id_for_prefix_id(self):
-        client = yuyo.ComponentClient().set_constant_id(
+        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
             "yuro", mock.Mock(), prefix_match=True
-        )  # pyright: ignore [ reportDeprecated ]
+        )
 
         result = client.remove_constant_id("yuro")  # pyright: ignore [ reportDeprecated ]
 
@@ -366,9 +366,9 @@ class TestComponentClient:
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
 
-        result = client.with_constant_id("yuru", prefix_match=True)(
+        result = client.with_constant_id("yuru", prefix_match=True)(  # pyright: ignore [ reportDeprecated ]
             mock_callback
-        )  # pyright: ignore [ reportDeprecated ]
+        )
 
         assert result is mock_callback
         assert client.get_constant_id("yuru") is mock_callback  # pyright: ignore [ reportDeprecated ]
@@ -382,9 +382,9 @@ class TestComponentClient:
 
     def test_with_constant_id_when_already_present_as_prefix_id(self):
         mock_callback = mock.Mock()
-        client = yuyo.ComponentClient().set_constant_id(
+        client = yuyo.ComponentClient().set_constant_id(  # pyright: ignore [ reportDeprecated ]
             "trans2", mock_callback, prefix_match=True
-        )  # pyright: ignore [ reportDeprecated ]
+        )
 
         with pytest.raises(ValueError, match="'trans2' is already registered as a constant id"):
             client.with_constant_id("trans2")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
