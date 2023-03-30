@@ -2109,7 +2109,7 @@ class ComponentClient:
 
         Parameters
         ----------
-        executor : AbstractComponentExecutor
+        executor
             The executor to register.
         message
             The message to register this executor for.
@@ -2184,7 +2184,7 @@ class ComponentClient:
 
         Parameters
         ----------
-        executor : AbstractComponentExecutor
+        executor
             The executor to remove.
 
         Returns
@@ -2570,10 +2570,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     @property
     @typing_extensions.deprecated("This is no-longer used")
     def is_full(self) -> bool:
-        """Whether this row is considered "full".
-
-        For buttons the limit is 5. For other sub-components the limit is 1.
-        """
         if self._components and isinstance(self._components[0], hikari.api.ButtonBuilder):
             return len(self._components) >= 5
 

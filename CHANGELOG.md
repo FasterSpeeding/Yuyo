@@ -9,12 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A static timeout implementation.
 - Message components have support for loading components from class attributes again.
   This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
+- [yuyo.components.SingleExecutor][] and [yuyo.components.as_single_executor][]
+  to allow registering a component executor for a single callback.
+- New component handling system to component client which uses the timeouts classes in
+  [yuyo.timeouts][] to handle timeouts (rather than the component executors) and makes
+  binding to a specific message optional, allowing component executors to be used statelessly.
+  This consists of [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+  and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
 - Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
   (only `yuyo.modals.AbstractTimeout` was skipped).
+- [yuyo.components.WaitForExecutor][] now inherits from [yuyo.components.WaitForExecutor][]
+  and should also be passed to `timeout=`.
+- Renamed `ModalClient.set_modal` to [Modal.register_modal][yuyo.modals.ModalClient.register_modal].
+- Renamed `ModalClient.remove_modal` to [Modal.deregister_modal][yuyo.modals.ModalClient.deregister_modal].
+- Renamed [ComponentClient.get_executor][yuyo.components.ComponentClient.get_executor] to
+  [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message].
+- Renamed [ComponentClient.remove_executor][yuyo.components.ComponentClient.remove_executor] to
+  [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message].
+- [ActionColumnExecutor.rows][yuyo.components.ActionColumnExecutor.rows] now returns
+  [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
+
+### Deprecated
+- The constant ID component handling system.
+  This has been replaced with passing [yuyo.components.SingleExecutor][] to
+  [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor].
+- Passing `timeout` to [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
+  [ActionRowExecutor.\_\_init\_\_][yuyo.components.ActionRowExecutor.__init__],
+  [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__], and
+  [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
+  This has been replaced by passing `timeout` to
+  [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+  to allow for the stateless reuse of component executors.
+- `AbstractComponentExecutor.has_expired`.
+- `ActionRowExecutor.is_full`.
+- [ComponentClient.set_executor][yuyo.components.ComponentClient.set_executor],
+  this has been replaced by [Component.register_executor][yuyo.components.ComponentClient.register_executor].
+- Passing [yuyo.components.ActionRowExecutor][] to
+  [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row]. This
+  now takes [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
+
+### Removed
+- `yuyo.modals.NoDefault`.
 
 ### [1.10.1a1] - 2023-03-25
 ### Added
