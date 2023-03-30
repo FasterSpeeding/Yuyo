@@ -4695,9 +4695,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
             options=options,
         )
-        _append_row(self._rows).add_component(menu)
-        self._callbacks[custom_id] = callback
-        return menu
 
     @classmethod
     def add_static_text_menu(
