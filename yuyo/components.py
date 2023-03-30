@@ -2597,7 +2597,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.InteractiveButtonBuilder):
                 # TODO: specialise return type of def style for Interactive and Link buttons.
-                column.add_button(
+                column.add_interative_button(
                     typing.cast("hikari.InteractiveButtonTypesT", component.style),
                     self._id_to_callback[component.custom_id],
                     custom_id=component.custom_id,
@@ -2607,7 +2607,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                 )
 
             elif isinstance(component, hikari.api.TextSelectMenuBuilder):
-                column.add_text_select(
+                column.add_text_menu(
                     self._id_to_callback[component.custom_id],
                     custom_id=component.custom_id,
                     options=component.options,
@@ -2618,7 +2618,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                 )
 
             elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
-                column.add_channel_select(
+                column.add_channel_menu(
                     self._id_to_callback[component.custom_id],
                     custom_id=component.custom_id,
                     channel_types=component.channel_types,
