@@ -1939,7 +1939,7 @@ class ComponentClient:
         except ExecutorClosed as exc:
             remove_from.pop(key, None)
             if not ctx.has_responded and exc.was_already_closed:
-                # TODO: properly handle deferals and going over the 3 minute mark?
+                # TODO: properly handle deferrals and going over the 3 minute mark?
                 await ctx.create_initial_response("This message has timed-out.", ephemeral=True)
 
         return True
