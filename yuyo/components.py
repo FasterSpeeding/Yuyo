@@ -1898,19 +1898,19 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        if entry := self._message_executors.get(event.interaction.message.id):
-            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
-            if ran:
-                return
-
-            del self._message_executors[event.interaction.message.id]
-
         custom_id = _split_custom_id(event.interaction.custom_id)
         prefix = custom_id[0]
         if entry := self._executors.get(prefix):
             ran = await self._execute(self._executors, prefix, entry, event.interaction)
             if ran:
                 return
+
+        if entry := self._message_executors.get(event.interaction.message.id):
+            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
+            if ran:
+                return
+
+            del self._message_executors[event.interaction.message.id]
 
         await event.interaction.create_initial_response(
             hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
