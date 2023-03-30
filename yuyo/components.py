@@ -2322,7 +2322,11 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     @typing.overload
     @typing_extensions.deprecated("Component executors no-longer track their own expiration")
     def __init__(
-        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+        self,
+        *,
+        ephemeral_default: bool = False,
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
+        _stack_level: int = 0,
     ) -> None:
         ...
 
@@ -2335,6 +2339,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         *,
         ephemeral_default: bool = False,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
+        _stack_level: int = 0,
     ) -> None:
         """Initialise a component executor.
 
@@ -2343,6 +2348,13 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
         """
+        if timeout is not _internal.NO_DEFAULT:
+            warnings.warn(
+                "Component executors no-longer track their own expiration",
+                category=DeprecationWarning,
+                stacklevel=_stack_level + 3,
+            )
+
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
@@ -2538,7 +2550,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     @typing.overload
     @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
     def __init__(
-        self, *, ephemeral_default: bool = False, timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault]
+        self,
+        *,
+        ephemeral_default: bool = False,
+        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
+        _stack_level: int = 0,
     ) -> None:
         ...
 
@@ -2551,6 +2567,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         *,
         ephemeral_default: bool = False,
         timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault] = _internal.NO_DEFAULT,
+        _stack_level: int = 0,
     ) -> None:
         """Initialise an action row executor.
 
@@ -2559,7 +2576,9 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
         """
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
+        super().__init__(  # pyright: ignore [ reportDeprecated ]
+            ephemeral_default=ephemeral_default, timeout=timeout, _stack_level=_stack_level + 1
+        )
         self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -3708,6 +3727,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         *,
         postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
+        _stack_level: int = 0,
     ) -> None:
         ...
 
@@ -3720,8 +3740,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         *,
         postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
+        _stack_level: int = 0,
     ) -> None:
         """Initialise an action column executor."""
+        if timeout is not _internal.NO_DEFAULT:
+            warnings.warn(
+                "Component executors no-longer track their own expiration",
+                category=DeprecationWarning,
+                stacklevel=_stack_level + 3,
+            )
+
         self._callbacks: dict[str, CallbackSig] = {}
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
@@ -4855,7 +4883,9 @@ class ComponentPaginator(ActionRowExecutor):
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(ephemeral_default=ephemeral_default, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
+        super().__init__(  # pyright: ignore [ reportDeprecated ]
+            ephemeral_default=ephemeral_default, timeout=timeout, _stack_level=1
+        )
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: list[pagination.Page] = []
