@@ -2003,6 +2003,9 @@ class ComponentClient:
         )
         ```
         """
+        if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
+            raise ValueError(f"{custom_id!r} is already registered as a constant id")
+
         return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
@@ -3621,7 +3624,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_rows", "_timeout")
+    __slots__ = ("_callbacks", "_rows", "_timeout")
 
     _all_static_fields: typing.ClassVar[list[_StaticField]] = []
     """Atomic sequence of all the static fields on this class.
