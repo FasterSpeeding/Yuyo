@@ -2453,8 +2453,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         return self.set_callback(custom_id, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
-                custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled
-            ).set_emoji(emoji)
+                custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
+            )
         )
 
     def add_link_button(
@@ -2493,7 +2493,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             If any of the sub-components in this action row aren't buttons.
         """
         return self._assert_can_add_type(hikari.ComponentType.BUTTON).add_component(
-            hikari.impl.LinkButtonBuilder(url=url, label=label, is_disabled=is_disabled).set_emoji(emoji)
+            hikari.impl.LinkButtonBuilder(url=url, label=label, is_disabled=is_disabled, emoji=emoji)
         )
 
     def add_select_menu(

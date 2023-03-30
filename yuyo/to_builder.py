@@ -218,14 +218,12 @@ def to_button_builder(
     label = button.label if button.label is not None else hikari.UNDEFINED
     if button.style is hikari.ButtonStyle.LINK:
         assert button.url is not None
-        return hikari.impl.LinkButtonBuilder(url=button.url, label=label, is_disabled=button.is_disabled).set_emoji(
-            emoji
-        )
+        return hikari.impl.LinkButtonBuilder(url=button.url, label=label, is_disabled=button.is_disabled, emoji=emoji)
 
     assert button.custom_id is not None
     return hikari.impl.InteractiveButtonBuilder(
-        style=button.style, custom_id=button.custom_id, label=label, is_disabled=button.is_disabled
-    ).set_emoji(emoji)
+        style=button.style, custom_id=button.custom_id, label=label, is_disabled=button.is_disabled, emoji=emoji
+    )
 
 
 def to_channel_select_menu_builder(
