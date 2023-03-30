@@ -2085,8 +2085,8 @@ class ComponentClient:
     ) -> Self:
         """Deprecated method for setting the component executor for a message.
 
-        Use [yuyo.components.ComponentClient.add_executor] with the `message`
-        kwarg instead.
+        Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+        with the `message` kwarg instead.
         """
         if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
             timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor.timeout
