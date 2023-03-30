@@ -2948,7 +2948,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[Self]:
         """Add a text select menu to this action row.
 
         Parameters
@@ -4624,7 +4624,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[Self]:
         """Add a text select menu to this action column.
 
         Parameters
@@ -4708,7 +4708,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[typing.NoReturn]:
+    ) -> hikari.api.TextSelectMenuBuilder[type[Self]]:
         """Add a text select menu to all subclasses and instances of this action column class.
 
         Parameters
