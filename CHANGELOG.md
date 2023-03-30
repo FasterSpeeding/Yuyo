@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (rather than the component executors) and makes binding to a specific message optional.
   This consists of [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
+- [yuyo.components.with_static_text_menu][] decorator for declaring a static text select menu on
+  a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass.
+- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select].
+  [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
+  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
+  passing option builders.
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
