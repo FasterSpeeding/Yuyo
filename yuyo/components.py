@@ -3509,10 +3509,10 @@ class _StaticField:
         *,
         self_bound: bool = False,
     ) -> None:
-        self.builder = builder
-        self.callback = callback
-        self.custom_id = custom_id
-        self.self_bound = self_bound
+        self.builder: hikari.api.ComponentBuilder = builder
+        self.callback: typing.Optional[CallbackSig] = callback
+        self.custom_id: str = custom_id
+        self.self_bound: bool = self_bound
 
 
 class _CustomIdProto(typing.Protocol):
