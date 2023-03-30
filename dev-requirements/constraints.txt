@@ -433,9 +433,9 @@ pynacl==1.5.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:a36d4a9dda1f19ce6e03c9a784a2921a4b726b02e1c736600ca9c22029474394 \
     --hash=sha256:a422368fc821589c228f4c49438a368831cb5bbc0eab5ebe1d7fac9dded6567b \
     --hash=sha256:e46dae94e34b085175f8abb3b0aaa7da40767865ac82c928eeb9e57e1ea8a543
-redis==4.5.3 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:56732e156fe31801c4f43396bd3ca0c2a7f6f83d7936798531b9848d103381aa \
-    --hash=sha256:7df17a0a2b72a4c8895b462dd07616c51b1dcb48fdd7ecb7b6f4bf39ecb2e94e
+redis==4.5.4 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:2c19e6767c474f2e85167909061d525ed65bea9301c0770bb151e041b7ac89a2 \
+    --hash=sha256:73ec35da4da267d6847e47f68730fdd5f62e2ca69e3ef5885c6a78a9374c3893
 typing-extensions==4.5.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb \
     --hash=sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4
