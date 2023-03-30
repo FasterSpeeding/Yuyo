@@ -272,7 +272,7 @@ def to_text_select_menu_builder(
             value=opt.value,
             description=opt.description if opt.description is not None else hikari.UNDEFINED,
             is_default=opt.is_default,
-            emoji=opt.emoji or hikari.UNDEFINED,
+            emoji=opt.emoji if eop.emoji is not None else hikari.UNDEFINED,
         )
         for opt in select_menu.options
     ]
