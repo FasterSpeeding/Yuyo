@@ -426,7 +426,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
     async def _create_initial_response(
         self,
-        response_type: hikari.ComponentResponseTypesT,
+        response_type: hikari.MessageResponseTypesT,
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
@@ -489,8 +489,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
                 flags=flags,
                 is_tts=tts,
                 mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]  # TODO: fix on hikari
-                role_mentions=role_mentions,  # pyright: ignore [ reportGeneralTypeIssues ]  # TODO: fix on hikari
+                user_mentions=user_mentions,
+                role_mentions=role_mentions,
             )
 
             self._response_future.set_result(result)
@@ -2453,12 +2453,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         return self.set_callback(custom_id, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
-                container=NotImplemented,
-                custom_id=custom_id,
-                style=hikari.ButtonStyle(style),
-                label=label,
-                is_disabled=is_disabled,
-            ).set_emoji(emoji)
+                custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
+            )
         )
 
     def add_link_button(
@@ -2497,9 +2493,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             If any of the sub-components in this action row aren't buttons.
         """
         return self._assert_can_add_type(hikari.ComponentType.BUTTON).add_component(
-            hikari.impl.LinkButtonBuilder(
-                container=NotImplemented, style=hikari.ButtonStyle.LINK, url=url, label=label, is_disabled=is_disabled
-            ).set_emoji(emoji)
+            hikari.impl.LinkButtonBuilder(url=url, label=label, is_disabled=is_disabled, emoji=emoji)
         )
 
     def add_select_menu(
@@ -2551,7 +2545,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             .set_callback(custom_id, callback)
             .add_component(
                 hikari.impl.SelectMenuBuilder(
-                    container=NotImplemented,
                     custom_id=custom_id,
                     type=type_,
                     placeholder=placeholder,
@@ -2608,7 +2601,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             .set_callback(custom_id, callback)
             .add_component(
                 hikari.impl.ChannelSelectMenuBuilder(
-                    container=NotImplemented,
                     custom_id=custom_id,
                     channel_types=_parse_channel_types(*channel_types) if channel_types else [],
                     placeholder=placeholder,
@@ -2662,7 +2654,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             custom_id = _internal.random_custom_id()
 
         component = _TextSelectMenuBuilder(
-            container=NotImplemented,  # type: ignore
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
@@ -4129,12 +4120,8 @@ class ComponentPaginator(ActionRowExecutor):
     async def _on_last(self, ctx: ComponentContext, /) -> None:
         if self._iterator:
             # TODO: option to not lock on last
-            loading_component = (
-                ctx.interaction.app.rest.build_message_action_row()
-                .add_button(hikari.ButtonStyle.SECONDARY, "loading")
-                .set_is_disabled(True)
-                .set_emoji(878377505344614461)
-                .add_to_container()
+            loading_component = ctx.interaction.app.rest.build_message_action_row().add_interactive_button(
+                hikari.ButtonStyle.SECONDARY, "loading", is_disabled=True, emoji=878377505344614461
             )
             await ctx.create_initial_response(
                 component=loading_component, response_type=hikari.ResponseType.MESSAGE_UPDATE

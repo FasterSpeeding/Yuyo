@@ -435,13 +435,9 @@ class TestActionRowExecutor:
         (
             action_row.add_text_select(mock.AsyncMock(), max_values=20)
             .add_option("meow", "blah")
-            .add_to_menu()
             .add_option("arrest", "me")
-            .add_to_menu()
             .add_option("with", "your")
-            .add_to_menu()
             .add_option("sweet", "lullaby")
-            .add_to_menu()
         )
 
         assert action_row.build()["components"][0]["max_values"] == 4
@@ -452,15 +448,10 @@ class TestActionRowExecutor:
         (
             action_row.add_text_select(mock.AsyncMock(), max_values=3)
             .add_option("meow", "blah")
-            .add_to_menu()
             .add_option("arrest", "me")
-            .add_to_menu()
             .add_option("with", "your")
-            .add_to_menu()
             .add_option("sweet", "lullaby")
-            .add_to_menu()
             .add_option("get up", "get up")
-            .add_to_menu()
         )
 
         assert action_row.build()["components"][0]["max_values"] == 3
