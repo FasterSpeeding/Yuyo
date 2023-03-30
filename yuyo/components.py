@@ -2586,6 +2586,63 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._stored_type = type_
         return self
 
+    @typing_extensions.deprecated("Part of deprecating passing this to `ActionColumnRow.add_row`")
+    def add_to_column(self, column: ActionColumnExecutor, /) -> Self:
+        for component in self._components:
+            if isinstance(component, hikari.api.LinkButtonBuilder):
+                column.add_link_button(
+                    component.url, emoji=component.emoji, label=component.label, is_disabled=component.is_disabled
+                )
+
+            elif isinstance(component, hikari.api.InteractiveButtonBuilder):
+                # TODO: specialise return type of def style for Interactive and Link buttons.
+                column.add_button(
+                    typing.cast("hikari.InteractiveButtonTypesT", component.style),
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    emoji=component.emoji,
+                    label=component.label,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.TextSelectMenuBuilder):
+                column.add_text_select(
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    options=component.options,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
+                column.add_channel_select(
+                    self._id_to_callback[component.custom_id],
+                    custom_id=component.custom_id,
+                    channel_types=component.channel_types,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            elif isinstance(component, hikari.api.SelectMenuBuilder):
+                column.add_select_menu(
+                    self._id_to_callback[component.custom_id],
+                    component.type,
+                    custom_id=component.custom_id,
+                    placeholder=component.placeholder,
+                    min_values=component.min_values,
+                    max_values=component.max_values,
+                    is_disabled=component.is_disabled,
+                )
+
+            else:
+                raise NotImplementedError(f"No support for {type(component)} components")
+
+        return self
+
     def add_component(self, component: hikari.api.ComponentBuilder, /) -> Self:
         """Add a sub-component to this action row.
 
@@ -3719,7 +3776,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         """The rows in this column."""
         return self._rows.copy()
 
+    @typing.overload
+    @typing_extensions.deprecated("Use ActionRowExecutor.add_to_column")
+    def add_row(self, row: ActionRowExecutor, /) -> Self:
+        ...
+
+    @typing.overload
     def add_row(self, row: hikari.api.MessageActionRowBuilder, /) -> Self:
+        ...
+
+    def add_row(self, row: typing.Union[hikari.api.MessageActionRowBuilder, ActionRowExecutor], /) -> Self:
         """Add an action row executor to this column.
 
         Parameters
@@ -3732,7 +3798,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The column executor to enable chained calls.
         """
-        self._rows.append(row)
+        if isinstance(row, ActionRowExecutor):
+            row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
+
+        else:
+            self._rows.append(row)
+
         return self
 
     async def execute(self, ctx: ComponentContext, /) -> None:
