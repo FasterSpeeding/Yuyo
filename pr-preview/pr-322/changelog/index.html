@@ -2189,19 +2189,33 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
 <li>Bumped the minimum Hikari version to <code>2.0.0.dev118</code>.</li>
-<li>Renamed <code>yuyo.timeouts.BasicTimeout</code> to <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts.SlidingTimeout">yuyo.timeouts.SlidingTimeout</a>.</li>
 <li>Marked most deprecated timeout class aliases using <code>typing.deprecated</code>.
   (only <code>yuyo.modals.AbstractTimeout</code> was skipped).</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a> now inherits from <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a>
   and should also be passed to <code>timeout=</code>.</li>
-<li>Renamed <code>ModalClient.set_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.register_modal">Modal.register_modal</a>.</li>
-<li>Renamed <code>ModalClient.remove_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.deregister_modal">Modal.deregister_modal</a>.</li>
-<li>Renamed <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.get_executor">ComponentClient.get_executor</a> to
-  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.get_executor_for_message">ComponentClient.get_executor_for_message</a>.</li>
-<li>Renamed <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.remove_executor">ComponentClient.remove_executor</a> to
-  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_message">ComponentClient.deregister_message</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.rows">ActionColumnExecutor.rows</a> now returns
   <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
+<li>Renamed <code>yuyo.timeouts.BasicTimeout</code> to <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts.SlidingTimeout">yuyo.timeouts.SlidingTimeout</a>.</li>
+<li>Renamed <code>ModalClient.set_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.register_modal">Modal.register_modal</a>.</li>
+<li>Renamed <code>ModalClient.remove_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.deregister_modal">Modal.deregister_modal</a>.</li>
+<li>Renamed <code>ComponentClient.get_executor</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.get_executor_for_message">ComponentClient.get_executor_for_message</a>.</li>
+<li>Renamed <code>ComponentClient.remove_executor</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_message">ComponentClient.deregister_message</a>.</li>
+<li>Renamed <code>add_</code> and <code>with_</code> component methods to better match Hikari's new naming scheme:<ul>
+<li><code>ActionRowExecutor.add_button</code> to <code>.add_interative_button</code></li>
+<li><code>ActionRowExecutor.add_channel_select</code> to <code>.add_channel_menu</code></li>
+<li><code>ActionRowExecutor.add_text_select</code> to <code>.add_text_menu</code></li>
+<li><code>ActionColumnExecutor.add_button</code> to <code>.add_interative_button</code></li>
+<li><code>ActionColumnExecutor.add_channel_select</code> to <code>.add_channel_menu</code></li>
+<li><code>ActionColumnExecutor.add_text_select</code> to <code>.add_text_menu</code></li>
+<li><code>ActionColumnExecutor.add_static_button</code> to <code>.add_static_interactive_button</code></li>
+<li><code>ActionColumnExecutor.with_static_button</code> to <code>.with_static_interactive_button</code></li>
+<li><code>ActionColumnExecutor.add_static_channel_select</code> to <code>.add_static_channel_menu</code></li>
+<li><code>ActionColumnExecutor.with_static_channel_select</code> to <code>.with_static_channel_menu</code></li>
+<li><code>ActionColumnExecutor.add_static_text_select</code> to <code>.add_static_text_menu</code></li>
+<li><code>yuyo.components.with_static_button</code> to <code>.with_static_interactive_button</code></li>
+<li><code>yuyo.components.with_static_channel_select</code> to <code>.with_static_channel_menu</code></li>
+</ul>
+</li>
 </ul>
 <h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
 <ul>
