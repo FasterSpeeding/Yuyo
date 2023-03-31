@@ -53,61 +53,65 @@ class TestBaseContext:
 
 
 class TestComponentContext:
+    def test_id_match_property(self):
+        context = yuyo.components.Context(
+            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.id_match == "yeyeye meow meow"
+
+    def test_id_metadata_property(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda v: None)
+
+        assert context.id_metadata == "very meta girl"
+
     def test_select_channels_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_channels is mock_interaction.resolved.channels
 
     def test_select_channels_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_channels == {}
 
     def test_select_roles_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_roles is mock_interaction.resolved.roles
 
     def test_select_roles_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_roles == {}
 
     def test_select_texts_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_texts is mock_interaction.values
 
     def test_select_users_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_users is mock_interaction.resolved.users
 
     def test_select_users_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_users == {}
 
     def test_select_members_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_members is mock_interaction.resolved.members
 
     def test_select_members_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_members == {}
 
@@ -316,32 +320,6 @@ class TestComponentClient:
         ):
             client.set_constant_id("trans", mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
-    def test_set_constant_id_when_already_present_as_prefix_id(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("trans2", mock_callback, prefix_match=True)  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning), pytest.raises(
-            ValueError, match="'trans2' is already registered as a constant id"
-        ):
-            client.set_constant_id("trans2", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-
-    def test_set_constant_id_when_prefix_match(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.set_constant_id(  # pyright: ignore [ reportDeprecated ]
-                "456", mock_callback, prefix_match=True
-            )
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("456") is mock_callback  # pyright: ignore [ reportDeprecated ]
-
     def test_remove_constant_id(self):
         client = yuyo.ComponentClient()
 
@@ -356,26 +334,12 @@ class TestComponentClient:
         with pytest.warns(DeprecationWarning):
             assert client.get_constant_id("yuri") is None  # pyright: ignore [ reportDeprecated ]
 
-    def test_remove_constant_id_for_prefix_id(self):
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("yuro", mock.Mock(), prefix_match=True)  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning):
-            result = client.remove_constant_id("yuro")  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("yuro") is None  # pyright: ignore [ reportDeprecated ]
-
     def test_remove_constant_id_when_not_present(self):
         with pytest.warns(DeprecationWarning):
             client = (
                 yuyo.ComponentClient()
                 .set_constant_id("e", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-                .set_constant_id("h", mock.Mock(), prefix_match=True)  # pyright: ignore [ reportDeprecated ]
+                .set_constant_id("h", mock.Mock())  # pyright: ignore [ reportDeprecated ]
             )
 
         with pytest.warns(DeprecationWarning), pytest.raises(KeyError):
@@ -393,20 +357,6 @@ class TestComponentClient:
         with pytest.warns(DeprecationWarning):
             assert client.get_constant_id("yuri") is mock_callback  # pyright: ignore [ reportDeprecated ]
 
-    def test_with_constant_id_when_prefix_match(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.with_constant_id("yuru", prefix_match=True)(  # pyright: ignore [ reportDeprecated ]
-                mock_callback
-            )
-
-        assert result is mock_callback
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("yuru") is mock_callback  # pyright: ignore [ reportDeprecated ]
-
     def test_with_constant_id_when_already_present_as_custom_id(self):
         mock_callback = mock.Mock()
         client = yuyo.ComponentClient()
@@ -418,18 +368,6 @@ class TestComponentClient:
             ValueError, match="'trans' is already registered as a constant id"
         ):
             client.with_constant_id("trans")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
-
-    def test_with_constant_id_when_already_present_as_prefix_id(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("trans2", mock_callback, prefix_match=True)  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning), pytest.raises(
-            ValueError, match="'trans2' is already registered as a constant id"
-        ):
-            client.with_constant_id("trans2")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
     def test_set_executor(self):
         mock_executor = mock.Mock(timeout=None)

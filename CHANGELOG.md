@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - A static timeout implementation.
+- Support for custom ID prefix matching to the Message component executors.
 - Message components have support for loading components from class attributes again.
   This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
 - [yuyo.components.SingleExecutor][] and [yuyo.components.as_single_executor][]
@@ -22,9 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
   [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
   passing option builders.
+- `ComponentContext.id_match` and `ModalContext.id_metadata` convenient properties for getting
+  the matching and metadata parts of the component's custom ID.
+- `Modal.id_match`, `Modal.id_metadata` and [ModalContext.component_ids][yuyo.modals.ModalContext.component_ids]
+  convenience properties for getting the matching and metadata parts of the Modal's top-level
+  custom ID and the sub-component custom IDs.
+- [ComponentExecutor.set_callback][yuyo.components.ComponentExecutor.set_callback] and
+  [ComponentExecutor.with_callback][yuyo.components.ComponentExecutor.with_callback] now
+  both raise [ValueError][] if `":"` is present in `custom_id`.
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
+- Prefix matching behaviour is now always enabled for both modals and components.
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
   (only `yuyo.modals.AbstractTimeout` was skipped).
 - [yuyo.components.WaitForExecutor][] now inherits from [yuyo.components.WaitForExecutor][]
@@ -70,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Passing [yuyo.components.ActionRowExecutor][] to
   [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row]. This
   now takes [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
+- The `prefix_match` parameter as this is now always enabled.
 
 ### Removed
 - `yuyo.modals.NoDefault`.
@@ -284,7 +295,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0a1] - 2023-01-12
 ### Added
-- Helper functions for converting some Hikrai models to builder objects in [yuyo.to_builder][].
+- Helper functions for converting some Hikrai modals to builder objects in [yuyo.to_builder][].
   These support application commands and message components.
 
 ### Changed

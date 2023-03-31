@@ -105,8 +105,8 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _to_prefix_id(custom_id: str) -> str:
-    return custom_id.split(":", 1)[0]
+def _split_custom_id(custom_id: str) -> list[str]:
+    return custom_id.split(":", 1)
 
 
 def _now() -> datetime.datetime:
@@ -121,6 +121,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         "_has_responded",
         "_has_been_deferred",
         "_interaction",
+        "_id_match",
+        "_id_metadata",
         "_last_response_id",
         "_register_task",
         "_response_future",
@@ -130,6 +132,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     def __init__(
         self,
         interaction: _PartialInteractionT,
+        id_match: str,
+        id_metadata: str,
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
@@ -143,11 +147,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._ephemeral_default = ephemeral_default
         self._has_responded = False
         self._has_been_deferred = False
+        self._id_match = id_match
+        self._id_metadata = id_metadata
         self._interaction: _PartialInteractionT = interaction
         self._last_response_id: typing.Optional[hikari.Snowflake] = None
         self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
+
+    @property
+    def id_match(self) -> str:
+        """Section of the ID used to identify the relevant executor."""
+        return self._id_match
+
+    @property
+    def id_metadata(self) -> str:
+        """Metadata from the interaction's custom ID."""
+        return self._id_metadata
 
     @property
     def expires_at(self) -> datetime.datetime:
@@ -1231,13 +1247,20 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         self,
         client: ComponentClient,
         interaction: hikari.ComponentInteraction,
+        id_match: str,
+        id_metadata: str,
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
     ) -> None:
         super().__init__(
-            interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
+            interaction=interaction,
+            id_match=id_match,
+            id_metadata=id_metadata,
+            register_task=register_task,
+            ephemeral_default=ephemeral_default,
+            response_future=response_future,
         )
         self._client = client
         self._response_future = response_future
@@ -1476,6 +1499,9 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             The title that will show up in the modal.
         custom_id
             Developer set custom ID used for identifying interactions with this modal.
+
+            Yuyo's Component client will only match against `custom_id.split(":", 1)[0]`,
+            allowing metadata to be put after `":"`.
         component
             A component builder to send in this modal.
         components
@@ -1617,16 +1643,7 @@ class ExecutorClosed(Exception):
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
-    __slots__ = (
-        "_alluka",
-        "_event_manager",
-        "_executors",
-        "_gc_task",
-        "_message_executors",
-        "_prefix_executors",
-        "_server",
-        "_tasks",
-    )
+    __slots__ = ("_alluka", "_event_manager", "_executors", "_gc_task", "_message_executors", "_server", "_tasks")
 
     def __init__(
         self,
@@ -1683,9 +1700,6 @@ class ComponentClient:
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
         self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
-
-        self._prefix_executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
-        """Dict of prefix IDs to executors."""
 
         self._server = server
         self._tasks: list[asyncio.Task[typing.Any]] = []
@@ -1838,7 +1852,6 @@ class ComponentClient:
         while True:
             _gc_executors(self._executors)
             _gc_executors(self._message_executors)
-            _gc_executors(self._prefix_executors)
             await asyncio.sleep(5)  # TODO: is this a good time?
 
     def close(self) -> None:
@@ -1856,7 +1869,6 @@ class ComponentClient:
 
         self._executors = {}
         self._message_executors = {}
-        self._prefix_executors = {}
         # TODO: have the executors be runnable and close them here?
 
     def open(self) -> None:
@@ -1874,10 +1886,11 @@ class ComponentClient:
 
     async def _execute(
         self,
-        remove_from: dict[_T, typing.Any],
+        remove_from: dict[_T, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]],
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
+        custom_id: list[str],
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
@@ -1890,7 +1903,20 @@ class ComponentClient:
 
             return False
 
-        ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+        try:
+            id_metadata = custom_id[1]
+
+        except IndexError:
+            id_metadata = ""
+
+        ctx = ComponentContext(
+            client=self,
+            interaction=interaction,
+            id_match=custom_id[0],
+            id_metadata=id_metadata,
+            register_task=self._add_task,
+            response_future=future,
+        )
         if timeout.increment_uses():
             del remove_from[key]
 
@@ -1912,23 +1938,21 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
+        custom_id = _split_custom_id(event.interaction.custom_id)
+        id_match = custom_id[0]
+        if entry := self._executors.get(id_match):
+            ran = await self._execute(self._executors, id_match, entry, event.interaction, custom_id)
+            if ran:
+                return
+
         if entry := self._message_executors.get(event.interaction.message.id):
-            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
+            ran = await self._execute(
+                self._message_executors, event.interaction.message.id, entry, event.interaction, custom_id
+            )
             if ran:
                 return
 
             del self._message_executors[event.interaction.message.id]
-
-        if entry := self._executors.get(event.interaction.custom_id):
-            ran = await self._execute(self._executors, event.interaction.custom_id, entry, event.interaction)
-            if ran:
-                return
-
-        prefix_id = _to_prefix_id(event.interaction.custom_id)
-        if entry := self._prefix_executors.get(prefix_id):
-            ran = await self._execute(self._prefix_executors, prefix_id, entry, event.interaction)
-            if ran:
-                return
 
         await event.interaction.create_initial_response(
             hikari.ResponseType.MESSAGE_CREATE, "This message has timed-out.", flags=hikari.MessageFlag.EPHEMERAL
@@ -1936,14 +1960,17 @@ class ComponentClient:
 
     async def _execute_task(
         self,
-        remove_from: dict[_T, typing.Any],
+        remove_from: dict[_T, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]],
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
+        custom_id: list[str],
         /,
     ) -> typing.Optional[_ComponentResponseT]:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-        self._add_task(asyncio.create_task(self._execute(remove_from, key, entry, interaction, future=future)))
+        self._add_task(
+            asyncio.create_task(self._execute(remove_from, key, entry, interaction, custom_id, future=future))
+        )
         try:
             return await future
         except ExecutorClosed:
@@ -1962,19 +1989,17 @@ class ComponentClient:
         ResponseT
             The REST response.
         """
+        custom_id = _split_custom_id(interaction.custom_id)
+        id_match = custom_id[0]
+        if entry := self._executors.get(id_match):
+            result = await self._execute_task(self._executors, id_match, entry, interaction, custom_id)
+            if result:
+                return result
+
         if entry := self._message_executors.get(interaction.message.id):
-            result = await self._execute_task(self._message_executors, interaction.message.id, entry, interaction)
-            if result:
-                return result
-
-        if entry := self._executors.get(interaction.custom_id):
-            result = await self._execute_task(self._executors, interaction.custom_id, entry, interaction)
-            if result:
-                return result
-
-        prefix_id = _to_prefix_id(interaction.custom_id)
-        if entry := self._prefix_executors.get(prefix_id):
-            result = await self._execute_task(self._prefix_executors, prefix_id, entry, interaction)
+            result = await self._execute_task(
+                self._message_executors, interaction.message.id, entry, interaction, custom_id
+            )
             if result:
                 return result
 
@@ -1985,7 +2010,7 @@ class ComponentClient:
         )
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = False) -> Self:
+    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = True) -> Self:
         """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
         You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
@@ -2008,7 +2033,7 @@ class ComponentClient:
         if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
             raise ValueError(f"{custom_id!r} is already registered as a constant id")
 
-        return self.register_executor(SingleExecutor(custom_id, callback), prefix_match=prefix_match)
+        return self.register_executor(SingleExecutor(custom_id, callback))
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
@@ -2016,9 +2041,6 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
-
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
 
@@ -2030,23 +2052,17 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
-        removed = False
-        if (entry := self._prefix_executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            removed = True
-            del self._prefix_executors[custom_id]
-
-        elif (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            removed = True
+        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             del self._executors[custom_id]
 
-        if not removed:
+        else:
             raise KeyError(custom_id)
 
         return self
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def with_constant_id(
-        self, custom_id: str, /, *, prefix_match: bool = False
+        self, custom_id: str, /, *, prefix_match: bool = True
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
 
@@ -2072,9 +2088,7 @@ class ComponentClient:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-                self.set_constant_id(  # pyright: ignore [ reportDeprecated ]
-                    custom_id, callback, prefix_match=prefix_match
-                )
+                self.set_constant_id(custom_id, callback)  # pyright: ignore [ reportDeprecated ]
 
             return callback
 
@@ -2103,7 +2117,6 @@ class ComponentClient:
         /,
         *,
         message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None,
-        prefix_match: bool = False,
         timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
     ) -> Self:
         """Add an executor to this client.
@@ -2117,11 +2130,6 @@ class ComponentClient:
 
             If this is left as [None][] then this executor will be registered
             globally for its custom IDs.
-        prefix_match
-            Whether this component's custom IDs should be prefix checked.
-
-            If [True][] then the component's custom IDs will be matched against
-            `component.split(":")[0]`.
         timeout : typing.Optional[yuyo.timeouts.AbstractTimeout]
             The executor's timeout.
 
@@ -2142,10 +2150,6 @@ class ComponentClient:
 
         if message:
             self._message_executors[hikari.Snowflake(message)] = entry
-
-        elif prefix_match:
-            for custom_id in executor.custom_ids:
-                self._prefix_executors[custom_id] = entry
 
         else:
             for custom_id in executor.custom_ids:
@@ -2196,9 +2200,6 @@ class ComponentClient:
         for custom_id in executor.custom_ids:
             if (entry := self._executors.get(custom_id)) and entry[1] == executor:
                 del self._executors[custom_id]
-
-            if (entry := self._prefix_executors.get(custom_id)) and entry[1] == executor:
-                del self._prefix_executors[custom_id]
 
         return self
 
@@ -2276,11 +2277,22 @@ class SingleExecutor(AbstractComponentExecutor):
         ----------
         custom_id
             The custom ID this executor is triggered for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a `":"`.
         callback
             The executor's  callback.
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
+        if ":" in custom_id:
+            raise ValueError("Custom ID cannot contain `:`")
+
         self._callback = callback
         self._custom_id = custom_id
         self._ephemeral_default = ephemeral_default
@@ -2303,6 +2315,9 @@ def as_single_executor(
     ----------
     custom_id
         The custom ID this executor is triggered for.
+
+        This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+        allowing metadata to be stored after a `":"`.
     ephemeral_default
         Whether this executor's responses should default to being ephemeral.
 
@@ -2377,7 +2392,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
-        callback = self._id_to_callback[ctx.interaction.custom_id]
+        callback = self._id_to_callback[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def set_callback(self, custom_id: str, callback: CallbackSig, /) -> Self:
@@ -2387,9 +2402,20 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ----------
         custom_id
             The custom ID to set the callback for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a `":"`.
         callback
             The callback to set.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
+        if ":" in custom_id:
+            raise RuntimeError("Custom ID cannot contain `:`")
+
         self._id_to_callback[custom_id] = callback
         return self
 
@@ -2401,10 +2427,18 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         custom_id
             The custom ID to set the callback for.
 
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a `":"`.
+
         Returns
         -------
         collections.abc.Callable[[CallbackSig], CallbackSig]
             Decorator callback used to set a custom ID's callback.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
@@ -2724,6 +2758,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The interactive button's callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -2745,9 +2784,12 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
-        return self.set_callback(custom_id, callback).add_component(
+        else:
+            id_match = _split_custom_id(custom_id)[0]
+
+        return self.set_callback(id_match, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
                 custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
             )
@@ -2818,6 +2860,9 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2833,12 +2878,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
 
         type_ = hikari.ComponentType(type_)
         return (
             self._assert_can_add_type(type_)
-            .set_callback(custom_id, callback)
+            .set_callback(id_match, callback)
             .add_component(
                 hikari.impl.SelectMenuBuilder(
                     custom_id=custom_id,
@@ -2901,6 +2949,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2916,11 +2969,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
 
         return (
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
-            .set_callback(custom_id, callback)
+            .set_callback(id_match, callback)
             .add_component(
                 hikari.impl.ChannelSelectMenuBuilder(
                     custom_id=custom_id,
@@ -2977,6 +3033,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -3000,7 +3061,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
 
         component = _TextSelectMenuBuilder(
             parent=self,
@@ -3013,7 +3077,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         )
         (
             self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
-            .set_callback(custom_id, callback)
+            .set_callback(id_match, callback)
             .add_component(component)
         )
         return component
@@ -3175,6 +3239,11 @@ def as_interactive_button(
         The button's style.
     custom_id
         The button's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     emoji
         The button's emoji.
     label
@@ -3326,6 +3395,11 @@ def as_select_menu(
         The type of select menu to add.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3440,6 +3514,11 @@ def as_channel_menu(
         Sequence of the types of channels this select menu should show as options.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3573,6 +3652,11 @@ def as_text_menu(
     ----------
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     options
         The text select's options.
 
@@ -3663,7 +3747,7 @@ class _StaticField:
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.custom_id: str = custom_id
+        self.custom_id: str = _split_custom_id(custom_id)[0]
         self.self_bound: bool = self_bound
 
 
@@ -3906,7 +3990,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        callback = self._callbacks[ctx.interaction.custom_id.split(":", 1)[0]]
+        callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     @typing_extensions.deprecated("Use .add_interative_button")
@@ -3950,6 +4034,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's execution callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -3962,11 +4051,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows, is_button=True).add_interactive_button(
             style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4012,6 +4106,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's execution callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -4084,6 +4183,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's style.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -4219,6 +4323,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4233,7 +4342,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows).add_select_menu(
             type_,
             custom_id,
@@ -4242,7 +4356,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4272,6 +4386,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4326,9 +4445,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a select menu to this class by decorating its callback.
 
-        For channel select menus and text select menus see
-        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu] and
-        [ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu] respectively.
+        For channel select menus see
+        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu].
 
         Parameters
         ----------
@@ -4336,6 +4454,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4421,6 +4544,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4435,7 +4563,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows).add_channel_menu(
             custom_id,
             channel_types=_parse_channel_types(*channel_types) if channel_types else [],
@@ -4444,7 +4577,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4499,6 +4632,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4584,6 +4722,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4663,6 +4806,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -4688,8 +4836,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        custom_id = custom_id or _internal.random_custom_id()
-        menu = hikari.impl.TextSelectMenuBuilder(
+        if custom_id is None:
+            id_match = custom_id = _internal.random_custom_id()
+
+        else:
+            id_match = _split_custom_id(custom_id)[0]
+
+        menu = _TextSelectMenuBuilder(
+            parent=self,
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
@@ -4698,7 +4852,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             options=options,
         )
         _append_row(self._rows).add_component(menu)
-        self._callbacks[custom_id] = callback
+        self._callbacks[id_match] = callback
         return menu
 
     @classmethod
@@ -4747,6 +4901,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -4795,6 +4954,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
         return component
+
+    # TODO: with_static_text_menu
 
 
 def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
@@ -4862,6 +5023,11 @@ def with_static_interative_button(
         The button's execution callback.
     custom_id
         The button's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     emoji
         The button's emoji.
     label
@@ -4936,6 +5102,11 @@ def with_static_select_menu(
         The type of select menu to add.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5010,6 +5181,11 @@ def with_static_channel_menu(
         Sequence of the types of channels this select menu should show as options.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5054,6 +5230,11 @@ def with_static_text_menu(
         Callback which is called when this select menu is used.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
     options
         The text select's options.
     placeholder

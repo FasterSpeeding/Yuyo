@@ -52,9 +52,15 @@ except ModuleNotFoundError:
 class TestModalContext:
     def test_client_property(self):
         mock_client = mock.Mock()
-        context = modals.ModalContext(mock_client, mock.Mock(), mock.Mock())
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.client is mock_client
+
+    def test_component_ids_property(self):
+        components = {"id": "meow"}
+        context = modals.ModalContext(mock.Mock(), mock.Mock(), "", "", components, mock.Mock())
+
+        assert context.component_ids is components
 
     @pytest.mark.skip(reason="TODO")
     async def test_create_initial_response(self):
@@ -139,42 +145,12 @@ class TestModalClient:
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
-    async def test_on_gateway_event_for_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_gateway_event_for_expired_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
     async def test_on_gateway_event_for_modal(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
     async def test_on_gateway_event_for_expired_modal(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_gateway_event_for_modal_after_expired_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_gateway_event_for_expired_modal_and_prefix(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_rest_request_for_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_rest_request_for_expired_prefix_match(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
@@ -188,29 +164,11 @@ class TestModalClient:
         ...
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_rest_request_for_modal_after_expired_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_on_rest_request_for_expired_modal_and_prefix(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
     def test_set_modal(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_modal_for_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
     def test_set_modal_when_custom_id_already_registered(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    def test_set_modal_when_custom_id_already_registered_as_prefix(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
@@ -226,19 +184,11 @@ class TestModalClient:
         ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_modal_for_prefix(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
     def test_get_modal_when_not_registered(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
     def test_remove_modal(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    def test_remove_modal_for_prefix(self):
         ...
 
     @pytest.mark.skip(reason="TODO")
@@ -278,11 +228,6 @@ class TestModal:
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
-    async def test_execute_for_prefix_match(self):
-        ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
     async def test_execute_when_missing_default_for_a_field(self):
         ...
 
@@ -309,7 +254,6 @@ class TestModal:
                 default=123,
                 min_length=43,
                 max_length=222,
-                prefix_match=True,
             ),
         ) -> None:
             ...
@@ -336,7 +280,6 @@ class TestModal:
         assert field.custom_id == "yeet:me"  # TODO: should this be split before?
         assert field.default == 123
         assert field.parameter == "a_field"
-        assert field.prefix_match is True
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
     @pytest.mark.parametrize("default", ["meep", "x" * 4000, "a"])
@@ -407,27 +350,6 @@ class TestModal:
         assert isinstance(field, modals._TrackedField)
         assert field.default == "x" * 4001
 
-    def test_with_text_input_descriptor_when_not_prefix_matched(self):
-        @modals.as_modal_template()
-        async def modal_template(
-            ctx: modals.ModalContext, a_field: str = modals.text_input("bababooi", custom_id="meow:meow")
-        ) -> None:
-            ...
-
-        modal = modal_template()
-
-        assert len(modal.rows) == 1
-        row = modal.rows[0]
-        assert len(row.components) == 1
-        component = row.components[0]
-        assert isinstance(component, hikari.api.TextInputBuilder)
-        assert component.custom_id == "meow:meow"
-
-        assert len(modal._tracked_fields) == 1
-        field = modal._tracked_fields[0]
-        assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == "meow:meow"
-
     def test_with_text_input_descriptor_with_defaults(self):
         @modals.as_modal_template()
         async def modal_template(ctx: modals.ModalContext, b_field: str = modals.text_input("eaaaaaaa")) -> None:
@@ -456,7 +378,6 @@ class TestModal:
         assert field.custom_id == custom_id_1
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "b_field"
-        assert field.prefix_match is False
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
     def test_handles_overflowing_text_input_descriptor(self):
@@ -495,7 +416,6 @@ class TestModal:
                 default=None,
                 min_length=4,
                 max_length=421,
-                prefix_match=True,
             )
 
         @modals.as_modal_template
@@ -544,7 +464,6 @@ class TestModal:
         assert field.custom_id == custom_id_1
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "fieldy"
-        assert field.prefix_match is False
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
         field = tracked._fields[1]
@@ -552,7 +471,6 @@ class TestModal:
         assert field.custom_id == "nyeep"
         assert field.default is None
         assert field.parameter == "meowy"
-        assert field.prefix_match is True
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
     def test_with_text_modals_options_class_handles_inheritance(self):
@@ -858,7 +776,6 @@ def test_with_static_text_input():
         default=modals.NO_DEFAULT,
         min_length=0,
         max_length=4000,
-        prefix_match=False,
         parameter=None,
     )
 
@@ -876,7 +793,6 @@ def test_with_static_text_input_with_defaults():
         default=123,
         min_length=50,
         max_length=70,
-        prefix_match=True,
         parameter="param",
     )(modal_cls)
 
@@ -890,7 +806,6 @@ def test_with_static_text_input_with_defaults():
         default=123,
         min_length=50,
         max_length=70,
-        prefix_match=True,
         parameter="param",
     )
 
@@ -913,7 +828,6 @@ def test_with_text_input():
         default=modals.NO_DEFAULT,
         min_length=0,
         max_length=4000,
-        prefix_match=False,
         parameter=None,
     )
 
@@ -933,7 +847,6 @@ def test_with_text_input_with_defaults():
         default="superman",
         min_length=6,
         max_length=9,
-        prefix_match=True,
         parameter="arg",
     )(modal)
 
@@ -947,6 +860,5 @@ def test_with_text_input_with_defaults():
         default="superman",
         min_length=6,
         max_length=9,
-        prefix_match=True,
         parameter="arg",
     )
