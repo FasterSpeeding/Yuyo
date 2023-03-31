@@ -983,7 +983,7 @@ class Modal(AbstractModal):
     _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder]] = []
 
     def __init__(
-        self, *, ephemeral_default: bool = False, id_postfixes: typing.Union[collections.Mapping[str, str], None] = None
+        self, *, ephemeral_default: bool = False, id_metadata: typing.Union[collections.Mapping[str, str], None] = None
     ) -> None:
         """Initialise a component executor.
 
@@ -996,7 +996,7 @@ class Modal(AbstractModal):
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
         # TODO: don't duplicate fields when re-declared
-        if id_postfixes is None:
+        if id_metadata is None:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(components=[component]) for component in self._static_builders
             ]
@@ -1005,8 +1005,8 @@ class Modal(AbstractModal):
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
-                        copy.copy(component).set_custom_id(f"{component.custom_id}:{postfix}")
-                        if (postfix := id_postfixes.get(component.custom_id))
+                        copy.copy(component).set_custom_id(f"{component.custom_id}:{metadata}")
+                        if (metadata := id_metadata.get(component.custom_id))
                         else component
                     ]
                 )
