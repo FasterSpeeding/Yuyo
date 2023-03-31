@@ -112,27 +112,41 @@ NO_DEFAULT: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
 class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
 
-    __slots__ = ("_client",)
+    __slots__ = ("_client", "_component_ids", "_custom_ids")
 
     def __init__(
         self,
         client: ModalClient,
         interaction: hikari.ModalInteraction,
+        id_match: str,
+        id_metadata: str,
+        component_ids: collections.Mapping[str, str],
         register_task: collections.abc.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
         response_future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         super().__init__(
-            interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
+            interaction=interaction,
+            id_match=id_match,
+            id_metadata=id_metadata,
+            register_task=register_task,
+            ephemeral_default=ephemeral_default,
+            response_future=response_future,
         )
         self._client = client
+        self._component_ids = component_ids
         self._response_future = response_future
 
     @property
     def client(self) -> ModalClient:
         """The modal this context is bound to."""
         return self._client
+
+    @property
+    def component_ids(self) -> collections.Mapping[str, str]:
+        """ID of match IDs to ID metadata for the Modal's components."""
+        return self._component_ids
 
     async def create_initial_response(
         self,
@@ -592,10 +606,25 @@ class ModalClient:
         future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         timeout, modal = entry
+        id_match = custom_id[0]
         if timeout.increment_uses():
-            del self._modals[custom_id[0]]
+            del self._modals[id_match]
 
-        ctx = ModalContext(self, interaction, self._add_task, response_future=future)
+        try:
+            id_metadata = custom_id[1]
+
+        except IndexError:
+            id_metadata = ""
+
+        ctx = ModalContext(
+            client=self,
+            interaction=interaction,
+            component_ids={},
+            id_match=id_match,
+            id_metadata=id_metadata,
+            register_task=self._add_task,
+            response_future=future,
+        )
         await modal.execute(ctx)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
@@ -1287,12 +1316,23 @@ class Modal(AbstractModal):
         # <<inherited docstring from AbstractModal>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         components: dict[str, hikari.ModalComponentTypesT] = {}
+        assert isinstance(ctx.component_ids, dict)
 
         component: typing.Optional[hikari.ModalComponentTypesT]  # MyPy compat
         for component in itertools.chain.from_iterable(
             component_.components for component_ in ctx.interaction.components
         ):
-            components[_split_custom_id(component.custom_id)[0]] = component
+            custom_id = _split_custom_id(component.custom_id)
+            id_match = custom_id[0]
+            components[id_match] = component
+
+            try:
+                id_metadata = custom_id[1]
+
+            except IndexError:
+                id_metadata = ""
+
+            ctx.component_ids[id_match] = id_metadata
 
         fields = {field.parameter: field.process(components) for field in self._tracked_fields}
         await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)

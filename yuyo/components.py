@@ -122,6 +122,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         "_has_been_deferred",
         "_interaction",
         "_last_response_id",
+        "_id_match",
+        "_id_metadata",
         "_register_task",
         "_response_future",
         "_response_lock",
@@ -130,6 +132,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     def __init__(
         self,
         interaction: _PartialInteractionT,
+        id_match: str,
+        id_metadata: str,
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
@@ -143,11 +147,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._ephemeral_default = ephemeral_default
         self._has_responded = False
         self._has_been_deferred = False
+        self._id_match = id_match
+        self._id_metadata = id_metadata
         self._interaction: _PartialInteractionT = interaction
         self._last_response_id: typing.Optional[hikari.Snowflake] = None
         self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
+
+    @property
+    def id_match(self) -> str:
+        """Section of the ID used to identify the relevant executor."""
+        return self._id_match
+
+    @property
+    def id_metadata(self) -> str:
+        """Metadata from the interaction's custom ID."""
+        return self._id_metadata
 
     @property
     def expires_at(self) -> datetime.datetime:
@@ -1225,7 +1241,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 class ComponentContext(BaseContext[hikari.ComponentInteraction]):
     """The context used for message component triggers."""
 
-    __slots__ = ("_client", "_id_match", "_id_metadata")
+    __slots__ = ("_client",)
 
     def __init__(
         self,
@@ -1239,22 +1255,15 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         response_future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
     ) -> None:
         super().__init__(
-            interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
+            interaction=interaction,
+            id_match=id_match,
+            id_metadata=id_metadata,
+            register_task=register_task,
+            ephemeral_default=ephemeral_default,
+            response_future=response_future,
         )
         self._client = client
-        self._id_match = id_match
-        self._id_metadata = id_metadata
         self._response_future = response_future
-
-    @property
-    def id_match(self) -> str:
-        """Section of the ID used to identify the relevant executor."""
-        return self._id_match
-
-    @property
-    def id_metadata(self) -> str:
-        """Metadata from the interaction's custom ID."""
-        return self._id_metadata
 
     @property
     def select_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
@@ -1490,6 +1499,9 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             The title that will show up in the modal.
         custom_id
             Developer set custom ID used for identifying interactions with this modal.
+
+            Yuyo's Component client will only match against `custom_id.split(":", 1)[0]`,
+            allowing metadata to be put after ":".
         component
             A component builder to send in this modal.
         components
@@ -1894,7 +1906,7 @@ class ComponentClient:
         try:
             id_metadata = custom_id[1]
 
-        except KeyError:
+        except IndexError:
             id_metadata = ""
 
         ctx = ComponentContext(
@@ -1927,9 +1939,9 @@ class ComponentClient:
             return
 
         custom_id = _split_custom_id(event.interaction.custom_id)
-        prefix = custom_id[0]
-        if entry := self._executors.get(prefix):
-            ran = await self._execute(self._executors, prefix, entry, event.interaction, custom_id)
+        id_match = custom_id[0]
+        if entry := self._executors.get(id_match):
+            ran = await self._execute(self._executors, id_match, entry, event.interaction, custom_id)
             if ran:
                 return
 
@@ -1978,9 +1990,9 @@ class ComponentClient:
             The REST response.
         """
         custom_id = _split_custom_id(interaction.custom_id)
-        prefix = custom_id[0]
-        if entry := self._executors.get(prefix):
-            result = await self._execute_task(self._executors, prefix, entry, interaction, custom_id)
+        id_match = custom_id[0]
+        if entry := self._executors.get(id_match):
+            result = await self._execute_task(self._executors, id_match, entry, interaction, custom_id)
             if result:
                 return result
 
@@ -2757,12 +2769,12 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
-        return self.set_callback(prefix_id, callback).add_component(
+        return self.set_callback(id_match, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
                 custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
             )
@@ -2851,15 +2863,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         type_ = hikari.ComponentType(type_)
         return (
             self._assert_can_add_type(type_)
-            .set_callback(prefix_id, callback)
+            .set_callback(id_match, callback)
             .add_component(
                 hikari.impl.SelectMenuBuilder(
                     custom_id=custom_id,
@@ -2942,14 +2954,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         return (
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
-            .set_callback(prefix_id, callback)
+            .set_callback(id_match, callback)
             .add_component(
                 hikari.impl.ChannelSelectMenuBuilder(
                     custom_id=custom_id,
@@ -3034,10 +3046,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         component = _TextSelectMenuBuilder(
             parent=self,
@@ -3050,7 +3062,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         )
         (
             self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
-            .set_callback(prefix_id, callback)
+            .set_callback(id_match, callback)
             .add_component(component)
         )
         return component
@@ -4025,15 +4037,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The action column to enable chained calls.
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         _append_row(self._rows, is_button=True).add_interactive_button(
             style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
-        self._callbacks[prefix_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4316,10 +4328,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The action column to enable chained calls.
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         _append_row(self._rows).add_select_menu(
             type_,
@@ -4329,7 +4341,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[prefix_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4538,10 +4550,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The action column to enable chained calls.
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         _append_row(self._rows).add_channel_menu(
             custom_id,
@@ -4551,7 +4563,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[prefix_id] = callback
+        self._callbacks[id_match] = callback
         return self
 
     @classmethod
@@ -4811,10 +4823,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
-            prefix_id = custom_id = _internal.random_custom_id()
+            id_match = custom_id = _internal.random_custom_id()
 
         else:
-            prefix_id = _split_custom_id(custom_id)[0]
+            id_match = _split_custom_id(custom_id)[0]
 
         menu = _TextSelectMenuBuilder(
             parent=self,
@@ -4826,7 +4838,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             options=options,
         )
         _append_row(self._rows).add_component(menu)
-        self._callbacks[prefix_id] = callback
+        self._callbacks[id_match] = callback
         return menu
 
     @classmethod
