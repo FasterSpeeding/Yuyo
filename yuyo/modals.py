@@ -145,7 +145,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
     @property
     def component_ids(self) -> collections.Mapping[str, str]:
-        """ID of match IDs to ID metadata for the Modal's components."""
+        """Mapping of match ID parts to metadata ID parts for the modal's components."""
         return self._component_ids
 
     async def create_initial_response(
@@ -700,7 +700,7 @@ class ModalClient:
             The custom_id to register the modal for.
 
             This will be matched against `interaction.custom_id.split(":", 1)[0]`,
-            allowing metadata to be stored after a ":".
+            allowing metadata to be stored after a `":"`.
         modal
             The modal to register.
         timeout
@@ -719,6 +719,8 @@ class ModalClient:
         ------
         ValueError
             If the custom_id is already registered.
+
+            If `":"` is in the custom ID.
         """
         if ":" in custom_id:
             raise RuntimeError("Custom ID cannot contain `:`")
@@ -1117,7 +1119,7 @@ class Modal(AbstractModal):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         style
             The text input's style.
         placeholder
@@ -1251,7 +1253,7 @@ class Modal(AbstractModal):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         style
             The text input's style.
         placeholder
@@ -1286,7 +1288,7 @@ class Modal(AbstractModal):
         Returns
         -------
         Self
-            The model instance to enable call chaining.
+            The modal instance to enable call chaining.
         """
         if prefix_match is not None:
             warnings.warn("prefix_match has been deprecated as this behaviour is now always active")

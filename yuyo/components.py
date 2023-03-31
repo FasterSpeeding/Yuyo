@@ -1501,7 +1501,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             Developer set custom ID used for identifying interactions with this modal.
 
             Yuyo's Component client will only match against `custom_id.split(":", 1)[0]`,
-            allowing metadata to be put after ":".
+            allowing metadata to be put after `":"`.
         component
             A component builder to send in this modal.
         components
@@ -2279,11 +2279,16 @@ class SingleExecutor(AbstractComponentExecutor):
             The custom ID this executor is triggered for.
 
             This will be matched against `interaction.custom_id.split(":", 1)[0]`,
-            allowing metadata to be stored after a ":".
+            allowing metadata to be stored after a `":"`.
         callback
             The executor's  callback.
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
         if ":" in custom_id:
             raise ValueError("Custom ID cannot contain `:`")
@@ -2312,7 +2317,7 @@ def as_single_executor(
         The custom ID this executor is triggered for.
 
         This will be matched against `interaction.custom_id.split(":", 1)[0]`,
-        allowing metadata to be stored after a ":".
+        allowing metadata to be stored after a `":"`.
     ephemeral_default
         Whether this executor's responses should default to being ephemeral.
 
@@ -2399,9 +2404,14 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             The custom ID to set the callback for.
 
             This will be matched against `interaction.custom_id.split(":", 1)[0]`,
-            allowing metadata to be stored after a ":".
+            allowing metadata to be stored after a `":"`.
         callback
             The callback to set.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
         if ":" in custom_id:
             raise RuntimeError("Custom ID cannot contain `:`")
@@ -2418,12 +2428,17 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             The custom ID to set the callback for.
 
             This will be matched against `interaction.custom_id.split(":", 1)[0]`,
-            allowing metadata to be stored after a ":".
+            allowing metadata to be stored after a `":"`.
 
         Returns
         -------
         collections.abc.Callable[[CallbackSig], CallbackSig]
             Decorator callback used to set a custom ID's callback.
+
+        Raises
+        ------
+        ValueError
+            If `":"` is in the custom ID.
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
@@ -2747,7 +2762,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -2847,7 +2862,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The select menu's custom ID.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2938,7 +2953,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -3022,7 +3037,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -3228,7 +3243,7 @@ def as_interactive_button(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     emoji
         The button's emoji.
     label
@@ -3384,7 +3399,7 @@ def as_select_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3503,7 +3518,7 @@ def as_channel_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3641,7 +3656,7 @@ def as_text_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     options
         The text select's options.
 
@@ -4023,7 +4038,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -4095,7 +4110,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -4172,7 +4187,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         emoji
             The button's emoji.
         label
@@ -4312,7 +4327,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4375,7 +4390,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4430,9 +4445,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a select menu to this class by decorating its callback.
 
-        For channel select menus and text select menus see
-        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu] and
-        [ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu] respectively.
+        For channel select menus see
+        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu].
 
         Parameters
         ----------
@@ -4444,7 +4458,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4534,7 +4548,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4622,7 +4636,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4712,7 +4726,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4796,7 +4810,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -4891,7 +4905,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Defaults to a UUID and cannot be longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after ":" is metadata.
+            interactions. Anything after `":"` is metadata.
         options
             The text select's options.
 
@@ -4940,6 +4954,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
         return component
+
+    # TODO: with_static_text_menu
 
 
 def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
@@ -5011,7 +5027,7 @@ def with_static_interative_button(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     emoji
         The button's emoji.
     label
@@ -5090,7 +5106,7 @@ def with_static_select_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5169,7 +5185,7 @@ def with_static_channel_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5218,7 +5234,7 @@ def with_static_text_menu(
         Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after ":" is metadata.
+        interactions. Anything after `":"` is metadata.
     options
         The text select's options.
     placeholder
