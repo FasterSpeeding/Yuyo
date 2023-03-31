@@ -54,6 +54,7 @@ import functools
 import itertools
 import types
 import typing
+import warnings
 
 import alluka as alluka_
 import hikari
@@ -1070,7 +1071,7 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        prefix_match: bool = True,
+        prefix_match: typing.Optional[bool] = None,
         parameter: typing.Optional[str] = None,
     ) -> type[Self]:
         """Add a text input field to all instances and subclasses of this modal class.
@@ -1130,6 +1131,9 @@ class Modal(AbstractModal):
             When called directly on [modals.Modal][yuyo.modals.Modal]
             (rather than on a subclass).
         """
+        if prefix_match is not None:
+            warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
+
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
@@ -1201,7 +1205,7 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        prefix_match: bool = True,
+        prefix_match: typing.Optional[bool] = None,
         parameter: typing.Optional[str] = None,
     ) -> Self:
         """Add a text input field to this modal instance.
@@ -1255,6 +1259,9 @@ class Modal(AbstractModal):
         Self
             The model instance to enable call chaining.
         """
+        if prefix_match is not None:
+            warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
+
         custom_id, row = _make_text_input(
             custom_id=custom_id,
             label=label,
@@ -1547,7 +1554,7 @@ def with_static_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = True,
+    prefix_match: typing.Optional[bool] = None,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
@@ -1598,6 +1605,9 @@ def with_static_text_input(
     type[Modal]
         The decorated modal class.
     """
+    if prefix_match is not None:
+        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
+
     return lambda modal_cls: modal_cls.add_static_text_input(
         label,
         custom_id=custom_id,
@@ -1658,7 +1668,7 @@ def with_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = True,
+    prefix_match: typing.Optional[bool] = None,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
@@ -1709,6 +1719,9 @@ def with_text_input(
     Modal
         The decorated modal instance.
     """
+    if prefix_match is not None:
+        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
+
     return lambda modal: modal.add_text_input(
         label,
         custom_id=custom_id,
@@ -1902,7 +1915,7 @@ def text_input(
     default: typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]] = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: bool = True,
+    prefix_match: typing.Optional[bool] = None,
 ) -> typing.Union[str, _T]:
     """Descriptor used to declare a text input field.
 
@@ -1969,8 +1982,10 @@ def text_input(
     ) -> None:
         ...
     ```
-
     """
+    if prefix_match is not None:
+        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
+
     descriptor = _TextInputDescriptor(
         label,
         custom_id=custom_id,
