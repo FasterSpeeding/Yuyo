@@ -980,7 +980,7 @@ class Modal(AbstractModal):
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
-    _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder[typing.Any]]] = []
+    _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder]] = []
 
     def __init__(
         self, *, ephemeral_default: bool = False, id_postfixes: typing.Union[collections.Mapping[str, str], None] = None
@@ -996,7 +996,12 @@ class Modal(AbstractModal):
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
         # TODO: don't duplicate fields when re-declared
-        if id_postfixes: list[hikari.api.ModalActionRowBuilder] is not None:
+        if id_postfixes is None:
+            self._rows = [
+                hikari.impl.ModalActionRowBuilder(components=[component]) for component in self._static_builders
+            ]
+
+        else:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
@@ -1006,11 +1011,6 @@ class Modal(AbstractModal):
                     ]
                 )
                 for component in self._static_builders
-            ]
-
-        else:
-            self._rows = [
-                hikari.impl.ModalActionRowBuilder(components=[component]) for component in self._static_builders
             ]
 
     def __init_subclass__(cls, parse_signature: bool = True) -> None:
@@ -1379,7 +1379,7 @@ def _make_text_input(
     default: typing.Any,
     min_length: int,
     max_length: int,
-) -> tuple[str, hikari.impl.TextInputBuilder[typing.Any]]:
+) -> tuple[str, hikari.impl.TextInputBuilder]:
     if custom_id is None:
         custom_id = _internal.random_custom_id()
 
