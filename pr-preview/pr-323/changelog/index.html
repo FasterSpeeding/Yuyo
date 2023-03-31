@@ -2170,6 +2170,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
 <ul>
 <li>A static timeout implementation.</li>
+<li>Support for custom ID prefix matching to the Message component executors.</li>
 <li>Message components have support for loading components from class attributes again.
   This time this support has been implemented through <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.SingleExecutor">yuyo.components.SingleExecutor</a> and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.as_single_executor">yuyo.components.as_single_executor</a>
@@ -2185,10 +2186,19 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_text_select">ActionColumnExecutor.add_text_select</a>, and
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_text_select">ActionRowExecutor.add_text_select</a> for
   passing option builders.</li>
+<li><code>ComponentContext.id_match</code> and <code>ModalContext.id_metadata</code> convenient properties for getting
+  the matching and metadata parts of the component's custom ID.</li>
+<li><code>Modal.id_match</code>, <code>Modal.id_metadata</code> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalContext.component_ids">ModalContext.component_ids</a>
+  convenience properties for getting the matching and metadata parts of the Modal's top-level
+  custom ID and the sub-component custom IDs.</li>
+<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentExecutor.set_callback">ComponentExecutor.set_callback</a> and
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentExecutor.with_callback">ComponentExecutor.with_callback</a> now
+  both raise <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a> if <code>":"</code> is present in <code>custom_id</code>.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
 <li>Bumped the minimum Hikari version to <code>2.0.0.dev118</code>.</li>
+<li>Prefix matching behaviour is now always enabled for both modals and components.</li>
 <li>Marked most deprecated timeout class aliases using <code>typing.deprecated</code>.
   (only <code>yuyo.modals.AbstractTimeout</code> was skipped).</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a> now inherits from <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a>
@@ -2236,6 +2246,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Passing <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor">yuyo.components.ActionRowExecutor</a> to
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_row">ActionColumnExecutor.add_row</a>. This
   now takes <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
+<li>The <code>prefix_match</code> parameter as this is now always enabled.</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">#</a></h3>
 <ul>
@@ -2482,7 +2493,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h2 id="160a1-2023-01-12"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...v1.6.0a1">1.6.0a1</a> - 2023-01-12<a class="headerlink" href="#160a1-2023-01-12" title="Permanent link">#</a></h2>
 <h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">#</a></h3>
 <ul>
-<li>Helper functions for converting some Hikrai models to builder objects in <a class="autorefs autorefs-internal" href="../reference/to_builder/#yuyo.to_builder">yuyo.to_builder</a>.
+<li>Helper functions for converting some Hikrai modals to builder objects in <a class="autorefs autorefs-internal" href="../reference/to_builder/#yuyo.to_builder">yuyo.to_builder</a>.
   These support application commands and message components.</li>
 </ul>
 <h3 id="changed_8">Changed<a class="headerlink" href="#changed_8" title="Permanent link">#</a></h3>

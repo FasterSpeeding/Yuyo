@@ -1321,8 +1321,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1668,7 +1668,7 @@ works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal<
             <p>The field's custom ID.</p>
 <p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after ":" is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1910,7 +1910,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
             <p>The field's custom ID.</p>
 <p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after ":" is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2077,7 +2077,7 @@ and the default is a string that's &lt;=4000 characters in length.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The model instance to enable call chaining.</p>
+            <p>The modal instance to enable call chaining.</p>
           </td>
         </tr>
     </tbody>
@@ -2906,7 +2906,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
           <td class="doc-param-details">
             <p>The custom_id to register the modal for.</p>
 <p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
-allowing metadata to be stored after a ":".</p>
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2985,6 +2985,7 @@ allowing metadata to be stored after a ":".</p>
           </td>
           <td class="doc-raises-details">
             <p>If the custom_id is already registered.</p>
+<p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
     </tbody>
@@ -3073,7 +3074,7 @@ allowing metadata to be stored after a ":".</p>
 
   <div class="doc doc-contents ">
   
-      <p>ID of match IDs to ID metadata for the Modal's components.</p>
+      <p>Mapping of match ID parts to metadata ID parts for the modal's components.</p>
   </div>
 
 </div>
