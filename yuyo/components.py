@@ -2316,7 +2316,7 @@ class SingleExecutor(AbstractComponentExecutor):
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
-        return (self._custom_id,)
+        return [self._custom_id]
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         ctx.set_ephemeral_default(self._ephemeral_default)

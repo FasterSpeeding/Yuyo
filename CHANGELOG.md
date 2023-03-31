@@ -71,7 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `yuyo.components.with_static_button` to `.with_static_interactive_button`
     * `yuyo.components.with_static_channel_select` to `.with_static_channel_menu`
 
-
 ### Deprecated
 - The constant ID component handling system.
   This has been replaced with passing [yuyo.components.SingleExecutor][] to
