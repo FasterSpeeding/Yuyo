@@ -25,19 +25,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
-- Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
   (only `yuyo.modals.AbstractTimeout` was skipped).
 - [yuyo.components.WaitForExecutor][] now inherits from [yuyo.components.WaitForExecutor][]
   and should also be passed to `timeout=`.
-- Renamed `ModalClient.set_modal` to [Modal.register_modal][yuyo.modals.ModalClient.register_modal].
-- Renamed `ModalClient.remove_modal` to [Modal.deregister_modal][yuyo.modals.ModalClient.deregister_modal].
-- Renamed [ComponentClient.get_executor][yuyo.components.ComponentClient.get_executor] to
-  [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message].
-- Renamed [ComponentClient.remove_executor][yuyo.components.ComponentClient.remove_executor] to
-  [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message].
 - [ActionColumnExecutor.rows][yuyo.components.ActionColumnExecutor.rows] now returns
   [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
+- Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
+- Renamed `ModalClient.set_modal` to [Modal.register_modal][yuyo.modals.ModalClient.register_modal].
+- Renamed `ModalClient.remove_modal` to [Modal.deregister_modal][yuyo.modals.ModalClient.deregister_modal].
+- Renamed `ComponentClient.get_executor` to [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message].
+- Renamed `ComponentClient.remove_executor` to [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message].
+- Renamed `add_` and `with_` component methods to better match Hikari's new naming scheme:
+    * `ActionRowExecutor.add_button` to `.add_interative_button`
+    * `ActionRowExecutor.add_channel_select` to `.add_channel_menu`
+    * `ActionRowExecutor.add_text_select` to `.add_text_menu`
+    * `ActionColumnExecutor.add_button` to `.add_interative_button`
+    * `ActionColumnExecutor.add_channel_select` to `.add_channel_menu`
+    * `ActionColumnExecutor.add_text_select` to `.add_text_menu`
+    * `ActionColumnExecutor.add_static_button` to `.add_static_interactive_button`
+    * `ActionColumnExecutor.with_static_button` to `.with_static_interactive_button`
+    * `ActionColumnExecutor.add_static_channel_select` to `.add_static_channel_menu`
+    * `ActionColumnExecutor.with_static_channel_select` to `.with_static_channel_menu`
+    * `ActionColumnExecutor.add_static_text_select` to `.add_static_text_menu`
+    * `yuyo.components.with_static_button` to `.with_static_interactive_button`
+    * `yuyo.components.with_static_channel_select` to `.with_static_channel_menu`
+
 
 ### Deprecated
 - The constant ID component handling system.

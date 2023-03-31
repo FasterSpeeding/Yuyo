@@ -4793,6 +4793,23 @@ def _append_row(
     return row
 
 
+@typing_extensions.deprecated("Use with_static_interative_button")
+def with_static_button(
+    style: hikari.InteractiveButtonTypesT,
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Depricated alias of [with_static_interative_button][yuyo.components.with_static_interative_button]."""
+    return with_static_interative_button(
+        style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+    )
+
+
 def with_static_interative_button(
     style: hikari.InteractiveButtonTypesT,
     callback: CallbackSig,
@@ -4908,6 +4925,32 @@ def with_static_select_menu(
         callback,
         type_,
         custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+@typing_extensions.deprecated("Use with_static_channel_menu")
+def with_static_channel_select(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    channel_types: typing.Optional[
+        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
+    ] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Depricated alias of [with_static_channel_menu][yuyo.components.with_static_channel_menu]."""
+    return with_static_channel_menu(
+        callback,
+        custom_id=custom_id,
+        channel_types=channel_types,
         placeholder=placeholder,
         min_values=min_values,
         max_values=max_values,
