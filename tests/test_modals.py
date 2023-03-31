@@ -52,9 +52,15 @@ except ModuleNotFoundError:
 class TestModalContext:
     def test_client_property(self):
         mock_client = mock.Mock()
-        context = modals.ModalContext(mock_client, mock.Mock(), mock.Mock())
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.client is mock_client
+
+    def test_component_ids_property(self):
+        components = {"id": "meow"}
+        context = modals.ModalContext(mock.Mock(), mock.Mock(), "", "", components, mock.Mock())
+
+        assert context.component_ids is components
 
     @pytest.mark.skip(reason="TODO")
     async def test_create_initial_response(self):
