@@ -3876,24 +3876,30 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     def __init__(
         self,
         *,
-        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
         _stack_level: int = 0,
     ) -> None:
         ...
 
     @typing.overload
-    def __init__(self, *, postfix_ids: typing.Optional[collections.Mapping[str, str]] = None) -> None:
+    def __init__(self, *, id_metadata: typing.Optional[collections.Mapping[str, str]] = None) -> None:
         ...
 
     def __init__(
         self,
         *,
-        postfix_ids: typing.Optional[collections.Mapping[str, str]] = None,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
         _stack_level: int = 0,
     ) -> None:
-        """Initialise an action column executor."""
+        """Initialise an action column executor.
+
+        Parameters
+        ----------
+        id_metadata
+            Mapping of metadata to append to the custom_ids in this column.
+        """
         if timeout is not _internal.NO_DEFAULT:
             warnings.warn(
                 "Component executors no-longer track their own expiration",
@@ -3906,10 +3912,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
         for field in self._all_static_fields.copy():
-            if postfix_ids and (postfix := postfix_ids.get(field.custom_id)):
+            if id_metadata and (metadata := id_metadata.get(field.custom_id)):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
-                builder.set_custom_id(f"{field.custom_id}:{postfix}")
+                builder.set_custom_id(f"{field.custom_id}:{metadata}")
 
             else:
                 builder = field.builder
