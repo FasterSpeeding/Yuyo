@@ -4804,7 +4804,7 @@ def with_static_button(
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Depricated alias of [with_static_interative_button][yuyo.components.with_static_interative_button]."""
+    """Deprecated alias of [with_static_interative_button][yuyo.components.with_static_interative_button]."""
     return with_static_interative_button(
         style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
     )
@@ -4946,7 +4946,7 @@ def with_static_channel_select(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Depricated alias of [with_static_channel_menu][yuyo.components.with_static_channel_menu]."""
+    """Deprecated alias of [with_static_channel_menu][yuyo.components.with_static_channel_menu]."""
     return with_static_channel_menu(
         callback,
         custom_id=custom_id,
