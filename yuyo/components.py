@@ -1225,12 +1225,14 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 class ComponentContext(BaseContext[hikari.ComponentInteraction]):
     """The context used for message component triggers."""
 
-    __slots__ = ("_client",)
+    __slots__ = ("_client", "_id_match", "_id_metadata")
 
     def __init__(
         self,
         client: ComponentClient,
         interaction: hikari.ComponentInteraction,
+        id_match: str,
+        id_metadata: str,
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
@@ -1240,7 +1242,19 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             interaction, register_task, ephemeral_default=ephemeral_default, response_future=response_future
         )
         self._client = client
+        self._id_match = id_match
+        self._id_metadata = id_metadata
         self._response_future = response_future
+
+    @property
+    def id_match(self) -> str:
+        """Section of the ID used to identify the relevant executor."""
+        return self._id_match
+
+    @property
+    def id_metadata(self) -> str:
+        """Metadata from the interaction's custom ID."""
+        return self._id_metadata
 
     @property
     def select_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
@@ -1864,6 +1878,7 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
+        custom_id: list[str],
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
@@ -1876,7 +1891,20 @@ class ComponentClient:
 
             return False
 
-        ctx = ComponentContext(self, interaction, self._add_task, response_future=future)
+        try:
+            id_metadata = custom_id[1]
+
+        except KeyError:
+            id_metadata = ""
+
+        ctx = ComponentContext(
+            client=self,
+            interaction=interaction,
+            id_match=custom_id[0],
+            id_metadata=id_metadata,
+            register_task=self._add_task,
+            response_future=future,
+        )
         if timeout.increment_uses():
             del remove_from[key]
 
@@ -1901,12 +1929,14 @@ class ComponentClient:
         custom_id = _split_custom_id(event.interaction.custom_id)
         prefix = custom_id[0]
         if entry := self._executors.get(prefix):
-            ran = await self._execute(self._executors, prefix, entry, event.interaction)
+            ran = await self._execute(self._executors, prefix, entry, event.interaction, custom_id)
             if ran:
                 return
 
         if entry := self._message_executors.get(event.interaction.message.id):
-            ran = await self._execute(self._message_executors, event.interaction.message.id, entry, event.interaction)
+            ran = await self._execute(
+                self._message_executors, event.interaction.message.id, entry, event.interaction, custom_id
+            )
             if ran:
                 return
 
@@ -1922,10 +1952,13 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
+        custom_id: list[str],
         /,
     ) -> typing.Optional[_ComponentResponseT]:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
-        self._add_task(asyncio.create_task(self._execute(remove_from, key, entry, interaction, future=future)))
+        self._add_task(
+            asyncio.create_task(self._execute(remove_from, key, entry, interaction, custom_id, future=future))
+        )
         try:
             return await future
         except ExecutorClosed:
@@ -1944,15 +1977,17 @@ class ComponentClient:
         ResponseT
             The REST response.
         """
-        if entry := self._message_executors.get(interaction.message.id):
-            result = await self._execute_task(self._message_executors, interaction.message.id, entry, interaction)
-            if result:
-                return result
-
         custom_id = _split_custom_id(interaction.custom_id)
         prefix = custom_id[0]
         if entry := self._executors.get(prefix):
-            result = await self._execute_task(self._executors, prefix, entry, interaction)
+            result = await self._execute_task(self._executors, prefix, entry, interaction, custom_id)
+            if result:
+                return result
+
+        if entry := self._message_executors.get(interaction.message.id):
+            result = await self._execute_task(
+                self._message_executors, interaction.message.id, entry, interaction, custom_id
+            )
             if result:
                 return result
 
@@ -2340,7 +2375,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
-        callback = self._id_to_callback[ctx.interaction.custom_id]
+        callback = self._id_to_callback[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     def set_callback(self, custom_id: str, callback: CallbackSig, /) -> Self:
@@ -3928,7 +3963,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        callback = self._callbacks[ctx.interaction.custom_id.split(":", 1)[0]]
+        callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
     @typing_extensions.deprecated("Use .add_interative_button")
@@ -4781,7 +4816,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         else:
             prefix_id = _split_custom_id(custom_id)[0]
 
-        menu = hikari.impl.TextSelectMenuBuilder(
+        menu = _TextSelectMenuBuilder(
+            parent=self,
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,

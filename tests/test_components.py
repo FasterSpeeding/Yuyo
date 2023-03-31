@@ -53,61 +53,65 @@ class TestBaseContext:
 
 
 class TestComponentContext:
+    def test_id_match_property(self):
+        context = yuyo.components.Context(
+            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.id_match == "yeyeye meow meow"
+
+    def test_id_metadata_property(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda v: None)
+
+        assert context.id_metadata == "very meta girl"
+
     def test_select_channels_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_channels is mock_interaction.resolved.channels
 
     def test_select_channels_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_channels == {}
 
     def test_select_roles_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_roles is mock_interaction.resolved.roles
 
     def test_select_roles_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_roles == {}
 
     def test_select_texts_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_texts is mock_interaction.values
 
     def test_select_users_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_users is mock_interaction.resolved.users
 
     def test_select_users_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_users == {}
 
     def test_select_members_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), interaction=mock_interaction, register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.select_members is mock_interaction.resolved.members
 
     def test_select_members_property_when_no_resolved(self):
-        context = yuyo.components.Context(
-            mock.Mock(), interaction=mock.Mock(resolved=None), register_task=lambda v: None
-        )
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_members == {}
 
