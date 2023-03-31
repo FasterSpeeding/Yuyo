@@ -2230,11 +2230,17 @@ class SingleExecutor(AbstractComponentExecutor):
         ----------
         custom_id
             The custom ID this executor is triggered for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a ":".
         callback
             The executor's  callback.
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
         """
+        if ":" in custom_id:
+            raise ValueError("Custom ID cannot contain `:`")
+
         self._callback = callback
         self._custom_id = custom_id
         self._ephemeral_default = ephemeral_default
@@ -2257,6 +2263,9 @@ def as_single_executor(
     ----------
     custom_id
         The custom ID this executor is triggered for.
+
+        This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+        allowing metadata to be stored after a ":".
     ephemeral_default
         Whether this executor's responses should default to being ephemeral.
 
@@ -2341,9 +2350,15 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ----------
         custom_id
             The custom ID to set the callback for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a ":".
         callback
             The callback to set.
         """
+        if ":" in custom_id:
+            raise RuntimeError("Custom ID cannot contain `:`")
+
         self._id_to_callback[custom_id] = callback
         return self
 
@@ -2354,6 +2369,9 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ----------
         custom_id
             The custom ID to set the callback for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a ":".
 
         Returns
         -------
@@ -2678,6 +2696,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The interactive button's callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         emoji
             The button's emoji.
         label
@@ -2699,9 +2722,12 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            prefix_id = custom_id = _internal.random_custom_id()
 
-        return self.set_callback(custom_id, callback).add_component(
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
+
+        return self.set_callback(prefix_id, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
                 custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
             )
@@ -2772,6 +2798,9 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2787,12 +2816,15 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
 
         type_ = hikari.ComponentType(type_)
         return (
             self._assert_can_add_type(type_)
-            .set_callback(custom_id, callback)
+            .set_callback(prefix_id, callback)
             .add_component(
                 hikari.impl.SelectMenuBuilder(
                     custom_id=custom_id,
@@ -2855,6 +2887,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -2870,11 +2907,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             The action row to enable chained calls.
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
 
         return (
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
-            .set_callback(custom_id, callback)
+            .set_callback(prefix_id, callback)
             .add_component(
                 hikari.impl.ChannelSelectMenuBuilder(
                     custom_id=custom_id,
@@ -2931,6 +2971,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         options
             The text select's options.
 
@@ -2954,7 +2999,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
         if custom_id is None:
-            custom_id = _internal.random_custom_id()
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
 
         component = _TextSelectMenuBuilder(
             parent=self,
@@ -2967,7 +3015,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         )
         (
             self._assert_can_add_type(hikari.ComponentType.TEXT_SELECT_MENU)
-            .set_callback(custom_id, callback)
+            .set_callback(prefix_id, callback)
             .add_component(component)
         )
         return component
@@ -3617,7 +3665,7 @@ class _StaticField:
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.custom_id: str = custom_id
+        self.custom_id: str = _split_custom_id(custom_id)[0]
         self.self_bound: bool = self_bound
 
 
@@ -3904,6 +3952,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's execution callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         emoji
             The button's emoji.
         label
@@ -3916,11 +3969,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows, is_button=True).add_interactive_button(
             style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[prefix_id] = callback
         return self
 
     @classmethod
@@ -3966,6 +4024,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's execution callback.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         emoji
             The button's emoji.
         label
@@ -4038,6 +4101,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The button's style.
         custom_id
             The button's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         emoji
             The button's emoji.
         label
@@ -4173,6 +4241,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4187,7 +4260,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows).add_select_menu(
             type_,
             custom_id,
@@ -4196,7 +4274,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[prefix_id] = callback
         return self
 
     @classmethod
@@ -4226,6 +4304,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4290,6 +4373,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The type of select menu to add.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4375,6 +4463,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4389,7 +4482,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
+
         _append_row(self._rows).add_channel_menu(
             custom_id,
             channel_types=_parse_channel_types(*channel_types) if channel_types else [],
@@ -4398,7 +4496,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        self._callbacks[custom_id] = callback
+        self._callbacks[prefix_id] = callback
         return self
 
     @classmethod
@@ -4453,6 +4551,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4538,6 +4641,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Sequence of the types of channels this select menu should show as options.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values
@@ -4617,6 +4725,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         options
             The text select's options.
 
@@ -4642,7 +4755,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        custom_id = custom_id or _internal.random_custom_id()
+        if custom_id is None:
+            prefix_id = custom_id = _internal.random_custom_id()
+
+        else:
+            prefix_id = _split_custom_id(custom_id)[0]
+
         menu = hikari.impl.TextSelectMenuBuilder(
             custom_id=custom_id,
             placeholder=placeholder,
@@ -4652,7 +4770,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             options=options,
         )
         _append_row(self._rows).add_component(menu)
-        self._callbacks[custom_id] = callback
+        self._callbacks[prefix_id] = callback
         return menu
 
     @classmethod
@@ -4701,6 +4819,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             Callback which is called when this select menu is used.
         custom_id
             The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         options
             The text select's options.
 
@@ -4816,6 +4939,9 @@ def with_static_interative_button(
         The button's execution callback.
     custom_id
         The button's custom ID.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     emoji
         The button's emoji.
     label
@@ -4890,6 +5016,9 @@ def with_static_select_menu(
         The type of select menu to add.
     custom_id
         The select menu's custom ID.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -4964,6 +5093,9 @@ def with_static_channel_menu(
         Sequence of the types of channels this select menu should show as options.
     custom_id
         The select menu's custom ID.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5008,6 +5140,9 @@ def with_static_text_menu(
         Callback which is called when this select menu is used.
     custom_id
         The select menu's custom ID.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     options
         The text select's options.
     placeholder

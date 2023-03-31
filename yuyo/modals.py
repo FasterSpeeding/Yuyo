@@ -668,6 +668,9 @@ class ModalClient:
         ----------
         custom_id
             The custom_id to register the modal for.
+
+            This will be matched against `interaction.custom_id.split(":", 1)[0]`,
+            allowing metadata to be stored after a ":".
         modal
             The modal to register.
         timeout
@@ -687,6 +690,9 @@ class ModalClient:
         ValueError
             If the custom_id is already registered.
         """
+        if ":" in custom_id:
+            raise RuntimeError("Custom ID cannot contain `:`")
+
         if custom_id in self._modals:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
@@ -1079,6 +1085,9 @@ class Modal(AbstractModal):
             The field's custom ID.
 
             Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         style
             The text input's style.
         placeholder
@@ -1207,6 +1216,9 @@ class Modal(AbstractModal):
             The field's custom ID.
 
             Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after ":" is metadata.
         style
             The text input's style.
         placeholder
