@@ -781,6 +781,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_match" class="md-nav__link">
+    id_match
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_metadata" class="md-nav__link">
+    id_metadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.BaseContext.interaction" class="md-nav__link">
     interaction
   </a>
@@ -1862,6 +1876,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_match" class="md-nav__link">
+    id_match
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_metadata" class="md-nav__link">
+    id_metadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.BaseContext.interaction" class="md-nav__link">
     interaction
   </a>
@@ -2609,8 +2637,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -2635,8 +2663,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -6403,6 +6431,52 @@ marked as failed.</p>
 
 
 
+<h3 id="yuyo.components.BaseContext.id_match" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">id_match</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.BaseContext.id_match" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">id_match</span><span class="p">:</span> <span class="nb">str</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Section of the ID used to identify the relevant executor.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.BaseContext.id_metadata" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">id_metadata</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.BaseContext.id_metadata" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">id_metadata</span><span class="p">:</span> <span class="nb">str</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Metadata from the interaction's custom ID.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="yuyo.components.BaseContext.interaction" class="doc doc-heading">
         <span class="doc doc-object-name doc-attribute-name">interaction</span>
 
@@ -6796,8 +6870,8 @@ and <code>components</code> are passed or both <code>embed</code> and <code>embe
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.create_initial_response" class="headerlink" title="Permanent link">#</a></h3>
@@ -7196,8 +7270,8 @@ longer than <code>max_rate_limit</code> when making a request.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.defer" class="headerlink" title="Permanent link">#</a></h3>
@@ -10350,6 +10424,8 @@ deferring.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>Developer set custom ID used for identifying interactions with this modal.</p>
+<p>Yuyo's Component client will only match against <code>custom_id.split(":", 1)[0]</code>,
+allowing metadata to be put after ":".</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
