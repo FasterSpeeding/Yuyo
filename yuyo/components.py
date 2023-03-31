@@ -2352,7 +2352,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             warnings.warn(
                 "Component executors no-longer track their own expiration",
                 category=DeprecationWarning,
-                stacklevel=_stack_level + 3,
+                stacklevel=_stack_level + 2,
             )
 
         self._ephemeral_default = ephemeral_default
@@ -3747,7 +3747,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             warnings.warn(
                 "Component executors no-longer track their own expiration",
                 category=DeprecationWarning,
-                stacklevel=_stack_level + 3,
+                stacklevel=_stack_level + 2,
             )
 
         self._callbacks: dict[str, CallbackSig] = {}
