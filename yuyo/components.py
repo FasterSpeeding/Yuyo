@@ -4298,8 +4298,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a select menu to this class by decorating its callback.
 
-        For channel select menus see
-        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu] .
+        For channel select menus and text select menus see
+        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu] and
+        [ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu] respectively.
 
         Parameters
         ----------
