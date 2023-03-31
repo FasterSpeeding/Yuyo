@@ -2609,8 +2609,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -12067,6 +12067,9 @@ should default to ephemeral (meaning only the author can see them) unless
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after ":" is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12199,6 +12202,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after ":" is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12316,6 +12322,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after ":" is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12516,6 +12525,9 @@ allowing metadata to be stored after a ":".</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after ":" is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12911,6 +12923,7 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after ":" is metadata.</p>
             <p>
@@ -13091,6 +13104,7 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after ":" is metadata.</p>
             <p>
@@ -13350,6 +13364,7 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after ":" is metadata.</p>
             <p>
@@ -13496,6 +13511,7 @@ interactions. Anything after ":" is metadata.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after ":" is metadata.</p>
             <p>
