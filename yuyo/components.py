@@ -4019,7 +4019,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing_extensions.deprecated("Use .with_static_interative_button")
-    def with_button(
+    def with_static_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
         /,
