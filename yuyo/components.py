@@ -3893,7 +3893,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
         _stack_level: int = 0,
     ) -> None:
-        """Initialise an action column executor."""
+        """Initialise an action column executor.
+
+        Parameters
+        ----------
+        id_metadata
+            Mapping of metadata to append to the custom_ids in this column.
+        """
         if timeout is not _internal.NO_DEFAULT:
             warnings.warn(
                 "Component executors no-longer track their own expiration",

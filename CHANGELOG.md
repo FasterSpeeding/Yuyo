@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ComponentExecutor.set_callback][yuyo.components.ComponentExecutor.set_callback] and
   [ComponentExecutor.with_callback][yuyo.components.ComponentExecutor.with_callback] now
   both raise [ValueError][] if `":"` is present in `custom_id`.
+- `id_metadata` option to
+  [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__] and
+  [Modal.\_\_init\_\_][yuyo.modals.Modal.__init__] to allow for setting the
+  ID metadata of components per-init.
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.

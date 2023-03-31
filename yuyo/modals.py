@@ -991,6 +991,8 @@ class Modal(AbstractModal):
         ----------
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
+        id_metadata
+            Mapping of metadata to append to the custom_ids in this modal.
         """
         self._ephemeral_default = ephemeral_default
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
