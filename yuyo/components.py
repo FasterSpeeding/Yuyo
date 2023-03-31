@@ -3177,6 +3177,11 @@ def as_interactive_button(
         The button's style.
     custom_id
         The button's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     emoji
         The button's emoji.
     label
@@ -3328,6 +3333,11 @@ def as_select_menu(
         The type of select menu to add.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3442,6 +3452,11 @@ def as_channel_menu(
         Sequence of the types of channels this select menu should show as options.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3575,6 +3590,11 @@ def as_text_menu(
     ----------
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after ":" is metadata.
     options
         The text select's options.
 
@@ -4940,6 +4960,8 @@ def with_static_interative_button(
     custom_id
         The button's custom ID.
 
+        Defaults to a UUID and cannot be longer than 100 characters.
+
         Only `custom_id.split(":", 1)[0]` will be used to match against
         interactions. Anything after ":" is metadata.
     emoji
@@ -5016,6 +5038,8 @@ def with_static_select_menu(
         The type of select menu to add.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
         interactions. Anything after ":" is metadata.
@@ -5094,6 +5118,8 @@ def with_static_channel_menu(
     custom_id
         The select menu's custom ID.
 
+        Defaults to a UUID and cannot be longer than 100 characters.
+
         Only `custom_id.split(":", 1)[0]` will be used to match against
         interactions. Anything after ":" is metadata.
     placeholder
@@ -5140,6 +5166,8 @@ def with_static_text_menu(
         Callback which is called when this select menu is used.
     custom_id
         The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
         interactions. Anything after ":" is metadata.
