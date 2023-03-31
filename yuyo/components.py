@@ -2855,6 +2855,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
+            is_disabled=is_disabled,
         )
 
     def add_channel_menu(
@@ -4018,7 +4019,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing_extensions.deprecated("Use .with_static_interative_button")
-    def with_interative_button(
+    def with_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
         /,
@@ -4878,8 +4879,8 @@ def with_static_select_menu(
     """Add a static select menu to the decorated action column class.
 
     For channel select menus and text select menus see
-    [ActionColumnExecutor.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu] and
-    [ActionColumnExecutor.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu] respectively.
+    [yuyo.components.with_static_channel_menu][] and
+    [yuyo.components.with_static_text_menu][] respectively.
 
     Parameters
     ----------
