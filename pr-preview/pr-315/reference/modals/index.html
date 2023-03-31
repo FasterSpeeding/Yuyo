@@ -676,6 +676,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalContext.component_ids" class="md-nav__link">
+    component_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalContext.create_initial_response" class="md-nav__link">
     create_initial_response()
   </a>
@@ -1063,6 +1070,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.modals.ModalContext.component_ids" class="md-nav__link">
+    component_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.modals.ModalContext.create_initial_response" class="md-nav__link">
     create_initial_response()
   </a>
@@ -1307,8 +1321,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1620,7 +1634,7 @@ works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal<
   </span>
 
 <a href="#yuyo.modals.Modal.add_static_text_input" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_static_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_static_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -1653,6 +1667,8 @@ works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal<
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
 <p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -1769,19 +1785,16 @@ and the default is a string that's &lt;=4000 characters in length.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
+            <p>Deprecated config.</p>
+<p>This behaviour is now always enabled.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>False</code>
+                    <code>None</code>
                 </span>
             </p>
           </td>
@@ -1863,7 +1876,7 @@ prefix and is lower priority than normal matching.</p>
 
 
 <a href="#yuyo.modals.Modal.add_text_input" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -1896,6 +1909,8 @@ prefix and is lower priority than normal matching.</p>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
 <p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2012,19 +2027,16 @@ and the default is a string that's &lt;=4000 characters in length.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
+            <p>Deprecated config.</p>
+<p>This behaviour is now always enabled.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>False</code>
+                    <code>None</code>
                 </span>
             </p>
           </td>
@@ -2065,7 +2077,7 @@ prefix and is lower priority than normal matching.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The model instance to enable call chaining.</p>
+            <p>The modal instance to enable call chaining.</p>
           </td>
         </tr>
     </tbody>
@@ -2874,7 +2886,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
 
 <a href="#yuyo.modals.ModalClient.register_modal" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">register_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">modal</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">register_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">modal</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2893,6 +2905,8 @@ closed based on the Tanjun client's lifetime client callback.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The custom_id to register the modal for.</p>
+<p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2909,26 +2923,6 @@ closed based on the Tanjun client's lifetime client callback.</p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-internal" title="yuyo.modals.AbstractModal" href="#yuyo.modals.AbstractModal">AbstractModal</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>prefix_match</code></td>
-          <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -2991,6 +2985,7 @@ prefix and is lower priority than normal matching.</p>
           </td>
           <td class="doc-raises-details">
             <p>If the custom_id is already registered.</p>
+<p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
     </tbody>
@@ -3057,6 +3052,29 @@ prefix and is lower priority than normal matching.</p>
   <div class="doc doc-contents ">
   
       <p>The modal this context is bound to.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.modals.ModalContext.component_ids" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">component_ids</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.modals.ModalContext.component_ids" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">component_ids</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Mapping of match ID parts to metadata ID parts for the modal's components.</p>
   </div>
 
 </div>
@@ -3927,7 +3945,7 @@ and <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> su
 
 
 <a href="#yuyo.modals.text_input" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4076,19 +4094,16 @@ and the default is a string that's &lt;=4000 characters in length.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
+            <p>Deprecated config.</p>
+<p>This behaviour is now always enabled.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>False</code>
+                    <code>None</code>
                 </span>
             </p>
           </td>
@@ -4131,7 +4146,7 @@ prefix and is lower priority than normal matching.</p>
 
 
 <a href="#yuyo.modals.with_static_text_input" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">with_static_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">with_static_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4280,19 +4295,16 @@ and the default is a string that's &lt;=4000 characters in length.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
+            <p>Deprecated config.</p>
+<p>This behaviour is now always enabled.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>False</code>
+                    <code>None</code>
                 </span>
             </p>
           </td>
@@ -4352,7 +4364,7 @@ prefix and is lower priority than normal matching.</p>
 
 
 <a href="#yuyo.modals.with_text_input" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">with_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">with_text_input</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">SHORT</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">NO_DEFAULT</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4501,19 +4513,16 @@ and the default is a string that's &lt;=4000 characters in length.</p>
         <tr>
           <td><code>prefix_match</code></td>
           <td class="doc-param-details">
-            <p>Whether <code>custom_id</code> should be matched as a prefix.</p>
-<p>When this is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> <code>custom_id</code> will be matched against
-<code>.split(":", 1)[0]</code>.</p>
-<p>This allows for further state to be held in the custom ID after the
-prefix and is lower priority than normal matching.</p>
+            <p>Deprecated config.</p>
+<p>This behaviour is now always enabled.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>]</code>
                 </span>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
-                    <code>False</code>
+                    <code>None</code>
                 </span>
             </p>
           </td>

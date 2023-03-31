@@ -781,6 +781,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_match" class="md-nav__link">
+    id_match
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_metadata" class="md-nav__link">
+    id_metadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.BaseContext.interaction" class="md-nav__link">
     interaction
   </a>
@@ -1875,6 +1889,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_match" class="md-nav__link">
+    id_match
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.BaseContext.id_metadata" class="md-nav__link">
+    id_metadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.BaseContext.interaction" class="md-nav__link">
     interaction
   </a>
@@ -2635,8 +2663,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -2661,8 +2689,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -2956,6 +2984,9 @@ decorating any callback.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3134,6 +3165,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3455,6 +3489,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3643,6 +3680,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3851,6 +3891,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4160,6 +4203,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4330,6 +4376,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4542,6 +4591,9 @@ should be used to add options to this select menu.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4760,6 +4812,9 @@ should be used to add options to this select menu.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4956,6 +5011,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5085,9 +5143,8 @@ displayed label.</p>
   <div class="doc doc-contents ">
   
       <p>Add a select menu to this class by decorating its callback.</p>
-<p>For channel select menus and text select menus see
-<a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor.with_static_channel_menu">ActionColumnExecutor.with_static_channel_menu</a> and
-[ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu] respectively.</p>
+<p>For channel select menus see
+<a class="autorefs autorefs-internal" href="#yuyo.components.ActionColumnExecutor.with_static_channel_menu">ActionColumnExecutor.with_static_channel_menu</a>.</p>
 
   <table>
     <thead>
@@ -5113,6 +5170,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5428,6 +5488,9 @@ instead of this.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5673,6 +5736,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5976,6 +6042,8 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -6120,6 +6188,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -6377,6 +6448,52 @@ marked as failed.</p>
 <a class="autorefs autorefs-internal" href="#yuyo.components.BaseContext.create_initial_response">yuyo.components.BaseContext.create_initial_response</a> or
 <a class="autorefs autorefs-internal" href="#yuyo.components.BaseContext.edit_initial_response">yuyo.components.BaseContext.edit_initial_response</a>
 (after a deferral) has been called.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.BaseContext.id_match" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">id_match</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.BaseContext.id_match" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">id_match</span><span class="p">:</span> <span class="nb">str</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Section of the ID used to identify the relevant executor.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.BaseContext.id_metadata" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">id_metadata</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.BaseContext.id_metadata" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">id_metadata</span><span class="p">:</span> <span class="nb">str</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Metadata from the interaction's custom ID.</p>
   </div>
 
 </div>
@@ -6778,8 +6895,8 @@ and <code>components</code> are passed or both <code>embed</code> and <code>embe
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.create_initial_response" class="headerlink" title="Permanent link">#</a></h3>
@@ -7178,8 +7295,8 @@ longer than <code>max_rate_limit</code> when making a request.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.defer" class="headerlink" title="Permanent link">#</a></h3>
@@ -9464,7 +9581,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
 
 <a href="#yuyo.components.ComponentClient.register_executor" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -9505,24 +9622,6 @@ globally for its custom IDs.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>None</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>prefix_match</code></td>
-          <td class="doc-param-details">
-            <p>Whether this component's custom IDs should be prefix checked.</p>
-<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> then the component's custom IDs will be matched against
-<code>component.split(":")[0]</code>.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
                 </span>
             </p>
           </td>
@@ -9622,7 +9721,7 @@ globally for its custom IDs.</p>
 
 
 <a href="#yuyo.components.ComponentClient.set_constant_id" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">set_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -9678,7 +9777,7 @@ with the <code>message</code> kwarg instead.</p>
 
 
 <a href="#yuyo.components.ComponentClient.with_constant_id" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">with_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">with_constant_id</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefix_match</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -10350,6 +10449,8 @@ deferring.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>Developer set custom ID used for identifying interactions with this modal.</p>
+<p>Yuyo's Component client will only match against <code>custom_id.split(":", 1)[0]</code>,
+allowing metadata to be put after <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -10707,6 +10808,8 @@ passed flags.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The custom ID to set the callback for.</p>
+<p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -10725,6 +10828,27 @@ passed flags.</p>
                     <code><a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="#yuyo.components.CallbackSig">CallbackSig</a></code>
                 </span>
             </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
     </tbody>
@@ -10762,6 +10886,8 @@ passed flags.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The custom ID to set the callback for.</p>
+<p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -10789,6 +10915,27 @@ passed flags.</p>
           </td>
           <td class="doc-returns-details">
             <p>Decorator callback used to set a custom ID's callback.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
     </tbody>
@@ -11825,6 +11972,8 @@ as the initial response.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The custom ID this executor is triggered for.</p>
+<p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -11859,6 +12008,27 @@ as the initial response.</p>
                     <code>False</code>
                 </span>
             </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
     </tbody>
@@ -12127,6 +12297,9 @@ should default to ephemeral (meaning only the author can see them) unless
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12259,6 +12432,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12376,6 +12552,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12494,6 +12673,8 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The custom ID this executor is triggered for.</p>
+<p>This will be matched against <code>interaction.custom_id.split(":", 1)[0]</code>,
+allowing metadata to be stored after a <code>":"</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12574,6 +12755,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12969,6 +13153,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -13147,6 +13334,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -13404,6 +13594,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -13548,6 +13741,9 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
+<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
+interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
