@@ -2209,6 +2209,8 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   and should also be passed to <code>timeout=</code>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.rows">ActionColumnExecutor.rows</a> now returns
   <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
+<li>Message components will now give a "timed-out" ephemeral initial response when
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ExecutorClosed">ExecutorClosed</a> is raised without any response.</li>
 <li>Renamed <code>yuyo.timeouts.BasicTimeout</code> to <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts.SlidingTimeout">yuyo.timeouts.SlidingTimeout</a>.</li>
 <li>Renamed <code>ModalClient.set_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.register_modal">Modal.register_modal</a>.</li>
 <li>Renamed <code>ModalClient.remove_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.deregister_modal">Modal.deregister_modal</a>.</li>
