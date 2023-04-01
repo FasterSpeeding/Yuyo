@@ -2522,7 +2522,6 @@ class ComponentStream(AbstractComponentExecutor):
             return
 
         try:
-
             self._queue.put_nowait(ctx)
         except asyncio.QueueFull:
             await ctx.create_initial_response(
