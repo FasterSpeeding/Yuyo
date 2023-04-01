@@ -2211,6 +2211,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
 <li>Message components will now give a "timed-out" ephemeral initial response when
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ExecutorClosed">ExecutorClosed</a> is raised without any response.</li>
+<li>The <code>authors</code> field is now optional (defaulting to public) for
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor.__init__">WaitForExecutor.__init__</a>,
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a>, and
+  <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>.</li>
 <li>Renamed <code>yuyo.timeouts.BasicTimeout</code> to <a class="autorefs autorefs-internal" href="../reference/timeouts/#yuyo.timeouts.SlidingTimeout">yuyo.timeouts.SlidingTimeout</a>.</li>
 <li>Renamed <code>ModalClient.set_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.register_modal">Modal.register_modal</a>.</li>
 <li>Renamed <code>ModalClient.remove_modal</code> to <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalClient.deregister_modal">Modal.deregister_modal</a>.</li>

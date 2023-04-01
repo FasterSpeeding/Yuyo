@@ -1336,8 +1336,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1361,8 +1361,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.on_reaction_event" class="headerlink" title="Permanent link">#</a></h3>
@@ -1446,8 +1446,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -2241,8 +2241,8 @@ any user will be able to trigger it.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>An iterable of IDs of the users who can call this paginator.
-If left empty then all users will be able to call this
+            <p>An iterable of IDs of the users who can call this paginator.</p>
+<p>If left empty then all users will be able to call this
 paginator.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -2498,7 +2498,7 @@ if this is for a unicode emoji.</p>
 
 
 <a href="#yuyo.reactions.ReactionPaginator.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="p">(),</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -2517,8 +2517,8 @@ if this is for a unicode emoji.</p>
           <td><code>iterator</code></td>
           <td class="doc-param-details">
             <p>Either an asynchronous or synchronous iterator of the entries this
-should paginate through.
-<code>entry[0]</code> represents the message's possible content and can either be
+should paginate through.</p>
+<p><code>entry[0]</code> represents the message's possible content and can either be
 <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a> or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a> and <code>entry[1]</code> represents
 the message's possible embed and can either be <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a>
 or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>.</p>
@@ -2533,13 +2533,17 @@ or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/lat
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>An iterable of IDs of the users who can call this paginator.
-If left empty then all users will be able to call this
+            <p>An iterable of IDs of the users who can call this paginator.</p>
+<p>If left empty then all users will be able to call this
 paginator.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
                     <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterable">Iterable</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.User">User</span>]]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>()</code>
                 </span>
             </p>
           </td>
