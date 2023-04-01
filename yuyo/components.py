@@ -2120,8 +2120,14 @@ class ComponentClient:
         Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
         with the `message` kwarg instead.
         """
-        if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
-            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor.timeout
+        # AbstractExecutors which still need to manage their own timeouts and
+        # thus are inherently stateful (e.g. WaitFor) will be inheriting from
+        # AbstractTimeout
+        if isinstance(executor, timeouts.AbstractTimeout):
+            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor
+
+        elif executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
+            timeout = executor.timeout
 
         else:
             timeout = timeouts.SlidingTimeout(executor.timeout)
@@ -2468,13 +2474,15 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
 class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Component executor used to wait for a single component interaction.
 
+    This shoulf also be passed for `timeout=`.
+
     Examples
     --------
     ```py
     responses: dict[str, str]
     message = await ctx.respond("hi, pick an option", components=[...])
-    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))
-    component_client.set_executor(message.id, executor)
+    executor = yuyo.components.WaitFor(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
+    component_client.register_executor(executor, message=message, timeout=executor)
 
     try:
         result = await executor.wait_for()
@@ -5675,14 +5683,11 @@ class ComponentPaginator(ActionRowExecutor):
         Examples
         --------
         ```py
-        response_paginator = yuyo.ComponentPaginator(
-            pages,
-            authors=(ctx.author.id,)
-        )
+        response_paginator = yuyo.ComponentPaginator(pages, authors=[ctx.author.id])
         first_response = await response_paginator.get_next_entry()
         assert first_response
         message = await ctx.respond(component=response_paginator, **first_response.to_kwargs(), ensure_result=True)
-        component_client.set_executor(message, response_paginator)
+        component_client.register_executor(response_paginator, message=message)
         ```
 
         Returns
