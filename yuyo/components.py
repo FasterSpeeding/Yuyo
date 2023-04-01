@@ -2047,10 +2047,16 @@ class ComponentClient:
         )
         ```
         """
-        if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
+        custom_id = custom_id.removesuffix(":")
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+            already_set = self.get_constant_id(custom_id)  # pyright: ignore [ reportDeprecated ]
+
+        if already_set:
             raise ValueError(f"{custom_id!r} is already registered as a constant id")
 
-        return self.register_executor(SingleExecutor(custom_id, callback))
+        return self.register_executor(SingleExecutor(custom_id, callback), timeout=None)
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
@@ -2058,8 +2064,9 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
+        custom_id = custom_id.removesuffix(":")
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
+            return entry[1]._callback  # pyright: ignore [ reportPrivateUsage ]
 
         return None
 
@@ -2069,6 +2076,7 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
+        custom_id = custom_id.removesuffix(":")
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             del self._executors[custom_id]
 
@@ -2120,17 +2128,25 @@ class ComponentClient:
         Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
         with the `message` kwarg instead.
         """
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+            timeout_property = executor.timeout
+
         # AbstractExecutors which still need to manage their own timeouts and
         # thus are inherently stateful (e.g. WaitFor) will be inheriting from
         # AbstractTimeout
         if isinstance(executor, timeouts.AbstractTimeout):
-            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor
+            timeout: timeouts.AbstractTimeout = executor
 
-        elif executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
-            timeout = executor.timeout
+        elif timeout_property is _internal.NO_DEFAULT:
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=-1)
+
+        elif timeout_property is None:
+            timeout = timeouts.NeverTimeout()
 
         else:
-            timeout = timeouts.SlidingTimeout(executor.timeout)
+            timeout = timeouts.SlidingTimeout(timeout_property, max_uses=-1)
 
         return self.register_executor(executor, message=message, timeout=timeout)
 
@@ -2596,6 +2612,12 @@ class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
         return payload
 
 
+def _no_callback(*args: typing.Any) -> typing.NoReturn:
+    # This is needed to backport callback-less interactive components since
+    # ActionColumnExecutor doesn't support these yet.
+    raise RuntimeError("Not implemented")
+
+
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row.
 
@@ -2677,7 +2699,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                 # TODO: specialise return type of def style for Interactive and Link buttons.
                 column.add_interative_button(
                     typing.cast("hikari.InteractiveButtonTypesT", component.style),
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(component.custom_id, _no_callback),
                     custom_id=component.custom_id,
                     emoji=component.emoji,
                     label=component.label,
@@ -2686,7 +2708,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.TextSelectMenuBuilder):
                 column.add_text_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(component.custom_id, _no_callback),
                     custom_id=component.custom_id,
                     options=component.options,
                     placeholder=component.placeholder,
@@ -2697,7 +2719,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
                 column.add_channel_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(component.custom_id, _no_callback),
                     custom_id=component.custom_id,
                     channel_types=component.channel_types,
                     placeholder=component.placeholder,
@@ -2708,7 +2730,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.SelectMenuBuilder):
                 column.add_select_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(component.custom_id, _no_callback),
                     component.type,
                     custom_id=component.custom_id,
                     placeholder=component.placeholder,
@@ -4012,7 +4034,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The column executor to enable chained calls.
         """
         if isinstance(row, ActionRowExecutor):
-            row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+                row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
 
         else:
             self._rows.append(row)

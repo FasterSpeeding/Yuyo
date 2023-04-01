@@ -362,7 +362,7 @@ class TestComponentClient:
         client = yuyo.ComponentClient()
 
         with pytest.warns(DeprecationWarning):
-            client.set_constant_id("yuri", mock.Mock())  # type: ignore [ reportPrivateUsage ]
+            client.set_constant_id("yuri", mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
         with pytest.warns(DeprecationWarning):
             result = client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
