@@ -2491,7 +2491,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     def __init__(
         self,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
         ephemeral_default: bool = False,
         timeout: typing.Optional[datetime.timedelta],
     ) -> None:
@@ -5337,7 +5337,7 @@ class ComponentPaginator(ActionRowExecutor):
         iterator: _internal.IteratorT[pagination.EntryT],
         /,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
         ephemeral_default: bool = False,
         triggers: collections.Collection[str] = (
             pagination.LEFT_TRIANGLE,
