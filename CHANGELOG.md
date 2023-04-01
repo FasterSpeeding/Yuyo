@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
 - Message components will now give a "timed-out" ephemeral initial response when
   [ExecutorClosed][yuyo.components.ExecutorClosed] is raised without any response.
+- The `authors` field is now optional (defaulting to public) for
+  [WaitForExecutor.\_\_init\_\_][yuyo.components.WaitForExecutor.__init__],
+  [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__], and
+  [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__].
 - Renamed `yuyo.timeouts.BasicTimeout` to [yuyo.timeouts.SlidingTimeout][].
 - Renamed `ModalClient.set_modal` to [Modal.register_modal][yuyo.modals.ModalClient.register_modal].
 - Renamed `ModalClient.remove_modal` to [Modal.deregister_modal][yuyo.modals.ModalClient.deregister_modal].

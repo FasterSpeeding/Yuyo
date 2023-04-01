@@ -132,6 +132,7 @@ class ReactionHandler(AbstractReactionHandler):
         ----------
         authors
             An iterable of IDs of the users who can call this paginator.
+
             If left empty then all users will be able to call this
             paginator.
         timeout
@@ -302,12 +303,14 @@ class ReactionPaginator(ReactionHandler):
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
+
             `entry[0]` represents the message's possible content and can either be
             [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
             the message's possible embed and can either be [hikari.embeds.Embed][]
             or [hikari.undefined.UNDEFINED][].
         authors
             An iterable of IDs of the users who can call this paginator.
+
             If left empty then all users will be able to call this
             paginator.
         timeout
