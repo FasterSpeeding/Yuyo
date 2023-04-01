@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
 - [yuyo.components.with_static_text_menu][] decorator for declaring a static text select menu on
   a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass.
-- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select].
+- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select],
   [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
   [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
   passing option builders.
