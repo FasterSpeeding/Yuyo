@@ -1227,6 +1227,19 @@
     ExecutorClosed
   </a>
   
+    <nav class="md-nav" aria-label="ExecutorClosed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ExecutorClosed.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2322,6 +2335,19 @@
     ExecutorClosed
   </a>
   
+    <nav class="md-nav" aria-label="ExecutorClosed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ExecutorClosed.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2637,8 +2663,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -11842,6 +11868,72 @@ and will still internally store the entry and increment the position of the pagi
       <p>Error used to indicate that an executor is now closed during execution.</p>
 
 
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.ExecutorClosed.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.components.ExecutorClosed.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">already_closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise an executor closed error.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>already_closed</code></td>
+          <td class="doc-param-details">
+            <p>Whether this error is a result of the executor having been in a
+closed state when it was called.</p>
+<p>If so then this will lead to a "timed-out" message being sent
+as the initial response.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>True</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
 
   </div>
 
