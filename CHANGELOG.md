@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A static timeout implementation.
 - Support for custom ID prefix matching to the Message component executors.
 - Message components have support for loading components from class attributes again.
-  This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
+  Support for this has been implemented through [yuyo.components.ActionColumnExecutor][] this time.
 - [yuyo.components.SingleExecutor][] and [yuyo.components.as_single_executor][]
   to allow registering a component executor with a single callback.
 - New component handling system to the component client which allows component executors to be
