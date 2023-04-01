@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
   Some of the breaking component changes listed in Hikari's
-  (change log)[https://docs.hikari-py.dev/en/latest/changelog/#dev118-2023-04-02]
+  [change log](https://docs.hikari-py.dev/en/latest/changelog/#dev118-2023-04-02)
   around the component builders effect Yuyo's component executors.
 - Prefix matching behaviour is now always enabled for both modals and components.
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
