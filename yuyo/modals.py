@@ -121,7 +121,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         interaction: hikari.ModalInteraction,
         id_match: str,
         id_metadata: str,
-        component_ids: collections.Mapping[str, str],
+        component_ids: collections.abc.Mapping[str, str],
         register_task: collections.abc.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
@@ -145,7 +145,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         return self._client
 
     @property
-    def component_ids(self) -> collections.Mapping[str, str]:
+    def component_ids(self) -> collections.abc.Mapping[str, str]:
         """Mapping of match ID parts to metadata ID parts for the modal's components."""
         return self._component_ids
 
@@ -983,7 +983,10 @@ class Modal(AbstractModal):
     _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder]] = []
 
     def __init__(
-        self, *, ephemeral_default: bool = False, id_metadata: typing.Union[collections.Mapping[str, str], None] = None
+        self,
+        *,
+        ephemeral_default: bool = False,
+        id_metadata: typing.Union[collections.abc.Mapping[str, str], None] = None,
     ) -> None:
         """Initialise a component executor.
 
@@ -1189,7 +1192,7 @@ class Modal(AbstractModal):
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
-        custom_id, component = _make_text_input(
+        id_match, component = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1203,7 +1206,7 @@ class Modal(AbstractModal):
 
         if parameter:
             field = _TrackedField(
-                custom_id=custom_id, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
+                custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
             )
             cls._static_tracked_fields.append(field)
 
@@ -1314,7 +1317,7 @@ class Modal(AbstractModal):
         if prefix_match is not None:
             warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
 
-        custom_id, component = _make_text_input(
+        id_match, component = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1329,7 +1332,7 @@ class Modal(AbstractModal):
         if parameter:
             self._tracked_fields.append(
                 _TrackedField(
-                    custom_id=custom_id, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
+                    custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
                 )
             )
 
@@ -1383,7 +1386,10 @@ def _make_text_input(
     max_length: int,
 ) -> tuple[str, hikari.impl.TextInputBuilder]:
     if custom_id is None:
-        custom_id = _internal.random_custom_id()
+        id_match = custom_id = _internal.random_custom_id()
+
+    else:
+        id_match = _split_custom_id(custom_id)[0]
 
     component = hikari.impl.TextInputBuilder(
         label=label,
@@ -1395,7 +1401,7 @@ def _make_text_input(
         min_length=min_length,
         max_length=max_length,
     )
-    return (custom_id, component)
+    return (id_match, component)
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
@@ -1844,7 +1850,17 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
-    __slots__ = ("_label", "_custom_id", "_style", "_placeholder", "_value", "_default", "_min_length", "_max_length")
+    __slots__ = (
+        "_label",
+        "_custom_id",
+        "_match_id",
+        "_style",
+        "_placeholder",
+        "_value",
+        "_default",
+        "_min_length",
+        "_max_length",
+    )
 
     def __init__(
         self,
@@ -1859,8 +1875,15 @@ class _TextInputDescriptor(_ComponentDescriptor):
         min_length: int = 0,
         max_length: int = 4000,
     ) -> None:
+        if custom_id is None:
+            match_id = custom_id = _internal.random_custom_id()
+
+        else:
+            match_id = _split_custom_id(custom_id)[0]
+
         self._label = label
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._custom_id = custom_id
+        self._match_id = match_id
         self._style = style
         self._placeholder = placeholder
         self._value = value
@@ -1896,7 +1919,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
         return _TrackedField(
-            custom_id=self._custom_id, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
+            custom_id=self._match_id, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
         )
 
 

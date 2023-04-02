@@ -3798,6 +3798,7 @@ class _StaticField:
         self.self_bound: bool = self_bound
 
 
+@typing.runtime_checkable
 class _CustomIdProto(typing.Protocol):
     def set_custom_id(self, value: str, /) -> object:
         raise NotImplementedError
