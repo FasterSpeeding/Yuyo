@@ -277,7 +277,7 @@ class TestModal:
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
         assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == "yeet:me"  # TODO: should this be split before?
+        assert field.custom_id == "yeet"
         assert field.default == 123
         assert field.parameter == "a_field"
         assert field.type is hikari.ComponentType.TEXT_INPUT
