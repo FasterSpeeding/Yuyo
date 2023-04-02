@@ -312,6 +312,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#1110a1-2023-04-02" class="md-nav__link">
+    1.11.0a1 - 2023-04-02
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     Added
   </a>
@@ -1492,6 +1499,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#1110a1-2023-04-02" class="md-nav__link">
+    1.11.0a1 - 2023-04-02
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     Added
   </a>
@@ -2298,13 +2312,14 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
+<h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.0a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
+<h3 id="1110a1-2023-04-02"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...v1.11.0a1">1.11.0a1</a> - 2023-04-02<a class="headerlink" href="#1110a1-2023-04-02" title="Permanent link">#</a></h3>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
 <ul>
 <li>A static timeout implementation.</li>
 <li>Support for custom ID prefix matching to the Message component executors.</li>
 <li>Message components have support for loading components from class attributes again.
-  This time this support has been implemented through <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a>.</li>
+  Support for this has been implemented through <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> this time.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.SingleExecutor">yuyo.components.SingleExecutor</a> and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.as_single_executor">yuyo.components.as_single_executor</a>
   to allow registering a component executor with a single callback.</li>
 <li>New component handling system to the component client which allows component executors to be
@@ -2314,7 +2329,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_executor">ComponentClient.deregister_executor</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_text_menu">yuyo.components.with_static_text_menu</a> decorator for declaring a static text select menu on
   a <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass.</li>
-<li><code>options</code> parameter to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_text_select">ActionColumnExecutor.add_static_text_select</a>.
+<li><code>options</code> parameter to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_text_select">ActionColumnExecutor.add_static_text_select</a>,
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_text_select">ActionColumnExecutor.add_text_select</a>, and
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_text_select">ActionRowExecutor.add_text_select</a> for
   passing option builders.</li>
@@ -2333,8 +2348,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
-<li>Bumped the minimum Hikari version to <code>2.0.0.dev118</code>.</li>
+<li>Bumped the minimum Hikari version to <code>2.0.0.dev118</code>.
+  Some of the breaking component changes listed in Hikari's
+  <a href="https://docs.hikari-py.dev/en/latest/changelog/#dev118-2023-04-02">change log</a>
+  around the component builders effect Yuyo's component executors.</li>
 <li>Prefix matching behaviour is now always enabled for both modals and components.</li>
+<li>Message components now split by <code>":"</code> for prefix matching like the modals client.</li>
 <li>Marked most deprecated timeout class aliases using <code>typing.deprecated</code>.
   (only <code>yuyo.modals.AbstractTimeout</code> was skipped).</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a> now inherits from <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.WaitForExecutor">yuyo.components.WaitForExecutor</a>
