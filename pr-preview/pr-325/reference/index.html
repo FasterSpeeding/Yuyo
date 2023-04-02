@@ -10953,7 +10953,7 @@ globally for its custom IDs.</p>
 
 <span class="p">(</span>
     <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">SingleExecutor</span><span class="p">(</span><span class="s2">&quot;custom_id&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -11009,7 +11009,7 @@ with the <code>message</code> kwarg instead.</p>
 
 <span class="p">(</span>
     <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">SingleExecutor</span><span class="p">(</span><span class="s2">&quot;custom_id&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 
