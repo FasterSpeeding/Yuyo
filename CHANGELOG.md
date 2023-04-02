@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [change log](https://docs.hikari-py.dev/en/latest/changelog/#dev118-2023-04-02)
   around the component builders effect Yuyo's component executors.
 - Prefix matching behaviour is now always enabled for both modals and components.
+- Message components now split by `":"` for prefix matching like the modals client.
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
   (only `yuyo.modals.AbstractTimeout` was skipped).
 - [yuyo.components.WaitForExecutor][] now inherits from [yuyo.components.WaitForExecutor][]
@@ -75,7 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ActionColumnExecutor.add_static_text_select` to `.add_static_text_menu`
     * `yuyo.components.with_static_button` to `.with_static_interactive_button`
     * `yuyo.components.with_static_channel_select` to `.with_static_channel_menu`
-
 
 ### Deprecated
 - The constant ID component handling system.

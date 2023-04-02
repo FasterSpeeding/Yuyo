@@ -33,9 +33,11 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
+import datetime
 from unittest import mock
 
 import alluka
+import freezegun
 import hikari
 import pytest
 
@@ -49,10 +51,6 @@ except ModuleNotFoundError:
 
 
 class TestBaseContext:
-    ...
-
-
-class TestComponentContext:
     def test_id_match_property(self):
         context = yuyo.components.Context(
             mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
@@ -65,6 +63,40 @@ class TestComponentContext:
 
         assert context.id_metadata == "very meta girl"
 
+    @pytest.mark.parametrize(
+        ("now", "expires_at"),
+        [
+            (
+                datetime.datetime(2023, 3, 31, 20, 2, 15, 173495, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2023, 3, 31, 20, 17, 15, 173495, tzinfo=datetime.timezone.utc),
+            ),
+            (
+                datetime.datetime(2019, 6, 2, 14, 6, 1, 432653, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2019, 6, 2, 14, 21, 1, 432653, tzinfo=datetime.timezone.utc),
+            ),
+        ],
+    )
+    def test_expires_at_property(self, now: datetime.datetime, expires_at: datetime.datetime):
+        with freezegun.freeze_time(now):
+            date = datetime.datetime.now(tz=datetime.timezone.utc)
+
+            context = yuyo.components.Context(
+                mock.Mock(), mock.Mock(created_at=date), "", "", register_task=lambda v: None
+            )
+
+            assert context.expires_at == expires_at
+
+    def test_interaction_property(self):
+        mock_interaction = mock.Mock()
+
+        context = yuyo.components.Context(
+            mock.Mock(), mock_interaction, "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.interaction is mock_interaction
+
+
+class TestComponentContext:
     def test_select_channels_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
@@ -114,6 +146,12 @@ class TestComponentContext:
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.select_members == {}
+
+    def test_client_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.client is mock_client
 
 
 class TestComponentClient:
@@ -324,7 +362,7 @@ class TestComponentClient:
         client = yuyo.ComponentClient()
 
         with pytest.warns(DeprecationWarning):
-            client.set_constant_id("yuri", mock.Mock())  # type: ignore [ reportPrivateUsage ]
+            client.set_constant_id("yuri", mock.Mock())  # pyright: ignore [ reportDeprecated ]
 
         with pytest.warns(DeprecationWarning):
             result = client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
@@ -406,6 +444,41 @@ class TestComponentClient:
 
         with pytest.warns(DeprecationWarning):
             assert client.get_executor(555555) is None  # pyright: ignore [ reportDeprecated ]
+
+
+class TestSingleExecutor:
+    def test_custom_ids_property(self):
+        executor = yuyo.components.SingleExecutor("dkkpoeewlk", mock.Mock())
+
+        assert executor.custom_ids == ["dkkpoeewlk"]
+
+    @pytest.mark.asyncio()
+    async def test_execute(self):
+        mock_callback = mock.AsyncMock()
+        client = yuyo.components.Client()
+        ctx = yuyo.components.ComponentContext(client, mock.Mock(), "", "", lambda _: None)
+        executor = yuyo.components.SingleExecutor("dkkpoeewlk", mock_callback.__call__, ephemeral_default=True)
+
+        await executor.execute(ctx)
+
+        assert ctx._ephemeral_default is True
+        mock_callback.assert_awaited_once_with(ctx)
+
+
+def test_as_single_executor():
+    mock_callback = mock.Mock()
+
+    result = yuyo.components.as_single_executor("yeet", ephemeral_default=True)(mock_callback)
+
+    assert isinstance(result, yuyo.components.SingleExecutor)
+
+    assert result.custom_ids == ["yeet"]
+    assert result._callback is mock_callback
+    assert result._ephemeral_default is True
+
+
+class TestComponentExecutor:
+    ...
 
 
 class TestActionRowExecutor:

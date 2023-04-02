@@ -105,10 +105,6 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _split_custom_id(custom_id: str) -> list[str]:
-    return custom_id.split(":", 1)
-
-
 def _now() -> datetime.datetime:
     return datetime.datetime.now(tz=datetime.timezone.utc)
 
@@ -1904,7 +1900,8 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
-        custom_id: list[str],
+        id_match: str,
+        id_metadata: str,
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
@@ -1917,16 +1914,10 @@ class ComponentClient:
 
             return False
 
-        try:
-            id_metadata = custom_id[1]
-
-        except IndexError:
-            id_metadata = ""
-
         ctx = ComponentContext(
             client=self,
             interaction=interaction,
-            id_match=custom_id[0],
+            id_match=id_match,
             id_metadata=id_metadata,
             register_task=self._add_task,
             response_future=future,
@@ -1955,16 +1946,15 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        custom_id = _split_custom_id(event.interaction.custom_id)
-        id_match = custom_id[0]
+        id_match, id_metadata = _internal.split_custom_id(event.interaction.custom_id)
         if entry := self._executors.get(id_match):
-            ran = await self._execute(self._executors, id_match, entry, event.interaction, custom_id)
+            ran = await self._execute(self._executors, id_match, entry, event.interaction, id_match, id_metadata)
             if ran:
                 return
 
         if entry := self._message_executors.get(event.interaction.message.id):
             ran = await self._execute(
-                self._message_executors, event.interaction.message.id, entry, event.interaction, custom_id
+                self._message_executors, event.interaction.message.id, entry, event.interaction, id_match, id_metadata
             )
             if ran:
                 return
@@ -1981,12 +1971,15 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
-        custom_id: list[str],
+        id_match: str,
+        id_metadata: str,
         /,
     ) -> typing.Optional[_ComponentResponseT]:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
         self._add_task(
-            asyncio.create_task(self._execute(remove_from, key, entry, interaction, custom_id, future=future))
+            asyncio.create_task(
+                self._execute(remove_from, key, entry, interaction, id_match, id_metadata, future=future)
+            )
         )
         try:
             return await future
@@ -2006,16 +1999,15 @@ class ComponentClient:
         ResponseT
             The REST response.
         """
-        custom_id = _split_custom_id(interaction.custom_id)
-        id_match = custom_id[0]
+        id_match, id_metadata = _internal.split_custom_id(interaction.custom_id)
         if entry := self._executors.get(id_match):
-            result = await self._execute_task(self._executors, id_match, entry, interaction, custom_id)
+            result = await self._execute_task(self._executors, id_match, entry, interaction, id_match, id_metadata)
             if result:
                 return result
 
         if entry := self._message_executors.get(interaction.message.id):
             result = await self._execute_task(
-                self._message_executors, interaction.message.id, entry, interaction, custom_id
+                self._message_executors, interaction.message.id, entry, interaction, id_match, id_metadata
             )
             if result:
                 return result
@@ -2043,14 +2035,20 @@ class ComponentClient:
 
         (
             yuyo.components.Client()
-            .register_executor(callback, timeout=None)
+            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
         )
         ```
         """
-        if self.get_constant_id(custom_id):  # type: ignore [ reportPrivateUsage ]
+        custom_id = custom_id.removesuffix(":")
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+            already_set = self.get_constant_id(custom_id)  # pyright: ignore [ reportDeprecated ]
+
+        if already_set:
             raise ValueError(f"{custom_id!r} is already registered as a constant id")
 
-        return self.register_executor(SingleExecutor(custom_id, callback))
+        return self.register_executor(SingleExecutor(custom_id, callback), timeout=None)
 
     @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
     def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
@@ -2058,8 +2056,9 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
+        custom_id = custom_id.removesuffix(":")
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            return entry[1]._callback  # type: ignore [ reportPrivateUsage ]
+            return entry[1]._callback  # pyright: ignore [ reportPrivateUsage ]
 
         return None
 
@@ -2069,6 +2068,7 @@ class ComponentClient:
 
         These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
         """
+        custom_id = custom_id.removesuffix(":")
         if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
             del self._executors[custom_id]
 
@@ -2096,7 +2096,7 @@ class ComponentClient:
 
         (
             yuyo.components.Client()
-            .register_executor(callback, timeout=None)
+            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
         )
         ```
         """
@@ -2120,11 +2120,25 @@ class ComponentClient:
         Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
         with the `message` kwarg instead.
         """
-        if executor.timeout is _internal.NO_DEFAULT or executor.timeout is None:
-            timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = executor.timeout
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+            timeout_property = executor.timeout
+
+        # AbstractExecutors which still need to manage their own timeouts and
+        # thus are inherently stateful (e.g. WaitFor) will be inheriting from
+        # AbstractTimeout
+        if isinstance(executor, timeouts.AbstractTimeout):
+            timeout: timeouts.AbstractTimeout = executor
+
+        elif timeout_property is _internal.NO_DEFAULT:
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=-1)
+
+        elif timeout_property is None:
+            timeout = timeouts.NeverTimeout()
 
         else:
-            timeout = timeouts.SlidingTimeout(executor.timeout)
+            timeout = timeouts.SlidingTimeout(timeout_property, max_uses=-1)
 
         return self.register_executor(executor, message=message, timeout=timeout)
 
@@ -2316,7 +2330,7 @@ class SingleExecutor(AbstractComponentExecutor):
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
-        return (self._custom_id,)
+        return [self._custom_id]
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         ctx.set_ephemeral_default(self._ephemeral_default)
@@ -2468,13 +2482,15 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
 class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Component executor used to wait for a single component interaction.
 
+    This should also be passed for `timeout=`.
+
     Examples
     --------
     ```py
     responses: dict[str, str]
     message = await ctx.respond("hi, pick an option", components=[...])
-    executor = yuyo.components.WaitFor(authors=(ctx.author.id,), timeout=datetime.timedelta(seconds=30))
-    component_client.set_executor(message.id, executor)
+    executor = yuyo.components.WaitFor(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
+    component_client.register_executor(executor, message=message, timeout=executor)
 
     try:
         result = await executor.wait_for()
@@ -2588,6 +2604,12 @@ class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
         return payload
 
 
+def _no_callback(*args: typing.Any) -> typing.NoReturn:
+    # This is needed to backport callback-less interactive components since
+    # ActionColumnExecutor doesn't support these yet.
+    raise RuntimeError("Not implemented")
+
+
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     """Class used for handling the execution of an action row.
 
@@ -2669,7 +2691,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                 # TODO: specialise return type of def style for Interactive and Link buttons.
                 column.add_interative_button(
                     typing.cast("hikari.InteractiveButtonTypesT", component.style),
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     emoji=component.emoji,
                     label=component.label,
@@ -2678,7 +2700,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.TextSelectMenuBuilder):
                 column.add_text_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     options=component.options,
                     placeholder=component.placeholder,
@@ -2689,7 +2711,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
                 column.add_channel_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     channel_types=component.channel_types,
                     placeholder=component.placeholder,
@@ -2700,7 +2722,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.SelectMenuBuilder):
                 column.add_select_menu(
-                    self._id_to_callback[component.custom_id],
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     component.type,
                     custom_id=component.custom_id,
                     placeholder=component.placeholder,
@@ -2800,12 +2822,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             * If a string is passed for `callback_or_url` for an interactive button.
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         return self.set_callback(id_match, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
                 custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
@@ -2894,12 +2911,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
         return (
             self._assert_can_add_type(type_)
@@ -2985,12 +2997,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         return (
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
             .set_callback(id_match, callback)
@@ -3077,12 +3084,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             And the parent action row can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         component = _TextSelectMenuBuilder(
             parent=self,
             custom_id=custom_id,
@@ -3155,7 +3157,7 @@ class _ComponentDescriptor(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def custom_id(self) -> str:
+    def id_match(self) -> str:
         """Unique identifier of the component."""
 
     @abc.abstractmethod
@@ -3197,7 +3199,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_custom_id", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_style", "_custom_id", "_id_match", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -3210,18 +3212,18 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=self._style,
@@ -3299,7 +3301,7 @@ class _StaticLinkButton(_ComponentDescriptor):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
+    def id_match(self) -> str:
         return self._custom_id
 
     def to_field(self) -> _StaticField:
@@ -3348,7 +3350,7 @@ def link_button(
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_type", "_custom_id", "_id_match", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3362,19 +3364,19 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._type = hikari.ComponentType(type_)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.SelectMenuBuilder(
                 type=self._type,
@@ -3439,7 +3441,15 @@ def as_select_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = (
+        "_custom_id",
+        "_id_match",
+        "_channel_types",
+        "_placeholder",
+        "_min_values",
+        "_max_values",
+        "_is_disabled",
+    )
 
     def __init__(
         self,
@@ -3454,7 +3464,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3462,12 +3472,12 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.ChannelSelectMenuBuilder(
                 custom_id=self._custom_id,
@@ -3567,7 +3577,7 @@ def as_channel_menu(
 
 
 class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_custom_id", "_id_match", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3580,7 +3590,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._options = list(options)
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3588,12 +3598,12 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             _TextSelectMenuBuilder(
                 parent=self,
@@ -3751,11 +3761,11 @@ def with_option(
 
 
 class _StaticField:
-    __slots__ = ("builder", "callback", "custom_id", "self_bound")
+    __slots__ = ("builder", "callback", "id_match", "self_bound")
 
     def __init__(
         self,
-        custom_id: str,
+        id_match: str,
         callback: typing.Optional[CallbackSig],
         builder: hikari.api.ComponentBuilder,
         /,
@@ -3764,10 +3774,11 @@ class _StaticField:
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.custom_id: str = _split_custom_id(custom_id)[0]
+        self.id_match: str = id_match
         self.self_bound: bool = self_bound
 
 
+@typing.runtime_checkable
 class _CustomIdProto(typing.Protocol):
     def set_custom_id(self, value: str, /) -> object:
         raise NotImplementedError
@@ -3929,10 +3940,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
         for field in self._all_static_fields.copy():
-            if id_metadata and (metadata := id_metadata.get(field.custom_id)):
+            if id_metadata and (metadata := id_metadata.get(field.id_match)):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
-                builder.set_custom_id(f"{field.custom_id}:{metadata}")
+                builder.set_custom_id(f"{field.id_match}:{metadata}")
 
             else:
                 builder = field.builder
@@ -3940,7 +3951,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
 
             if field.callback:
-                self._callbacks[field.custom_id] = (
+                self._callbacks[field.id_match] = (
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
                 )
 
@@ -3948,6 +3959,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_fields = []
         cls._static_fields = []
 
+        # TODO: allow overriding these?
         memo: set[str] = set()
         # This slice ignores [object, ..., type[Self]] and flips the order.
         for super_cls in cls.mro()[-2:0:-1]:
@@ -3955,16 +3967,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 continue
 
             for field in super_cls._static_fields:
-                if field.custom_id not in memo:
-                    memo.add(field.custom_id)
+                if field.id_match not in memo:
+                    memo.add(field.id_match)
                     cls._all_static_fields.append(field)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor) and attr.custom_id not in memo:
+            if isinstance(attr, _ComponentDescriptor) and attr.id_match not in memo:
                 field = attr.to_field()
                 cls._all_static_fields.append(field)
                 cls._static_fields.append(field)
-                memo.add(field.custom_id)
+                memo.add(field.id_match)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -4004,7 +4016,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             The column executor to enable chained calls.
         """
         if isinstance(row, ActionRowExecutor):
-            row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+                row.add_to_column(self)  # pyright: ignore [ reportDeprecated ]
 
         else:
             self._rows.append(row)
@@ -4074,12 +4089,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows, is_button=True).add_interactive_button(
             style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -4155,9 +4165,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
@@ -4365,12 +4375,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
             type_,
             custom_id,
@@ -4437,9 +4442,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.SelectMenuBuilder(
                 type=type_,
@@ -4586,12 +4591,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_channel_menu(
             custom_id,
             channel_types=_parse_channel_types(*channel_types) if channel_types else [],
@@ -4683,9 +4683,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.ChannelSelectMenuBuilder(
                 custom_id=custom_id,
@@ -4859,12 +4859,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         menu = _TextSelectMenuBuilder(
             parent=self,
             custom_id=custom_id,
@@ -4963,7 +4958,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         component = _TextSelectMenuBuilder(
             parent=cls,
             custom_id=custom_id,
@@ -4973,7 +4968,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        field = _StaticField(custom_id, callback, component)
+        field = _StaticField(id_match, callback, component)
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
         return component
@@ -5675,14 +5670,11 @@ class ComponentPaginator(ActionRowExecutor):
         Examples
         --------
         ```py
-        response_paginator = yuyo.ComponentPaginator(
-            pages,
-            authors=(ctx.author.id,)
-        )
+        response_paginator = yuyo.ComponentPaginator(pages, authors=[ctx.author.id])
         first_response = await response_paginator.get_next_entry()
         assert first_response
         message = await ctx.respond(component=response_paginator, **first_response.to_kwargs(), ensure_result=True)
-        component_client.set_executor(message, response_paginator)
+        component_client.register_executor(response_paginator, message=message)
         ```
 
         Returns

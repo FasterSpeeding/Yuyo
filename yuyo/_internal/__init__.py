@@ -125,3 +125,37 @@ async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typin
 def random_custom_id() -> str:
     """Generate a random custom ID."""
     return str(uuid.uuid4())
+
+
+def split_custom_id(custom_id: str) -> tuple[str, str]:
+    """Split a custom ID into its match and metadata parts.
+
+    Returns
+    -------
+    tuple[str, str]
+        Tuple of the ID's match part and the ID's metadata part.
+    """
+    parts = custom_id.split(":", 1)
+
+    try:
+        id_metadata = parts[1]
+
+    except IndexError:
+        id_metadata = ""
+
+    return parts[0], id_metadata
+
+
+def gen_custom_id(custom_id: typing.Optional[str]) -> tuple[str, str]:
+    """Generate a custom ID from user input.
+
+    Returns
+    -------
+    tuple[str, str]
+        Tuple of the ID's match part and the full custom ID.
+    """
+    if custom_id is None:
+        custom_id = random_custom_id()
+        return custom_id, custom_id
+
+    return split_custom_id(custom_id)[0], custom_id
