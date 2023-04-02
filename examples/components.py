@@ -31,7 +31,7 @@ async def add_paginator(event: hikari.MessageCreateEvent) -> None:
 
     # Authors is provided here to whitelist the message's author for paginator access.
     # Alternatively `None` may be passed for authors to leave the paginator public.
-    paginator = yuyo.ComponentPaginator(fields, authors=(event.author_id,))
+    paginator = yuyo.ComponentPaginator(fields, authors=[event.author_id])
     # Here we use "get_next_entry" to get the first entry to use in the target message for
     # this paginator while also incrementing the paginator's internal index.
     first_page = await paginator.get_next_entry()
