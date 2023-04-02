@@ -2490,7 +2490,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
 class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Component executor used to wait for a single component interaction.
 
-    This shoulf also be passed for `timeout=`.
+    This should also be passed for `timeout=`.
 
     Examples
     --------
