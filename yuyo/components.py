@@ -2691,7 +2691,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                 # TODO: specialise return type of def style for Interactive and Link buttons.
                 column.add_interative_button(
                     typing.cast("hikari.InteractiveButtonTypesT", component.style),
-                    self._id_to_callback.get(component.custom_id, _no_callback),
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     emoji=component.emoji,
                     label=component.label,
@@ -2700,7 +2700,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.TextSelectMenuBuilder):
                 column.add_text_menu(
-                    self._id_to_callback.get(component.custom_id, _no_callback),
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     options=component.options,
                     placeholder=component.placeholder,
@@ -2711,7 +2711,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.ChannelSelectMenuBuilder):
                 column.add_channel_menu(
-                    self._id_to_callback.get(component.custom_id, _no_callback),
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     channel_types=component.channel_types,
                     placeholder=component.placeholder,
@@ -2722,7 +2722,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.SelectMenuBuilder):
                 column.add_select_menu(
-                    self._id_to_callback.get(component.custom_id, _no_callback),
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     component.type,
                     custom_id=component.custom_id,
                     placeholder=component.placeholder,
