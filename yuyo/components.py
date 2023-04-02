@@ -105,10 +105,6 @@ def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float,
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
-def _split_custom_id(custom_id: str) -> list[str]:
-    return custom_id.split(":", 1)
-
-
 def _now() -> datetime.datetime:
     return datetime.datetime.now(tz=datetime.timezone.utc)
 
@@ -1904,7 +1900,8 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
-        custom_id: list[str],
+        id_match: str,
+        id_metadata: str,
         /,
         *,
         future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
@@ -1917,16 +1914,10 @@ class ComponentClient:
 
             return False
 
-        try:
-            id_metadata = custom_id[1]
-
-        except IndexError:
-            id_metadata = ""
-
         ctx = ComponentContext(
             client=self,
             interaction=interaction,
-            id_match=custom_id[0],
+            id_match=id_match,
             id_metadata=id_metadata,
             register_task=self._add_task,
             response_future=future,
@@ -1955,16 +1946,15 @@ class ComponentClient:
         if not isinstance(event.interaction, hikari.ComponentInteraction):
             return
 
-        custom_id = _split_custom_id(event.interaction.custom_id)
-        id_match = custom_id[0]
+        id_match, id_metadata = _internal.split_custom_id(event.interaction.custom_id)
         if entry := self._executors.get(id_match):
-            ran = await self._execute(self._executors, id_match, entry, event.interaction, custom_id)
+            ran = await self._execute(self._executors, id_match, entry, event.interaction, id_match, id_metadata)
             if ran:
                 return
 
         if entry := self._message_executors.get(event.interaction.message.id):
             ran = await self._execute(
-                self._message_executors, event.interaction.message.id, entry, event.interaction, custom_id
+                self._message_executors, event.interaction.message.id, entry, event.interaction, id_match, id_metadata
             )
             if ran:
                 return
@@ -1981,12 +1971,15 @@ class ComponentClient:
         key: _T,
         entry: tuple[timeouts.AbstractTimeout, AbstractComponentExecutor],
         interaction: hikari.ComponentInteraction,
-        custom_id: list[str],
+        id_match: str,
+        id_metadata: str,
         /,
     ) -> typing.Optional[_ComponentResponseT]:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
         self._add_task(
-            asyncio.create_task(self._execute(remove_from, key, entry, interaction, custom_id, future=future))
+            asyncio.create_task(
+                self._execute(remove_from, key, entry, interaction, id_match, id_metadata, future=future)
+            )
         )
         try:
             return await future
@@ -2006,16 +1999,15 @@ class ComponentClient:
         ResponseT
             The REST response.
         """
-        custom_id = _split_custom_id(interaction.custom_id)
-        id_match = custom_id[0]
+        id_match, id_metadata = _internal.split_custom_id(interaction.custom_id)
         if entry := self._executors.get(id_match):
-            result = await self._execute_task(self._executors, id_match, entry, interaction, custom_id)
+            result = await self._execute_task(self._executors, id_match, entry, interaction, id_match, id_metadata)
             if result:
                 return result
 
         if entry := self._message_executors.get(interaction.message.id):
             result = await self._execute_task(
-                self._message_executors, interaction.message.id, entry, interaction, custom_id
+                self._message_executors, interaction.message.id, entry, interaction, id_match, id_metadata
             )
             if result:
                 return result
@@ -2830,12 +2822,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             * If a string is passed for `callback_or_url` for an interactive button.
         """
         self._assert_can_add_type(hikari.ComponentType.BUTTON)
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         return self.set_callback(id_match, callback).add_component(
             hikari.impl.InteractiveButtonBuilder(
                 custom_id=custom_id, style=hikari.ButtonStyle(style), label=label, is_disabled=is_disabled, emoji=emoji
@@ -2924,12 +2911,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
         return (
             self._assert_can_add_type(type_)
@@ -3015,12 +2997,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         return (
             self._assert_can_add_type(hikari.ComponentType.CHANNEL_SELECT_MENU)
             .set_callback(id_match, callback)
@@ -3107,12 +3084,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             And the parent action row can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         component = _TextSelectMenuBuilder(
             parent=self,
             custom_id=custom_id,
@@ -3185,7 +3157,7 @@ class _ComponentDescriptor(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def custom_id(self) -> str:
+    def id_match(self) -> str:
         """Unique identifier of the component."""
 
     @abc.abstractmethod
@@ -3227,7 +3199,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_custom_id", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_style", "_custom_id", "_id_match", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -3240,18 +3212,18 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=self._style,
@@ -3329,7 +3301,7 @@ class _StaticLinkButton(_ComponentDescriptor):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
+    def id_match(self) -> str:
         return self._custom_id
 
     def to_field(self) -> _StaticField:
@@ -3378,7 +3350,7 @@ def link_button(
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_custom_id", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_type", "_custom_id", "_id_match", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3392,19 +3364,19 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
     ) -> None:
         super().__init__(callback)
         self._type = hikari.ComponentType(type_)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.SelectMenuBuilder(
                 type=self._type,
@@ -3469,7 +3441,15 @@ def as_select_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = (
+        "_custom_id",
+        "_id_match",
+        "_channel_types",
+        "_placeholder",
+        "_min_values",
+        "_max_values",
+        "_is_disabled",
+    )
 
     def __init__(
         self,
@@ -3484,7 +3464,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3492,12 +3472,12 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             hikari.impl.ChannelSelectMenuBuilder(
                 custom_id=self._custom_id,
@@ -3597,7 +3577,7 @@ def as_channel_menu(
 
 
 class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_custom_id", "_id_match", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3610,7 +3590,7 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         is_disabled: bool = False,
     ) -> None:
         super().__init__(callback)
-        self._custom_id = custom_id or _internal.random_custom_id()
+        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._options = list(options)
         self._placeholder = placeholder
         self._min_values = min_values
@@ -3618,12 +3598,12 @@ class _TextSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._is_disabled = is_disabled
 
     @property
-    def custom_id(self) -> str:
-        return self._custom_id
+    def id_match(self) -> str:
+        return self._id_match
 
     def to_field(self) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._id_match,
             self._callback,
             _TextSelectMenuBuilder(
                 parent=self,
@@ -3785,7 +3765,7 @@ class _StaticField:
 
     def __init__(
         self,
-        custom_id: str,
+        id_match: str,
         callback: typing.Optional[CallbackSig],
         builder: hikari.api.ComponentBuilder,
         /,
@@ -3794,7 +3774,7 @@ class _StaticField:
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.custom_id: str = _split_custom_id(custom_id)[0]
+        self.custom_id: str = id_match
         self.self_bound: bool = self_bound
 
 
@@ -3979,6 +3959,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_fields = []
         cls._static_fields = []
 
+        # TODO: allow overriding these?
         memo: set[str] = set()
         # This slice ignores [object, ..., type[Self]] and flips the order.
         for super_cls in cls.mro()[-2:0:-1]:
@@ -3991,7 +3972,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                     cls._all_static_fields.append(field)
 
         for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor) and attr.custom_id not in memo:
+            if isinstance(attr, _ComponentDescriptor) and attr.id_match not in memo:
                 field = attr.to_field()
                 cls._all_static_fields.append(field)
                 cls._static_fields.append(field)
@@ -4108,12 +4089,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows, is_button=True).add_interactive_button(
             style, custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -4189,9 +4165,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
@@ -4399,12 +4375,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
             type_,
             custom_id,
@@ -4471,9 +4442,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.SelectMenuBuilder(
                 type=type_,
@@ -4620,12 +4591,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_channel_menu(
             custom_id,
             channel_types=_parse_channel_types(*channel_types) if channel_types else [],
@@ -4717,9 +4683,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
-            custom_id,
+            id_match,
             callback,
             hikari.impl.ChannelSelectMenuBuilder(
                 custom_id=custom_id,
@@ -4893,12 +4859,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             And the parent action column can be accessed by calling
             [TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].
         """
-        if custom_id is None:
-            id_match = custom_id = _internal.random_custom_id()
-
-        else:
-            id_match = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         menu = _TextSelectMenuBuilder(
             parent=self,
             custom_id=custom_id,
@@ -4997,7 +4958,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
-        custom_id = custom_id or _internal.random_custom_id()
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         component = _TextSelectMenuBuilder(
             parent=cls,
             custom_id=custom_id,
@@ -5007,7 +4968,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             max_values=max_values,
             is_disabled=is_disabled,
         )
-        field = _StaticField(custom_id, callback, component)
+        field = _StaticField(id_match, callback, component)
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
         return component

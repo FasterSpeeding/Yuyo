@@ -351,10 +351,6 @@ Context = ModalContext
 """Alias of [ModalContext][yuyo.modals.ModalContext]."""
 
 
-def _split_custom_id(custom_id: str) -> list[str]:
-    return custom_id.split(":", 1)
-
-
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
@@ -601,21 +597,15 @@ class ModalClient:
         self,
         entry: tuple[timeouts.AbstractTimeout, AbstractModal],
         interaction: hikari.ModalInteraction,
-        custom_id: list[str],
+        id_match: str,
+        id_metadata: str,
         /,
         *,
         future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
     ) -> None:
         timeout, modal = entry
-        id_match = custom_id[0]
         if timeout.increment_uses():
             del self._modals[id_match]
-
-        try:
-            id_metadata = custom_id[1]
-
-        except IndexError:
-            id_metadata = ""
 
         ctx = ModalContext(
             client=self,
@@ -639,9 +629,9 @@ class ModalClient:
         if not isinstance(event.interaction, hikari.ModalInteraction):
             return
 
-        custom_id = _split_custom_id(event.interaction.custom_id)
-        if (entry := self._modals.get(custom_id[0])) and not entry[0].has_expired:
-            await self._execute_modal(entry, event.interaction, custom_id)
+        id_match, id_metadata = _internal.split_custom_id(event.interaction.custom_id)
+        if (entry := self._modals.get(id_match)) and not entry[0].has_expired:
+            await self._execute_modal(entry, event.interaction, id_match, id_metadata)
             return
 
         await event.interaction.create_initial_response(
@@ -659,12 +649,14 @@ class ModalClient:
         Returns
         -------
         hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
-            The REST re sponse.
+            The REST response.
         """
-        custom_id = _split_custom_id(interaction.custom_id)
-        if (entry := self._modals.get(custom_id[0])) and not entry[0].has_expired:
+        id_match, id_metadata = _internal.split_custom_id(interaction.custom_id)
+        if (entry := self._modals.get(id_match)) and not entry[0].has_expired:
             future: asyncio.Future[_ModalResponseT] = asyncio.Future()
-            self._add_task(asyncio.create_task(self._execute_modal(entry, interaction, custom_id, future=future)))
+            self._add_task(
+                asyncio.create_task(self._execute_modal(entry, interaction, id_match, id_metadata, future=future))
+            )
             return await future
 
         return (
@@ -1192,7 +1184,7 @@ class Modal(AbstractModal):
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
-        id_match, component = _make_text_input(
+        component, field = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1201,13 +1193,11 @@ class Modal(AbstractModal):
             default=default,
             min_length=min_length,
             max_length=max_length,
+            parameter=parameter,
         )
         cls._static_builders.append(component)
 
-        if parameter:
-            field = _TrackedField(
-                custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
-            )
+        if field:
             cls._static_tracked_fields.append(field)
 
         return cls
@@ -1317,7 +1307,7 @@ class Modal(AbstractModal):
         if prefix_match is not None:
             warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
 
-        id_match, component = _make_text_input(
+        component, field = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1326,15 +1316,12 @@ class Modal(AbstractModal):
             default=default,
             min_length=min_length,
             max_length=max_length,
+            parameter=parameter,
         )
         self._rows.append(hikari.impl.ModalActionRowBuilder(components=[component]))
 
-        if parameter:
-            self._tracked_fields.append(
-                _TrackedField(
-                    custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
-                )
-            )
+        if field:
+            self._tracked_fields.append(field)
 
         return self
 
@@ -1348,16 +1335,8 @@ class Modal(AbstractModal):
         for component in itertools.chain.from_iterable(
             component_.components for component_ in ctx.interaction.components
         ):
-            custom_id = _split_custom_id(component.custom_id)
-            id_match = custom_id[0]
+            id_match, id_metadata = _internal.split_custom_id(component.custom_id)
             components[id_match] = component
-
-            try:
-                id_metadata = custom_id[1]
-
-            except IndexError:
-                id_metadata = ""
-
             ctx.component_ids[id_match] = id_metadata
 
         fields = {field.parameter: field.process(components) for field in self._tracked_fields}
@@ -1384,13 +1363,9 @@ def _make_text_input(
     default: typing.Any,
     min_length: int,
     max_length: int,
-) -> tuple[str, hikari.impl.TextInputBuilder]:
-    if custom_id is None:
-        id_match = custom_id = _internal.random_custom_id()
-
-    else:
-        id_match = _split_custom_id(custom_id)[0]
-
+    parameter: typing.Optional[str],
+) -> tuple[hikari.impl.TextInputBuilder, typing.Optional[_TrackedField]]:
+    id_match, custom_id = _internal.gen_custom_id(custom_id)
     component = hikari.impl.TextInputBuilder(
         label=label,
         custom_id=custom_id,
@@ -1401,7 +1376,16 @@ def _make_text_input(
         min_length=min_length,
         max_length=max_length,
     )
-    return (id_match, component)
+
+    if parameter:
+        field = _TrackedField(
+            custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
+        )
+
+    else:
+        field = None
+
+    return (component, field)
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
@@ -1853,7 +1837,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
     __slots__ = (
         "_label",
         "_custom_id",
-        "_match_id",
+        "_id_match",
         "_style",
         "_placeholder",
         "_value",
@@ -1875,15 +1859,10 @@ class _TextInputDescriptor(_ComponentDescriptor):
         min_length: int = 0,
         max_length: int = 4000,
     ) -> None:
-        if custom_id is None:
-            match_id = custom_id = _internal.random_custom_id()
-
-        else:
-            match_id = _split_custom_id(custom_id)[0]
-
+        id_match, custom_id = _internal.gen_custom_id(custom_id)
         self._label = label
         self._custom_id = custom_id
-        self._match_id = match_id
+        self._id_match = id_match
         self._style = style
         self._placeholder = placeholder
         self._value = value
@@ -1919,7 +1898,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
         return _TrackedField(
-            custom_id=self._match_id, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
+            custom_id=self._id_match, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
         )
 
 
