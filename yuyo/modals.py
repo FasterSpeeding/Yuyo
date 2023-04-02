@@ -1399,6 +1399,7 @@ class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
         return self._callback(*args, **kwargs)
 
 
+# TODO: allow id_metadata here?
 def modal(
     callback: collections.abc.Callable[_P, _CoroT[None]],
     /,
@@ -1449,6 +1450,7 @@ def as_modal(
     ...
 
 
+# TODO: allow id_metadata here?
 def as_modal(
     callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
     /,
@@ -1504,7 +1506,8 @@ def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -
 
 @typing.overload
 def as_modal_template(
-    *, ephemeral_default: bool = False
+    *,
+    ephemeral_default: bool = False
 ) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
     ...
 
@@ -1542,8 +1545,13 @@ def as_modal_template(
         class ModalTemplate(_GenericModal[_P], parse_signature=parse_signature):
             __slots__ = ()
 
-            def __init__(self, *, ephemeral_default: bool = ephemeral_default) -> None:
-                super().__init__(ephemeral_default=ephemeral_default)
+            def __init__(
+                self,
+                *,
+                ephemeral_default: bool = ephemeral_default,
+                id_metadata: typing.Union[collections.abc.Mapping[str, str], None] = None,
+            ) -> None:
+                super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
 
             @functools.wraps(callback_)
             def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
