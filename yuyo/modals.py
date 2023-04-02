@@ -795,29 +795,29 @@ class AbstractModal(abc.ABC):
 
 
 class _TrackedField:
-    __slots__ = ("custom_id", "default", "parameter", "type")
+    __slots__ = ("default", "id_match", "parameter", "type")
 
-    def __init__(self, *, custom_id: str, default: typing.Any, parameter: str, type_: hikari.ComponentType) -> None:
-        self.custom_id = custom_id
+    def __init__(self, id_match: str, default: typing.Any, parameter: str, type_: hikari.ComponentType, /) -> None:
         self.default = default
+        self.id_match = id_match
         self.parameter = parameter
         self.type = type_
 
     def process(self, components: dict[str, hikari.ModalComponentTypesT], /) -> typing.Any:
-        component = components.get(self.custom_id)
+        component = components.get(self.id_match)
 
         # Discord still provides text components when no input was given just with
         # an empty string for `value` but we also want to support possible future
         # cases where they just just don't provide the component.
         if not component or not component.value:
             if self.default is NO_DEFAULT:
-                raise RuntimeError(f"Missing required component `{self.custom_id}`")
+                raise RuntimeError(f"Missing required component `{self.id_match}`")
 
             return self.default
 
         if component.type is not self.type:
             raise RuntimeError(
-                f"Mismatched component type, expected {self.type} for `{self.custom_id}` but got {component.type}"
+                f"Mismatched component type, expected {self.type} for `{self.id_match}` but got {component.type}"
             )
 
         return component.value
@@ -1378,9 +1378,7 @@ def _make_text_input(
     )
 
     if parameter:
-        field = _TrackedField(
-            custom_id=id_match, default=default, parameter=parameter, type_=hikari.ComponentType.TEXT_INPUT
-        )
+        field = _TrackedField(id_match, default, parameter, hikari.ComponentType.TEXT_INPUT)
 
     else:
         field = None
@@ -1897,9 +1895,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         )
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
-        return _TrackedField(
-            custom_id=self._id_match, default=self._default, parameter=keyword, type_=hikari.ComponentType.TEXT_INPUT
-        )
+        return _TrackedField(self._id_match, self._default, keyword, hikari.ComponentType.TEXT_INPUT)
 
 
 @typing.overload

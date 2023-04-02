@@ -277,7 +277,7 @@ class TestModal:
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
         assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == "yeet"
+        assert field.id_match == "yeet"
         assert field.default == 123
         assert field.parameter == "a_field"
         assert field.type is hikari.ComponentType.TEXT_INPUT
@@ -375,7 +375,7 @@ class TestModal:
         assert len(modal._tracked_fields) == 1
         field = modal._tracked_fields[0]
         assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == custom_id_1
+        assert field.id_match == custom_id_1
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "b_field"
         assert field.type is hikari.ComponentType.TEXT_INPUT
@@ -461,14 +461,14 @@ class TestModal:
         assert len(tracked._fields) == 2
         field = tracked._fields[0]
         assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == custom_id_1
+        assert field.id_match == custom_id_1
         assert field.default is modals.NO_DEFAULT
         assert field.parameter == "fieldy"
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
         field = tracked._fields[1]
         assert isinstance(field, modals._TrackedField)
-        assert field.custom_id == "nyeep"
+        assert field.id_match == "nyeep"
         assert field.default is None
         assert field.parameter == "meowy"
         assert field.type is hikari.ComponentType.TEXT_INPUT
@@ -521,17 +521,17 @@ class TestModal:
         field = tracked._fields[0]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "fieldy"
-        assert field.custom_id == custom_id_1
+        assert field.id_match == custom_id_1
 
         field = tracked._fields[1]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "meowy"
-        assert field.custom_id == custom_id_2
+        assert field.id_match == custom_id_2
 
         field = tracked._fields[2]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "booy"
-        assert field.custom_id == custom_id_3
+        assert field.id_match == custom_id_3
 
     def test_with_text_modals_options_class_handles_mixed_inheritance(self):
         class ModalOptions(modals.ModalOptions):
@@ -592,22 +592,22 @@ class TestModal:
         field = tracked._fields[0]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "fallen"
-        assert field.custom_id == custom_id_1
+        assert field.id_match == custom_id_1
 
         field = tracked._fields[1]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "felen"
-        assert field.custom_id == custom_id_2
+        assert field.id_match == custom_id_2
 
         field = tracked._fields[2]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "patman"
-        assert field.custom_id == custom_id_3
+        assert field.id_match == custom_id_3
 
         field = tracked._fields[3]
         assert isinstance(field, modals._TrackedField)
         assert field.parameter == "me"
-        assert field.custom_id == custom_id_4
+        assert field.id_match == custom_id_4
 
 
 @pytest.mark.asyncio()

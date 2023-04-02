@@ -3761,7 +3761,7 @@ def with_option(
 
 
 class _StaticField:
-    __slots__ = ("builder", "callback", "custom_id", "self_bound")
+    __slots__ = ("builder", "callback", "id_match", "self_bound")
 
     def __init__(
         self,
@@ -3774,7 +3774,7 @@ class _StaticField:
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.custom_id: str = id_match
+        self.id_match: str = id_match
         self.self_bound: bool = self_bound
 
 
@@ -3940,10 +3940,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
         for field in self._all_static_fields.copy():
-            if id_metadata and (metadata := id_metadata.get(field.custom_id)):
+            if id_metadata and (metadata := id_metadata.get(field.id_match)):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
-                builder.set_custom_id(f"{field.custom_id}:{metadata}")
+                builder.set_custom_id(f"{field.id_match}:{metadata}")
 
             else:
                 builder = field.builder
@@ -3951,7 +3951,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
 
             if field.callback:
-                self._callbacks[field.custom_id] = (
+                self._callbacks[field.id_match] = (
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
                 )
 
@@ -3967,8 +3967,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 continue
 
             for field in super_cls._static_fields:
-                if field.custom_id not in memo:
-                    memo.add(field.custom_id)
+                if field.id_match not in memo:
+                    memo.add(field.id_match)
                     cls._all_static_fields.append(field)
 
         for _, attr in inspect.getmembers(cls):
@@ -3976,7 +3976,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 field = attr.to_field()
                 cls._all_static_fields.append(field)
                 cls._static_fields.append(field)
-                memo.add(field.custom_id)
+                memo.add(field.id_match)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
