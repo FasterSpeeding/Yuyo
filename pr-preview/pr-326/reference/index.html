@@ -5569,7 +5569,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
 <p><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder.add_option">TextSelectMenuBuilder.add_option</a>
 should be used to add options to this select menu.</p>
 <p>And the parent action column can be accessed by calling
-[TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder.parent">TextSelectMenuBuilder.parent</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -5784,7 +5784,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
 <p><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder.add_option">TextSelectMenuBuilder.add_option</a>
 should be used to add options to this select menu.</p>
 <p>And the parent action column can be accessed by calling
-[TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder.parent">TextSelectMenuBuilder.parent</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -7379,7 +7379,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td class="doc-returns-details">
             <p>Builder for the added text select menu.</p>
 <p>And the parent action row can be accessed by calling
-[TextSelectMenuBuilder.parent][hikari.api.special_endpoints.TextSelectMenuBuilder.parent].</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder.parent">TextSelectMenuBuilder.parent</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -9838,7 +9838,7 @@ request the full list of members without <code>GUILD_PRESENCES</code>.</p>
   
       <p>Configure whether this should request member chunks in response to GUILD_CREATE.</p>
 <p>This may be useful for filling 3rd party caches but may conflict with
-the <code>auto_chunk_members</code> config of <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/bot/#hikari.impl.bot.GatewayBot">hikari.impl.bot.GatewayBot</a> if it's
+the <code>auto_chunk_members</code> config of [hikari.impl.bot.GatewayBot][] if it's
 enabled.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -10953,7 +10953,7 @@ globally for its custom IDs.</p>
 
 <span class="p">(</span>
     <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">SingleExecutor</span><span class="p">(</span><span class="s2">&quot;custom_id&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -11009,7 +11009,7 @@ with the <code>message</code> kwarg instead.</p>
 
 <span class="p">(</span>
     <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">SingleExecutor</span><span class="p">(</span><span class="s2">&quot;custom_id&quot;</span><span class="p">,</span> <span class="n">callback</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -12998,14 +12998,11 @@ displayed label.</p>
 and will still internally store the entry and increment the position of the paginator.</p>
 
 <p><strong>Examples:</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="n">response_paginator</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">ComponentPaginator</span><span class="p">(</span>
-    <span class="n">pages</span><span class="p">,</span>
-    <span class="n">authors</span><span class="o">=</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">,)</span>
-<span class="p">)</span>
+    <div class="highlight"><pre><span></span><code><span class="n">response_paginator</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">ComponentPaginator</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
 <span class="n">first_response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response_paginator</span><span class="o">.</span><span class="n">get_next_entry</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">first_response</span>
 <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="o">**</span><span class="n">first_response</span><span class="o">.</span><span class="n">to_kwargs</span><span class="p">(),</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">response_paginator</span><span class="p">)</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">response_paginator</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
 </code></pre></div>
 
   <table>
@@ -14162,7 +14159,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The REST re sponse.</p>
+            <p>The REST response.</p>
           </td>
         </tr>
     </tbody>
@@ -14384,7 +14381,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
   </span>
 
 <a href="#yuyo.modals.ModalContext.component_ids" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">component_ids</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="n">component_ids</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -18066,12 +18063,13 @@ when <code>max_uses</code> is reached.</p>
 
   
       <p>Component executor used to wait for a single component interaction.</p>
+<p>This should also be passed for <code>timeout=</code>.</p>
 
 <p><strong>Examples:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
-<span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">,),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
-<span class="n">component_client</span><span class="o">.</span><span class="n">set_executor</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+<span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">executor</span><span class="o">.</span><span class="n">wait_for</span><span class="p">()</span>
