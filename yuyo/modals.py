@@ -972,7 +972,7 @@ class Modal(AbstractModal):
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
-    _static_builders: typing.ClassVar[list[hikari.api.TextInputBuilder]] = []
+    _static_builders: typing.ClassVar[list[tuple[str, hikari.api.TextInputBuilder]]] = []
 
     def __init__(
         self,
@@ -995,19 +995,19 @@ class Modal(AbstractModal):
         # TODO: don't duplicate fields when re-declared
         if id_metadata is None:
             self._rows = [
-                hikari.impl.ModalActionRowBuilder(components=[component]) for component in self._static_builders
+                hikari.impl.ModalActionRowBuilder(components=[component]) for _, component in self._static_builders
             ]
 
         else:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
-                        copy.copy(component).set_custom_id(f"{component.custom_id}:{metadata}")
-                        if (metadata := id_metadata.get(component.custom_id))
+                        copy.copy(component).set_custom_id(f"{id_match}:{metadata}")
+                        if (metadata := id_metadata.get(id_match))
                         else component
                     ]
                 )
-                for component in self._static_builders
+                for id_match, component in self._static_builders
             ]
 
     def __init_subclass__(cls, parse_signature: bool = True) -> None:
@@ -1184,7 +1184,7 @@ class Modal(AbstractModal):
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
-        component, field = _make_text_input(
+        id_match, component, field = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1195,7 +1195,7 @@ class Modal(AbstractModal):
             max_length=max_length,
             parameter=parameter,
         )
-        cls._static_builders.append(component)
+        cls._static_builders.append((id_match, component))
 
         if field:
             cls._static_tracked_fields.append(field)
@@ -1307,7 +1307,7 @@ class Modal(AbstractModal):
         if prefix_match is not None:
             warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
 
-        component, field = _make_text_input(
+        _, component, field = _make_text_input(
             custom_id=custom_id,
             label=label,
             style=style,
@@ -1364,7 +1364,7 @@ def _make_text_input(
     min_length: int,
     max_length: int,
     parameter: typing.Optional[str],
-) -> tuple[hikari.impl.TextInputBuilder, typing.Optional[_TrackedField]]:
+) -> tuple[str, hikari.impl.TextInputBuilder, typing.Optional[_TrackedField]]:
     id_match, custom_id = _internal.gen_custom_id(custom_id)
     component = hikari.impl.TextInputBuilder(
         label=label,
@@ -1383,7 +1383,7 @@ def _make_text_input(
     else:
         field = None
 
-    return (component, field)
+    return (id_match, component, field)
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
@@ -1506,8 +1506,7 @@ def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -
 
 @typing.overload
 def as_modal_template(
-    *,
-    ephemeral_default: bool = False
+    *, ephemeral_default: bool = False
 ) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
     ...
 
