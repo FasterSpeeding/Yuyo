@@ -2043,7 +2043,7 @@ class ComponentClient:
 
         (
             yuyo.components.Client()
-            .register_executor(callback, timeout=None)
+            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
         )
         ```
         """
@@ -2104,7 +2104,7 @@ class ComponentClient:
 
         (
             yuyo.components.Client()
-            .register_executor(callback, timeout=None)
+            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
         )
         ```
         """
