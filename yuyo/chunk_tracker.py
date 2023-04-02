@@ -436,8 +436,8 @@ class ChunkTracker:
         """Configure whether this should request member chunks in response to GUILD_CREATE.
 
         This may be useful for filling 3rd party caches but may conflict with
-        the `auto_chunk_members` config of [hikari.impl.bot.GatewayBot][] if it's
-        enabled.
+        the `auto_chunk_members` config of [hikari.impl.gateway_bot.GatewayBot][]
+        if it's enabled.
 
         !!! warning
             This will be ignored if [Intents.GUILD_MEMBERS][hikari.intents.Intents.GUILD_MEMBERS]
