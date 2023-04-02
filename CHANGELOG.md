@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
 - Prefix matching behaviour is now always enabled for both modals and components.
+- Message components now split by `":"` for prefix matching like the modals client.
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
   (only `yuyo.modals.AbstractTimeout` was skipped).
 - [yuyo.components.WaitForExecutor][] now inherits from [yuyo.components.WaitForExecutor][]
