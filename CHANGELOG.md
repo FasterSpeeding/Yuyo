@@ -5,11 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### [1.11.0a1] - 2023-04-02
 ### Added
 - A static timeout implementation.
 - Support for custom ID prefix matching to the Message component executors.
 - Message components have support for loading components from class attributes again.
-  This time this support has been implemented through [yuyo.components.ActionColumnExecutor][].
+  Support for this has been implemented through [yuyo.components.ActionColumnExecutor][] this time.
 - [yuyo.components.SingleExecutor][] and [yuyo.components.as_single_executor][]
   to allow registering a component executor with a single callback.
 - New component handling system to the component client which allows component executors to be
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
 - [yuyo.components.with_static_text_menu][] decorator for declaring a static text select menu on
   a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass.
-- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select].
+- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select],
   [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
   [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
   passing option builders.
@@ -38,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bumped the minimum Hikari version to `2.0.0.dev118`.
+  Some of the breaking component changes listed in Hikari's
+  [change log](https://docs.hikari-py.dev/en/latest/changelog/#dev118-2023-04-02)
+  around the component builders effect Yuyo's component executors.
 - Prefix matching behaviour is now always enabled for both modals and components.
 - Message components now split by `":"` for prefix matching like the modals client.
 - Marked most deprecated timeout class aliases using `typing.deprecated`.
@@ -507,22 +512,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...HEAD
-[1.10.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.10.0a1...v1.10.1a1
-[1.10.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.9.1a1...v1.10.0a1
-[1.9.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.9.0a1...v1.9.1a1
-[1.9.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1.post1...v1.9.0a1
-[1.8.0a1.post1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1...v1.8.0a1.post1
-[1.8.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.7.0a1...v1.8.0a1
-[1.7.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...v1.7.0a1
-[1.6.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...v1.6.1a1
-[1.6.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...v1.6.0a1
-[1.5.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...v1.5.0a1
-[1.4.0a1.post1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1...v1.4.0a1.post1
-[1.4.0a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.3.1a1...v1.4.0a1
-[1.3.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.2.1a1...v1.3.1a1
-[1.2.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.2.1a1
-[1.1.1a1]:https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.1.1a1
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.11.0a1...HEAD
+[1.11.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...v1.11.0a1
+[1.10.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.0a1...v1.10.1a1
+[1.10.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.9.1a1...v1.10.0a1
+[1.9.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.9.0a1...v1.9.1a1
+[1.9.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1.post1...v1.9.0a1
+[1.8.0a1.post1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1...v1.8.0a1.post1
+[1.8.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.7.0a1...v1.8.0a1
+[1.7.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.6.1a1...v1.7.0a1
+[1.6.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.6.0a1...v1.6.1a1
+[1.6.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.5.0a1...v1.6.0a1
+[1.5.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1.post1...v1.5.0a1
+[1.4.0a1.post1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.4.0a1...v1.4.0a1.post1
+[1.4.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.3.1a1...v1.4.0a1
+[1.3.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.2.1a1...v1.3.1a1
+[1.2.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.2.1a1
+[1.1.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.6a1...v1.1.1a1
 [1.0.6a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.5a1.post1...v1.0.6a1
 [1.0.5a1.post1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.5a1...v1.0.5a1.post1
 [1.0.5a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.0.4a1...v1.0.5a1
