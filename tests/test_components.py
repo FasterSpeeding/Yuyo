@@ -616,52 +616,6 @@ class TestActionColumnExecutor:
 
         assert column._callbacks[component.custom_id] is mock_callback
 
-    def test_add_select_menu(self):
-        mock_callback = mock.Mock()
-
-        column = yuyo.components.ActionColumnExecutor().add_select_menu(
-            hikari.ComponentType.USER_SELECT_MENU,
-            mock_callback,
-            custom_id="eep",
-            placeholder="peep",
-            min_values=9,
-            max_values=11,
-            is_disabled=True,
-        )
-
-        assert column._callbacks["eep"] is mock_callback
-
-        assert len(column.rows) == 1
-        assert len(column.rows[0].components) == 1
-        component = column.rows[0].components[0]
-        assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.type is hikari.ComponentType.USER_SELECT_MENU
-        assert component.custom_id == "eep"
-        assert component.placeholder == "peep"
-        assert component.min_values == 9
-        assert component.max_values == 11
-        assert component.is_disabled is True
-
-    def test_add_select_menu_with_defaults(self):
-        mock_callback = mock.Mock()
-
-        column = yuyo.components.ActionColumnExecutor().add_select_menu(
-            hikari.ComponentType.USER_SELECT_MENU, mock_callback
-        )
-
-        assert len(column.rows) == 1
-        assert len(column.rows[0].components) == 1
-        component = column.rows[0].components[0]
-        assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.type is hikari.ComponentType.USER_SELECT_MENU
-        assert isinstance(component.custom_id, str)
-        assert component.placeholder is hikari.UNDEFINED
-        assert component.min_values == 0
-        assert component.max_values == 1
-        assert component.is_disabled is False
-
-        assert column._callbacks[component.custom_id] is mock_callback
-
     def test_add_select_menu_with_deprecated_order(self):
         mock_callback = mock.Mock()
         column = yuyo.components.ActionColumnExecutor()
@@ -679,6 +633,56 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.type is hikari.ComponentType.USER_SELECT_MENU
         assert component.custom_id == "meow meowy"
+
+    def test_add_static_select_menu(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            ...
+
+        mock_callback = mock.Mock()
+
+        column = Column.add_static_select_menu(
+            hikari.ComponentType.USER_SELECT_MENU,
+            mock_callback,
+            custom_id="eep",
+            placeholder="peep",
+            min_values=9,
+            max_values=11,
+            is_disabled=True,
+        )()
+
+        assert column._callbacks["eep"] is mock_callback
+
+        assert len(column.rows) == 1
+        assert len(column.rows[0].components) == 1
+        component = column.rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "eep"
+        assert component.placeholder == "peep"
+        assert component.min_values == 9
+        assert component.max_values == 11
+        assert component.is_disabled is True
+
+    def test_add_static_select_menu_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            ...
+
+        mock_callback = mock.Mock()
+
+        column = Column.add_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, mock_callback)()
+
+        assert len(column.rows) == 1
+        assert len(column.rows[0].components) == 1
+        component = column.rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert isinstance(component.custom_id, str)
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
+        assert component.is_disabled is False
+
+        assert column._callbacks[component.custom_id] is mock_callback
 
     def test_add_static_select_menu_with_deprecated_order(self):
         class Column(yuyo.components.ActionColumnExecutor):
