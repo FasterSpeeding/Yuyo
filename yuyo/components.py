@@ -2955,6 +2955,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         else:
             assert isinstance(type_or_callback, int)
 
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
             callback = callback_or_type
             type_ = type_or_callback
 
@@ -4466,6 +4467,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         else:
             assert isinstance(type_or_callback, int)
 
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
             callback = callback_or_type
             type_ = type_or_callback
 
@@ -4579,6 +4581,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         else:
             assert isinstance(type_or_callback, int)
 
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
             callback = callback_or_type
             type_ = type_or_callback
 
@@ -5326,6 +5329,7 @@ def with_static_select_menu(
     else:
         assert isinstance(type_or_callback, int)
 
+        warnings.warn("callback is now the second argument", category=DeprecationWarning)
         callback = callback_or_type
         type_ = type_or_callback
 

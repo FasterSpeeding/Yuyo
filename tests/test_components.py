@@ -482,6 +482,25 @@ class TestComponentExecutor:
 
 
 class TestActionRowExecutor:
+    def test_add_select_menu_with_deprecated_order(self):
+        mock_callback = mock.Mock()
+        row = yuyo.components.ActionRowExecutor()
+
+        with pytest.warns(DeprecationWarning):
+            row.add_select_menu(  # pyright: ignore [ reportDeprecated ]
+                mock_callback,
+                hikari.ComponentType.ROLE_SELECT_MENU,
+                custom_id="meow meow",
+            )
+
+        assert row.callbacks["meow meow"] is mock_callback
+
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "meow meow"
+        assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
+
     def test_text_menu_builder_uses_option_count_when_max_values_too_high(self):
         action_row = yuyo.components.ActionRowExecutor()
 
@@ -511,6 +530,52 @@ class TestActionRowExecutor:
 
 
 class TestActionColumnExecutor:
+    def test_add_select_menu_with_deprecated_order(self):
+        mock_callback = mock.Mock()
+        column = yuyo.components.ActionColumnExecutor()
+
+        with pytest.warns(DeprecationWarning):
+            column.add_select_menu(  # pyright: ignore [ reportDeprecated ]
+                mock_callback,
+                hikari.ComponentType.USER_SELECT_MENU,
+                custom_id="meow meowy",
+            )
+
+        assert column._callbacks["meow meowy"] is mock_callback
+
+        assert len(column.rows) == 1
+        assert len(column.rows[0].components) == 1
+        component = column.rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "meow meowy"
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+
+    def test_add_static_select_menu_with_deprecated_order(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            ...
+
+        mock_callback = mock.Mock()
+
+        with pytest.warns(DeprecationWarning):
+            Column.add_static_select_menu(  # pyright: ignore [ reportDeprecated ]
+                mock_callback,
+                hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+                custom_id="meowy",
+            )
+
+
+        column = Column()
+
+        assert column._callbacks["meowy"] is mock_callback
+
+        assert len(column.rows) == 1
+        assert len(column.rows[0].components) == 1
+        component = column.rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "meowy"
+        assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
+
+
     def test_with_interactive_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -750,3 +815,30 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+
+def test_with_static_select_menu_with_deprecated_order():
+    class Column(yuyo.components.ActionColumnExecutor):
+        ...
+
+    mock_callback = mock.Mock()
+
+    with pytest.warns(DeprecationWarning):
+        yuyo.components.with_static_select_menu(  # pyright: ignore [ reportDeprecated ]
+            mock_callback,
+            hikari.ComponentType.USER_SELECT_MENU,
+            custom_id="meowers",
+        )(Column)
+
+
+    column = Column()
+
+    assert column._callbacks["meowers"] is mock_callback
+
+    assert len(column.rows) == 1
+    assert len(column.rows[0].components) == 1
+    component = column.rows[0].components[0]
+    assert isinstance(component, hikari.api.SelectMenuBuilder)
+    assert component.custom_id == "meowers"
+    assert component.type is hikari.ComponentType.USER_SELECT_MENU
+
