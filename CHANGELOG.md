@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- `callback` and `type` have been flipped for the following functions, making `type`
-  the first argument and `callback` the second one:
+- `callback` and `type` have been flipped (making `type` the first argument and `callback`
+   the second one) for the following functions:
     * [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu]
     * [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu]
     * [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu]
