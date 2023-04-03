@@ -488,9 +488,7 @@ class TestActionRowExecutor:
 
         with pytest.warns(DeprecationWarning):
             row.add_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback,
-                hikari.ComponentType.ROLE_SELECT_MENU,
-                custom_id="meow meow",
+                mock_callback, hikari.ComponentType.ROLE_SELECT_MENU, custom_id="meow meow"
             )
 
         assert row.callbacks["meow meow"] is mock_callback
@@ -536,9 +534,7 @@ class TestActionColumnExecutor:
 
         with pytest.warns(DeprecationWarning):
             column.add_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback,
-                hikari.ComponentType.USER_SELECT_MENU,
-                custom_id="meow meowy",
+                mock_callback, hikari.ComponentType.USER_SELECT_MENU, custom_id="meow meowy"
             )
 
         assert column._callbacks["meow meowy"] is mock_callback
@@ -558,11 +554,8 @@ class TestActionColumnExecutor:
 
         with pytest.warns(DeprecationWarning):
             Column.add_static_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback,
-                hikari.ComponentType.MENTIONABLE_SELECT_MENU,
-                custom_id="meowy",
+                mock_callback, hikari.ComponentType.MENTIONABLE_SELECT_MENU, custom_id="meowy"
             )
-
 
         column = Column()
 
@@ -574,7 +567,6 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.custom_id == "meowy"
         assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
-
 
     def test_with_interactive_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
@@ -825,11 +817,8 @@ def test_with_static_select_menu_with_deprecated_order():
 
     with pytest.warns(DeprecationWarning):
         yuyo.components.with_static_select_menu(  # pyright: ignore [ reportDeprecated ]
-            mock_callback,
-            hikari.ComponentType.USER_SELECT_MENU,
-            custom_id="meowers",
+            mock_callback, hikari.ComponentType.USER_SELECT_MENU, custom_id="meowers"
         )(Column)
-
 
     column = Column()
 
@@ -841,4 +830,3 @@ def test_with_static_select_menu_with_deprecated_order():
     assert isinstance(component, hikari.api.SelectMenuBuilder)
     assert component.custom_id == "meowers"
     assert component.type is hikari.ComponentType.USER_SELECT_MENU
-
