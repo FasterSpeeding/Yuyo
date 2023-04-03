@@ -2901,8 +2901,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     def add_select_menu(
         self,
-        callback_or_type: typing.Union[CallbackSig, hikari.ComponentType, int],
-        type_or_callback: typing.Union[CallbackSig, int],
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2946,18 +2946,18 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
-        if isinstance(callback_or_type, int):
-            assert isinstance(type_or_callback, collections.Callable)
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
 
-            callback = type_or_callback
-            type_ = callback_or_type
+            callback = callback
+            type_ = type_
 
         else:
-            assert isinstance(type_or_callback, int)
+            assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = callback_or_type
-            type_ = type_or_callback
+            callback = type_
+            type_ = callback
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
@@ -4411,8 +4411,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def add_select_menu(
         self,
-        callback_or_type: typing.Union[CallbackSig, hikari.ComponentType, int],
-        type_or_callback: typing.Union[CallbackSig, int],
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4458,18 +4458,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
-        if isinstance(callback_or_type, int):
-            assert isinstance(type_or_callback, collections.Callable)
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
 
-            callback = type_or_callback
-            type_ = callback_or_type
+            callback = callback
+            type_ = type_
 
         else:
-            assert isinstance(type_or_callback, int)
+            assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = callback_or_type
-            type_ = type_or_callback
+            callback = type_
+            type_ = callback
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
@@ -4519,8 +4519,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def add_static_select_menu(
         cls,
-        callback_or_type: typing.Union[CallbackSig, hikari.ComponentType, int],
-        type_or_callback: typing.Union[CallbackSig, int],
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4572,18 +4572,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-        if isinstance(callback_or_type, int):
-            assert isinstance(type_or_callback, collections.Callable)
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
 
-            callback = type_or_callback
-            type_ = callback_or_type
+            callback = callback
+            type_ = type_
 
         else:
-            assert isinstance(type_or_callback, int)
+            assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = callback_or_type
-            type_ = type_or_callback
+            callback = type_
+            type_ = callback
 
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -5273,8 +5273,8 @@ def with_static_select_menu(
 
 
 def with_static_select_menu(
-    callback_or_type: typing.Union[CallbackSig, hikari.ComponentType, int],
-    type_or_callback: typing.Union[CallbackSig, int],
+    type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+    callback: typing.Union[CallbackSig, int],
     /,
     *,
     custom_id: typing.Optional[str] = None,
@@ -5320,18 +5320,18 @@ def with_static_select_menu(
     type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
-    if isinstance(callback_or_type, int):
-        assert isinstance(type_or_callback, collections.Callable)
+    if isinstance(type_, int):
+        assert isinstance(callback, collections.Callable)
 
-        callback = type_or_callback
-        type_ = callback_or_type
+        callback = callback
+        type_ = type_
 
     else:
-        assert isinstance(type_or_callback, int)
+        assert isinstance(callback, int)
 
         warnings.warn("callback is now the second argument", category=DeprecationWarning)
-        callback = callback_or_type
-        type_ = type_or_callback
+        callback = type_
+        type_ = callback
 
     return lambda executor: executor.add_static_select_menu(
         type_,
