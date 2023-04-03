@@ -2949,15 +2949,13 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
 
-            callback = callback
-            type_ = type_
-
         else:
             assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = type_
+            callback_ = type_
             type_ = callback
+            callback = callback_
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
@@ -4461,15 +4459,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
 
-            callback = callback
-            type_ = type_
-
         else:
             assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = type_
+            callback_ = type_
             type_ = callback
+            callback = callback_
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
@@ -4575,15 +4571,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
 
-            callback = callback
-            type_ = type_
-
         else:
             assert isinstance(callback, int)
 
             warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback = type_
+            callback_ = type_
             type_ = callback
+            callback = callback_
 
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
@@ -5323,15 +5317,13 @@ def with_static_select_menu(
     if isinstance(type_, int):
         assert isinstance(callback, collections.Callable)
 
-        callback = callback
-        type_ = type_
-
     else:
         assert isinstance(callback, int)
 
         warnings.warn("callback is now the second argument", category=DeprecationWarning)
-        callback = type_
+        callback_ = type_
         type_ = callback
+        callback = callback_
 
     return lambda executor: executor.add_static_select_menu(
         type_,
