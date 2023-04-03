@@ -2722,8 +2722,8 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.SelectMenuBuilder):
                 column.add_select_menu(
-                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     component.type,
+                    self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
                     placeholder=component.placeholder,
                     min_values=component.min_values,
@@ -2868,10 +2868,41 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             hikari.impl.LinkButtonBuilder(url=url, label=label, is_disabled=is_disabled, emoji=emoji)
         )
 
+    @typing.overload
+    @typing_extensions.deprecated("callback is now the 2nd argument")
     def add_select_menu(
         self,
         callback: CallbackSig,
         type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    @typing.overload
+    def add_select_menu(
+        self,
+        type_: typing.Union[hikari.ComponentType, int],
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    def add_select_menu(
+        self,
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2888,10 +2919,14 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         Parameters
         ----------
-        callback
-            Callback which is called when this select menu is used.
-        type_
+        type_ : hikari.components.ComponentType | int
             The type of select menu to add.
+
+            Passing callback here is deprecated.
+        callback : yuyo.components.CallbackSig
+            Callback which is called when this select menu is used.
+
+            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -2911,6 +2946,17 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         Self
             The action row to enable chained calls.
         """
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
+
+        else:
+            assert isinstance(callback, int)
+
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
+            callback_ = type_
+            type_ = callback
+            callback = callback_
+
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
         return (
@@ -4330,10 +4376,41 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._static_fields.append(field)
         return cls
 
+    @typing.overload
+    @typing_extensions.deprecated("callback is now the 2nd argument")
     def add_select_menu(
         self,
         callback: CallbackSig,
         type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    @typing.overload
+    def add_select_menu(
+        self,
+        type_: typing.Union[hikari.ComponentType, int],
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        ...
+
+    def add_select_menu(
+        self,
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4350,10 +4427,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
-        callback
-            Callback which is called when this select menu is used.
-        type_
+        type_ : hikari.components.ComponentType | int
             The type of select menu to add.
+
+            Passing callback here is deprecated.
+        callback : yuyo.components.CallbackSig
+            Callback which is called when this select menu is used.
+
+            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -4375,6 +4456,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Self
             The action column to enable chained calls.
         """
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
+
+        else:
+            assert isinstance(callback, int)
+
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
+            callback_ = type_
+            type_ = callback
+            callback = callback_
+
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
             type_,
@@ -4388,10 +4480,43 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @classmethod
+    @typing.overload
+    @typing_extensions.deprecated("callback is now the 2nd argument")
     def add_static_select_menu(
         cls,
         callback: CallbackSig,
         type_: typing.Union[hikari.ComponentType, int],
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        ...
+
+    @classmethod
+    @typing.overload
+    def add_static_select_menu(
+        cls,
+        type_: typing.Union[hikari.ComponentType, int],
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        ...
+
+    @classmethod
+    def add_static_select_menu(
+        cls,
+        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4408,10 +4533,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
-        callback
-            Callback which is called when this select menu is used.
-        type_
+        type_ : hikari.components.ComponentType | int
             The type of select menu to add.
+
+            Passing callback here is deprecated.
+        callback : yuyo.components.CallbackSig
+            Callback which is called when this select menu is used.
+
+            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -4439,6 +4568,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
+        if isinstance(type_, int):
+            assert isinstance(callback, collections.Callable)
+
+        else:
+            assert isinstance(callback, int)
+
+            warnings.warn("callback is now the second argument", category=DeprecationWarning)
+            callback_ = type_
+            type_ = callback
+            callback = callback_
+
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -4510,8 +4650,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
             cls.add_static_select_menu(
-                callback,
                 type_,
+                callback,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
@@ -5095,9 +5235,40 @@ def with_static_link_button(
     return lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
 
 
+@typing.overload
+@typing_extensions.deprecated("callback is now the 2nd argument")
 def with_static_select_menu(
     callback: CallbackSig,
     type_: typing.Union[hikari.ComponentType, int],
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    ...
+
+
+@typing.overload
+def with_static_select_menu(
+    type_: typing.Union[hikari.ComponentType, int],
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    ...
+
+
+def with_static_select_menu(
+    type_: typing.Union[CallbackSig, hikari.ComponentType, int],
+    callback: typing.Union[CallbackSig, int],
     /,
     *,
     custom_id: typing.Optional[str] = None,
@@ -5114,10 +5285,14 @@ def with_static_select_menu(
 
     Parameters
     ----------
-    callback
-        Callback which is called when this select menu is used.
-    type_
+    type_ : hikari.components..ComponentType | int
         The type of select menu to add.
+
+        Passing callback here is deprecated.
+    callback yuyo.components.CallbackSig
+        Callback which is called when this select menu is used.
+
+        Passing type here is deprecated.
     custom_id
         The select menu's custom ID.
 
@@ -5139,9 +5314,20 @@ def with_static_select_menu(
     type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
+    if isinstance(type_, int):
+        assert isinstance(callback, collections.Callable)
+
+    else:
+        assert isinstance(callback, int)
+
+        warnings.warn("callback is now the second argument", category=DeprecationWarning)
+        callback_ = type_
+        type_ = callback
+        callback = callback_
+
     return lambda executor: executor.add_static_select_menu(
-        callback,
         type_,
+        callback,
         custom_id=custom_id,
         placeholder=placeholder,
         min_values=min_values,
