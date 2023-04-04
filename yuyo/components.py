@@ -60,7 +60,6 @@ import logging
 import os
 import types
 import typing
-import warnings
 from collections import abc as collections
 
 import alluka as alluka_
@@ -1263,24 +1262,12 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         self._response_future = response_future
 
     @property
-    @typing_extensions.deprecated("Use .selected_channels")
-    def select_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
-        """Deprecated alias of [.selected_channels][yuyo.components.ComponentContext.selected_channels]."""
-        return self.selected_channels
-
-    @property
     def selected_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
         """Sequence of the users passed for a channel select menu."""
         if not self.interaction.resolved:
             return {}
 
         return self.interaction.resolved.channels
-
-    @property
-    @typing_extensions.deprecated("Use .selected_roles")
-    def select_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
-        """Deprecated alias of [.selected_roles][yuyo.components.ComponentContext.selected_roles]."""
-        return self.selected_roles
 
     @property
     def selected_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
@@ -1294,21 +1281,9 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.roles
 
     @property
-    @typing_extensions.deprecated("Use .selected_texts")
-    def select_texts(self) -> collections.Sequence[str]:
-        """Deprecated alias of [.selected_texts][yuyo.components.ComponentContext.selected_texts]."""
-        return self.selected_texts
-
-    @property
     def selected_texts(self) -> collections.Sequence[str]:
         """Sequence of the values passed for a text select menu."""
         return self._interaction.values
-
-    @property
-    @typing_extensions.deprecated("Use .selected_users")
-    def select_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
-        """Deprecated alias of [.selected_users][yuyo.components.ComponentContext.selected_users]."""
-        return self.selected_users
 
     @property
     def selected_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
@@ -1323,12 +1298,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             return {}
 
         return self.interaction.resolved.users
-
-    @property
-    @typing_extensions.deprecated("Use .selected_members")
-    def select_members(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionMember]:
-        """Deprecated alias of [.selected_members][yuyo.components.ComponentContext.selected_members]."""
-        return self.selected_members
 
     @property
     def selected_members(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionMember]:
@@ -2049,130 +2018,6 @@ class ComponentClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def set_constant_id(self, custom_id: str, callback: CallbackSig, /, *, prefix_match: bool = True) -> Self:
-        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
-
-        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
-        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
-        (making sure to pass `timeout=None`).
-
-        Examples
-        --------
-        ```py
-        @yuyo.components.as_single_executor("custom_id")
-        async def callback(ctx: yuyo.components.Context) -> None:
-            await ctx.respond("hi")
-
-        (
-            yuyo.components.Client()
-            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
-        )
-        ```
-        """
-        custom_id = custom_id.removesuffix(":")
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-            already_set = self.get_constant_id(custom_id)  # pyright: ignore [ reportDeprecated ]
-
-        if already_set:
-            raise ValueError(f"{custom_id!r} is already registered as a constant id")
-
-        return self.register_executor(SingleExecutor(custom_id, callback), timeout=None)
-
-    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def get_constant_id(self, custom_id: str, /) -> typing.Optional[CallbackSig]:
-        """Deprecated method for getting the constant callback for a custom ID.
-
-        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
-        """
-        custom_id = custom_id.removesuffix(":")
-        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            return entry[1]._callback  # pyright: ignore [ reportPrivateUsage ]
-
-        return None
-
-    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def remove_constant_id(self, custom_id: str, /) -> Self:
-        """Deprecated method for removing a constant callback by custom ID.
-
-        These now use the normal executor system through [SingleExecutor][yuyo.components.SingleExecutor].
-        """
-        custom_id = custom_id.removesuffix(":")
-        if (entry := self._executors.get(custom_id)) and isinstance(entry[1], SingleExecutor):
-            del self._executors[custom_id]
-
-        else:
-            raise KeyError(custom_id)
-
-        return self
-
-    @typing_extensions.deprecated("Use SingleExecutor with .register_executor")
-    def with_constant_id(
-        self, custom_id: str, /, *, prefix_match: bool = True
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated approach for adding callbacks which'll always be called for a specific custom ID.
-
-        You should now use [SingleExecutor][yuyo.components.SingleExecutor] with
-        [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
-        (making sure to pass `timeout=None`).
-
-        Examples
-        --------
-        ```py
-        @yuyo.components.as_single_executor("custom_id")
-        async def callback(ctx: yuyo.components.Context) -> None:
-            await ctx.respond("hi")
-
-        (
-            yuyo.components.Client()
-            .register_executor(SingleExecutor("custom_id", callback), timeout=None)
-        )
-        ```
-        """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-                self.set_constant_id(custom_id, callback)  # pyright: ignore [ reportDeprecated ]
-
-            return callback
-
-        return decorator
-
-    @typing_extensions.deprecated("Use `.register_executor` with the message kwarg")
-    def set_executor(
-        self, message: hikari.SnowflakeishOr[hikari.Message], executor: AbstractComponentExecutor, /
-    ) -> Self:
-        """Deprecated method for setting the component executor for a message.
-
-        Use [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
-        with the `message` kwarg instead.
-        """
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-            timeout_property = executor.timeout
-
-        # AbstractExecutors which still need to manage their own timeouts and
-        # thus are inherently stateful (e.g. WaitFor) will be inheriting from
-        # AbstractTimeout
-        if isinstance(executor, timeouts.AbstractTimeout):
-            timeout: timeouts.AbstractTimeout = executor
-
-        elif timeout_property is _internal.NO_DEFAULT:
-            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=-1)
-
-        elif timeout_property is None:
-            timeout = timeouts.NeverTimeout()
-
-        else:
-            timeout = timeouts.SlidingTimeout(timeout_property, max_uses=-1)
-
-        return self.register_executor(executor, message=message, timeout=timeout)
-
     def register_executor(
         self,
         executor: AbstractComponentExecutor,
@@ -2219,13 +2064,6 @@ class ComponentClient:
 
         return self
 
-    @typing_extensions.deprecated("Use `.get_executor_for_message`")
-    def get_executor(
-        self, message: hikari.SnowflakeishOr[hikari.Message], /
-    ) -> typing.Optional[AbstractComponentExecutor]:
-        """Deprecated alias of [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message]."""  # noqa: E501
-        return self.get_executor_for_message(message)
-
     def get_executor_for_message(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractComponentExecutor]:
@@ -2265,11 +2103,6 @@ class ComponentClient:
 
         return self
 
-    @typing_extensions.deprecated("Use `.deregister_message`")
-    def remove_executor(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
-        """Deprecated alias for [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message]."""
-        return self.deregister_message(message)
-
     def deregister_message(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> Self:
         """Remove a component executor by its message.
 
@@ -2300,16 +2133,6 @@ class AbstractComponentExecutor(abc.ABC):
     @abc.abstractmethod
     def custom_ids(self) -> collections.Collection[str]:
         """Collection of the custom IDs this executor is listening for."""
-
-    @property
-    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
-    def has_expired(self) -> bool:
-        return False
-
-    @property
-    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
-    def timeout(self) -> typing.Union[datetime.timedelta, None, _internal.NoDefault]:
-        return _internal.NO_DEFAULT
 
     @abc.abstractmethod
     async def execute(self, ctx: ComponentContext, /) -> None:
@@ -2394,30 +2217,9 @@ def as_single_executor(
 class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     """implementation of a component executor with per-custom ID callbacks."""
 
-    __slots__ = ("_ephemeral_default", "_id_to_callback", "_timeout")
+    __slots__ = ("_ephemeral_default", "_id_to_callback")
 
-    @typing.overload
-    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
-        _stack_level: int = 0,
-    ) -> None:
-        ...
-
-    @typing.overload
     def __init__(self, *, ephemeral_default: bool = False) -> None:
-        ...
-
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
-        _stack_level: int = 0,
-    ) -> None:
         """Initialise a component executor.
 
         Parameters
@@ -2425,16 +2227,8 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
         """
-        if timeout is not _internal.NO_DEFAULT:
-            warnings.warn(
-                "Component executors no-longer track their own expiration",
-                category=DeprecationWarning,
-                stacklevel=_stack_level + 2,
-            )
-
         self._ephemeral_default = ephemeral_default
         self._id_to_callback: dict[str, CallbackSig] = {}
-        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
     @property
     def callbacks(self) -> collections.Mapping[str, CallbackSig]:
@@ -2445,11 +2239,6 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._id_to_callback
-
-    @property
-    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
-    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
-        return self._timeout
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -2651,28 +2440,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
     __slots__ = ("_components", "_stored_type")
 
-    @typing.overload
-    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
-        _stack_level: int = 0,
-    ) -> None:
-        ...
-
-    @typing.overload
     def __init__(self, *, ephemeral_default: bool = False) -> None:
-        ...
-
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault] = _internal.NO_DEFAULT,
-        _stack_level: int = 0,
-    ) -> None:
         """Initialise an action row executor.
 
         Parameters
@@ -2680,9 +2448,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ephemeral_default
             Whether this executor's responses should default to being ephemeral.
         """
-        super().__init__(  # pyright: ignore [ reportDeprecated ]
-            ephemeral_default=ephemeral_default, timeout=timeout, _stack_level=_stack_level + 1
-        )
+        super().__init__(ephemeral_default=ephemeral_default)
         self._components: list[hikari.api.ComponentBuilder] = []
         self._stored_type: typing.Optional[hikari.ComponentType] = None
 
@@ -2690,14 +2456,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     def components(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """The sub-components in this row."""
         return self._components.copy()
-
-    @property
-    @typing_extensions.deprecated("This is no-longer used")
-    def is_full(self) -> bool:
-        if self._components and isinstance(self._components[0], hikari.api.ButtonBuilder):
-            return len(self._components) >= 5
-
-        return bool(self._components)
 
     @property
     def type(self) -> typing.Literal[hikari.ComponentType.ACTION_ROW]:
@@ -2710,6 +2468,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._stored_type = type_
         return self
 
+    # TODO: remove?
     @typing_extensions.deprecated("Part of deprecating passing this to `ActionColumnRow.add_row`")
     def add_to_column(self, column: ActionColumnExecutor, /) -> Self:
         for component in self._components:
@@ -2786,40 +2545,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         """
         self._components.append(component)
         return self
-
-    @typing_extensions.deprecated("Use .add_interactive_button")
-    def add_button(
-        self,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionRowExecutor.add_interactive_button]."""
-        return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
-
-    @typing_extensions.deprecated("Use .add_interactive_button")
-    def add_interative_button(
-        self,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionRowExecutor.add_interactive_button]."""
-        return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
 
     def add_interactive_button(
         self,
@@ -2916,41 +2641,10 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             hikari.impl.LinkButtonBuilder(url=url, label=label, is_disabled=is_disabled, emoji=emoji)
         )
 
-    @typing.overload
-    @typing_extensions.deprecated("callback is now the 2nd argument")
-    def add_select_menu(
-        self,
-        callback: CallbackSig,
-        type_: typing.Union[hikari.ComponentType, int],
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    @typing.overload
     def add_select_menu(
         self,
         type_: typing.Union[hikari.ComponentType, int],
         callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    def add_select_menu(
-        self,
-        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
-        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -2969,17 +2663,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         * [.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu]
         * [.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
         """
-        if isinstance(type_, int):
-            assert isinstance(callback, collections.Callable)
-
-        else:
-            assert isinstance(callback, int)
-
-            warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback_ = type_
-            type_ = callback
-            callback = callback_
-
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         type_ = hikari.ComponentType(type_)
         return (
@@ -3135,32 +2818,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
             is_disabled=is_disabled,
         )
 
-    @typing_extensions.deprecated("Use .add_channel_menu")
-    def add_channel_select(
-        self,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, _Type[hikari.PartialChannel]]]
-        ] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_channel_menu][yuyo.components.ActionRowExecutor.add_channel_menu]."""
-        return self.add_channel_menu(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
     def add_channel_menu(
         self,
         callback: CallbackSig,
@@ -3218,30 +2875,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                     is_disabled=is_disabled,
                 )
             )
-        )
-
-    @typing_extensions.deprecated("Use .add_text_menu")
-    def add_text_select(
-        self,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[Self]:
-        """Deprecated alias of [.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu]."""
-        return self.add_text_menu(
-            callback,
-            custom_id=custom_id,
-            options=options,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
         )
 
     def add_text_menu(
@@ -4345,31 +3978,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     This includes inherited fields and fields added through method calls.
     """
 
-    @typing.overload
-    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
-        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
-        _stack_level: int = 0,
-    ) -> None:
-        ...
-
-    @typing.overload
     def __init__(
         self, *, ephemeral_default: bool = False, id_metadata: typing.Optional[collections.Mapping[str, str]] = None
-    ) -> None:
-        ...
-
-    def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
-        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
-        _stack_level: int = 0,
     ) -> None:
         """Initialise an action column executor.
 
@@ -4382,17 +3992,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         id_metadata
             Mapping of metadata to append to the custom_ids in this column.
         """
-        if timeout is not _internal.NO_DEFAULT:
-            warnings.warn(
-                "Component executors no-longer track their own expiration",
-                category=DeprecationWarning,
-                stacklevel=_stack_level + 2,
-            )
-
         self._callbacks: dict[str, CallbackSig] = {}
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
-        self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
         for field in self._static_fields.values():
             if id_metadata and (metadata := id_metadata.get(field.id_match)):
@@ -4432,11 +4034,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self._callbacks
 
     @property
-    @typing_extensions.deprecated("Component executors no-longer track their own expiration")
-    def timeout(self) -> typing.Union[datetime.timedelta, _internal.NoDefault, None]:
-        return self._timeout
-
-    @property
     def rows(self) -> collections.Sequence[hikari.api.MessageActionRowBuilder]:
         """The rows in this column."""
         return self._rows.copy()
@@ -4466,40 +4063,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ctx.set_ephemeral_default(self._ephemeral_default)
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
-
-    @typing_extensions.deprecated("Use .add_interactive_button")
-    def add_button(
-        self,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionColumnExecutor.add_interactive_button]."""
-        return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
-
-    @typing_extensions.deprecated("Use .add_interactive_button")
-    def add_interative_button(
-        self,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionColumnExecutor.add_interactive_button]."""
-        return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
 
     def add_interactive_button(
         self,
@@ -4548,42 +4111,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
         self._callbacks[id_match] = callback
         return self
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_interactive_button")
-    def add_static_button(
-        cls,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        """Deprecated alias of [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
-        return cls.add_static_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_interactive_button")
-    def add_static_interative_button(
-        cls,
-        style: hikari.InteractiveButtonTypesT,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        """Deprecated alias of [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
-        return cls.add_static_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
 
     @classmethod
     def add_static_interactive_button(
@@ -4647,51 +4174,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._added_static_fields[custom_id] = field
         cls._static_fields[custom_id] = field
         return cls
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_interactive_button")
-    def with_static_button(
-        cls,
-        style: hikari.InteractiveButtonTypesT,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated method.
-
-        Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button].
-        """
-        return cls.with_static_interative_button(  # pyright: ignore [ reportDeprecated ]
-            style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-        )
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_interactive_button")
-    def with_static_interative_button(
-        cls,
-        style: hikari.InteractiveButtonTypesT,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated method.
-
-        Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button].
-        """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_interactive_button(
-                style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-            )
-            return callback
-
-        return decorator
 
     def add_link_button(
         self,
@@ -4774,41 +4256,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._static_fields[custom_id] = field
         return cls
 
-    @typing.overload
-    @typing_extensions.deprecated("callback is now the 2nd argument")
-    def add_select_menu(
-        self,
-        callback: CallbackSig,
-        type_: typing.Union[hikari.ComponentType, int],
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    @typing.overload
     def add_select_menu(
         self,
         type_: typing.Union[hikari.ComponentType, int],
         callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        ...
-
-    def add_select_menu(
-        self,
-        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
-        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4827,17 +4278,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         * [.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]
         * [.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
         """
-        if isinstance(type_, int):
-            assert isinstance(callback, collections.Callable)
-
-        else:
-            assert isinstance(callback, int)
-
-            warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback_ = type_
-            type_ = callback
-            callback = callback_
-
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         _append_row(self._rows).add_select_menu(
             type_,
@@ -4851,43 +4291,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @classmethod
-    @typing.overload
-    @typing_extensions.deprecated("callback is now the 2nd argument")
-    def add_static_select_menu(
-        cls,
-        callback: CallbackSig,
-        type_: typing.Union[hikari.ComponentType, int],
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        ...
-
-    @classmethod
-    @typing.overload
     def add_static_select_menu(
         cls,
         type_: typing.Union[hikari.ComponentType, int],
         callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        ...
-
-    @classmethod
-    def add_static_select_menu(
-        cls,
-        type_: typing.Union[CallbackSig, hikari.ComponentType, int],
-        callback: typing.Union[CallbackSig, int],
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4906,17 +4313,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         * [.add_static_text_menu][yuyo.components.ActionColumnExecutor.add_static_text_menu]
         * [.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
         """
-        if isinstance(type_, int):
-            assert isinstance(callback, collections.Callable)
-
-        else:
-            assert isinstance(callback, int)
-
-            warnings.warn("callback is now the second argument", category=DeprecationWarning)
-            callback_ = type_
-            type_ = callback
-            callback = callback_
-
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
@@ -4936,38 +4332,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._added_static_fields[custom_id] = field
         cls._static_fields[custom_id] = field
         return cls
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_select_menu")
-    def with_static_select_menu(
-        cls,
-        type_: typing.Union[hikari.ComponentType, int],
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated method.
-
-        Use [.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu].
-        """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_select_menu(
-                type_,
-                callback,
-                custom_id=custom_id,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
-            )
-            return callback
-
-        return decorator
 
     def add_mentionable_menu(
         self,
@@ -5278,32 +4642,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
 
-    @typing_extensions.deprecated("Use .add_channel_menu")
-    def add_channel_select(
-        self,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> Self:
-        """Deprecated alias of [.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu]."""
-        return self.add_channel_menu(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
     def add_channel_menu(
         self,
         callback: CallbackSig,
@@ -5358,33 +4696,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
         self._callbacks[id_match] = callback
         return self
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_channel_menu")
-    def add_static_channel_select(
-        cls,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> type[Self]:
-        """Deprecated alias of [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu]."""
-        return cls.add_static_channel_menu(
-            callback,
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
 
     @classmethod
     def add_static_channel_menu(
@@ -5456,90 +4767,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._static_fields[custom_id] = field
         return cls
 
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_channel_menu")
-    def with_static_channel_select(
-        cls,
-        *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated method.
-
-        Use [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu].
-        """
-        return cls.with_static_channel_menu(  # pyright: ignore [ reportDeprecated ]
-            custom_id=custom_id,
-            channel_types=channel_types,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_channel_menu")
-    def with_static_channel_menu(
-        cls,
-        *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated method.
-
-        Use [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu].
-        """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_channel_menu(
-                callback,
-                custom_id=custom_id,
-                channel_types=channel_types,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
-            )
-            return callback
-
-        return decorator
-
-    @typing_extensions.deprecated("Use .add_text_menu")
-    def add_text_select(
-        self,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[Self]:
-        """Deprecated alias of [.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]."""
-        return self.add_text_menu(
-            callback,
-            custom_id=custom_id,
-            options=options,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
     def add_text_menu(
         self,
         callback: CallbackSig,
@@ -5603,31 +4830,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         _append_row(self._rows).add_component(menu)
         self._callbacks[id_match] = callback
         return menu
-
-    @classmethod
-    @typing_extensions.deprecated("Use .add_static_text_menu")
-    def add_static_text_select(
-        cls,
-        callback: CallbackSig,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        min_values: int = 0,
-        max_values: int = 1,
-        is_disabled: bool = False,
-    ) -> hikari.api.TextSelectMenuBuilder[type[Self]]:
-        """Deprecated alias of [.add_static_text_menu][yuyo.components.ActionColumnExecutor.add_static_text_menu]."""
-        return cls.add_static_text_menu(
-            callback,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-            options=options,
-        )
 
     @classmethod
     def add_static_text_menu(
@@ -5730,40 +4932,6 @@ def _append_row(
     return row
 
 
-@typing_extensions.deprecated("Use with_static_interactive_button")
-def with_static_button(
-    style: hikari.InteractiveButtonTypesT,
-    callback: CallbackSig,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    is_disabled: bool = False,
-) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Deprecated alias of [with_static_interactive_button][yuyo.components.with_static_interactive_button]."""
-    return with_static_interactive_button(
-        style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-    )
-
-
-@typing_extensions.deprecated("Use with_static_interactive_button")
-def with_static_interative_button(
-    style: hikari.InteractiveButtonTypesT,
-    callback: CallbackSig,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
-    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    is_disabled: bool = False,
-) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Deprecated alias of [with_static_interactive_button][yuyo.components.with_static_interactive_button]."""
-    return with_static_interactive_button(
-        style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
-    )
-
-
 def with_static_interactive_button(
     style: hikari.InteractiveButtonTypesT,
     callback: CallbackSig,
@@ -5841,40 +5009,9 @@ def with_static_link_button(
     return lambda executor: executor.add_static_link_button(url, emoji=emoji, label=label, is_disabled=is_disabled)
 
 
-@typing.overload
-@typing_extensions.deprecated("callback is now the 2nd argument")
-def with_static_select_menu(
-    callback: CallbackSig,
-    type_: typing.Union[hikari.ComponentType, int],
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    min_values: int = 0,
-    max_values: int = 1,
-    is_disabled: bool = False,
-) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    ...
-
-
-@typing.overload
 def with_static_select_menu(
     type_: typing.Union[hikari.ComponentType, int],
     callback: CallbackSig,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    min_values: int = 0,
-    max_values: int = 1,
-    is_disabled: bool = False,
-) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    ...
-
-
-def with_static_select_menu(
-    type_: typing.Union[CallbackSig, hikari.ComponentType, int],
-    callback: typing.Union[CallbackSig, int],
     /,
     *,
     custom_id: typing.Optional[str] = None,
@@ -5891,14 +5028,10 @@ def with_static_select_menu(
 
     Parameters
     ----------
-    type_ : hikari.components..ComponentType | int
+    type_
         The type of select menu to add.
-
-        Passing callback here is deprecated.
-    callback : yuyo.components.CallbackSig
+    callback
         Callback which is called when this select menu is used.
-
-        Passing type here is deprecated.
     custom_id
         The select menu's custom ID.
 
@@ -5920,47 +5053,10 @@ def with_static_select_menu(
     type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
-    if isinstance(type_, int):
-        assert isinstance(callback, collections.Callable)
-
-    else:
-        assert isinstance(callback, int)
-
-        warnings.warn("callback is now the second argument", category=DeprecationWarning)
-        callback_ = type_
-        type_ = callback
-        callback = callback_
-
     return lambda executor: executor.add_static_select_menu(
         type_,
         callback,
         custom_id=custom_id,
-        placeholder=placeholder,
-        min_values=min_values,
-        max_values=max_values,
-        is_disabled=is_disabled,
-    )
-
-
-@typing_extensions.deprecated("Use with_static_channel_menu")
-def with_static_channel_select(
-    callback: CallbackSig,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    channel_types: typing.Optional[
-        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-    ] = None,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    min_values: int = 0,
-    max_values: int = 1,
-    is_disabled: bool = False,
-) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Deprecated alias of [with_static_channel_menu][yuyo.components.with_static_channel_menu]."""
-    return with_static_channel_menu(
-        callback,
-        custom_id=custom_id,
-        channel_types=channel_types,
         placeholder=placeholder,
         min_values=min_values,
         max_values=max_values,

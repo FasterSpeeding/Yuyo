@@ -145,17 +145,6 @@ class TestInviteLink:
         assert result is mock_app.rest.fetch_invite.return_value
         mock_app.rest.fetch_invite.assert_awaited_once_with("Brisket")
 
-    @pytest.mark.asyncio()
-    async def test_deprecated_fetch(self):
-        mock_app = mock.AsyncMock()
-        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
-
-        with pytest.warns(DeprecationWarning):
-            result = await link.fetch()
-
-        assert result is mock_app.rest.fetch_invite.return_value
-        mock_app.rest.fetch_invite.assert_awaited_once_with("Brisket")
-
     def test_get_invite(self):
         mock_app = mock.Mock()
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
@@ -170,25 +159,6 @@ class TestInviteLink:
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
 
         result = link.get_invite()
-
-        assert result is None
-
-    def test_deprecated_get(self):
-        mock_app = mock.Mock()
-        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
-
-        with pytest.warns(DeprecationWarning):
-            result = link.get()  # pyright: ignore [ reportDeprecated ]
-
-        assert result is mock_app.cache.get_invite.return_value
-        mock_app.cache.get_invite.assert_called_once_with("Brisket")
-
-    def test_deprecated_get_when_cacheless(self):
-        mock_app = mock.Mock(hikari.RESTAware)
-        link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
-
-        with pytest.warns(DeprecationWarning):
-            result = link.get()  # pyright: ignore [ reportDeprecated ]
 
         assert result is None
 
@@ -347,22 +317,6 @@ class TestMessageLink:
         assert result is mock_app.rest.fetch_message.return_value
         mock_app.rest.fetch_message.assert_awaited_once_with(1223322, 6521312)
 
-    @pytest.mark.asyncio()
-    async def test_deprecated_fetch(self):
-        mock_app = mock.AsyncMock()
-        link = yuyo.links.MessageLink(
-            _app=mock_app,
-            _channel_id=hikari.Snowflake(1223322),
-            _guild_id=hikari.Snowflake(423123),
-            _message_id=hikari.Snowflake(6521312),
-        )
-
-        with pytest.warns(DeprecationWarning):
-            result = await link.fetch()
-
-        assert result is mock_app.rest.fetch_message.return_value
-        mock_app.rest.fetch_message.assert_awaited_once_with(1223322, 6521312)
-
     def test_get_message(self):
         mock_app = mock.Mock()
         link = yuyo.links.MessageLink(
@@ -387,35 +341,6 @@ class TestMessageLink:
         )
 
         result = link.get_message()
-
-        assert result is None
-
-    def test_deprecated_get(self):
-        mock_app = mock.Mock()
-        link = yuyo.links.MessageLink(
-            _app=mock_app,
-            _channel_id=hikari.Snowflake(123321123),
-            _guild_id=hikari.Snowflake(234432234),
-            _message_id=hikari.Snowflake(541123123),
-        )
-
-        with pytest.warns(DeprecationWarning):
-            result = link.get()  # pyright: ignore [ reportDeprecated ]
-
-        assert result is mock_app.cache.get_message.return_value
-        mock_app.cache.get_message.assert_called_once_with(541123123)
-
-    def test_deprecated_get_when_cacheless(self):
-        mock_app = mock.Mock(hikari.RESTAware)
-        link = yuyo.links.MessageLink(
-            _app=mock_app,
-            _channel_id=hikari.Snowflake(123321123),
-            _guild_id=hikari.Snowflake(234432234),
-            _message_id=hikari.Snowflake(541123123),
-        )
-
-        with pytest.warns(DeprecationWarning):
-            result = link.get()  # pyright: ignore [ reportDeprecated ]
 
         assert result is None
 
@@ -771,17 +696,6 @@ class TestTemplateLink:
         assert result is mock_app.rest.fetch_template.return_value
         mock_app.rest.fetch_template.assert_awaited_once_with("Brisket")
 
-    @pytest.mark.asyncio()
-    async def test_deprecated_fetch(self):
-        mock_app = mock.AsyncMock()
-        link = yuyo.links.TemplateLink(_app=mock_app, _code="Brisket")
-
-        with pytest.warns(DeprecationWarning):
-            result = await link.fetch()
-
-        assert result is mock_app.rest.fetch_template.return_value
-        mock_app.rest.fetch_template.assert_awaited_once_with("Brisket")
-
 
 @pytest.mark.parametrize(
     ("webhook", "token", "expected_str"),
@@ -902,20 +816,6 @@ class TestWebhookLink:
         )
 
         result = await link.fetch_webhook()
-
-        assert result is mock_app.rest.fetch_webhook.return_value
-        mock_app.rest.fetch_webhook.assert_awaited_once_with(654345, token="I'm the one to blame")  # noqa: S106
-
-    @pytest.mark.asyncio()
-    async def test_deprecated_fetch(self):
-        mock_app = mock.AsyncMock()
-        mock_app.rest.fetch_webhook.return_value = mock.Mock(hikari.IncomingWebhook)
-        link = yuyo.links.WebhookLink(  # noqa: S106
-            _app=mock_app, _token="I'm the one to blame", _webhook_id=hikari.Snowflake(654345)
-        )
-
-        with pytest.warns(DeprecationWarning):
-            result = await link.fetch()
 
         assert result is mock_app.rest.fetch_webhook.return_value
         mock_app.rest.fetch_webhook.assert_awaited_once_with(654345, token="I'm the one to blame")  # noqa: S106

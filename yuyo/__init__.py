@@ -38,7 +38,6 @@ __all__: list[str] = [
     "AsgiAdapter",
     "AsgiBot",
     "Backoff",
-    "BasicTimeout",
     "BotsGGService",
     "ChunkRequestFinishedEvent",
     "ChunkTracker",
@@ -107,6 +106,5 @@ from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
 from .reactions import ReactionPaginator
-from .timeouts import BasicTimeout  # pyright: ignore [ reportDeprecated ]
 from .timeouts import SlidingTimeout
 from .timeouts import StaticTimeout

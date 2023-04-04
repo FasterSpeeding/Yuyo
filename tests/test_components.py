@@ -98,19 +98,6 @@ class TestBaseContext:
 
 
 class TestComponentContext:
-    def test_deprected_select_channels_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_channels is mock_interaction.resolved.channels
-
-    def test_deprecated_select_channels_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_channels == {}
-
     def test_selected_channels_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
@@ -121,19 +108,6 @@ class TestComponentContext:
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.selected_channels == {}
-
-    def test_deprecated_select_roles_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_roles is mock_interaction.resolved.roles
-
-    def test_deprecated_select_roles_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_roles == {}
 
     def test_selected_roles_property(self):
         mock_interaction = mock.Mock()
@@ -146,31 +120,11 @@ class TestComponentContext:
 
         assert context.selected_roles == {}
 
-    def test_deprecated_select_texts_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_texts is mock_interaction.values
-
     def test_selected_texts_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.selected_texts is mock_interaction.values
-
-    def test_deprecated_select_users_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_users is mock_interaction.resolved.users
-
-    def test_deprecated_select_users_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_users == {}
 
     def test_selected_users_property(self):
         mock_interaction = mock.Mock()
@@ -182,19 +136,6 @@ class TestComponentContext:
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
         assert context.selected_users == {}
-
-    def test_deprecated_select_members_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_members is mock_interaction.resolved.members
-
-    def test_deprecated_select_members_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
-
-        with pytest.warns(DeprecationWarning):
-            assert context.select_members == {}
 
     def test_selected_members_property(self):
         mock_interaction = mock.Mock()
@@ -393,118 +334,6 @@ class TestComponentClient:
     async def test_on_rest_request(self):
         ...
 
-    def test_set_constant_id(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.set_constant_id("123", mock_callback)  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("123") is mock_callback  # pyright: ignore [ reportDeprecated ]
-
-    def test_set_constant_id_when_already_present_as_custom_id(self):
-        mock_callback = mock.Mock()
-
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning), pytest.raises(
-            ValueError, match="'trans' is already registered as a constant id"
-        ):
-            client.set_constant_id("trans", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-
-    def test_remove_constant_id(self):
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("yuri", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning):
-            result = client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("yuri") is None  # pyright: ignore [ reportDeprecated ]
-
-    def test_remove_constant_id_when_not_present(self):
-        with pytest.warns(DeprecationWarning):
-            client = (
-                yuyo.ComponentClient()
-                .set_constant_id("e", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-                .set_constant_id("h", mock.Mock())  # pyright: ignore [ reportDeprecated ]
-            )
-
-        with pytest.warns(DeprecationWarning), pytest.raises(KeyError):
-            client.remove_constant_id("yuri")  # pyright: ignore [ reportDeprecated ]
-
-    def test_with_constant_id(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.with_constant_id("yuri")(mock_callback)  # pyright: ignore [ reportDeprecated ]
-
-        assert result is mock_callback
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_constant_id("yuri") is mock_callback  # pyright: ignore [ reportDeprecated ]
-
-    def test_with_constant_id_when_already_present_as_custom_id(self):
-        mock_callback = mock.Mock()
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_constant_id("trans", mock_callback)  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning), pytest.raises(
-            ValueError, match="'trans' is already registered as a constant id"
-        ):
-            client.with_constant_id("trans")(mock.Mock())  # pyright: ignore [ reportDeprecated ]
-
-    def test_set_executor(self):
-        mock_executor = mock.Mock(timeout=None)
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_executor(555555) is mock_executor  # pyright: ignore [ reportDeprecated ]
-
-    def test_set_executor_when_timeout_set(self):
-        mock_executor = mock.Mock(timeout=123)
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            result = client.set_executor(555555, mock_executor)  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_executor(555555) is mock_executor  # pyright: ignore [ reportDeprecated ]
-
-    def test_remove_executor(self):
-        client = yuyo.ComponentClient()
-
-        with pytest.warns(DeprecationWarning):
-            client.set_executor(555555, mock.Mock(timeout=None))  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning):
-            result = client.remove_executor(555555)  # pyright: ignore [ reportDeprecated ]
-
-        assert result is client
-
-        with pytest.warns(DeprecationWarning):
-            assert client.get_executor(555555) is None  # pyright: ignore [ reportDeprecated ]
-
 
 class TestSingleExecutor:
     def test_custom_ids_property(self):
@@ -590,25 +419,6 @@ class TestActionRowExecutor:
 
         assert row.callbacks[component.custom_id] is mock_callback
 
-    def test_add_select_menu_with_deprecated_order(self):
-        mock_callback = mock.Mock()
-
-        with pytest.warns(DeprecationWarning):
-            row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
-
-        with pytest.warns(DeprecationWarning):
-            row.add_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback, hikari.ComponentType.ROLE_SELECT_MENU, custom_id="meow meow"
-            )
-
-        assert row.callbacks["meow meow"] is mock_callback
-
-        assert len(row.components) == 1
-        component = row.components[0]
-        assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
-        assert component.custom_id == "meow meow"
-
     def test_text_menu_builder_uses_option_count_when_max_values_too_high(self):
         with pytest.warns(DeprecationWarning):
             action_row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
@@ -686,24 +496,6 @@ class TestActionColumnExecutor:
 
         assert column._callbacks[component.custom_id] is mock_callback
 
-    def test_add_select_menu_with_deprecated_order(self):
-        mock_callback = mock.Mock()
-        column = yuyo.components.ActionColumnExecutor()
-
-        with pytest.warns(DeprecationWarning):
-            column.add_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback, hikari.ComponentType.USER_SELECT_MENU, custom_id="meow meowy"
-            )
-
-        assert column._callbacks["meow meowy"] is mock_callback
-
-        assert len(column.rows) == 1
-        assert len(column.rows[0].components) == 1
-        component = column.rows[0].components[0]
-        assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.type is hikari.ComponentType.USER_SELECT_MENU
-        assert component.custom_id == "meow meowy"
-
     def test_add_static_select_menu(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -753,28 +545,6 @@ class TestActionColumnExecutor:
         assert component.is_disabled is False
 
         assert column._callbacks[component.custom_id] is mock_callback
-
-    def test_add_static_select_menu_with_deprecated_order(self):
-        class Column(yuyo.components.ActionColumnExecutor):
-            __slots__ = ()
-
-        mock_callback = mock.Mock()
-
-        with pytest.warns(DeprecationWarning):
-            Column.add_static_select_menu(  # pyright: ignore [ reportDeprecated ]
-                mock_callback, hikari.ComponentType.MENTIONABLE_SELECT_MENU, custom_id="meowy"
-            )
-
-        column = Column()
-
-        assert column._callbacks["meowy"] is mock_callback
-
-        assert len(column.rows) == 1
-        assert len(column.rows[0].components) == 1
-        component = column.rows[0].components[0]
-        assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
-        assert component.custom_id == "meowy"
 
     def test_with_interactive_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
@@ -2031,27 +1801,3 @@ def test_with_static_select_menu_with_defaults():
     assert component.is_disabled is False
 
     assert column._callbacks[component.custom_id] is mock_callback
-
-
-def test_with_static_select_menu_with_deprecated_order():
-    class Column(yuyo.components.ActionColumnExecutor):
-        __slots__ = ()
-
-    mock_callback = mock.Mock()
-
-    with pytest.warns(DeprecationWarning):
-        yuyo.components.with_static_select_menu(  # pyright: ignore [ reportDeprecated ]
-            mock_callback, hikari.ComponentType.USER_SELECT_MENU, custom_id="meowers"
-        )(Column)
-
-    column = Column()
-
-    assert column._callbacks["meowers"] is mock_callback
-
-    assert len(column.rows) == 1
-    assert len(column.rows[0].components) == 1
-
-    component = column.rows[0].components[0]
-    assert isinstance(component, hikari.api.SelectMenuBuilder)
-    assert component.type is hikari.ComponentType.USER_SELECT_MENU
-    assert component.custom_id == "meowers"
