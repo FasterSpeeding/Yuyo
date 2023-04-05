@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] both now properly support DI for the
   modal's callback.
+- [yuyo.modals.as_modal][] and [yuyo.modals.as_modal_template][] both now allow passing
+  `parse_signature` typing wise.
 
 ### [1.11.0a1] - 2023-04-02
 ### Added
