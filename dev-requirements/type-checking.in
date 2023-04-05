@@ -3,4 +3,4 @@
 -r ../piped/python/base-requirements/type-checking.in
 -r ./constraints.in
 pyright==1.1.294  # Pinned until bug fix
-fastapi>=0.95
+# fastapi>=0.95
