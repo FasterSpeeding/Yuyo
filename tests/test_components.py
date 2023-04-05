@@ -97,55 +97,114 @@ class TestBaseContext:
 
 
 class TestComponentContext:
-    def test_select_channels_property(self):
+    def test_deprected_select_channels_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.select_channels is mock_interaction.resolved.channels
+        with pytest.warns(DeprecationWarning):
+            assert context.select_channels is mock_interaction.resolved.channels
 
-    def test_select_channels_property_when_no_resolved(self):
+    def test_deprecated_select_channels_property_when_no_resolved(self):
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
-        assert context.select_channels == {}
+        with pytest.warns(DeprecationWarning):
+            assert context.select_channels == {}
 
-    def test_select_roles_property(self):
+    def test_selected_channels_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.select_roles is mock_interaction.resolved.roles
+        assert context.selected_channels is mock_interaction.resolved.channels
 
-    def test_select_roles_property_when_no_resolved(self):
+    def test_selected_channels_property_when_no_resolved(self):
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
-        assert context.select_roles == {}
+        assert context.selected_channels == {}
 
-    def test_select_texts_property(self):
+    def test_deprecated_select_roles_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.select_texts is mock_interaction.values
+        with pytest.warns(DeprecationWarning):
+            assert context.select_roles is mock_interaction.resolved.roles
 
-    def test_select_users_property(self):
-        mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
-
-        assert context.select_users is mock_interaction.resolved.users
-
-    def test_select_users_property_when_no_resolved(self):
+    def test_deprecated_select_roles_property_when_no_resolved(self):
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
-        assert context.select_users == {}
+        with pytest.warns(DeprecationWarning):
+            assert context.select_roles == {}
 
-    def test_select_members_property(self):
+    def test_selected_roles_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.select_members is mock_interaction.resolved.members
+        assert context.selected_roles is mock_interaction.resolved.roles
 
-    def test_select_members_property_when_no_resolved(self):
+    def test_selected_roles_property_when_no_resolved(self):
         context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
 
-        assert context.select_members == {}
+        assert context.selected_roles == {}
+
+    def test_deprecated_select_texts_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        with pytest.warns(DeprecationWarning):
+            assert context.select_texts is mock_interaction.values
+
+    def test_selected_texts_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.selected_texts is mock_interaction.values
+
+    def test_deprecated_select_users_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        with pytest.warns(DeprecationWarning):
+            assert context.select_users is mock_interaction.resolved.users
+
+    def test_deprecated_select_users_property_when_no_resolved(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+
+        with pytest.warns(DeprecationWarning):
+            assert context.select_users == {}
+
+    def test_selected_users_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.selected_users is mock_interaction.resolved.users
+
+    def test_selected_users_property_when_no_resolved(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+
+        assert context.selected_users == {}
+
+    def test_deprecated_select_members_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        with pytest.warns(DeprecationWarning):
+            assert context.select_members is mock_interaction.resolved.members
+
+    def test_deprecated_select_members_property_when_no_resolved(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+
+        with pytest.warns(DeprecationWarning):
+            assert context.select_members == {}
+
+    def test_selected_members_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.selected_members is mock_interaction.resolved.members
+
+    def test_selected_members_property_when_no_resolved(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+
+        assert context.selected_members == {}
 
     def test_client_property(self):
         mock_client = mock.Mock()

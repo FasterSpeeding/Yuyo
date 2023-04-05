@@ -1262,7 +1262,13 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         self._response_future = response_future
 
     @property
+    @typing_extensions.deprecated("Use .selected_channels")
     def select_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
+        """Deprecated alias of [.selected_channels][yuyo.components.ComponentContext.selected_channels]."""
+        return self.selected_channels
+
+    @property
+    def selected_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
         """Sequence of the users passed for a channel select menu."""
         if not self.interaction.resolved:
             return {}
@@ -1270,7 +1276,13 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.channels
 
     @property
+    @typing_extensions.deprecated("Use .selected_roles")
     def select_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
+        """Deprecated alias of [.selected_roles][yuyo.components.ComponentContext.selected_roles]."""
+        return self.selected_roles
+
+    @property
+    def selected_roles(self) -> collections.Mapping[hikari.Snowflake, hikari.Role]:
         """Sequence of the users passed for a role select menu.
 
         This will also include some of the values for a mentionable select menu.
@@ -1281,12 +1293,24 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.roles
 
     @property
+    @typing_extensions.deprecated("Use .selected_texts")
     def select_texts(self) -> collections.Sequence[str]:
+        """Deprecated alias of [.selected_texts][yuyo.components.ComponentContext.selected_texts]."""
+        return self.selected_texts
+
+    @property
+    def selected_texts(self) -> collections.Sequence[str]:
         """Sequence of the values passed for a text select menu."""
         return self._interaction.values
 
     @property
+    @typing_extensions.deprecated("Use .selected_users")
     def select_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
+        """Deprecated alias of [.selected_users][yuyo.components.ComponentContext.selected_users]."""
+        return self.selected_users
+
+    @property
+    def selected_users(self) -> collections.Mapping[hikari.Snowflake, hikari.User]:
         """Sequence of the users passed for a user select menu.
 
         This will also include some of the values for a mentionable select menu.
@@ -1300,7 +1324,13 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.users
 
     @property
+    @typing_extensions.deprecated("Use .selected_members")
     def select_members(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionMember]:
+        """Deprecated alias of [.selected_members][yuyo.components.ComponentContext.selected_members]."""
+        return self.selected_members
+
+    @property
+    def selected_members(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionMember]:
         """Sequence of the members passed for a user select menu.
 
         This will also include some of the values for a mentionable select menu.
