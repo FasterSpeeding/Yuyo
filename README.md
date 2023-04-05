@@ -21,7 +21,8 @@ The following feature flags ensure feature-specific optional dependencies are al
 
 # Quick Usage.
 
-For usage see the the [documentation](https://yuyo.cursed.solutions/) and soon to come examples.
+For usage see the the [documentation](https://yuyo.cursed.solutions/) and, more
+specifically, the [usage guide](https://yuyo.cursed.solutions/usage/).
 
 # Support
 
