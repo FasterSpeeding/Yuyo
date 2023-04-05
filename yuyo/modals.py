@@ -971,7 +971,7 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _actual_callback: collections.Callable[..., _CoroT[None]] = NotImplemented
+    _actual_callback: typing.Optional[collections.Callable[..., _CoroT[None]]] = None
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_builders: typing.ClassVar[list[tuple[str, hikari.api.TextInputBuilder]]] = []
 
@@ -1328,7 +1328,7 @@ class Modal(AbstractModal):
 
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
-        if self._actual_callback is NotImplemented:
+        if self._actual_callback is None:
             raise RuntimeError(f"Modal {self!r} has no callback")
 
         ctx.set_ephemeral_default(self._ephemeral_default)
@@ -1397,7 +1397,7 @@ class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
         self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self._actual_callback = callback
+        self._actual_callback: collections.Callable[_P, _CoroT[None]] = callback
 
     def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
         return self._actual_callback(*args, **kwargs)
