@@ -1,8 +1,9 @@
 # Chunk Tracker
 
-The chunk tracker dispatches custom chunk request tracking events.
-This can be a useful way to work out when the cache will be reliable for a
-guild or globally (when combined with checking the intent and cache config).
+The chunk tracker in [yuyo.chunk_tracker][] dispatches custom chunk request
+tracking events. This can be a useful way to work out when the cache will be
+reliable for a guild or globally (when combined with checking the intent and
+cache config).
 
 ```py
 --8<-- "./docs_src/chunk_tracker.py:19:19"
