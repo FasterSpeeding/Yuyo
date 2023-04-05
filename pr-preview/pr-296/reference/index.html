@@ -1152,6 +1152,41 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_channels" class="md-nav__link">
+    selected_channels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_members" class="md-nav__link">
+    selected_members
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_roles" class="md-nav__link">
+    selected_roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_texts" class="md-nav__link">
+    selected_texts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_users" class="md-nav__link">
+    selected_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.create_initial_response" class="md-nav__link">
     create_initial_response()
   </a>
@@ -3094,6 +3129,41 @@
           <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.select_users" class="md-nav__link">
     select_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_channels" class="md-nav__link">
+    selected_channels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_members" class="md-nav__link">
+    selected_members
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_roles" class="md-nav__link">
+    selected_roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_texts" class="md-nav__link">
+    selected_texts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_users" class="md-nav__link">
+    selected_users
   </a>
   
 </li>
@@ -11234,7 +11304,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the users passed for a channel select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_channels">.selected_channels</a>.</p>
   </div>
 
 </div>
@@ -11257,8 +11327,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the members passed for a user select menu.</p>
-<p>This will also include some of the values for a mentionable select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_members">.selected_members</a>.</p>
   </div>
 
 </div>
@@ -11281,8 +11350,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the users passed for a role select menu.</p>
-<p>This will also include some of the values for a mentionable select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_roles">.selected_roles</a>.</p>
   </div>
 
 </div>
@@ -11305,7 +11373,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the values passed for a text select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_texts">.selected_texts</a>.</p>
   </div>
 
 </div>
@@ -11324,6 +11392,123 @@ with the <code>message</code> kwarg instead.</p>
 
 <a href="#yuyo.components.ComponentContext.select_users" class="headerlink" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">select_users</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_users">.selected_users</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_channels" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_channels</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_channels" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_channels</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">InteractionChannel</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the users passed for a channel select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_members" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_members</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_members" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_members</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">InteractionMember</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the members passed for a user select menu.</p>
+<p>This will also include some of the values for a mentionable select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_roles" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_roles</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_roles" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_roles</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Role</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the users passed for a role select menu.</p>
+<p>This will also include some of the values for a mentionable select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_texts" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_texts</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_texts" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_texts</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the values passed for a text select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_users" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_users</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_users" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_users</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
