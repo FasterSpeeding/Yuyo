@@ -1328,6 +1328,9 @@ class Modal(AbstractModal):
 
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
+        if self._actual_callback is NotImplemented:
+            raise RuntimeError(f"Modal {self!r} has no callback")
+
         ctx.set_ephemeral_default(self._ephemeral_default)
         components: dict[str, hikari.ModalComponentTypesT] = {}
         assert isinstance(ctx.component_ids, dict)
@@ -1341,7 +1344,7 @@ class Modal(AbstractModal):
             ctx.component_ids[id_match] = id_metadata
 
         fields = {field.parameter: field.process(components) for field in self._tracked_fields}
-        await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
+        await ctx.client.alluka.call_with_async_di(self._actual_callback, ctx, **fields)
 
 
 def _workout_value(default: typing.Any, value: hikari.UndefinedOr[str]) -> hikari.UndefinedOr[str]:
