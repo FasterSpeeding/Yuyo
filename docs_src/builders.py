@@ -8,3 +8,16 @@
 #
 # You should have received a copy of the CC0 Public Domain Dedication along with this software.
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
+
+# pyright: reportUnusedVariable=none
+import hikari
+
+import yuyo
+
+
+def to_cmd_builder(cmd: hikari.PartialCommand):
+    builder = yuyo.to_builder.to_cmd_builder(cmd)
+
+
+def to_msg_action_row_builder(row: hikari.MessageActionRowComponent):
+    builder = yuyo.to_builder.to_msg_action_row_builder(row)
