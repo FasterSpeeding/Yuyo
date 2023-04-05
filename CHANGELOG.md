@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 - Passing `callback` as the first argument when adding a select menu to a component executor or column.
-- The `with_{}` methods on [yuyo.components.ActionColumnExecutor].
+- The `with_{}` methods on [yuyo.components.ActionColumnExecutor][].
 
 ### Fixed
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] both now properly support DI for the
