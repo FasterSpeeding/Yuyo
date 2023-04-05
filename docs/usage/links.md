@@ -58,7 +58,7 @@ app in scope.
 ##### Message links
 
 ```py
---8<-- "./docs_src/links.py:48:58"
+--8<-- "./docs_src/links.py:48:56"
 ```
 
 [MessageLink][yuyo.links.MessageLink] handles parsing message links.
@@ -66,7 +66,7 @@ app in scope.
 [MessageLink.guild_id][yuyo.links.MessageLink.guild_id] will be [None][] for DM messages.
 
 ```py
---8<-- "./docs_src/links.py:62:66"
+--8<-- "./docs_src/links.py:60:64"
 ```
 
 [links.make_message_link][yuyo.links.make_message_link] offers an alternative
@@ -76,13 +76,13 @@ app in scope.
 ##### Guild template links
 
 ```py
---8<-- "./docs_src/links.py:70:74"
+--8<-- "./docs_src/links.py:68:72"
 ```
 
 [TemplateLink][yuyo.links.TemplateLink] handles parsing guild template links.
 
 ```py
---8<-- "./docs_src/links.py:78:79"
+--8<-- "./docs_src/links.py:76:77"
 ```
 
 [links.make_template_link][yuyo.links.make_template_link] offers an alternative
@@ -92,7 +92,7 @@ app in scope.
 ##### Webhook links
 
 ```py
---8<-- "./docs_src/links.py:83:88"
+--8<-- "./docs_src/links.py:81:86"
 ```
 
 [WebhookLink][yuyo.links.WebhookLink] handles parsing webhook links.
@@ -101,7 +101,7 @@ This class inherits from [hikari.ExecutableWebhook][hikari.webhooks.ExecutableWe
 therefore has all the webhook execute methods you'll find on interaction and webhook objects.
 
 ```py
---8<-- "./docs_src/links.py:92:93"
+--8<-- "./docs_src/links.py:90:91"
 ```
 
 [links.make_webhook_link][yuyo.links.make_webhook_link] offers an alternative

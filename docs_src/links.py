@@ -13,25 +13,25 @@
 # pyright: reportUnusedVariable=none
 import hikari
 
-import yuyo
+from yuyo import links
 
 
 def from_link(app: hikari.RESTAware):
-    link = yuyo.links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
+    link = links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
 
 
 async def find(app: hikari.RESTAware):
-    if link := yuyo.links.InviteLink.find(app, "meow you can nyaa us at discord.gg/nekosmeowers"):
+    if link := links.InviteLink.find(app, "meow you can nyaa us at discord.gg/nekosmeowers"):
         ...
 
 
 def find_iter(app: hikari.RESTAware):
-    for link in yuyo.links.MessageLink.find_iter(app, "message content"):
+    for link in links.MessageLink.find_iter(app, "message content"):
         ...
 
 
 async def invite_link(app: hikari.RESTAware):
-    link = yuyo.links.InviteLink.from_link(app, "https://discord.gg/nekosmeowers")
+    link = links.InviteLink.from_link(app, "https://discord.gg/nekosmeowers")
 
     link.code  # value: "nekosmeowers"
     await link.fetch()  # type: hikari.Invite
@@ -40,14 +40,12 @@ async def invite_link(app: hikari.RESTAware):
 
 
 def make_invite_link():
-    link = yuyo.links.make_invite_link("codecode")
+    link = links.make_invite_link("codecode")
     link  # value: "https://discord.gg/codecode"
 
 
 async def message_link(app: hikari.RESTAware):
-    link = yuyo.links.MessageLink.from_link(
-        app, "https://discord.com/channels/54123123321123/2134432234342/56445234124"
-    )
+    link = links.MessageLink.from_link(app, "https://discord.com/channels/54123123321123/2134432234342/56445234124")
 
     link.is_dm_link  # value: False
     link.guild_id  # value: 54123123321123
@@ -59,15 +57,15 @@ async def message_link(app: hikari.RESTAware):
 
 
 def make_message_link():
-    #                                  (channel_id, message_id)
-    link = yuyo.links.make_message_link(654323412, 4534512332, guild=123321)
+    #                             (channel_id, message_id)
+    link = links.make_message_link(654323412, 4534512332, guild=123321)
     link  # value: "https://discord.com/channels/123321/654323412/4534512332"
-    link = yuyo.links.make_message_link(333333333, 5555555555)
+    link = links.make_message_link(333333333, 5555555555)
     link  # value: "https://discord.com/channels/@me/333333333/5555555555"
 
 
 async def template_link(app: hikari.RESTAware):
-    link = yuyo.links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
+    link = links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
 
     link.code  # value: "aaaaaaaaaa"
     await link.fetch()  # type: hikari.Template
@@ -75,12 +73,12 @@ async def template_link(app: hikari.RESTAware):
 
 
 def make_template_link():
-    raw_link = yuyo.links.make_template_link("cododododoe")
+    raw_link = links.make_template_link("cododododoe")
     raw_link  # value: "https://discord.new/aaaaaaaaaa"
 
 
 async def webhook_link(app: hikari.RESTAware):
-    link = yuyo.links.WebhookLink.from_link(app, "https://discord.com/api/webhooks/123321123/efsdfasdsa")
+    link = links.WebhookLink.from_link(app, "https://discord.com/api/webhooks/123321123/efsdfasdsa")
 
     link.webhook_id  # value: 123321123
     link.token  # value: "efsdfasdsa"
@@ -89,5 +87,5 @@ async def webhook_link(app: hikari.RESTAware):
 
 
 def make_webhook_link():
-    raw_link = yuyo.links.make_webhook_link(123321, "hfdssdasd")
+    raw_link = links.make_webhook_link(123321, "hfdssdasd")
     raw_link  # value: "https://discord.com/api/webhooks/123321123/efsdfasdsa"

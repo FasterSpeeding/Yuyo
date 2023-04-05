@@ -15,35 +15,35 @@
 import hikari
 import sake
 
-import yuyo
+from yuyo import list_status
 
 
 def top_gg(bot: hikari.GatewayBot):
-    manager = yuyo.list_status.ServiceManager.from_gateway_bot(bot)
-    manager.add_service(yuyo.list_status.TopGGService("TOKEN"))
+    manager = list_status.ServiceManager.from_gateway_bot(bot)
+    manager.add_service(list_status.TopGGService("TOKEN"))
 
 
 def discord_bot_list(bot: hikari.GatewayBot):
-    manager = yuyo.list_status.ServiceManager.from_gateway_bot(bot)
-    manager.add_service(yuyo.list_status.DiscordBotListService("TOKEN"))
+    manager = list_status.ServiceManager.from_gateway_bot(bot)
+    manager.add_service(list_status.DiscordBotListService("TOKEN"))
 
 
 def bots_gg(bot: hikari.GatewayBot):
-    manager = yuyo.list_status.ServiceManager.from_gateway_bot(bot)
-    manager.add_service(yuyo.list_status.BotsGGService("TOKEN"))
+    manager = list_status.ServiceManager.from_gateway_bot(bot)
+    manager.add_service(list_status.BotsGGService("TOKEN"))
 
 
 def sake_counter(bot: hikari.GatewayBot, cache: sake.abc.GuildCache):
     cache  # type: sake.abc.GuildCache
-    counter = yuyo.list_status.SakeStrategy(cache)
-    manager = yuyo.list_status.ServiceManager.from_gateway_bot(bot, strategy=counter)
+    counter = list_status.SakeStrategy(cache)
+    manager = list_status.ServiceManager.from_gateway_bot(bot, strategy=counter)
 
 
 def custom_service(bot: hikari.GatewayBot):
-    manager = yuyo.list_status.ServiceManager.from_gateway_bot(bot)
+    manager = list_status.ServiceManager.from_gateway_bot(bot)
 
     @manager.with_service()
-    async def service(client: yuyo.list_status.AbstractManager, /) -> None:
+    async def service(client: list_status.AbstractManager, /) -> None:
         count = await client.counter.count()
 
         if isinstance(count, int):
