@@ -971,6 +971,7 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
+    _actual_callback: collections.Callable[..., _CoroT[None]] = NotImplemented
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_builders: typing.ClassVar[list[tuple[str, hikari.api.TextInputBuilder]]] = []
 
@@ -1018,7 +1019,7 @@ class Modal(AbstractModal):
             return
 
         try:
-            cls.callback
+            cls._actual_callback = cls.callback
 
         except AttributeError:
             pass
@@ -1387,16 +1388,16 @@ def _make_text_input(
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
-    __slots__ = ("_callback",)
+    __slots__ = ("_actual_callback",)
 
     def __init__(
         self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self._callback = callback
+        self._actual_callback = callback
 
     def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
-        return self._callback(*args, **kwargs)
+        return self._actual_callback(*args, **kwargs)
 
 
 # TODO: allow id_metadata here?
