@@ -312,6 +312,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#1111a1-2023-04-05" class="md-nav__link">
+    1.11.1a1 - 2023-04-05
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed" class="md-nav__link">
     Changed
   </a>
@@ -1520,6 +1527,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#1111a1-2023-04-05" class="md-nav__link">
+    1.11.1a1 - 2023-04-05
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed" class="md-nav__link">
     Changed
   </a>
@@ -2354,7 +2368,8 @@
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.0a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
+<h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.1a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
+<h3 id="1111a1-2023-04-05"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.0a1...v1.11.1a1">1.11.1a1</a> - 2023-04-05<a class="headerlink" href="#1111a1-2023-04-05" title="Permanent link">#</a></h3>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">#</a></h3>
 <ul>
 <li><code>callback</code> and <code>type</code> have been flipped (making <code>type</code> the first argument and <code>callback</code>
@@ -2365,7 +2380,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_select_menu">with_static_select_menu</a>,</li>
 </ul>
 </li>
-<li>Renamed the component context select menu data properties<ul>
+<li>Renamed the component context select menu data properties:<ul>
 <li><code>ComponentContext.select_channels</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentContext.selected_channels">ComponentContext.selected_channels</a></li>
 <li><code>ComponentContext.select_roles</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentContext.selected_roles">ComponentContext.selected_roles</a></li>
 <li><code>ComponentContext.select_texts</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentContext.selected_texts">ComponentContext.selected_texts</a></li>
@@ -2377,11 +2392,14 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
 <ul>
 <li>Passing <code>callback</code> as the first argument when adding a select menu to a component executor or column.</li>
+<li>The <code>with_{}</code> methods on <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a>.</li>
 </ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">#</a></h3>
 <ul>
 <li><a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.modal">yuyo.modals.modal</a> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.as_modal">yuyo.modals.as_modal</a> both now properly support DI for the
   modal's callback.</li>
+<li><a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.as_modal">yuyo.modals.as_modal</a> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.as_modal_template">yuyo.modals.as_modal_template</a> both now allow passing
+  <code>parse_signature</code> typing wise.</li>
 </ul>
 <h3 id="1110a1-2023-04-02"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...v1.11.0a1">1.11.0a1</a> - 2023-04-02<a class="headerlink" href="#1110a1-2023-04-02" title="Permanent link">#</a></h3>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
