@@ -971,6 +971,7 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
+    _actual_callback: typing.Optional[collections.Callable[..., _CoroT[None]]] = None
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_builders: typing.ClassVar[list[tuple[str, hikari.api.TextInputBuilder]]] = []
 
@@ -1018,7 +1019,7 @@ class Modal(AbstractModal):
             return
 
         try:
-            cls.callback
+            cls._actual_callback = cls.callback
 
         except AttributeError:
             pass
@@ -1327,6 +1328,9 @@ class Modal(AbstractModal):
 
     async def execute(self, ctx: ModalContext, /) -> None:
         # <<inherited docstring from AbstractModal>>.
+        if self._actual_callback is None:
+            raise RuntimeError(f"Modal {self!r} has no callback")
+
         ctx.set_ephemeral_default(self._ephemeral_default)
         components: dict[str, hikari.ModalComponentTypesT] = {}
         assert isinstance(ctx.component_ids, dict)
@@ -1340,7 +1344,7 @@ class Modal(AbstractModal):
             ctx.component_ids[id_match] = id_metadata
 
         fields = {field.parameter: field.process(components) for field in self._tracked_fields}
-        await ctx.client.alluka.call_with_async_di(self.callback, ctx, **fields)
+        await ctx.client.alluka.call_with_async_di(self._actual_callback, ctx, **fields)
 
 
 def _workout_value(default: typing.Any, value: hikari.UndefinedOr[str]) -> hikari.UndefinedOr[str]:
@@ -1387,16 +1391,16 @@ def _make_text_input(
 
 
 class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
-    __slots__ = ("_callback",)
+    __slots__ = ("_actual_callback",)
 
     def __init__(
         self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self._callback = callback
+        self._actual_callback: collections.Callable[_P, _CoroT[None]] = callback
 
     def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
-        return self._callback(*args, **kwargs)
+        return self._actual_callback(*args, **kwargs)
 
 
 # TODO: allow id_metadata here?
