@@ -4266,11 +4266,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Deprecated alias of [.with_static_interative_button][yuyo.components.ActionColumnExecutor.with_static_interative_button]."""  # noqa: E501
-        return cls.with_static_interative_button(
+        return cls.with_static_interative_button(  # pyright: ignore [ reportDeprecated ]
             style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
     @classmethod
+    @typing_extensions.deprecated("Use .add_static_interactive_button")
     def with_static_interative_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
@@ -4630,6 +4631,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return cls
 
     @classmethod
+    @typing_extensions.deprecated("Use .add_static_select_menu")
     def with_static_select_menu(
         cls,
         type_: typing.Union[hikari.ComponentType, int],
@@ -4871,7 +4873,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return cls
 
     @classmethod
-    @typing_extensions.deprecated("Use .with_static_channel_menu")
+    @typing_extensions.deprecated("Use .add_static_channel_menu")
     def with_static_channel_select(
         cls,
         *,
@@ -4885,7 +4887,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Deprecated alias of [.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu]."""
-        return cls.with_static_channel_menu(
+        return cls.with_static_channel_menu(  # pyright: ignore [ reportDeprecated ]
             custom_id=custom_id,
             channel_types=channel_types,
             placeholder=placeholder,
@@ -4895,6 +4897,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @classmethod
+    @typing_extensions.deprecated("Use .add_static_channel_menu")
     def with_static_channel_menu(
         cls,
         *,
@@ -5142,8 +5145,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls._all_static_fields.append(field)
         cls._static_fields.append(field)
         return component
-
-    # TODO: with_static_text_menu
 
 
 def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
