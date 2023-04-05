@@ -9,7 +9,7 @@
       
       
       
-        <link rel="prev" href="../components/">
+        <link rel="prev" href="../chunk_tracker/">
       
       
         <link rel="next" href="../list_status/">
@@ -571,20 +571,6 @@
               
   
   
-  
-    <li class="md-nav__item">
-      <a href="../components/" class="md-nav__link">
-        Message Components
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
     
   
   
@@ -691,20 +677,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../modals/" class="md-nav__link">
-        Modals
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -803,8 +775,10 @@
 <h1 id="links">Links<a class="headerlink" href="#links" title="Permanent link">#</a></h1>
 <p>Yuyo provides some utilities for handling Discord links in <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links">yuyo.links</a>.</p>
 <h3 id="baselink">BaseLink<a class="headerlink" href="#baselink" title="Permanent link">#</a></h3>
-<p>There are several <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink">BaseLink</a> provided which come with 3
-methods for parsing them from strings.</p>
+<p>All <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink">BaseLink</a> implementations come with 3
+classmethods for parsing them from strings.</p>
+<p>All of these methods take a Hikari "app" (Bot or REST app object) as their
+first argument.</p>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink.from_link">BaseLink.from_link</a> lets you parse a raw link

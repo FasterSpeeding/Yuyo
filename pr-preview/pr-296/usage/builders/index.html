@@ -554,9 +554,47 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Builders
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Builders
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-components" class="md-nav__link">
+    Message components
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -571,20 +609,6 @@
     <li class="md-nav__item">
       <a href="../chunk_tracker/" class="md-nav__link">
         Chunk Tracker
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../components/" class="md-nav__link">
-        Message Components
       </a>
     </li>
   
@@ -619,20 +643,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../modals/" class="md-nav__link">
-        Modals
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -659,6 +669,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-components" class="md-nav__link">
+    Message components
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -673,6 +705,34 @@
 
 
 <h1 id="builders">Builders<a class="headerlink" href="#builders" title="Permanent link">#</a></h1>
+<p>Yuyo provides several methods for converting Hikari data objects to writeable
+builder objects.</p>
+<h3 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">builder</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">to_builder</span><span class="o">.</span><span class="n">to_cmd_builder</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_cmd_builder">to_cmd_builder</a> converts a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.PartialCommand">hikari.PartialCommand</a> object to the relevant
+builder object.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_slash_cmd_builder">to_slash_cmd_builder</a> and
+<a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_context_menu_builder">to_context_menu_builder</a> can be used
+to convert command objects where the command type is already known without
+losing this information typing wise.</p>
+<h3 id="message-components">Message components<a class="headerlink" href="#message-components" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">builder</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">to_builder</span><span class="o">.</span><span class="n">to_msg_action_row_builder</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_msg_action_row_builder">to_msg_action_row_builder</a> converts
+a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.MessageActionRowComponent">hikari.MessageActionRowComponent</a>
+object to a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>
+object.</p>
+<p>There's several other methods which can be used to convert the sub-component
+objects found in message action rows to builder objects:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_select_menu_builder">to_select_menu_builder</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_channel_select_menu_builder">to_channel_select_menu_builder</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_text_select_menu_builder">to_text_select_menu_builder</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/to_builder/#yuyo.to_builder.to_button_builder">to_button_builder</a></li>
+</ul>
 
 
 
