@@ -24,24 +24,24 @@ def action_column_of_menus():
 
         @components.as_channel_menu
         async def on_channel_menu(self, ctx: components.Context) -> None:
-            ctx.select_channels
+            ctx.selected_channels
 
         @components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
         async def on_role_menu(self, ctx: components.Context) -> None:
-            ctx.select_roles
+            ctx.selected_roles
 
         @components.as_text_menu
         async def on_text_menu(self, ctx: components.Context) -> None:
-            ctx.select_texts
+            ctx.selected_texts
 
         @components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
         async def on_user_menu(self, ctx: components.Context) -> None:
-            ctx.select_users
+            ctx.selected_users
 
         @components.as_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU)
         async def on_mentionable_menu(self, ctx: components.Context) -> None:
-            ctx.select_roles
-            ctx.select_users
+            ctx.selected_roles
+            ctx.selected_users
 
 
 def action_column_of_buttons():
