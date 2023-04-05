@@ -9,7 +9,7 @@
       
       
       
-        <link rel="prev" href="../chunk_tracker/">
+        <link rel="prev" href="../components/">
       
       
         <link rel="next" href="../list_status/">
@@ -571,6 +571,20 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../components/" class="md-nav__link">
+        Message Components
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -671,6 +685,20 @@
     <li class="md-nav__item">
       <a href="../list_status/" class="md-nav__link">
         List Status
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modals/" class="md-nav__link">
+        Modals
       </a>
     </li>
   
@@ -779,18 +807,18 @@
 classmethods for parsing them from strings.</p>
 <p>All of these methods take a Hikari "app" (Bot or REST app object) as their
 first argument.</p>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink.from_link">BaseLink.from_link</a> lets you parse a raw link
 string. This is strict about validation and will raise a <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a> if the
 full passed string isn't a match for the expected link structure.</p>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">link</span> <span class="o">:=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;meow you can nyaa us at discord.gg/nekosmeowers&quot;</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">link</span> <span class="o">:=</span> <span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;meow you can nyaa us at discord.gg/nekosmeowers&quot;</span><span class="p">):</span>
     <span class="o">...</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink.find">BaseLink.find</a> lets you extract the first link in a
 string. This will search for a link at any point in the string and returns the
 parsed link object or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if no link was found.</p>
-<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">MessageLink</span><span class="o">.</span><span class="n">find_iter</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;message content&quot;</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="o">.</span><span class="n">MessageLink</span><span class="o">.</span><span class="n">find_iter</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;message content&quot;</span><span class="p">):</span>
     <span class="o">...</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink.find_iter">BaseLink.find_iter</a> lets you iterate over the
@@ -800,7 +828,7 @@ from the string.</p>
 <p>There are 4 implementations of <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink">BaseLink</a> provided by
 Yuyo (which all support the parsing methods listed above):</p>
 <h5 id="invite-links">Invite links<a class="headerlink" href="#invite-links" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.gg/nekosmeowers&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.gg/nekosmeowers&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">code</span>  <span class="c1"># value: &quot;nekosmeowers&quot;</span>
 <span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.Invite</span>
@@ -808,16 +836,14 @@ Yuyo (which all support the parsing methods listed above):</p>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.gg/nekosmeowers&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.InviteLink">InviteLink</a> handles parsing invite links.</p>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">make_invite_link</span><span class="p">(</span><span class="s2">&quot;codecode&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_invite_link</span><span class="p">(</span><span class="s2">&quot;codecode&quot;</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.gg/codecode&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_invite_link">links.make_invite_link</a> offers an alternative
 way to make an invite link string which doesn't require having a Bot or REST
 app in scope.</p>
 <h5 id="message-links">Message links<a class="headerlink" href="#message-links" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">MessageLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span>
-    <span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span>
-<span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">MessageLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">is_dm_link</span>  <span class="c1"># value: False</span>
 <span class="n">link</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># value: 54123123321123</span>
@@ -829,31 +855,31 @@ app in scope.</p>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink">MessageLink</a> handles parsing message links.</p>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink.guild_id">MessageLink.guild_id</a> will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for DM messages.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">#                                  (channel_id, message_id)</span>
-<span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">654323412</span><span class="p">,</span> <span class="mi">4534512332</span><span class="p">,</span> <span class="n">guild</span><span class="o">=</span><span class="mi">123321</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1">#                             (channel_id, message_id)</span>
+<span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">654323412</span><span class="p">,</span> <span class="mi">4534512332</span><span class="p">,</span> <span class="n">guild</span><span class="o">=</span><span class="mi">123321</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/123321/654323412/4534512332&quot;</span>
-<span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">333333333</span><span class="p">,</span> <span class="mi">5555555555</span><span class="p">)</span>
+<span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">333333333</span><span class="p">,</span> <span class="mi">5555555555</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/@me/333333333/5555555555&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_message_link">links.make_message_link</a> offers an alternative
 way to make a message link string which doesn't require having a Bot or REST
 app in scope.</p>
 <h5 id="guild-template-links">Guild template links<a class="headerlink" href="#guild-template-links" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">code</span>  <span class="c1"># value: &quot;aaaaaaaaaa&quot;</span>
 <span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.Template</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.new/aaaaaaaaaa&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.TemplateLink">TemplateLink</a> handles parsing guild template links.</p>
-<div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">make_template_link</span><span class="p">(</span><span class="s2">&quot;cododododoe&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_template_link</span><span class="p">(</span><span class="s2">&quot;cododododoe&quot;</span><span class="p">)</span>
 <span class="n">raw_link</span>  <span class="c1"># value: &quot;https://discord.new/aaaaaaaaaa&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_template_link">links.make_template_link</a> offers an alternative
 way to make a template link string which doesn't require having a Bot or REST
 app in scope.</p>
 <h5 id="webhook-links">Webhook links<a class="headerlink" href="#webhook-links" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">WebhookLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">WebhookLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">webhook_id</span>  <span class="c1"># value: 123321123</span>
 <span class="n">link</span><span class="o">.</span><span class="n">token</span>  <span class="c1"># value: &quot;efsdfasdsa&quot;</span>
@@ -863,7 +889,7 @@ app in scope.</p>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.WebhookLink">WebhookLink</a> handles parsing webhook links.</p>
 <p>This class inherits from <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/webhooks/#hikari.webhooks.ExecutableWebhook">hikari.ExecutableWebhook</a> and
 therefore has all the webhook execute methods you'll find on interaction and webhook objects.</p>
-<div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">make_webhook_link</span><span class="p">(</span><span class="mi">123321</span><span class="p">,</span> <span class="s2">&quot;hfdssdasd&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_webhook_link</span><span class="p">(</span><span class="mi">123321</span><span class="p">,</span> <span class="s2">&quot;hfdssdasd&quot;</span><span class="p">)</span>
 <span class="n">raw_link</span>  <span class="c1"># value: &quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_webhook_link">links.make_webhook_link</a> offers an alternative

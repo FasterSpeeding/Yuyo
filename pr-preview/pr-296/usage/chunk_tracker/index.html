@@ -12,7 +12,7 @@
         <link rel="prev" href="../builders/">
       
       
-        <link rel="next" href="../links/">
+        <link rel="next" href="../components/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
@@ -601,22 +601,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#chunkrequestfinishedevent" class="md-nav__link">
-    ChunkRequestFinishedEvent
+  <a href="#chunk-request-finished-event" class="md-nav__link">
+    Chunk Request Finished Event
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#finishedchunkingevent" class="md-nav__link">
-    FinishedChunkingEvent
+  <a href="#finished-chunking-event" class="md-nav__link">
+    Finished Chunking Event
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#shardfinishedchunkingevent" class="md-nav__link">
-    ShardFinishedChunkingEvent
+  <a href="#shard-finished-chunking-event" class="md-nav__link">
+    Shard Finished Chunking Event
   </a>
   
 </li>
@@ -630,6 +630,20 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../components/" class="md-nav__link">
+        Message Components
+      </a>
     </li>
   
 
@@ -657,6 +671,20 @@
     <li class="md-nav__item">
       <a href="../list_status/" class="md-nav__link">
         List Status
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modals/" class="md-nav__link">
+        Modals
       </a>
     </li>
   
@@ -704,22 +732,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#chunkrequestfinishedevent" class="md-nav__link">
-    ChunkRequestFinishedEvent
+  <a href="#chunk-request-finished-event" class="md-nav__link">
+    Chunk Request Finished Event
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#finishedchunkingevent" class="md-nav__link">
-    FinishedChunkingEvent
+  <a href="#finished-chunking-event" class="md-nav__link">
+    Finished Chunking Event
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#shardfinishedchunkingevent" class="md-nav__link">
-    ShardFinishedChunkingEvent
+  <a href="#shard-finished-chunking-event" class="md-nav__link">
+    Shard Finished Chunking Event
   </a>
   
 </li>
@@ -745,21 +773,60 @@
 
 
 <h1 id="chunk-tracker">Chunk Tracker<a class="headerlink" href="#chunk-tracker" title="Permanent link">#</a></h1>
+<p>The chunk tracker in <a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker">yuyo.chunk_tracker</a> dispatches custom chunk request
+tracking events. This can be a useful way to work out when the cache will be
+reliable for a guild or globally (when combined with checking the intent and
+cache config).</p>
+<div class="highlight"><pre><span></span><code><span class="n">yuyo</span><span class="o">.</span><span class="n">chunk_tracker</span><span class="o">.</span><span class="n">ChunkTracker</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+</code></pre></div>
+<p>While this is easy to setup, there are some things you need to account for.
+This will only track chunk requests (including startup chunk requests) as long
+if have a set nonce (luckily Hikari's startup requests include nonces).
+<a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkTracker.request_guild_members">ChunkTracker.request_guild_members</a>
+ensures that a nonce is always set.</p>
+<p>The chunk tracker can be configured to automatically send chunk requests (with
+nonces) on guild join itself using
+<a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members">ChunkTracker.set_auto_chunk_members</a>.
+This can be useful if you need auto chunking in scenarios where it
+otherwise would be disabled (e.g. when using a separate async cache instead of
+Hikari's builtin cache).</p>
 <h3 id="events">Events<a class="headerlink" href="#events" title="Permanent link">#</a></h3>
-<h5 id="chunkrequestfinishedevent">ChunkRequestFinishedEvent<a class="headerlink" href="#chunkrequestfinishedevent" title="Permanent link">#</a></h5>
+<h5 id="chunk-request-finished-event">Chunk Request Finished Event<a class="headerlink" href="#chunk-request-finished-event" title="Permanent link">#</a></h5>
 <p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkRequestFinishedEvent">ChunkRequestFinishedEvent</a> is
 dispatched when a specific chunk request has finished.</p>
-<p>This is only dispatch for chunk requests where a <code>none</code> has been set.</p>
-<h5 id="finishedchunkingevent">FinishedChunkingEvent<a class="headerlink" href="#finishedchunkingevent" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="nd">@bot</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_chunk_request_finished</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">chunk_tracker</span><span class="o">.</span><span class="n">ChunkRequestFinishedEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">app</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">shard</span>  <span class="c1"># type: hikari.api.GatewayShard</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">chunk_count</span>  <span class="c1"># type: int</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">first_received_at</span>  <span class="c1"># type: datetime.datetime</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># type: hikari.Snowflake</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">last_received_at</span>  <span class="c1"># type: datetime.datetime</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">missed_chunks</span>  <span class="c1"># type: Collection[int]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">not_found_ids</span>  <span class="c1"># type: Collection[hikari.Snowflake]</span>
+</code></pre></div>
+<p>This is only dispatch for chunk requests where a <code>nonce</code> has been set.</p>
+<h5 id="finished-chunking-event">Finished Chunking Event<a class="headerlink" href="#finished-chunking-event" title="Permanent link">#</a></h5>
 <p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.FinishedChunkingEvent">FinishedChunkingEvent</a> is dispatched
 when the startup chunking has finished for the bot to indicate that the member
 and presence caches should be complete (if enabled).</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@bot</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_finished_chunking</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">chunk_tracker</span><span class="o">.</span><span class="n">FinishedChunkingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">app</span>
+</code></pre></div>
 <p>This is only dispatched once per-bot lifetime.</p>
-<h5 id="shardfinishedchunkingevent">ShardFinishedChunkingEvent<a class="headerlink" href="#shardfinishedchunkingevent" title="Permanent link">#</a></h5>
+<h5 id="shard-finished-chunking-event">Shard Finished Chunking Event<a class="headerlink" href="#shard-finished-chunking-event" title="Permanent link">#</a></h5>
 <p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ShardFinishedChunkingEvent">ShardFinishedChunkingEvent</a> is
 dispatched when the startup chunking has finished for a specific shard to
 indicate that the member and presence caches should be complete for the guilds
 covered by this shard.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@bot</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_shard_finished_chunking</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">chunk_tracker</span><span class="o">.</span><span class="n">ShardFinishedChunkingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">app</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">shard</span>  <span class="c1"># type: hikari.api.GatewayShard</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">incomplete_guild_ids</span>  <span class="c1"># Sequence[hikari.Snowflake]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">missed_guild_ids</span>  <span class="c1"># Sequence[hikari.Snowflake]</span>
+</code></pre></div>
 
 
 

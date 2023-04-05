@@ -12,6 +12,8 @@
         <link rel="prev" href="../links/">
       
       
+        <link rel="next" href="../modals/">
+      
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
@@ -571,6 +573,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../components/" class="md-nav__link">
+        Message Components
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../links/" class="md-nav__link">
         Links
       </a>
@@ -594,10 +610,88 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          List Status
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         List Status
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-service" class="md-nav__link">
+    Custom service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-strategies" class="md-nav__link">
+    Counting Strategies
+  </a>
+  
+    <nav class="md-nav" aria-label="Counting Strategies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sake-counting" class="md-nav__link">
+    Sake counting
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modals/" class="md-nav__link">
+        Modals
+      </a>
     </li>
   
 
@@ -629,6 +723,54 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-service" class="md-nav__link">
+    Custom service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counting-strategies" class="md-nav__link">
+    Counting Strategies
+  </a>
+  
+    <nav class="md-nav" aria-label="Counting Strategies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sake-counting" class="md-nav__link">
+    Sake counting
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -643,9 +785,61 @@
 
 
 <h1 id="list-status">List Status<a class="headerlink" href="#list-status" title="Permanent link">#</a></h1>
-<p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status">yuyo.list_status</a> provides an easy way to update a Bot's stats on bot lists.
-This currently provides standard implementation for updating <a href="https://top.gg">https://top.gg</a>,
-<a href="https://discordbotlist.com">https://discordbotlist.com</a>, and <a href="https://discord.bots.gg">https://discord.bots.gg</a>.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status">yuyo.list_status</a> provides an easy way to update a Bot's stats on bot lists.</p>
+<p>By default this will track the count per-shard, meaning that this'll have to be
+running on each shard cluster instance to properly keep track of the count.
+This will also be relying on the GUILDS intent being declared unless a custom
+counting strategy is passed.</p>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="n">list_status</span><span class="o">.</span><span class="n">TopGGService</span><span class="p">(</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status.TopGGService">TopGGService</a> is used to set <a href="https://top.gg">https://top.gg</a>
+as one of the targets for updating the bot's guild count.</p>
+<p>Top.GG API tokens are found in the "webhooks" tab while editing the bot's entry.</p>
+<div class="highlight"><pre><span></span><code><span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="n">list_status</span><span class="o">.</span><span class="n">DiscordBotListService</span><span class="p">(</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status.DiscordBotListService">DiscordBotListService</a> is used to set
+<a href="https://discordbotlist.com">https://discordbotlist.com</a> as one of the targets for updating the bot's guild
+count.</p>
+<p>TODO: where to find token?</p>
+<div class="highlight"><pre><span></span><code><span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<span class="n">manager</span><span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="n">list_status</span><span class="o">.</span><span class="n">BotsGGService</span><span class="p">(</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status.BotsGGService">BotsGGService</a> is used to set
+<a href="https://discord.bots.gg">https://discord.bots.gg</a> as one of the targets for updating the bot's guild
+count.</p>
+<p>Bots.gg API tokens are found at <a href="https://discord.bots.gg/docs">https://discord.bots.gg/docs</a> (when logged in).</p>
+<h5 id="custom-service">Custom service<a class="headerlink" href="#custom-service" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+
+<span class="nd">@manager</span><span class="o">.</span><span class="n">with_service</span><span class="p">()</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">service</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">list_status</span><span class="o">.</span><span class="n">AbstractManager</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="o">...</span>  <span class="c1"># This is a global count of how many guilds the bot is in.</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># This is a mapping of shard IDs to guild counts.</span>
+        <span class="n">count</span>  <span class="c1"># type: Mapping[int, int]</span>
+</code></pre></div>
+<p>Services are simply asynchronous callbacks which call
+<code>AbstractManager.counter.count</code> to get the most recent count(s) then pass it on.</p>
+<p><code>AbstractManager.counter.count</code> may raise <a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status.CountUnknownError">CountUnknownError</a>
+to indicate an unknown state and will return either <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a> to indicate a
+global guild count or <code>Mapping[int, int]</code> to give per-shard guild counts.</p>
+<h3 id="counting-strategies">Counting Strategies<a class="headerlink" href="#counting-strategies" title="Permanent link">#</a></h3>
+<h5 id="sake-counting">Sake counting<a class="headerlink" href="#sake-counting" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="n">cache</span>  <span class="c1"># type: sake.abc.GuildCache</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">SakeStrategy</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">counter</span><span class="p">)</span>
+</code></pre></div>
+<p>The Sake strategy lets this be used with an asynchronous Redis guild cache.
+This strategy will only be keeping track of a global guild count (rather than
+per-shard like the default counters) and therefore you should only ever need to
+have one instance of this running with Sake.</p>
 
 
 
