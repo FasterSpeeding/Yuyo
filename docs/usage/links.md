@@ -4,8 +4,11 @@ Yuyo provides some utilities for handling Discord links in [yuyo.links][].
 
 ### BaseLink
 
-There are several [BaseLink][yuyo.links.BaseLink] provided which come with 3
-methods for parsing them from strings.
+All [BaseLink][yuyo.links.BaseLink] implementations come with 3
+classmethods for parsing them from strings.
+
+All of these methods take a Hikari "app" (Bot or REST app object) as their
+first argument.
 
 ```py
 --8<-- "./docs_src/links.py:20:20"
