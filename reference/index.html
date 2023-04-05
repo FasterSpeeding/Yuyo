@@ -15,7 +15,7 @@
         <link rel="next" href="asgi/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.3">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c4a75a56.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7a7fce14.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -1162,6 +1162,41 @@
           <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.select_users" class="md-nav__link">
     select_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_channels" class="md-nav__link">
+    selected_channels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_members" class="md-nav__link">
+    selected_members
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_roles" class="md-nav__link">
+    selected_roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_texts" class="md-nav__link">
+    selected_texts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_users" class="md-nav__link">
+    selected_users
   </a>
   
 </li>
@@ -2967,6 +3002,41 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_channels" class="md-nav__link">
+    selected_channels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_members" class="md-nav__link">
+    selected_members
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_roles" class="md-nav__link">
+    selected_roles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_texts" class="md-nav__link">
+    selected_texts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.ComponentContext.selected_users" class="md-nav__link">
+    selected_users
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.components.ComponentContext.create_initial_response" class="md-nav__link">
     create_initial_response()
   </a>
@@ -4517,7 +4587,7 @@ displayed label.</p>
 
 
 <a href="#yuyo.components.ActionColumnExecutor.add_select_menu" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_select_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_select_menu</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -4536,25 +4606,27 @@ displayed label.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback</code></td>
+          <td><code>type_</code></td>
           <td class="doc-param-details">
-            <p>Callback which is called when this select menu is used.</p>
+            <p>The type of select menu to add.</p>
+<p>Passing callback here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">components</a>.<a class="autorefs autorefs-external" title="hikari.components.ComponentType" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType">ComponentType</a> | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
                 </span>
             </p>
           </td>
         </tr>
         <tr>
-          <td><code>type_</code></td>
+          <td><code>callback</code></td>
           <td class="doc-param-details">
-            <p>The type of select menu to add.</p>
+            <p>Callback which is called when this select menu is used.</p>
+<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ComponentType">ComponentType</span>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]</code>
+                    <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.components" href="components/#yuyo.components">components</a>.<a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
                 </span>
             </p>
           </td>
@@ -5231,7 +5303,7 @@ displayed label.</p>
   </span>
 
 <a href="#yuyo.components.ActionColumnExecutor.add_static_select_menu" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_static_select_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_static_select_menu</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -5250,25 +5322,27 @@ displayed label.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback</code></td>
+          <td><code>type_</code></td>
           <td class="doc-param-details">
-            <p>Callback which is called when this select menu is used.</p>
+            <p>The type of select menu to add.</p>
+<p>Passing callback here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">components</a>.<a class="autorefs autorefs-external" title="hikari.components.ComponentType" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType">ComponentType</a> | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
                 </span>
             </p>
           </td>
         </tr>
         <tr>
-          <td><code>type_</code></td>
+          <td><code>callback</code></td>
           <td class="doc-param-details">
-            <p>The type of select menu to add.</p>
+            <p>Callback which is called when this select menu is used.</p>
+<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ComponentType">ComponentType</span>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]</code>
+                    <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.components" href="components/#yuyo.components">components</a>.<a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
                 </span>
             </p>
           </td>
@@ -7070,7 +7144,7 @@ displayed label.</p>
 
 
 <a href="#yuyo.components.ActionRowExecutor.add_select_menu" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="n">add_select_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">add_select_menu</span><span class="p">(</span><span class="n">type_</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">min_values</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_values</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">is_disabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -7089,25 +7163,27 @@ displayed label.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback</code></td>
+          <td><code>type_</code></td>
           <td class="doc-param-details">
-            <p>Callback which is called when this select menu is used.</p>
+            <p>The type of select menu to add.</p>
+<p>Passing callback here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
+                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">components</a>.<a class="autorefs autorefs-external" title="hikari.components.ComponentType" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType">ComponentType</a> | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
                 </span>
             </p>
           </td>
         </tr>
         <tr>
-          <td><code>type_</code></td>
+          <td><code>callback</code></td>
           <td class="doc-param-details">
-            <p>The type of select menu to add.</p>
+            <p>Callback which is called when this select menu is used.</p>
+<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ComponentType">ComponentType</span>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>]</code>
+                    <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.components" href="components/#yuyo.components">components</a>.<a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
                 </span>
             </p>
           </td>
@@ -9838,8 +9914,8 @@ request the full list of members without <code>GUILD_PRESENCES</code>.</p>
   
       <p>Configure whether this should request member chunks in response to GUILD_CREATE.</p>
 <p>This may be useful for filling 3rd party caches but may conflict with
-the <code>auto_chunk_members</code> config of [hikari.impl.bot.GatewayBot][] if it's
-enabled.</p>
+the <code>auto_chunk_members</code> config of <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.impl.gateway_bot.GatewayBot</a>
+if it's enabled.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This will be ignored if <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/intents/#hikari.intents.Intents.GUILD_MEMBERS">Intents.GUILD_MEMBERS</a>
@@ -11096,7 +11172,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the users passed for a channel select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_channels">.selected_channels</a>.</p>
   </div>
 
 </div>
@@ -11119,8 +11195,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the members passed for a user select menu.</p>
-<p>This will also include some of the values for a mentionable select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_members">.selected_members</a>.</p>
   </div>
 
 </div>
@@ -11143,8 +11218,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the users passed for a role select menu.</p>
-<p>This will also include some of the values for a mentionable select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_roles">.selected_roles</a>.</p>
   </div>
 
 </div>
@@ -11167,7 +11241,7 @@ with the <code>message</code> kwarg instead.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Sequence of the values passed for a text select menu.</p>
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_texts">.selected_texts</a>.</p>
   </div>
 
 </div>
@@ -11186,6 +11260,123 @@ with the <code>message</code> kwarg instead.</p>
 
 <a href="#yuyo.components.ComponentContext.select_users" class="headerlink" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">select_users</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Deprecated alias of <a class="autorefs autorefs-internal" href="components/#yuyo.components.ComponentContext.selected_users">.selected_users</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_channels" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_channels</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_channels" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_channels</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">InteractionChannel</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the users passed for a channel select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_members" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_members</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_members" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_members</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">InteractionMember</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the members passed for a user select menu.</p>
+<p>This will also include some of the values for a mentionable select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_roles" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_roles</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_roles" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_roles</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Role</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the users passed for a role select menu.</p>
+<p>This will also include some of the values for a mentionable select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_texts" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_texts</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_texts" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_texts</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Sequence of the values passed for a text select menu.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.components.ComponentContext.selected_users" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">selected_users</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.components.ComponentContext.selected_users" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">selected_users</span><span class="p">:</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">Snowflake</span><span class="p">,</span> <span class="n">hikari</span><span class="o">.</span><span class="n">User</span><span class="p">]</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -18716,7 +18907,7 @@ to be replaced by the page's content.</p>
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.efa0ade1.min.js"></script>
+      <script src="../assets/javascripts/bundle.407015b8.min.js"></script>
       
     
   </body>
