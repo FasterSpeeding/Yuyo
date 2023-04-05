@@ -1449,7 +1449,7 @@ def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _Dynami
 
 @typing.overload
 def as_modal(
-    *, ephemeral_default: bool = False
+    *, ephemeral_default: bool = False, parse_signature: bool = False
 ) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
     ...
 
@@ -1510,7 +1510,7 @@ def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -
 
 @typing.overload
 def as_modal_template(
-    *, ephemeral_default: bool = False
+    *, ephemeral_default: bool = False, parse_signature: bool = True
 ) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
     ...
 

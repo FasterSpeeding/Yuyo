@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu]
     * [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu]
     * [with_static_select_menu][yuyo.components.with_static_select_menu],
-- Renamed the component context select menu data properties
+- Renamed the component context select menu data properties:
     * `ComponentContext.select_channels` to [ComponentContext.selected_channels][yuyo.components.ComponentContext.selected_channels]
     * `ComponentContext.select_roles` to [ComponentContext.selected_roles][yuyo.components.ComponentContext.selected_roles]
     * `ComponentContext.select_texts` to [ComponentContext.selected_texts][yuyo.components.ComponentContext.selected_texts]
@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] both now properly support DI for the
   modal's callback.
+- [yuyo.modals.as_modal][] and [yuyo.modals.as_modal_template][] both now allow passing
+  `parse_signature` typing wise.
 
 ### [1.11.0a1] - 2023-04-02
 ### Added
