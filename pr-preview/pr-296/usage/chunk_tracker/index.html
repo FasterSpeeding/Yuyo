@@ -568,9 +568,67 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Chunk Tracker
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Chunk Tracker
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    Events
+  </a>
+  
+    <nav class="md-nav" aria-label="Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chunkrequestfinishedevent" class="md-nav__link">
+    ChunkRequestFinishedEvent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finishedchunkingevent" class="md-nav__link">
+    FinishedChunkingEvent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shardfinishedchunkingevent" class="md-nav__link">
+    ShardFinishedChunkingEvent
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -631,6 +689,48 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    Events
+  </a>
+  
+    <nav class="md-nav" aria-label="Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chunkrequestfinishedevent" class="md-nav__link">
+    ChunkRequestFinishedEvent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finishedchunkingevent" class="md-nav__link">
+    FinishedChunkingEvent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shardfinishedchunkingevent" class="md-nav__link">
+    ShardFinishedChunkingEvent
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -645,6 +745,21 @@
 
 
 <h1 id="chunk-tracker">Chunk Tracker<a class="headerlink" href="#chunk-tracker" title="Permanent link">#</a></h1>
+<h3 id="events">Events<a class="headerlink" href="#events" title="Permanent link">#</a></h3>
+<h5 id="chunkrequestfinishedevent">ChunkRequestFinishedEvent<a class="headerlink" href="#chunkrequestfinishedevent" title="Permanent link">#</a></h5>
+<p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ChunkRequestFinishedEvent">ChunkRequestFinishedEvent</a> is
+dispatched when a specific chunk request has finished.</p>
+<p>This is only dispatch for chunk requests where a <code>none</code> has been set.</p>
+<h5 id="finishedchunkingevent">FinishedChunkingEvent<a class="headerlink" href="#finishedchunkingevent" title="Permanent link">#</a></h5>
+<p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.FinishedChunkingEvent">FinishedChunkingEvent</a> is dispatched
+when the startup chunking has finished for the bot to indicate that the member
+and presence caches should be complete (if enabled).</p>
+<p>This is only dispatched once per-bot lifetime.</p>
+<h5 id="shardfinishedchunkingevent">ShardFinishedChunkingEvent<a class="headerlink" href="#shardfinishedchunkingevent" title="Permanent link">#</a></h5>
+<p><a class="autorefs autorefs-internal" href="../../reference/chunk_tracker/#yuyo.chunk_tracker.ShardFinishedChunkingEvent">ShardFinishedChunkingEvent</a> is
+dispatched when the startup chunking has finished for a specific shard to
+indicate that the member and presence caches should be complete for the guilds
+covered by this shard.</p>
 
 
 
