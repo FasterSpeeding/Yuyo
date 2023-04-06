@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ComponentContext.select_texts` to [ComponentContext.selected_texts][yuyo.components.ComponentContext.selected_texts]
     * `ComponentContext.select_users` to [ComponentContext.selected_users][yuyo.components.ComponentContext.selected_users]
     * `ComponentContext.select_members` to [ComponentContext.selected_members][yuyo.components.ComponentContext.selected_members]
+- Modals now default the per-field custom IDs (i.e. for text components) to the parameter's
+  name (attribute name for [ModalOptions][yuyo.modals.ModalOptions] fields), if set.
 
 ### Deprecated
 - Passing `callback` as the first argument when adding a select menu to a component executor or column.
