@@ -4282,39 +4282,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Add an interactive button to this class by decorating its callback.
+        """Deprecated method.
 
-        Either `emoji` xor `label` must be provided to be the button's
-        displayed label.
-
-        Parameters
-        ----------
-        style
-            The button's style.
-        custom_id
-            The button's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        emoji
-            The button's emoji.
-        label
-            The button's label.
-        is_disabled
-            Whether the button should be marked as disabled.
-
-        Returns
-        -------
-        CallbackSig
-            The decorated callback.
-
-        Raises
-        ------
-        RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-            (rather than on a subclass).
+        Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button].
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
@@ -4643,41 +4613,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Add a select menu to this class by decorating its callback.
+        """Deprecated method.
 
-        For channel select menus see
-        [ActionColumnExecutor.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu].
-
-        Parameters
-        ----------
-        type_
-            The type of select menu to add.
-        custom_id
-            The select menu's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        CallbackSig
-            The decorated callback.
-
-        Raises
-        ------
-        RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-            (rather than on a subclass).
+        Use [.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu].
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
@@ -4910,38 +4848,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Add a channel select menu to this class by decorating its callback.
+        """Deprecated method.
 
-        Parameters
-        ----------
-        channel_types
-            Sequence of the types of channels this select menu should show as options.
-        custom_id
-            The select menu's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        CallbackSig
-            The decorated callback.
-
-        Raises
-        ------
-        RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-            (rather than on a subclass).
+        Use [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu].
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
