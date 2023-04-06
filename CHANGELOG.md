@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for parsing message links to [yuyo.links][].
 
 ### Changed
-- Added support for `.ptb` and `.canary` links to [yuyo.links][].
+- Added support for `ptb.` and `canary.` links to [yuyo.links][].
 - Renamed the link get and fetch methods:
     * `InviteLink.fetch` to [InviteLink.fetch_invite][yuyo.links.InviteLink.fetch_invite]
     * `InviteLink.get` to [InviteLink.get_invite][yuyo.links.InviteLink.get_invite]
@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `MessageLink.get` to [MessageLink.get_message][yuyo.links.MessageLink.get_message]
     * `TemplateLink.fetch` to [TemplateLink.fetch_template][yuyo.links.TemplateLink.fetch_template]
     * `WebhookLink.fetch` to [WebhookLink.fetch_webhook][yuyo.links.WebhookLink.fetch_webhook]
+
+### Fixed
+- [ModalOptions][yuyo.modals.ModalOptions] attributes now correctly expose the values passed to
+  the modal rather internal descriptors.
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed
