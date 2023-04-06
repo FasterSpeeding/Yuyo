@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Added support for `ptb.` and `canary.` links to [yuyo.links][].
+- Modals now default the per-field custom IDs (i.e. for text components) to the parameter's
+  name (attribute name for [ModalOptions][yuyo.modals.ModalOptions] fields), if set.
 - Renamed the link get and fetch methods:
     * `InviteLink.fetch` to [InviteLink.fetch_invite][yuyo.links.InviteLink.fetch_invite]
     * `InviteLink.get` to [InviteLink.get_invite][yuyo.links.InviteLink.get_invite]

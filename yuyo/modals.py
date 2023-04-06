@@ -1026,7 +1026,7 @@ class Modal(AbstractModal):
 
         else:
             for name, descriptor in _parse_descriptors(cls.callback):
-                descriptor.add_static(name, cls)
+                descriptor.add_static(name, cls, pass_as_kwarg=True)
 
     callback: typing.ClassVar[collections.abc.Callable[_SelfishSig[Self], _CoroT[None]]]
 
@@ -1036,35 +1036,37 @@ class Modal(AbstractModal):
         return self._rows
 
     @classmethod
-    def add_static_dataclass(cls, options: type[ModalOptions], /, *, keyword: str | None = None) -> type[Self]:
-        if keyword:
+    def add_static_dataclass(
+        cls, options: type[ModalOptions], /, *, parameter: typing.Optional[str] = None
+    ) -> type[Self]:
+        if parameter:
             fields: list[_TrackedField] = []
 
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
-                descriptor.add_static(None, cls)
+                descriptor.add_static(name, cls)
                 fields.append(descriptor.to_tracked_field(name))
 
-            cls._static_tracked_fields.append(_TrackedDataclass(keyword, options, fields))
+            cls._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
-                descriptor.add_static(None, cls)
+                descriptor.add_static(name, cls)
 
         return cls
 
-    def add_dataclass(self, options: type[ModalOptions], /, *, keyword: str | None = None) -> Self:
-        if keyword:
+    def add_dataclass(self, options: type[ModalOptions], /, *, parameter: typing.Optional[str] = None) -> Self:
+        if parameter:
             fields: list[_TrackedField] = []
 
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
-                descriptor.add(None, self)
+                descriptor.add(name, self)
                 fields.append(descriptor.to_tracked_field(name))
 
-            self._static_tracked_fields.append(_TrackedDataclass(keyword, options, fields))
+            self._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
             for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
-                descriptor.add(None, self)
+                descriptor.add(name, self)
 
         return self
 
@@ -1133,7 +1135,8 @@ class Modal(AbstractModal):
         custom_id
             The field's custom ID.
 
-            Defaults to a UUID and cannot be longer than 100 characters.
+            Defaults to `parameter`, if provided, or a UUID and cannot be
+            longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
             interactions. Anything after `":"` is metadata.
@@ -1265,7 +1268,8 @@ class Modal(AbstractModal):
         custom_id
             The field's custom ID.
 
-            Defaults to a UUID and cannot be longer than 100 characters.
+            Defaults to `parameter`, if provided, or a UUID and cannot be
+            longer than 100 characters.
 
             Only `custom_id.split(":", 1)[0]` will be used to match against
             interactions. Anything after `":"` is metadata.
@@ -1369,7 +1373,15 @@ def _make_text_input(
     max_length: int,
     parameter: typing.Optional[str],
 ) -> tuple[str, hikari.impl.TextInputBuilder, typing.Optional[_TrackedField]]:
-    id_match, custom_id = _internal.gen_custom_id(custom_id)
+    if custom_id is not None:
+        id_match = _internal.split_custom_id(custom_id)[0]
+
+    elif parameter is not None:
+        id_match = custom_id = parameter
+
+    else:
+        id_match = custom_id = _internal.random_custom_id()
+
     component = hikari.impl.TextInputBuilder(
         label=label,
         custom_id=custom_id,
@@ -1437,7 +1449,7 @@ def modal(
     modal = _DynamicModal(callback, ephemeral_default=ephemeral_default)
     if parse_signature:
         for name, descriptor in _parse_descriptors(callback):
-            descriptor.add(name, modal)
+            descriptor.add(name, modal, pass_as_kwarg=True)
 
     return modal
 
@@ -1629,7 +1641,8 @@ def with_static_text_input(
     custom_id
         The field's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to `parameter`, if provided, or a UUID and cannot be longer
+        than 100 characters.
     style
         The text input's style.
     placeholder
@@ -1743,7 +1756,8 @@ def with_text_input(
     custom_id
         The field's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to `parameter`, if provided, or a UUID and cannot be longer
+        than 100 characters.
     style
         The text input's style.
     placeholder
@@ -1814,11 +1828,11 @@ class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, keyword: str | None, modal: Modal, /) -> None:
+    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
         ...
 
     @abc.abstractmethod
-    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
         ...
 
     @abc.abstractmethod
@@ -1832,28 +1846,18 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
     def __init__(self, options: type[ModalOptions], /) -> None:
         self._options = options
 
-    def add(self, keyword: str | None, modal: Modal, /) -> None:
-        modal.add_dataclass(self._options, keyword=keyword)
+    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
+        modal.add_dataclass(self._options, parameter=field_name if pass_as_kwarg else None)
 
-    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
-        modal.add_static_dataclass(self._options, keyword=keyword)
+    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
+        modal.add_static_dataclass(self._options, parameter=field_name if pass_as_kwarg else None)
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
         raise NotImplementedError
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
-    __slots__ = (
-        "_label",
-        "_custom_id",
-        "_id_match",
-        "_style",
-        "_placeholder",
-        "_value",
-        "_default",
-        "_min_length",
-        "_max_length",
-    )
+    __slots__ = ("_label", "_custom_id", "_style", "_placeholder", "_value", "_default", "_min_length", "_max_length")
 
     def __init__(
         self,
@@ -1868,10 +1872,8 @@ class _TextInputDescriptor(_ComponentDescriptor):
         min_length: int = 0,
         max_length: int = 4000,
     ) -> None:
-        id_match, custom_id = _internal.gen_custom_id(custom_id)
         self._label = label
         self._custom_id = custom_id
-        self._id_match = id_match
         self._style = style
         self._placeholder = placeholder
         self._value = value
@@ -1879,11 +1881,12 @@ class _TextInputDescriptor(_ComponentDescriptor):
         self._min_length = min_length
         self._max_length = max_length
 
-    def add(self, keyword: str | None, modal: Modal, /) -> None:
+    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
+        custom_id = self._custom_id or field_name
         modal.add_text_input(
             self._label,
-            parameter=keyword,
-            custom_id=self._custom_id,
+            parameter=field_name if pass_as_kwarg else None,
+            custom_id=custom_id,
             style=self._style,
             placeholder=self._placeholder,
             value=self._value,
@@ -1892,11 +1895,12 @@ class _TextInputDescriptor(_ComponentDescriptor):
             max_length=self._max_length,
         )
 
-    def add_static(self, keyword: str | None, modal: type[Modal], /) -> None:
+    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
+        custom_id = self._custom_id or field_name
         modal.add_static_text_input(
             self._label,
-            parameter=keyword,
-            custom_id=self._custom_id,
+            parameter=field_name if pass_as_kwarg else None,
+            custom_id=custom_id,
             style=self._style,
             placeholder=self._placeholder,
             value=self._value,
@@ -1906,7 +1910,8 @@ class _TextInputDescriptor(_ComponentDescriptor):
         )
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
-        return _TrackedField(self._id_match, self._default, keyword, hikari.ComponentType.TEXT_INPUT)
+        id_match = _internal.split_custom_id(self._custom_id)[0] if self._custom_id else keyword
+        return _TrackedField(id_match, self._default, keyword, hikari.ComponentType.TEXT_INPUT)
 
 
 @typing.overload
@@ -1999,7 +2004,7 @@ def text_input(
     custom_id
         The field's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to the name of the parameter/attribute this is assigned to.
     style
         The text input's style.
     placeholder
