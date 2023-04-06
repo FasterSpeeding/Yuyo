@@ -185,7 +185,7 @@ class ChannelLink(BaseLink):
     _channel_id: hikari.Snowflake
 
     _FIND_PATTERN = _MATCH_PATTERN = re.compile(
-        r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/channels/(\d+|@me)/(\d+)(?:/\d*)?"
+        r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/channels/(\d+|@me)/(\d+)(?:/\d+)?"
     )
 
     def __str__(self) -> str:
