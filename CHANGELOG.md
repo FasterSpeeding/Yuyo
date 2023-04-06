@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu]
     * [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu]
     * [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu]
-    * [with_static_select_menu][yuyo.components.with_static_select_menu],
+    * [with_static_select_menu][yuyo.components.with_static_select_menu]
 - Renamed the component context select menu data properties:
     * `ComponentContext.select_channels` to [ComponentContext.selected_channels][yuyo.components.ComponentContext.selected_channels]
     * `ComponentContext.select_roles` to [ComponentContext.selected_roles][yuyo.components.ComponentContext.selected_roles]
