@@ -26,7 +26,7 @@ Top.GG API tokens are found in the "webhooks" tab while editing the bot's entry.
 <https://discordbotlist.com> as one of the targets for updating the bot's guild
 count.
 
-TODO: where to find token?
+<!-- TODO: where to find token? -->
 
 ```py
 --8<-- "./docs_src/list_status.py:34:35"
