@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+- Added support for `ptb.` and `canary.` links to [yuyo.links][].
 - Modals now default the per-field custom IDs (i.e. for text components) to the parameter's
   name (attribute name for [ModalOptions][yuyo.modals.ModalOptions] fields), if set.
+
+### Fixed
+- [ModalOptions][yuyo.modals.ModalOptions] attributes now correctly expose the values passed to
+  the modal rather internal descriptors.
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed

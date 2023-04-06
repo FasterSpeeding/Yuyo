@@ -2087,9 +2087,10 @@ class _ModalOptionsMeta(type):
             if issubclass(sub_cls, ModalOptions):
                 fields.update(sub_cls._modal_fields)  # pyright: ignore [ reportPrivateUsage ]
 
-        for key, value in namespace.items():
+        for key, value in namespace.copy().items():
             if isinstance(value, _ComponentDescriptor):
                 fields[key] = value
+                del namespace[key]
 
         namespace["_modal_fields"] = types.MappingProxyType(fields)
         namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore [ reportUntypedNamedTuple ]
