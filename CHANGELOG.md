@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
-- Added support for `.ptb` and `.canary` links to [yuyo.links][].
+- Added support for `ptb.` and `canary.` links to [yuyo.links][].
 
 ### Fixed
 - [ModalOptions][yuyo.modals.ModalOptions] attributes now correctly expose the values passed to
