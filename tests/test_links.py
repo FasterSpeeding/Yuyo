@@ -72,9 +72,21 @@ _INVITE_LINKS = [
     ("http://www.discord.com/invite/patience", "patience"),
     ("https://discordapp.com/invite/My-body.Is_mine", "My-body.Is_mine"),
     ("http://discordapp.com/invite/mine", "mine"),
+    ("https://ptb.discord.com/invite/invite-it.uwu", "invite-it.uwu"),
+    ("http://ptb.discord.com/invite/words", "words"),
+    ("https://ptb.discordapp.com/invite/invites-it.uwu", "invites-it.uwu"),
+    ("http://ptb.discordapp.com/invite/word", "word"),
+    ("https://canary.discord.com/invite/beep-beep.beep", "beep-beep.beep"),
+    ("http://canary.discord.com/invite/boop", "boop"),
+    ("https://canary.discordapp.com/invite/earth-bound.beep", "earth-bound.beep"),
+    ("http://canary.discordapp.com/invite/mother", "mother"),
     ("discordapp.com/invite/meowmeow", "meowmeow"),
     ("discord.com/invite/konnichiwa", "konnichiwa"),
     ("discord.gg/birdy", "birdy"),
+    ("ptb.discordapp.com/invite/aaa", "aaa"),
+    ("ptb.discord.com/invite/aaaaa", "aaaaa"),
+    ("canary.discordapp.com/invite/interesting", "interesting"),
+    ("canary.discord.com/invite/interest", "interest"),
 ]
 
 
@@ -185,6 +197,8 @@ _MESSAGE_LINKS = [
     (" http://discord.com/channels/32232/45333/5434 ", 32232, 45333, 5434),
     ("https://discord.com/channels/@me/6541234/123321", None, 6541234, 123321),
     ("http://discord.com/channels/@me/22131/22312", None, 22131, 22312),
+    ("https://discord.com/channels/54234123/321233/4443333", 54234123, 321233, 4443333),
+    ("http://discord.com/channels/54234234/5431233/6541232", 54234234, 5431233, 6541232),
     ("https://www.discordapp.com/channels/65546323/1235423/12332123", 65546323, 1235423, 12332123),
     ("http://www.discordapp.com/channels/22233/444555/66365423", 22233, 444555, 66365423),
     ("https://www.discordapp.com/channels/@me/65234/78657", None, 65234, 78657),
@@ -197,6 +211,22 @@ _MESSAGE_LINKS = [
     ("http://discordapp.com/channels/323241/43453/542312", 323241, 43453, 542312),
     ("https://discordapp.com/channels/@me/6543345/234431", None, 6543345, 234431),
     ("http://discordapp.com/channels/@me/432341/6545234", None, 432341, 6545234),
+    ("https://ptb.discord.com/channels/@me/1233222/5123321", None, 1233222, 5123321),
+    ("http://ptb.discord.com/channels/@me/32123321/5423432", None, 32123321, 5423432),
+    ("https://ptb.discord.com/channels/4331233/4323132/43123431", 4331233, 4323132, 43123431),
+    ("http://ptb.discord.com/channels/544332123/43523123/4323432", 544332123, 43523123, 4323432),
+    ("https://ptb.discordapp.com/channels/@me/6753452/45312343", None, 6753452, 45312343),
+    ("http://ptb.discordapp.com/channels/@me/65445345/654234", None, 65445345, 654234),
+    ("https://ptb.discordapp.com/channels/342123321/2345432343/6572343", 342123321, 2345432343, 6572343),
+    ("http://ptb.discordapp.com/channels/53324432/43212343223/65445234", 53324432, 43212343223, 65445234),
+    ("https://canary.discord.com/channels/@me/321452/54323", None, 321452, 54323),
+    ("http://canary.discord.com/channels/@me/6542344/654234", None, 6542344, 654234),
+    ("https://canary.discord.com/channels/654456234/54345543234/6542344", 654456234, 54345543234, 6542344),
+    ("http://canary.discord.com/channels/876432344/453123321/32421332", 876432344, 453123321, 32421332),
+    ("https://canary.discordapp.com/channels/@me/21332143/543234123", None, 21332143, 543234123),
+    ("http://canary.discordapp.com/channels/@me/56423412/654234431", None, 56423412, 654234431),
+    ("https://canary.discordapp.com/channels/654765324/654234432/54345234", 654765324, 654234432, 54345234),
+    ("http://canary.discordapp.com/channels/7656432344/4536454/765345234", 7656432344, 4536454, 765345234),
 ]
 
 
@@ -401,6 +431,14 @@ _TEMPLATE_LINKS = [
     ("http://www.discord.com/template/youagain", "youagain"),
     ("https://discordapp.com/template/Thereis_no-where-to.go-back", "Thereis_no-where-to.go-back"),
     ("http://discordapp.com/template/to-go", "to-go"),
+    ("https://ptb.discord.com/template/meow_meow-m.eow", "meow_meow-m.eow"),
+    ("http://ptb.discord.com/template/aaa-bbb", "aaa-bbb"),
+    ("https://ptb.discordapp.com/template/bbbb_b.bbb", "bbbb_b.bbb"),
+    ("http://ptb.discordapp.com/template/go-go", "go-go"),
+    ("https://canary.discord.com/template/audit-me.meow", "audit-me.meow"),
+    ("http://canary.discord.com/template/cheap-cheap", "cheap-cheap"),
+    ("https://canary.discordapp.com/template/c-c_cc.c", "c-c_cc.c"),
+    ("http://canary.discordapp.com/template/meow-meow", "meow-meow"),
 ]
 
 
@@ -513,6 +551,14 @@ _WEBHOOK_LINKS = [
     ("http://discordapp.com/api/webhooks/435234/all_about.it", 435234, "all_about.it"),
     ("https://discord.com/api/v420/webhooks/65434/lie_lie-lie.", 65434, "lie_lie-lie."),
     ("http://discord.com/api/v420/webhooks/654234/lie_lie", 654234, "lie_lie"),
+    ("https://ptb.discord.com/api/v69/webhooks/654234/54gdfgfd.21sdfpdsaa_s-d", 654234, "54gdfgfd.21sdfpdsaa_s-d"),
+    ("http://ptb.discord.com/api/v69/webhooks/45543123/fdsgfdsfad.adsfdasa_d-ss", 45543123, "fdsgfdsfad.adsfdasa_d-ss"),
+    ("https://ptb.discordapp.com/api/v69/webhooks/65412376/fds-gf.ddfd_pds", 65412376, "fds-gf.ddfd_pds"),
+    ("http://ptb.discordapp.com/api/v69/webhooks/1233211/gfdsad.asd-dsaasd_ss", 1233211, "gfdsad.asd-dsaasd_ss"),
+    ("https://canary.discord.com/api/v69/webhooks/543345/fds.-rwewer_dsa", 543345, "fds.-rwewer_dsa"),
+    ("http://canary.discord.com/api/v69/webhooks/87667/sdf-asd._ds", 87667, "sdf-asd._ds"),
+    ("https://canary.discordapp.com/api/v69/webhooks/123321/asddsa.-hgfhg_a", 123321, "asddsa.-hgfhg_a"),
+    ("http://canary.discordapp.com/api/v69/webhooks/7656/_fds.-erw123", 7656, "_fds.-erw123"),
 ]
 
 
