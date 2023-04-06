@@ -5229,7 +5229,7 @@ def with_static_select_menu(
         The type of select menu to add.
 
         Passing callback here is deprecated.
-    callback yuyo.components.CallbackSig
+    callback : yuyo.components.CallbackSig
         Callback which is called when this select menu is used.
 
         Passing type here is deprecated.
