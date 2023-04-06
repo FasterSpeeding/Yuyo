@@ -854,7 +854,7 @@ app in scope.</p>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink">MessageLink</a> handles parsing message links.</p>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink.guild_id">MessageLink.guild_id</a> will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for DM messages.</p>
+<p>[MessageLink.guild_id][yuyo.links.MessageLink.guild_id] will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for DM messages.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">#                             (channel_id, message_id)</span>
 <span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">654323412</span><span class="p">,</span> <span class="mi">4534512332</span><span class="p">,</span> <span class="n">guild</span><span class="o">=</span><span class="mi">123321</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/123321/654323412/4534512332&quot;</span>
