@@ -55,20 +55,16 @@ if typing.TYPE_CHECKING:
 
     from typing_extensions import Self
 
-
-# The logic which embeds invites is special and doesn't require
-# `https://(?:www\.)?` so we match this behaviour even though the client still
-# isn't actually treating it as a link.
-_INVITE_PATTERN = re.compile(r"(?:https?://(?:www\.)?)?discord(?:\.gg|(?:app)?\.com/invite)/([^\s/]+)")
-_MESSAGE_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)")
-_TEMPLATE_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:\.new|(?:app)?\.com/template)/([^\s/]+)")
-_WEBHOOK_PATTERN = re.compile(r"https?://(?:www\.)?discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([^\s/]+)")
+_SUB_DOMAIN = r"(?:www\.|ptb\.|canary\.)?"
 
 
 class BaseLink(abc.ABC):
     """Base class for all link objects."""
 
     __slots__ = ()
+
+    _FIND_PATTERN: typing.ClassVar[re.Pattern[str]]
+    _MATCH_PATTERN: typing.ClassVar[re.Pattern[str]]
 
     @classmethod
     def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
@@ -104,7 +100,7 @@ class BaseLink(abc.ABC):
         collections.abc.Iterator[Self]
             Iterator of the link objects in the passed string.
         """
-        for match in cls._pattern().finditer(content):
+        for match in cls._FIND_PATTERN.finditer(content):
             yield cls._from_match(app, match)
 
     @classmethod
@@ -128,15 +124,10 @@ class BaseLink(abc.ABC):
         ValueError
             If the string doesn't match the expected link format.
         """
-        if match := cls._pattern().fullmatch(link.strip()):
+        if match := cls._MATCH_PATTERN.fullmatch(link.strip()):
             return cls._from_match(app, match)
 
         raise ValueError("Link doesn't match pattern")
-
-    @classmethod
-    @abc.abstractmethod
-    def _pattern(cls) -> re.Pattern[str]:
-        raise NotImplementedError
 
     @classmethod
     @abc.abstractmethod
@@ -180,14 +171,16 @@ class InviteLink(hikari.InviteCode, BaseLink):
     _app: hikari.RESTAware
     _code: str
 
+    # The logic which embeds invites is special and doesn't require
+    # `https://(?:www\.)?` so we match this behaviour even though the client
+    # still isn't actually treating it as a link.
+    _FIND_PATTERN = re.compile(r"discord(?:\.gg|(?:app)?\.com/invite)/([^\s/]+)")
+    _MATCH_PATTERN = re.compile(r"(?:https?://)?" + _SUB_DOMAIN + _FIND_PATTERN.pattern)
+
     @property
     def code(self) -> str:
         """The invite's code."""
         return self._code
-
-    @classmethod
-    def _pattern(cls) -> re.Pattern[str]:
-        return _INVITE_PATTERN
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
@@ -279,6 +272,10 @@ class MessageLink(BaseLink):
     _guild_id: typing.Optional[hikari.Snowflake]
     _message_id: hikari.Snowflake
 
+    _FIND_PATTERN = _MATCH_PATTERN = re.compile(
+        r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)"
+    )
+
     @property
     def channel_id(self) -> hikari.Snowflake:
         """ID of the channel this message is in."""
@@ -301,10 +298,6 @@ class MessageLink(BaseLink):
     def message_id(self) -> hikari.Snowflake:
         """ID of the message this links to."""
         return self._message_id
-
-    @classmethod
-    def _pattern(cls) -> re.Pattern[str]:
-        return _MESSAGE_PATTERN
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
@@ -396,6 +389,10 @@ class TemplateLink(BaseLink):
     _app: hikari.RESTAware
     _code: str
 
+    _FIND_PATTERN = _MATCH_PATTERN = re.compile(
+        r"https?://" + _SUB_DOMAIN + r"discord(?:\.new|(?:app)?\.com/template)/([^\s/]+)"
+    )
+
     def __str__(self) -> str:
         """Create a raw string representation of this link."""
         return make_template_link(self._code)
@@ -404,10 +401,6 @@ class TemplateLink(BaseLink):
     def code(self) -> str:
         """The template's code."""
         return self._code
-
-    @classmethod
-    def _pattern(cls) -> re.Pattern[str]:
-        return _TEMPLATE_PATTERN
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
@@ -474,6 +467,10 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
     _token: str
     _webhook_id: hikari.Snowflake
 
+    _FIND_PATTERN = _MATCH_PATTERN = re.compile(
+        r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/api/(?:v\d+/)?webhooks/(\d+)/([^\s/]+)"
+    )
+
     def __str__(self) -> str:
         """Create a raw string representation of this link."""
         return make_webhook_link(self._webhook_id, self._token)
@@ -492,10 +489,6 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
     def token(self) -> str:
         """The webhook's token."""
         return self._token
-
-    @classmethod
-    def _pattern(cls) -> re.Pattern[str]:
-        return _WEBHOOK_PATTERN
 
     @classmethod
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
