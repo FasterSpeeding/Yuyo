@@ -12,9 +12,13 @@
 # pyright: reportIncompatibleMethodOverride=none
 # pyright: reportUnusedClass=none
 # pyright: reportUnusedFunction=none
+# pyright: reportUnusedVariable=none
 import typing
+import uuid
 
+import alluka
 import hikari
+import tanjun
 
 from yuyo import modals
 
@@ -35,8 +39,10 @@ def modal_class_fields():
         async def callback(
             self,
             ctx: modals.Context,
-            field: str = modals.text_input("label"),
-            other_field: typing.Optional[str] = modals.text_input("label"),
+            field: str = modals.text_input("name", min_length=5, max_length=50, default="John Doe"),
+            other_field: typing.Optional[str] = modals.text_input(
+                "label", style=hikari.TextInputStyle.PARAGRAPH, default=None
+            ),
         ) -> None:
             await ctx.respond("hi")
 
@@ -54,5 +60,33 @@ def modal_template_dataclass():
         )
 
     @modals.as_modal_template
-    async def modal_template(ctx: modals.ModalContext, options: ModalOptions) -> None:
+    async def modal_template(ctx: modals.Context, options: ModalOptions) -> None:
         ...
+
+
+def creating_a_modal():
+    @modals.as_modal_template
+    async def modal_template(ctx: modals.Context, field: str = modals.text_input("field")) -> None:
+        ...
+
+    async def on_command(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
+        modal = modal_template()
+        modal_client.register_modal(str(ctx.interaction.id), modal)
+        await ctx.create_modal_response("Title", str(ctx.interaction.id), components=modal.rows)
+
+
+def creating_a_static_modal():
+    @modals.as_modal
+    async def modal(ctx: modals.Context, field: str = modals.text_input("field")) -> None:
+        session_id = uuid.UUID(ctx.id_metadata)
+
+    MODAL_ID = "MODAL_ID"
+
+    client = modals.ModalClient()
+    client.register_modal(MODAL_ID, modal, timeout=None)
+
+    ...
+
+    async def on_command(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.ModalClient]) -> None:
+        session_id = uuid.uuid4()
+        await ctx.create_modal_response("Title", f"{MODAL_ID}:{session_id}")
