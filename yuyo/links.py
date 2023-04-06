@@ -32,10 +32,12 @@
 from __future__ import annotations
 
 __all__: list[str] = [
+    "ChannelLink",
     "InviteLink",
     "MessageLink",
     "TemplateLink",
     "WebhookLink",
+    "make_channel_link",
     "make_invite_link",
     "make_message_link",
     "make_template_link",
@@ -49,6 +51,7 @@ import typing
 
 import hikari
 import hikari.urls
+import typing_extensions
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
@@ -135,6 +138,168 @@ class BaseLink(abc.ABC):
         raise NotImplementedError
 
 
+def make_channel_link(
+    channel: hikari.SnowflakeishOr[hikari.PartialChannel],
+    /,
+    *,
+    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
+) -> str:
+    """Make a raw link for a channel.
+
+    Parameters
+    ----------
+    channel
+        Object or ID of the channel to link to.
+    guild
+        Object or ID of the guild the channel is in.
+
+        This should be provided for guild links.
+
+    Returns
+    -------
+    str
+        The raw channel link.
+    """
+    guild_ = "@me" if guild is None else int(guild)
+    return f"{hikari.urls.BASE_URL}/channels/{guild_}/{int(channel)}"
+
+
+@dataclasses.dataclass
+class ChannelLink(BaseLink):
+    """Represents a link to a channel.
+
+    The following class methods are used to initialise this:
+
+    * [InviteLink.from_link][yuyo.links.BaseLink.from_link] to create this from
+      a raw channel link.
+    * [InviteLink.find][yuyo.links.BaseLink.find] to find the first channel link
+      in a string.
+    * [InviteLink.find_iter][yuyo.links.BaseLink.find_iter] to iterate over the
+      channel links in a string.
+    """
+
+    __slots__ = ("_app", "_guild_id", "_channel_id")
+
+    _app: hikari.RESTAware
+    _guild_id: typing.Optional[hikari.Snowflake]
+    _channel_id: hikari.Snowflake
+
+    _FIND_PATTERN = _MATCH_PATTERN = re.compile(
+        r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/channels/(\d+|@me)/(\d+)(?:/\d*)?"
+    )
+
+    def __str__(self) -> str:
+        """Create a raw string representation of this link."""
+        return make_channel_link(self._channel_id, guild=self._guild_id)
+
+    @classmethod
+    def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
+        guild_id, channel_id = match.groups()
+        guild_id = None if guild_id == "@me" else hikari.Snowflake(guild_id)
+        return cls(_app=app, _channel_id=hikari.Snowflake(channel_id), _guild_id=guild_id)
+
+    @property
+    def channel_id(self) -> hikari.Snowflake:
+        """ID of the channel this links to."""
+        return self._channel_id
+
+    @property
+    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
+        """ID of the guild this links to.
+
+        Will be [None][] for DM links.
+        """
+        return self._guild_id
+
+    @property
+    def is_dm_link(self) -> bool:
+        """Whether this links to a DM channel."""
+        return self._guild_id is None
+
+    async def fetch_channel(self) -> hikari.PartialChannel:
+        """Fetch the channel this links to.
+
+        Returns
+        -------
+        hikari.channels.PartialChannel
+            The this links to channel. This will be a _derivative_ of
+            `hikari.channels.PartialChannel`, depending on the type of
+            channel you request for.
+
+        Raises
+        ------
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.ForbiddenError
+            If you are missing the `READ_MESSAGES` permission in the channel.
+        hikari.errors.NotFoundError
+            If the channel is not found.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
+        return await self._app.rest.fetch_channel(self._channel_id)
+
+    def get_channel(self) -> typing.Optional[hikari.GuildChannel]:
+        """Get the channel this links to from the cache.
+
+        Returns
+        -------
+        hikari.channels.GuildChannel | None
+            Object of the guild channel that was found in the cache or [None][].
+        """
+        if isinstance(self._app, hikari.CacheAware):
+            return self._app.cache.get_guild_channel(self._channel_id) or self._app.cache.get_thread(self._channel_id)
+
+        return None  # MyPy compat
+
+    async def fetch_guild(self) -> typing.Optional[hikari.RESTGuild]:
+        """Fetch the guild this links to.
+
+        Returns
+        -------
+        hikari.guilds.RESTGuild | None
+            Object of the guild this links to.
+
+            Will be [None][] if this links to a DM channel.
+
+        Raises
+        ------
+        hikari.errors.ForbiddenError
+            If you are not part of the guild.
+        hikari.errors.NotFoundError
+            If the guild is not found.
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
+        if self._guild_id:
+            return await self._app.rest.fetch_guild(self._guild_id)
+
+        return None  # Mypy compat
+
+    def get_guild(self) -> typing.Optional[hikari.GatewayGuild]:
+        """Get the guild this links to from the cache.
+
+        Returns
+        -------
+        hikari.channels.GuildChannel | None
+            Object of the guild that was found in the cache or [None][].
+
+            This will also be [None][] if this links to a DM channel.
+        """
+        if self._guild_id and isinstance(self._app, hikari.CacheAware):
+            return self._app.cache.get_guild(self._guild_id)
+
+        return None  # MyPy compat
+
+
 def make_invite_link(invite: typing.Union[str, hikari.InviteCode], /) -> str:
     """Make a raw link for an invite.
 
@@ -186,7 +351,7 @@ class InviteLink(hikari.InviteCode, BaseLink):
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
         return cls(_app=app, _code=match.groups()[0])
 
-    async def fetch(self) -> hikari.Invite:
+    async def fetch_invite(self) -> hikari.Invite:
         """Fetch the invite this links to.
 
         Returns
@@ -208,7 +373,12 @@ class InviteLink(hikari.InviteCode, BaseLink):
         """
         return await self._app.rest.fetch_invite(self._code)
 
-    def get(self) -> typing.Optional[hikari.InviteWithMetadata]:
+    @typing_extensions.deprecated("Use .fetch_invite")
+    async def fetch(self) -> hikari.Invite:
+        """Deprecated alias of [InviteLink.fetch_invite][yuyo.links.InviteLink.fetch_invite]."""
+        return await self.fetch_invite()
+
+    def get_invite(self) -> typing.Optional[hikari.InviteWithMetadata]:
         """Get the invite this links to from the cache.
 
         Returns
@@ -220,6 +390,11 @@ class InviteLink(hikari.InviteCode, BaseLink):
             return self._app.cache.get_invite(self._code)
 
         return None  # MyPy compat
+
+    @typing_extensions.deprecated("Use .get_invite")
+    def get(self) -> typing.Optional[hikari.InviteWithMetadata]:
+        """Deprecated alias of [InviteLink.get_invite][yuyo.links.InviteLink.get_invite]."""
+        return self.get_invite()
 
 
 def make_message_link(
@@ -240,19 +415,18 @@ def make_message_link(
     guild
         Object or ID of the guild the message is in.
 
-        If left as [None][] then this will be a DM message link.
+        This should be provided for messages in guilds.
 
     Returns
     -------
     str
         The raw message link.
     """
-    guild_ = "@me" if guild is None else int(guild)
-    return f"{hikari.urls.BASE_URL}/channels/{guild_}/{int(channel)}/{int(message)}"
+    return make_channel_link(channel, guild=guild) + f"/{int(message)}"
 
 
 @dataclasses.dataclass
-class MessageLink(BaseLink):
+class MessageLink(ChannelLink):
     """Represents a link to a message on Discord.
 
     The following class methods are used to initialise this:
@@ -265,34 +439,17 @@ class MessageLink(BaseLink):
       the message links in a string.
     """
 
-    __slots__ = ("_app", "_channel_id", "_guild_id", "_message_id")
+    __slots__ = ("_message_id",)
 
-    _app: hikari.RESTAware
-    _channel_id: hikari.Snowflake
-    _guild_id: typing.Optional[hikari.Snowflake]
     _message_id: hikari.Snowflake
 
     _FIND_PATTERN = _MATCH_PATTERN = re.compile(
         r"https?://" + _SUB_DOMAIN + r"discord(?:app)?\.com/channels/(\d+|@me)/(\d+)/(\d+)"
     )
 
-    @property
-    def channel_id(self) -> hikari.Snowflake:
-        """ID of the channel this message is in."""
-        return self._channel_id
-
-    @property
-    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
-        """ID of the guild this message is in.
-
-        Will be [None][] for DM message links.
-        """
-        return self._guild_id
-
-    @property
-    def is_dm_link(self) -> bool:
-        """Whether this links to a message in a DM channel."""
-        return self._guild_id is None
+    def __str__(self) -> str:
+        """Create a raw string representation of this link."""
+        return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
 
     @property
     def message_id(self) -> hikari.Snowflake:
@@ -310,11 +467,7 @@ class MessageLink(BaseLink):
             _message_id=hikari.Snowflake(message_id),
         )
 
-    def __str__(self) -> str:
-        """Create a raw string representation of this link."""
-        return make_message_link(self._channel_id, self._message_id, guild=self._guild_id)
-
-    async def fetch(self) -> hikari.Message:
+    async def fetch_message(self) -> hikari.Message:
         """Fetch a the message this links to.
 
         Returns
@@ -339,7 +492,12 @@ class MessageLink(BaseLink):
         """
         return await self._app.rest.fetch_message(self._channel_id, self._message_id)
 
-    def get(self) -> typing.Optional[hikari.Message]:
+    @typing_extensions.deprecated("Use .fetch_message")
+    async def fetch(self) -> hikari.Message:
+        """Deprecated alias of [MessageLink.fetch_message][yuyo.links.MessageLink.fetch_message]."""
+        return await self.fetch_message()
+
+    def get_message(self) -> typing.Optional[hikari.Message]:
         """Get the message this links to from the cache.
 
         Returns
@@ -351,6 +509,11 @@ class MessageLink(BaseLink):
             return self._app.cache.get_message(self._message_id)
 
         return None
+
+    @typing_extensions.deprecated("Use .get_message")
+    def get(self) -> typing.Optional[hikari.Message]:
+        """Deprecated alias of [MessageLink.get_message][yuyo.links.MessageLink.get_message]."""
+        return self.get_message()
 
 
 def make_template_link(template: typing.Union[hikari.Template, str], /) -> str:
@@ -406,7 +569,7 @@ class TemplateLink(BaseLink):
     def _from_match(cls, app: hikari.RESTAware, match: re.Match[str], /) -> Self:
         return cls(_app=app, _code=match.groups()[0])
 
-    async def fetch(self) -> hikari.Template:
+    async def fetch_template(self) -> hikari.Template:
         """Fetch the guild template this links to.
 
         Returns
@@ -427,6 +590,11 @@ class TemplateLink(BaseLink):
             If an internal error occurs on Discord while handling the request.
         """
         return await self._app.rest.fetch_template(self._code)
+
+    @typing_extensions.deprecated("Use .fetch_template")
+    async def fetch(self) -> hikari.Template:
+        """Deprecated alias of [TemplateLink.fetch_template][yuyo.links.TemplateLink.fetch_template]."""
+        return await self.fetch_template()
 
 
 def make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], token: str, /) -> str:
@@ -495,7 +663,7 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         webhook_id, token = match.groups()
         return cls(_app=app, _webhook_id=hikari.Snowflake(webhook_id), _token=token)
 
-    async def fetch(self) -> hikari.IncomingWebhook:
+    async def fetch_webhook(self) -> hikari.IncomingWebhook:
         """Fetch the incoming webhook this links to.
 
         Returns
@@ -518,3 +686,8 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         webhook = await self._app.rest.fetch_webhook(self._webhook_id, token=self._token)
         assert isinstance(webhook, hikari.IncomingWebhook)
         return webhook
+
+    @typing_extensions.deprecated("Use .fetch_webhook")
+    async def fetch(self) -> hikari.IncomingWebhook:
+        """Deprecated alias of [WebhookLink.fetch_webhook][yuyo.links.WebhookLink.fetch_webhook]."""
+        return await self.fetch_webhook()
