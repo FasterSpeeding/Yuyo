@@ -38,7 +38,6 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "WaitFor",
     "WaitForExecutor",
     "as_channel_menu",
     "as_interactive_button",
