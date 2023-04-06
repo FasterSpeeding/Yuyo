@@ -802,8 +802,8 @@ dispatched when a specific chunk request has finished.</p>
     <span class="n">event</span><span class="o">.</span><span class="n">first_received_at</span>  <span class="c1"># type: datetime.datetime</span>
     <span class="n">event</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># type: hikari.Snowflake</span>
     <span class="n">event</span><span class="o">.</span><span class="n">last_received_at</span>  <span class="c1"># type: datetime.datetime</span>
-    <span class="n">event</span><span class="o">.</span><span class="n">missed_chunks</span>  <span class="c1"># type: Collection[int]</span>
-    <span class="n">event</span><span class="o">.</span><span class="n">not_found_ids</span>  <span class="c1"># type: Collection[hikari.Snowflake]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">missed_chunks</span>  <span class="c1"># type: collections.abc.Collection[int]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">not_found_ids</span>  <span class="c1"># type: collections.abc.Collection[hikari.Snowflake]</span>
 </code></pre></div>
 <p>This is only dispatch for chunk requests where a <code>nonce</code> has been set.</p>
 <h5 id="finished-chunking-event">Finished Chunking Event<a class="headerlink" href="#finished-chunking-event" title="Permanent link">#</a></h5>
@@ -824,8 +824,8 @@ covered by this shard.</p>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">on_shard_finished_chunking</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">chunk_tracker</span><span class="o">.</span><span class="n">ShardFinishedChunkingEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">event</span><span class="o">.</span><span class="n">app</span>
     <span class="n">event</span><span class="o">.</span><span class="n">shard</span>  <span class="c1"># type: hikari.api.GatewayShard</span>
-    <span class="n">event</span><span class="o">.</span><span class="n">incomplete_guild_ids</span>  <span class="c1"># Sequence[hikari.Snowflake]</span>
-    <span class="n">event</span><span class="o">.</span><span class="n">missed_guild_ids</span>  <span class="c1"># Sequence[hikari.Snowflake]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">incomplete_guild_ids</span>  <span class="c1"># collections.abc.Sequence[hikari.Snowflake]</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">missed_guild_ids</span>  <span class="c1"># collections.abc.Sequence[hikari.Snowflake]</span>
 </code></pre></div>
 
 

@@ -803,7 +803,8 @@ as one of the targets for updating the bot's guild count.</p>
 <p><a class="autorefs autorefs-internal" href="../../reference/list_status/#yuyo.list_status.DiscordBotListService">DiscordBotListService</a> is used to set
 <a href="https://discordbotlist.com">https://discordbotlist.com</a> as one of the targets for updating the bot's guild
 count.</p>
-<p>TODO: where to find token?</p>
+<!-- TODO: where to find token? -->
+
 <div class="highlight"><pre><span></span><code><span class="n">manager</span> <span class="o">=</span> <span class="n">list_status</span><span class="o">.</span><span class="n">ServiceManager</span><span class="o">.</span><span class="n">from_gateway_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
 <span class="n">manager</span><span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="n">list_status</span><span class="o">.</span><span class="n">BotsGGService</span><span class="p">(</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">))</span>
 </code></pre></div>
@@ -823,7 +824,7 @@ count.</p>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># This is a mapping of shard IDs to guild counts.</span>
-        <span class="n">count</span>  <span class="c1"># type: Mapping[int, int]</span>
+        <span class="n">count</span>  <span class="c1"># type: collections.abc.Mapping[int, int]</span>
 </code></pre></div>
 <p>Services are simply asynchronous callbacks which call
 <code>AbstractManager.counter.count</code> to get the most recent count(s) then pass it on.</p>
