@@ -6,7 +6,7 @@ reliable for a guild or globally (when combined with checking the intent and
 cache config).
 
 ```py
---8<-- "./docs_src/chunk_tracker.py:19:19"
+--8<-- "./docs_src/chunk_tracker.py:22:22"
 ```
 
 While this is easy to setup, there are some things you need to account for.
@@ -30,7 +30,7 @@ Hikari's builtin cache).
 dispatched when a specific chunk request has finished.
 
 ```py
---8<-- "./docs_src/chunk_tracker.py:23:32"
+--8<-- "./docs_src/chunk_tracker.py:26:35"
 ```
 
 This is only dispatch for chunk requests where a `nonce` has been set.
@@ -42,7 +42,7 @@ when the startup chunking has finished for the bot to indicate that the member
 and presence caches should be complete (if enabled).
 
 ```py
---8<-- "./docs_src/chunk_tracker.py:36:38"
+--8<-- "./docs_src/chunk_tracker.py:39:41"
 ```
 
 This is only dispatched once per-bot lifetime.
@@ -55,5 +55,5 @@ indicate that the member and presence caches should be complete for the guilds
 covered by this shard.
 
 ```py
---8<-- "./docs_src/chunk_tracker.py:42:47"
+--8<-- "./docs_src/chunk_tracker.py:45:50"
 ```

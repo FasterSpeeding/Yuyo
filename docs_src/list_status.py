@@ -9,6 +9,8 @@
 # You should have received a copy of the CC0 Public Domain Dedication along with this software.
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 
+import collections.abc  # pyright: ignore [ reportUnusedImport ]
+
 # pyright: reportUnusedExpression=none
 # pyright: reportUnusedFunction=none
 # pyright: reportUnusedVariable=none
@@ -51,4 +53,4 @@ def custom_service(bot: hikari.GatewayBot):
 
         else:
             # This is a mapping of shard IDs to guild counts.
-            count  # type: Mapping[int, int]
+            count  # type: collections.abc.Mapping[int, int]

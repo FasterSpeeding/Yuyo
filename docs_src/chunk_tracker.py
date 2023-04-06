@@ -10,6 +10,9 @@
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 
 # pyright: reportUnusedFunction=none
+import collections.abc  # pyright: ignore [ reportUnusedImport ]
+import datetime  # pyright: ignore [ reportUnusedImport ]
+
 import hikari
 
 import yuyo
@@ -28,8 +31,8 @@ def chunk_request_finished_event(bot: hikari.impl.GatewayBot):
         event.first_received_at  # type: datetime.datetime
         event.guild_id  # type: hikari.Snowflake
         event.last_received_at  # type: datetime.datetime
-        event.missed_chunks  # type: Collection[int]
-        event.not_found_ids  # type: Collection[hikari.Snowflake]
+        event.missed_chunks  # type: collections.abc.Collection[int]
+        event.not_found_ids  # type: collections.abc.Collection[hikari.Snowflake]
 
 
 def finished_chunking_event(bot: hikari.impl.GatewayBot):
@@ -43,5 +46,5 @@ def shard_finished_chunking_event(bot: hikari.impl.GatewayBot):
     async def on_shard_finished_chunking(event: yuyo.chunk_tracker.ShardFinishedChunkingEvent) -> None:
         event.app
         event.shard  # type: hikari.api.GatewayShard
-        event.incomplete_guild_ids  # Sequence[hikari.Snowflake]
-        event.missed_guild_ids  # Sequence[hikari.Snowflake]
+        event.incomplete_guild_ids  # collections.abc.Sequence[hikari.Snowflake]
+        event.missed_guild_ids  # collections.abc.Sequence[hikari.Snowflake]
