@@ -48,6 +48,7 @@ def modal_class_fields():
 
 
 def modal_template_fields():
+    @modals.as_modal_template
     async def modal_template(ctx: modals.Context, field: str = modals.text_input("label")) -> None:
         await ctx.respond("hi")
 
@@ -69,14 +70,15 @@ def creating_a_modal():
     async def modal_template(ctx: modals.Context, field: str = modals.text_input("field")) -> None:
         ...
 
-    async def on_command(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
+    async def command_callback(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
         modal = modal_template()
         modal_client.register_modal(str(ctx.interaction.id), modal)
         await ctx.create_modal_response("Title", str(ctx.interaction.id), components=modal.rows)
 
 
 def creating_a_static_modal():
-    @modals.as_modal
+    # parse_signature defaults to False for as_modal and modal (unlike as_modal_template).
+    @modals.as_modal(parse_signature=True)
     async def modal(ctx: modals.Context, field: str = modals.text_input("field")) -> None:
         session_id = uuid.UUID(ctx.id_metadata)
 
@@ -87,6 +89,6 @@ def creating_a_static_modal():
 
     ...
 
-    async def on_command(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.ModalClient]) -> None:
+    async def command_callback(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.ModalClient]) -> None:
         session_id = uuid.uuid4()
         await ctx.create_modal_response("Title", f"{MODAL_ID}:{session_id}")
