@@ -458,13 +458,8 @@ class ChunkTracker:
         Self
             The chunk tracker object to enable call chaining.
         """
-        if state:
-            self._auto_chunk_members = state
-            self._chunk_presences = chunk_presences
-
-        else:
-            self._chunk_presences = False
-
+        self._auto_chunk_members = state
+        self._chunk_presences = chunk_presences
         return self
 
     def _ensure_loop(self) -> None:
