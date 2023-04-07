@@ -13,7 +13,7 @@ If the above example was saved in the file "bot.py"
 line to run this bot using [Uvicorn](https://www.uvicorn.org/):
 
 ```
-uvicorn bot:bot
+uvicorn bot:rest_bot
 ```
 
 But since ASGI is a generic standard, you can also run this bot in other tooling
