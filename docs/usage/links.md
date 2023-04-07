@@ -36,19 +36,38 @@ from the string.
 
 ### BaseLink implementations
 
-There are 4 implementations of [BaseLink][yuyo.links.BaseLink] provided by
+There are 5 implementations of [BaseLink][yuyo.links.BaseLink] provided by
 Yuyo (which all support the parsing methods listed above):
+
+##### Channel links
+
+```py
+--8<-- "./docs_src/links.py:34:43"
+```
+
+[ChannelLink][yuyo.links.ChannelLink] handles parsing channel links.
+
+[ChannelLink.guild_id][yuyo.links.ChannelLink.guild_id] will be [None][] for
+DM channels.
+
+```py
+--8<-- "./docs_src/links.py:47:50"
+```
+
+[links.make_channel_link][yuyo.links.make_channel_link] offers an alternative
+way to make a channel link string which doesn't require having a Bot or REST
+app in scope.
 
 ##### Invite links
 
 ```py
---8<-- "./docs_src/links.py:34:39"
+--8<-- "./docs_src/links.py:54:59"
 ```
 
 [InviteLink][yuyo.links.InviteLink] handles parsing invite links.
 
 ```py
---8<-- "./docs_src/links.py:43:44"
+--8<-- "./docs_src/links.py:63:64"
 ```
 
 [links.make_invite_link][yuyo.links.make_invite_link] offers an alternative
@@ -58,15 +77,16 @@ app in scope.
 ##### Message links
 
 ```py
---8<-- "./docs_src/links.py:48:56"
+--8<-- "./docs_src/links.py:68:80"
 ```
 
 [MessageLink][yuyo.links.MessageLink] handles parsing message links.
 
-[MessageLink.guild_id][yuyo.links.MessageLink.guild_id] will be [None][] for DM messages.
+[MessageLink.guild_id][yuyo.links.ChannelLink.guild_id] will be [None][] for
+DM messages.
 
 ```py
---8<-- "./docs_src/links.py:60:64"
+--8<-- "./docs_src/links.py:84:88"
 ```
 
 [links.make_message_link][yuyo.links.make_message_link] offers an alternative
@@ -76,13 +96,13 @@ app in scope.
 ##### Guild template links
 
 ```py
---8<-- "./docs_src/links.py:68:72"
+--8<-- "./docs_src/links.py:92:96"
 ```
 
 [TemplateLink][yuyo.links.TemplateLink] handles parsing guild template links.
 
 ```py
---8<-- "./docs_src/links.py:76:77"
+--8<-- "./docs_src/links.py:100:101"
 ```
 
 [links.make_template_link][yuyo.links.make_template_link] offers an alternative
@@ -92,7 +112,7 @@ app in scope.
 ##### Webhook links
 
 ```py
---8<-- "./docs_src/links.py:81:86"
+--8<-- "./docs_src/links.py:105:110"
 ```
 
 [WebhookLink][yuyo.links.WebhookLink] handles parsing webhook links.
@@ -101,7 +121,7 @@ This class inherits from [hikari.ExecutableWebhook][hikari.webhooks.ExecutableWe
 therefore has all the webhook execute methods you'll find on interaction and webhook objects.
 
 ```py
---8<-- "./docs_src/links.py:90:91"
+--8<-- "./docs_src/links.py:114:115"
 ```
 
 [links.make_webhook_link][yuyo.links.make_webhook_link] offers an alternative
