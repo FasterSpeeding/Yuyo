@@ -636,6 +636,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#channel-links" class="md-nav__link">
+    Channel links
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#invite-links" class="md-nav__link">
     Invite links
   </a>
@@ -753,6 +760,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#channel-links" class="md-nav__link">
+    Channel links
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#invite-links" class="md-nav__link">
     Invite links
   </a>
@@ -825,14 +839,37 @@ parsed link object or <a class="autorefs autorefs-external" href="https://docs.p
 matching links in a string by iterating over link objects which were parsed
 from the string.</p>
 <h3 id="baselink-implementations">BaseLink implementations<a class="headerlink" href="#baselink-implementations" title="Permanent link">#</a></h3>
-<p>There are 4 implementations of <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink">BaseLink</a> provided by
+<p>There are 5 implementations of <a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.BaseLink">BaseLink</a> provided by
 Yuyo (which all support the parsing methods listed above):</p>
+<h5 id="channel-links">Channel links<a class="headerlink" href="#channel-links" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">ChannelLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/channels/453123/67765564&quot;</span><span class="p">)</span>
+
+<span class="n">link</span><span class="o">.</span><span class="n">is_dm_link</span>  <span class="c1"># value: False</span>
+<span class="n">link</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># value: 453123</span>
+<span class="n">link</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># value: 67765564</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># hikari.PartialChannel</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># hikari.GuildChannel | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># hikari.RESTGuild | None</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># hikari.GatewayGuild | None</span>
+<span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/channels/453123/67765564&quot;</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.ChannelLink">ChannelLink</a> handles parsing channel links.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.ChannelLink.guild_id">ChannelLink.guild_id</a> will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for
+DM channels.</p>
+<div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_channel_link</span><span class="p">(</span><span class="mi">123312</span><span class="p">,</span> <span class="n">guild</span><span class="o">=</span><span class="mi">6534234</span><span class="p">)</span>
+<span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/6534234/123312&quot;</span>
+<span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_channel_link</span><span class="p">(</span><span class="mi">543123</span><span class="p">)</span>
+<span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/@me/543123&quot;</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_channel_link">links.make_channel_link</a> offers an alternative
+way to make a channel link string which doesn't require having a Bot or REST
+app in scope.</p>
 <h5 id="invite-links">Invite links<a class="headerlink" href="#invite-links" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.gg/nekosmeowers&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">code</span>  <span class="c1"># value: &quot;nekosmeowers&quot;</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.Invite</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># type: hikari.InviteWithMetadata | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_invite</span><span class="p">()</span>  <span class="c1"># type: hikari.Invite</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_invite</span><span class="p">()</span>  <span class="c1"># type: hikari.InviteWithMetadata | None</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.gg/nekosmeowers&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.InviteLink">InviteLink</a> handles parsing invite links.</p>
@@ -849,12 +886,17 @@ app in scope.</p>
 <span class="n">link</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># value: 54123123321123</span>
 <span class="n">link</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># value: 2134432234342</span>
 <span class="n">link</span><span class="o">.</span><span class="n">message_id</span>  <span class="c1"># value: 56445234124</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.Message</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># type: hikari.Message | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_message</span><span class="p">()</span>  <span class="c1"># type: hikari.Message</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_message</span><span class="p">()</span>  <span class="c1"># type: hikari.Message | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># hikari.PartialChannel</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># hikari.GuildChannel | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># hikari.RESTGuild | None</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># hikari.GatewayGuild | None</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink">MessageLink</a> handles parsing message links.</p>
-<p>[MessageLink.guild_id][yuyo.links.MessageLink.guild_id] will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for DM messages.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.ChannelLink.guild_id">MessageLink.guild_id</a> will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> for
+DM messages.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">#                             (channel_id, message_id)</span>
 <span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">654323412</span><span class="p">,</span> <span class="mi">4534512332</span><span class="p">,</span> <span class="n">guild</span><span class="o">=</span><span class="mi">123321</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/123321/654323412/4534512332&quot;</span>
@@ -868,7 +910,7 @@ app in scope.</p>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
 
 <span class="n">link</span><span class="o">.</span><span class="n">code</span>  <span class="c1"># value: &quot;aaaaaaaaaa&quot;</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.Template</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_template</span><span class="p">()</span>  <span class="c1"># type: hikari.Template</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.new/aaaaaaaaaa&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.TemplateLink">TemplateLink</a> handles parsing guild template links.</p>
@@ -883,7 +925,7 @@ app in scope.</p>
 
 <span class="n">link</span><span class="o">.</span><span class="n">webhook_id</span>  <span class="c1"># value: 123321123</span>
 <span class="n">link</span><span class="o">.</span><span class="n">token</span>  <span class="c1"># value: &quot;efsdfasdsa&quot;</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>  <span class="c1"># type: hikari.IncomingWebhook</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_webhook</span><span class="p">()</span>  <span class="c1"># type: hikari.IncomingWebhook</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.WebhookLink">WebhookLink</a> handles parsing webhook links.</p>

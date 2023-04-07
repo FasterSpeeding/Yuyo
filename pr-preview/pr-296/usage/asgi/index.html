@@ -682,15 +682,15 @@ message components and modals as part of an ASGI server.</p>
 
 <span class="kn">import</span> <span class="nn">yuyo</span>
 
-<span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">])</span>
-<span class="n">tanjun</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<span class="n">rest_bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">])</span>
+<span class="n">tanjun</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">rest_bot</span><span class="p">)</span>
 
 <span class="c1"># ... more setup</span>
 </code></pre></div>
 <p>If the above example was saved in the file "bot.py"
 (within the current working directory) then the following may be run in the command
 line to run this bot using <a href="https://www.uvicorn.org/">Uvicorn</a>:</p>
-<div class="highlight"><pre><span></span><code>uvicorn bot:bot
+<div class="highlight"><pre><span></span><code>uvicorn bot:rest_bot
 </code></pre></div>
 <p>But since ASGI is a generic standard, you can also run this bot in other tooling
 such as using <a href="https://fastapi.tiangolo.com/">FastAPI</a>'s
@@ -700,7 +700,7 @@ mount this bot within an existing FastAPI server on a specific route:</p>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">()</span>
 
-<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">rest_bot</span><span class="p">)</span>
 </code></pre></div>
 
 
