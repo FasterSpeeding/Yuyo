@@ -2719,7 +2719,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
             elif isinstance(component, hikari.api.InteractiveButtonBuilder):
                 # TODO: specialise return type of def style for Interactive and Link buttons.
-                column.add_interative_button(
+                column.add_interactive_button(
                     typing.cast("hikari.InteractiveButtonTypesT", component.style),
                     self._id_to_callback.get(_internal.split_custom_id(component.custom_id)[0], _no_callback),
                     custom_id=component.custom_id,
@@ -2786,7 +2786,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         self._components.append(component)
         return self
 
-    @typing_extensions.deprecated("Use .add_interative_button")
+    @typing_extensions.deprecated("Use .add_interactive_button")
     def add_button(
         self,
         style: hikari.InteractiveButtonTypesT,
@@ -2798,12 +2798,27 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
-        """Deprecated alias of [.add_interative_button][yuyo.components.ActionRowExecutor.add_interative_button]."""
-        return self.add_interative_button(
+        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionRowExecutor.add_interactive_button]."""
+        return self.add_interactive_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
+    @typing_extensions.deprecated("Use .add_interactive_button")
     def add_interative_button(
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionRowExecutor.add_interactive_button]."""
+        return self.add_interactive_button(style, callback, custom_id=custom_id, emoji=emoji, label=labe, is_disabled=is_disabled)
+
+    def add_interactive_button(
         self,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
@@ -3892,7 +3907,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     components = (
         components.ActionColumnExecutor()
-        .add_interative_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
+        .add_interactive_button(hikari.ButtonStyle.PRIMARY, chainable, label="Button 1")
         .add_link_button("https://example.com", label="Button 2",)
     )
     ```
@@ -4107,7 +4122,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
-    @typing_extensions.deprecated("Use .add_interative_button")
+    @typing_extensions.deprecated("Use .add_interactive_button")
     def add_button(
         self,
         style: hikari.InteractiveButtonTypesT,
@@ -4119,12 +4134,27 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
-        """Deprecated alias of [.add_interative_button][yuyo.components.ActionColumnExecutor.add_interative_button]."""
-        return self.add_interative_button(
+        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionColumnExecutor.add_interactive_button]."""
+        return self.add_interactive_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
+    @typing_extensions.deprecated("Use .add_interactive_button")
     def add_interative_button(
+        self,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Deprecated alias of [.add_interactive_button][yuyo.components.ActionColumnExecutor.add_interactive_button]."""
+        return self.add_interactive_button(style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disbled=is_disabled)
+
+    def add_interactive_button(
         self,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
@@ -4173,7 +4203,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @classmethod
-    @typing_extensions.deprecated("Use .add_static_interative_button")
+    @typing_extensions.deprecated("Use .add_static_interactive_button")
     def add_static_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
@@ -4185,13 +4215,32 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
-        """Deprecated alias of [.add_static_interative_button][yuyo.components.ActionColumnExecutor.add_static_interative_button]."""  # noqa: E501
-        return cls.add_static_interative_button(
+        """Deprecated alias of [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
+        return cls.add_static_interactive_button(
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
     @classmethod
+    @typing_extensions.deprecated("Use .add_static_interactive_button")
     def add_static_interative_button(
+        cls,
+        style: hikari.InteractiveButtonTypesT,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        """Deprecated alias of [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
+        return cls.add_static_interactive_button(
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    @classmetho
+    @classmethod
+    def add_static_interactive_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
         callback: CallbackSig,
@@ -4254,7 +4303,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return cls
 
     @classmethod
-    @typing_extensions.deprecated("Use .with_static_interative_button")
+    @typing_extensions.deprecated("Use .add_static_interactive_button")
     def with_static_button(
         cls,
         style: hikari.InteractiveButtonTypesT,
@@ -4265,7 +4314,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated alias of [.with_static_interative_button][yuyo.components.ActionColumnExecutor.with_static_interative_button]."""  # noqa: E501
+        """Deprecated. Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
         return cls.with_static_interative_button(  # pyright: ignore [ reportDeprecated ]
             style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -4288,7 +4337,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         """
 
         def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_interative_button(
+            cls.add_static_interactive_button(
                 style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
             )
             return callback
@@ -5081,7 +5130,7 @@ def _append_row(
     return row
 
 
-@typing_extensions.deprecated("Use with_static_interative_button")
+@typing_extensions.deprecated("Use with_static_interactive_button")
 def with_static_button(
     style: hikari.InteractiveButtonTypesT,
     callback: CallbackSig,
@@ -5092,13 +5141,28 @@ def with_static_button(
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
-    """Deprecated alias of [with_static_interative_button][yuyo.components.with_static_interative_button]."""
-    return with_static_interative_button(
+    """Deprecated alias of [with_static_interactive_button][yuyo.components.with_static_interactive_button]."""
+    return with_static_interactive_button(
         style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
     )
 
-
+@typing_extensions.deprecated("Use with_static_interactive_button")
 def with_static_interative_button(
+    style: hikari.InteractiveButtonTypesT,
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Deprecated alias of [with_static_interactive_button][yuyo.components.with_static_interactive_button]."""
+    return with_static_interactive_button(
+        style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+    )
+
+def with_static_interactive_button(
     style: hikari.InteractiveButtonTypesT,
     callback: CallbackSig,
     /,
@@ -5566,7 +5630,7 @@ class ComponentPaginator(ActionRowExecutor):
         if label is not hikari.UNDEFINED:
             emoji = hikari.UNDEFINED
 
-        return self.add_interative_button(
+        return self.add_interactive_button(
             style, self._on_first, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
@@ -5615,7 +5679,7 @@ class ComponentPaginator(ActionRowExecutor):
         if label is not hikari.UNDEFINED:
             emoji = hikari.UNDEFINED
 
-        return self.add_interative_button(
+        return self.add_interactive_button(
             style, self._on_previous, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
@@ -5664,7 +5728,7 @@ class ComponentPaginator(ActionRowExecutor):
         if label is not hikari.UNDEFINED:
             emoji = hikari.UNDEFINED
 
-        return self.add_interative_button(
+        return self.add_interactive_button(
             style, self._on_disable, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
@@ -5713,7 +5777,7 @@ class ComponentPaginator(ActionRowExecutor):
         if label is not hikari.UNDEFINED:
             emoji = hikari.UNDEFINED
 
-        return self.add_interative_button(
+        return self.add_interactive_button(
             style, self._on_next, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
@@ -5764,7 +5828,7 @@ class ComponentPaginator(ActionRowExecutor):
         if label is not hikari.UNDEFINED:
             emoji = hikari.UNDEFINED
 
-        return self.add_interative_button(
+        return self.add_interactive_button(
             style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
