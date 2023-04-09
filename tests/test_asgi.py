@@ -1313,16 +1313,24 @@ class TestAsgiBot:
 
     @pytest.mark.asyncio()
     async def test_start(self):
+        mock_start_callback = mock.AsyncMock()
+        mock_other_start_callback = mock.AsyncMock()
+
         stack = contextlib.ExitStack()
         mock_rest_client_impl = stack.enter_context(mock.patch.object(hikari.impl, "RESTClientImpl"))
         mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
         with stack:
             bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
+            bot.add_startup_callback(mock_start_callback)
+            bot.add_startup_callback(mock_other_start_callback)
 
             await bot.start()
 
             assert bot.is_alive is True
             assert bot._join_event is mock_event.return_value
+
+            mock_start_callback.assert_awaited_once_with(bot)
+            mock_other_start_callback.assert_awaited_once_with(bot)
 
         mock_rest_client_impl.return_value.start.assert_called_once_with()
         mock_event.assert_called_once_with()
@@ -1354,12 +1362,17 @@ class TestAsgiBot:
 
     @pytest.mark.asyncio()
     async def test_close(self):
+        mock_shutdown_callback = mock.AsyncMock()
+        mock_other_shutdown_callback = mock.AsyncMock()
+
         stack = contextlib.ExitStack()
         mock_rest_client_impl = stack.enter_context(mock.patch.object(hikari.impl, "RESTClientImpl"))
         mock_rest_client_impl.return_value.close = mock.AsyncMock()
         mock_event = stack.enter_context(mock.patch.object(asyncio, "Event"))
         with stack:
             bot = yuyo.AsgiBot("token", "Bot", asgi_managed=False)
+            bot.add_shutdown_callback(mock_shutdown_callback)
+            bot.add_shutdown_callback(mock_other_shutdown_callback)
 
             await bot.start()
 
@@ -1370,6 +1383,9 @@ class TestAsgiBot:
 
             assert bot.is_alive is False
             assert bot._join_event is None
+
+            mock_shutdown_callback.assert_awaited_once_with(bot)
+            mock_other_shutdown_callback.assert_awaited_once_with(bot)
 
         mock_rest_client_impl.return_value.close.assert_awaited_once_with()
         mock_event.return_value.set.assert_called_once_with()

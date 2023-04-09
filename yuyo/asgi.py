@@ -786,6 +786,7 @@ class AsgiBot(hikari.RESTBotAware):
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
+        await asyncio.gather(*(callback() for callback in self._adapter.on_startup))
         await self._start()
 
     async def _close(self) -> None:
@@ -816,6 +817,7 @@ class AsgiBot(hikari.RESTBotAware):
         if not self._is_alive or not self._join_event:
             raise RuntimeError("The client is not running")
 
+        await asyncio.gather(*(callback() for callback in self._adapter.on_shutdown))
         await self._close()
 
     async def join(self) -> None:
