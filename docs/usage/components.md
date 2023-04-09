@@ -19,7 +19,7 @@ simply open the set link in a browser for the user who clicked on it.
 ![select menu example](./images/select_menu_example.png)
 
 Select menus let users select between 0 to 25 options (dependent on how the bot
-conigured it). These selections are communicated to the bot once the user has
+configured it). These selections are communicated to the bot once the user has
 finished selecting options via and interaction and there's several different
 resources they can be selecting:
 
@@ -49,10 +49,28 @@ There's several different ways to declare components using Yuyo:
 --8<-- "./docs_src/components.py:59:74"
 ```
 
-Subclassing [yuyo.components.ActionColumnExecutor]
+Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
+you to associate state with a specific message's components through OOP.
+
+When doing this you'll usually be creating an instance of the components column
+per message.
 
 ##### Stateless
 
 ```py
 --8<-- "./docs_src/components.py:78:94"
 ```
+
+Alternatively, components can be reused by registering the modal to the client
+on startup with `timeout=None` and sending the same modal's rows per-exevution.
+
+Custom IDs have some special handling which allows you to track some metadata
+for a specific message's components. Custom IDs are split into two parts as
+`"{match}:{metadata}"` where the "match" part is what Yuyo wil use to find the
+executor for a message's components and the "metadata"
+([ComponentContext.id_metadata][yuyo.components.BaseComponent.id_metadata]) part
+represents any developer added metadata for that specific component.
+
+It should be noted that interactive components should be given constant custom
+IDs when using an action column statelessly and that Custom IDs can never be
+longer than 100 characters in total length.

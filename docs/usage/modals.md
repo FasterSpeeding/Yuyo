@@ -61,7 +61,10 @@ rows per-execution.
 
 Custom IDs have some special handling which allows you to track some metadata
 for specific modal executions. Custom IDs are split into two parts as
-`"{match}:{metadata}"`. The "match" part is what Yuyo will use to find the executor
-for a modal call and the "metadata" part can be accessed at
-[ModalContext.id_metadata][yuyo.modals.ModalContext.id_metadata] as shown above.
-Custom IDs can never be longer than 100 characters in total.
+`"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
+executor for a modal call and the "metadata"
+([ModalContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
+represents any developer added metadata for the modal.
+
+If should be noted that Custom IDs can never be longer than 100 characters in
+total length.
