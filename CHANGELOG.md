@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   enabled. This now also always changes the configuration for `chunk_presences`.
 - Some typoed function names which were missing the "c" in "interactive".
 - [AsgiBot.start][yuyo.asgi.AsgiBot.start] and [AsgiBot.close][yuyo.asgi.AsgiBot.close]
-  will now call the startup and shutdown callbacks respectively.
+  will now call the startup and shutdown callbacks respectively when `asgi_managed=False`.
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed
