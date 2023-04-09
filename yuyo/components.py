@@ -4155,7 +4155,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> Self:
         """Deprecated alias of [.add_interactive_button][yuyo.components.ActionColumnExecutor.add_interactive_button]."""
         return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disbled=is_disabled
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
     def add_interactive_button(
@@ -5213,7 +5213,7 @@ def with_static_interactive_button(
     type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
-    return lambda executor: executor.add_static_interative_button(
+    return lambda executor: executor.add_static_interactive_button(
         style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
     )
 
