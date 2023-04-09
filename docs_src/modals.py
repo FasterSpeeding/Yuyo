@@ -61,12 +61,17 @@ def modal_template_dataclass():
 
 
 def creating_a_modal():
-    @modals.as_modal_template
-    async def modal_template(ctx: modals.Context, field: str = modals.text_input("field")) -> None:
-        ...
+    class Modal(modals.Modal):
+        __slots__ = ("state",)
+
+        def __init__(self, state: str) -> None:
+            self.state = state
+
+        async def modal_template(self, ctx: modals.Context, field: str = modals.text_input("field")) -> None:
+            await ctx.respond(self.state)
 
     async def command_callback(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
-        modal = modal_template()
+        modal = Modal("state")
         modal_client.register_modal(str(ctx.interaction.id), modal)
         await ctx.create_modal_response("Title", str(ctx.interaction.id), components=modal.rows)
 

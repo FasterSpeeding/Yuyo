@@ -6,12 +6,12 @@ for a slash command, context menu or message component interaction.
 ![modal example](./images/modal_example.png)
 
 Modals take the shape of dialogue boxes which show up on top of everything for
-the user who trigered the relevant interaction (as shown above) and only
+the user who triggered the relevant interaction (as shown above) and only
 support text input right now.
 
 ### Declaring Modals
 
-There's several different ways to declare modals using Yuyo.
+There's several different ways to declare modals using Yuyo:
 
 ```py
 --8<-- "./docs_src/modals.py:27:29"
@@ -36,11 +36,32 @@ There's two ways to handle modal interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/modals.py:64:71"
+--8<-- "./docs_src/modals.py:64:76"
 ```
+
+Subclassing [Modal][yuyo.modals.Modal] allows you to associate state with a
+specific modal execution through OOP.
+
+When doing this you'll usually be creating an instance of the modal per
+interaction and associating this with a specific modal execution by using
+the parent interaction's custom ID as the modal's custom ID (as shown above).
+
+[ModalClient.register_modal][yuyo.modals.ModalClient] defaults `timeout` to a 30
+second one use timeout.
 
 ##### Stateless
 
 ```py
---8<-- "./docs_src/modals.py:75:93"
+--8<-- "./docs_src/modals.py:80:96"
 ```
+
+Alternatively, modals can be reused by using a global custom ID and registering the
+modal to the client on startup with `timeout=None` and sending the same modal's
+rows per-execution.
+
+Custom IDs have some special handling which allows you to track some metadata
+for specific modal executions. Custom IDs are split into two parts as
+`"{match}:{metadata}"`. The "match" part is what Yuyo will use to find the executor
+for a modal call and the "metadata" part can be accessed at
+[ModalContext.id_metadata][yuyo.modals.ModalContext.id_metadata] as shown above.
+Custom IDs can never be longer than 100 characters in total.
