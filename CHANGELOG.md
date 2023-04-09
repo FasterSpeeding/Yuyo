@@ -136,10 +136,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
 - [yuyo.components.with_static_text_menu][] decorator for declaring a static text select menu on
   a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass.
-- `options` parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select],
-  [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
-  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
-  passing option builders.
+- `options` parameter to `ActionColumnExecutor.add_static_text_select`,
+  `ActionColumnExecutor.add_text_select`, and `ActionRowExecutor.add_text_select` for passing
+  option builders.
 - `ComponentContext.id_match` and `ModalContext.id_metadata` convenient properties for getting
   the matching and metadata parts of the component's custom ID.
 - `Modal.id_match`, `Modal.id_metadata` and [ModalContext.component_ids][yuyo.modals.ModalContext.component_ids]
@@ -205,8 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to allow for the stateless reuse of component executors.
 - `AbstractComponentExecutor.has_expired`.
 - `ActionRowExecutor.is_full`.
-- [ComponentClient.set_executor][yuyo.components.ComponentClient.set_executor],
-  this has been replaced by [Component.register_executor][yuyo.components.ComponentClient.register_executor].
+- `ComponentClient.set_executor`, this has been replaced by
+  [Component.register_executor][yuyo.components.ComponentClient.register_executor].
 - Passing [yuyo.components.ActionRowExecutor][] to
   [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row]. This
   now takes [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
@@ -219,11 +218,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Some convenience properties to [ComponentContext][yuyo.components.ComponentContext] for getting select
   menu values:
-    * [.select_channels][yuyo.components.ComponentContext.select_channels]
-    * [.select_roles][yuyo.components.ComponentContext.select_roles]
-    * [.select_texts][yuyo.components.ComponentContext.select_texts]
-    * [.select_users][yuyo.components.ComponentContext.select_users]
-    * [.select_members][yuyo.components.ComponentContext.select_members]
+    * `.select_channels`
+    * `.select_roles`
+    * `.select_texts`
+    * `.select_users`
+    * `.select_members`
 - The [yuyo.components.Context][] and [yuyo.modals.Context][] aliases.
 - The [yuyo.components.Client][], [yuyo.modals.Client][], and [yuyo.reactions.Client][] aliases.
 
@@ -253,8 +252,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - The deprecated `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`
   types.
-- [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] can no-longer be used
-  to add link buttons.
+- `ActionRowExecutor.add_button` can no-longer be used to add link buttons.
 - [yuyo.modals.Modal][] subclasses will no-longer inherits fields.
 
 ## [1.9.1a1] - 2023-03-07
@@ -326,9 +324,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 - `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`.
   [yuyo.components.ActionColumnExecutor][] should be used instead.
-- Using [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] to add
-  specifically link buttons. [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button]
-  should be used instead.
+- Using `ActionRowExecutor.add_button` to add specifically link buttons.
+  [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button] should be
+  used instead.
 
 ### Fixed
 - The `add_{}_button` methods on [ComponentPaginator][yuyo.components.ComponentPaginator] now ignore
@@ -342,8 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.7.0a1] - 2023-02-14
 ### Added
 - Support for the new select menu types to `yuyo.to_builder`.
-- [ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
-  for adding channel select menus to an action row.
+- `ActionRowExecutor.add_channel_select` for adding channel select menus to an action row.
 - [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
   adding the other new select menu types to an action row.
 - [yuyo.pagination.Page][] type which can be used to represent a response page in the paginators.
@@ -365,12 +362,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lines` is now positional only in [yuyo.pagination.async_paginate_string][],
   [yuyo.pagination.sync_paginate_string][] and [yuyo.pagination.paginate_string][].
 - Renamed `add_callback` to `set_callback` on `ComponentExecutor` and `ReactionHandler`.
-- [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] now takes all
-  the button's options as arguments.
+- `ActionRowExecutor.add_button` now takes all the button's options as arguments.
   This also now returns the action row and adds the button to the row immediately (without
   any calls to `add_to_parent`).
-- Renamed the old `ActionRowExecutor.add_select_menu` to
-  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select]
+- Renamed the old `ActionRowExecutor.add_select_menu` to `ActionRowExecutor.add_text_select`
   and added the other select menu's config as keyword-arguments.
 - Renamed `add_handler` to [ReactionClient.set_handler][yuyo.reactions.ReactionClient.set_handler].
 - [ReactionClient.set_handler][yuyo.reactions.ReactionClient.set_handler]'s arguments are now all

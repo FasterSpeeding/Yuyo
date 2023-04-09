@@ -1291,7 +1291,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
         This will also include some of the values for a mentionable select menu.
 
-        [ComponentContext.select_members][yuyo.components.ComponentContext.select_members]
+        [ComponentContext.selected_members][yuyo.components.ComponentContext.selected_members]
         has the full member objects.
         """
         if not self.interaction.resolved:
