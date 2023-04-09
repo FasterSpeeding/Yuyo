@@ -39,6 +39,7 @@ import asyncio
 import datetime
 import typing
 from collections import abc as collections
+import typing_extensions
 
 import alluka as alluka_
 import hikari
@@ -77,9 +78,10 @@ class AbstractReactionHandler(abc.ABC):
     __slots__ = ()
 
     @property
+    @typing_extensions.deprecated("Reaction handlers no-longer track their own timeouts")
     @abc.abstractmethod
     def has_expired(self) -> bool:
-        """Whether this handler has ended."""
+        """Deprecated property."""
 
     @abc.abstractmethod
     async def close(self) -> None:
@@ -120,6 +122,24 @@ class ReactionHandler(AbstractReactionHandler):
 
     __slots__ = ("_authors", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
 
+    @typing.overload
+    def __init__(
+        self,
+        *,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
+    ) -> None:
+        ...
+
+    @typing.overload
+    @typing_extensions.deprecated("Reaction handlers no-longer track their own timeouts")
+    def __init__(
+        self,
+        *,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+    ) -> None:
+        ...
+
     def __init__(
         self,
         *,
@@ -142,7 +162,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
-        self._message: typing.Optional[hikari.Message] = None
+        self._message: typing.Optional[tuple[hikari.Snowflake, hikari.Snowflake]] = None
 
         if timeout is None:
             self._timeout: timeouts.AbstractTimeout = timeouts.NeverTimeout()
@@ -161,12 +181,28 @@ class ReactionHandler(AbstractReactionHandler):
         return frozenset(self._authors)
 
     @property
+    @typing_extensions.deprecated("Reaction handlers no-longer track their own timeouts")
     def has_expired(self) -> bool:
         # <<inherited docstring from AbstractReactionHandler>>.
         return self._timeout.has_expired
 
-    async def open(self, message: hikari.Message, /) -> None:
-        self._message = message
+    @typing.overload
+    async def open(self, channel: hikari.Message, /) -> None:
+        ...
+
+    @typing.overload
+    async def open(self, channel: hikari.SnowflakeishOr[hikari.PartialChannel], message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None, /) -> None:
+        ...
+
+    async def open(self, channel: typing.Union[hikari.Snowflakeish, hikari.Message, hikari.PartialChannel], message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None, /) -> None:
+        if isinstance(channel, hikari.Message):
+            message = channel.id
+            channel = channel.channel_id
+
+        else:
+            assert message is not None
+
+        self._message = (hikari.Snowflake(channel), hikari.Snowflake(message))
 
     async def close(self) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
@@ -283,6 +319,38 @@ class ReactionPaginator(ReactionHandler):
 
     __slots__ = ("_buffer", "_index", "_iterator", "_reactions")
 
+    @typing.overload
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+    ) -> None:
+        ...
+
+    @typing.overload
+    @typing_extensions.deprecated("Reaction handlers no-longer track their own timeouts")
+    def __init__(
+        self,
+        iterator: _internal.IteratorT[pagination.EntryT],
+        /,
+        *,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
+        triggers: collections.Collection[str] = (
+            pagination.LEFT_TRIANGLE,
+            pagination.STOP_SQUARE,
+            pagination.RIGHT_TRIANGLE,
+        ),
+        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+    ) -> None:
+        ...
+
     def __init__(
         self,
         iterator: _internal.IteratorT[pagination.EntryT],
@@ -321,7 +389,7 @@ class ReactionPaginator(ReactionHandler):
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(authors=authors, timeout=timeout)
+        super().__init__(authors=authors, timeout=timeout)  # pyright: ignore [ reportDeprecated ]
         self._buffer: list[pagination.Page] = []
         self._index = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
@@ -498,36 +566,36 @@ class ReactionPaginator(ReactionHandler):
         """
         return self._add_button(self._on_last, emoji, add_reaction)
 
-    async def _edit_message(self, response: pagination.Page, /) -> None:
+    async def _edit_message(self, event: ReactionEventT, response: pagination.Page, /) -> None:
         if self._message is None:
             return
 
         try:
-            await self._message.edit(**response.to_kwargs())
+            await event.app.rest.edit_message(*self._message, **response.to_kwargs())
 
         except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
             raise HandlerClosed() from exc
 
-    async def _on_disable(self, _: ReactionEventT, /) -> None:
+    async def _on_disable(self, event: ReactionEventT, /) -> None:
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
             # possible.
-            asyncio.create_task(message.delete())
+            asyncio.create_task(event.app.rest.delete_message(*message))
 
         raise HandlerClosed
 
-    async def _on_first(self, _: ReactionEventT, /) -> None:
+    async def _on_first(self, event: ReactionEventT, /) -> None:
         if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
-            await self._edit_message(first_entry)
+            await self._edit_message(event, first_entry)
 
-    async def _on_last(self, _: ReactionEventT, /) -> None:
+    async def _on_last(self, event: ReactionEventT, /) -> None:
         if self._iterator:
             self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
 
         if self._buffer:
             self._index = len(self._buffer) - 1
-            await self._edit_message(self._buffer[-1])
+            await self._edit_message(event, self._buffer[-1])
 
     async def get_next_entry(self) -> typing.Optional[pagination.Page]:
         """Get the next entry in this paginator.
@@ -551,14 +619,14 @@ class ReactionPaginator(ReactionHandler):
 
         return None  # MyPy
 
-    async def _on_next(self, _: ReactionEventT, /) -> None:
+    async def _on_next(self, event: ReactionEventT, /) -> None:
         if entry := await self.get_next_entry():
-            await self._edit_message(entry)
+            await self._edit_message(event, entry)
 
-    async def _on_previous(self, _: ReactionEventT, /) -> None:
+    async def _on_previous(self, event: ReactionEventT, /) -> None:
         if self._index > 0:
             self._index -= 1
-            await self._edit_message(self._buffer[self._index])
+            await self._edit_message(event, self._buffer[self._index])
 
     def add_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> Self:
         """Add a author/owner to this handler.
@@ -605,6 +673,7 @@ class ReactionPaginator(ReactionHandler):
             # TODO: check if we can just clear the reactions before doing this using the cache.
             for emoji_name in self._reactions:
                 try:
+                    self._
                     await message.remove_reaction(emoji_name)
 
                 except (hikari.NotFoundError, hikari.ForbiddenError):
