@@ -582,9 +582,94 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Message Components
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Message Components
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-components" class="md-nav__link">
+    Types of components
+  </a>
+  
+    <nav class="md-nav" aria-label="Types of components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#buttons" class="md-nav__link">
+    Buttons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#select-menus" class="md-nav__link">
+    Select Menus
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declaring-components" class="md-nav__link">
+    Declaring Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-component-interactions" class="md-nav__link">
+    Handling Component Interactions
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Component Interactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful" class="md-nav__link">
+    Stateful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateless" class="md-nav__link">
+    Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -659,6 +744,75 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#types-of-components" class="md-nav__link">
+    Types of components
+  </a>
+  
+    <nav class="md-nav" aria-label="Types of components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#buttons" class="md-nav__link">
+    Buttons
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#select-menus" class="md-nav__link">
+    Select Menus
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#declaring-components" class="md-nav__link">
+    Declaring Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-component-interactions" class="md-nav__link">
+    Handling Component Interactions
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Component Interactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful" class="md-nav__link">
+    Stateful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateless" class="md-nav__link">
+    Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -673,6 +827,112 @@
 
 
 <h1 id="message-components">Message Components<a class="headerlink" href="#message-components" title="Permanent link">#</a></h1>
+<p>Message components are the interactive buttons and select menus you'll see on
+some messages sent by bots.</p>
+<h3 id="types-of-components">Types of components<a class="headerlink" href="#types-of-components" title="Permanent link">#</a></h3>
+<h5 id="buttons">Buttons<a class="headerlink" href="#buttons" title="Permanent link">#</a></h5>
+<p><img alt="button colours" src="../images/button_colours.png" /></p>
+<p>Message buttons have several different styles, as shown above. Most of these
+are interactive, meaning that an interaction will be sent to the bot when a
+user clicks on it. The only non-interactive style being link buttons, which
+simply open the set link in a browser for the user who clicked on it.</p>
+<h3 id="select-menus">Select Menus<a class="headerlink" href="#select-menus" title="Permanent link">#</a></h3>
+<p><img alt="select menu example" src="../images/select_menu_example.png" /></p>
+<p>Select menus let users select between 0 to 25 options (dependent on how the bot
+configured it). These selections are communicated to the bot once the user has
+finished selecting options via and interaction and there's several different
+resources they can be selecting:</p>
+<ul>
+<li>Text menus: lets the bot pre-define up to 25 text options</li>
+<li>User menus: lets the user pick up to 25 users (in the current guild)?</li>
+<li>Role menus: lets the user pick up to 25 roles (in the current guild)?</li>
+<li>Channel menus: lets the user pick up to 25 of the current guild's channels</li>
+<li>Mentionable menus: lets the user pick up to 25 roles and users (in the current guild)?</li>
+</ul>
+<h3 id="declaring-components">Declaring Components<a class="headerlink" href="#declaring-components" title="Permanent link">#</a></h3>
+<p>There's several different ways to declare components using Yuyo:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_channel_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_channels</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">ROLE_SELECT_MENU</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_role_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_text_menu</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_texts</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_user_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_users</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">MENTIONABLE_SELECT_MENU</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_mentionable_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">selected_users</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="n">link_button</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="handling-component-interactions">Handling Component Interactions<a class="headerlink" href="#handling-component-interactions" title="Permanent link">#</a></h3>
+<h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">command_callback</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">AppCommandContext</span><span class="p">,</span> <span class="n">component_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">column</span> <span class="o">=</span> <span class="n">ColumnCls</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">column</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
+    <span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+</code></pre></div>
+<p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> allows
+you to associate state with a specific message's components through OOP.</p>
+<p>When doing this you'll usually be creating an instance of the components column
+per message.</p>
+<h5 id="stateless">Stateless<a class="headerlink" href="#stateless" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">custom_id</span><span class="o">=</span><span class="s2">&quot;GLOBALLY_UNIQUE&quot;</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">id_metadata</span><span class="p">)</span>
+
+<span class="n">column</span> <span class="o">=</span> <span class="n">ColumnCls</span><span class="p">()</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentClient</span><span class="p">()</span>
+<span class="n">client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">command_callback</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">AppCommandContext</span><span class="p">,</span> <span class="n">component_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">ColumnCls</span><span class="p">(</span><span class="n">id_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;GLOBALLY_UNIQUE&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)})</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
+</code></pre></div>
+<p>Alternatively, components can be reused by registering the modal to the client
+on startup with <code>timeout=None</code> and sending the same modal's rows per-exevution.</p>
+<p>Custom IDs have some special handling which allows you to track some metadata
+for a specific message's components. Custom IDs are split into two parts as
+<code>"{match}:{metadata}"</code> where the "match" part is what Yuyo wil use to find the
+executor for a message's components and the "metadata"
+(<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ComponentContext.id_metadata</a>) part
+represents any developer added metadata for that specific component.</p>
+<p>It should be noted that interactive components should be given constant custom
+IDs when using an action column statelessly and that Custom IDs can never be
+longer than 100 characters in total length.</p>
 
 
 

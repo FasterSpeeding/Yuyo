@@ -622,9 +622,67 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Modals
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Modals
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#declaring-modals" class="md-nav__link">
+    Declaring Modals
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-modal-interactions" class="md-nav__link">
+    Handling Modal Interactions
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Modal Interactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful" class="md-nav__link">
+    Stateful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateless" class="md-nav__link">
+    Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -657,6 +715,48 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#declaring-modals" class="md-nav__link">
+    Declaring Modals
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-modal-interactions" class="md-nav__link">
+    Handling Modal Interactions
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Modal Interactions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stateful" class="md-nav__link">
+    Stateful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateless" class="md-nav__link">
+    Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -671,6 +771,97 @@
 
 
 <h1 id="modals">Modals<a class="headerlink" href="#modals" title="Permanent link">#</a></h1>
+<p>Modals allow bots to prompt a user for more information as the initial response
+for a slash command, context menu or message component interaction.</p>
+<p><img alt="modal example" src="../images/modal_example.png" /></p>
+<p>Modals take the shape of dialogue boxes which show up on top of everything for
+the user who triggered the relevant interaction (as shown above) and only
+support text input right now.</p>
+<h3 id="declaring-modals">Declaring Modals<a class="headerlink" href="#declaring-modals" title="Permanent link">#</a></h3>
+<p>There's several different ways to declare modals using Yuyo:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>
+        <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;John Doe&quot;</span><span class="p">),</span>
+        <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModalOptions</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">ModalOptions</span><span class="p">):</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
+        <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span>
+    <span class="p">)</span>
+
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">ModalOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+<h3 id="handling-modal-interactions">Handling Modal Interactions<a class="headerlink" href="#handling-modal-interactions" title="Permanent link">#</a></h3>
+<p>There's two ways to handle modal interactions with Yuyo:</p>
+<h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">command_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">AppCommandContext</span><span class="p">,</span> <span class="n">modal_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">modals</span><span class="o">.</span><span class="n">Client</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">modal</span> <span class="o">=</span> <span class="n">Modal</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">)</span>
+    <span class="n">modal_client</span><span class="o">.</span><span class="n">register_modal</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">modal</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_modal_response</span><span class="p">(</span><span class="s2">&quot;Title&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">components</span><span class="o">=</span><span class="n">modal</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
+</code></pre></div>
+<p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> allows you to associate state with a
+specific modal execution through OOP.</p>
+<p>When doing this you'll usually be creating an instance of the modal per
+interaction and associating this with a specific modal execution by using
+the parent interaction's custom ID as the modal's custom ID (as shown above).</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient">ModalClient.register_modal</a> defaults <code>timeout</code> to a 30
+second one use timeout.</p>
+<h5 id="stateless">Stateless<a class="headerlink" href="#stateless" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="c1"># parse_signature defaults to False for as_modal and modal (unlike as_modal_template).</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">id_metadata</span><span class="p">)</span>
+
+<span class="n">MODAL_ID</span> <span class="o">=</span> <span class="s2">&quot;MODAL_ID&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">ModalClient</span><span class="p">()</span>
+<span class="n">client</span><span class="o">.</span><span class="n">register_modal</span><span class="p">(</span><span class="n">MODAL_ID</span><span class="p">,</span> <span class="n">modal</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">command_callback</span><span class="p">(</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">AppCommandContext</span><span class="p">,</span> <span class="n">modal_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">modals</span><span class="o">.</span><span class="n">ModalClient</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_modal_response</span><span class="p">(</span><span class="s2">&quot;Title&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">MODAL_ID</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Alternatively, modals can be reused by using a global custom ID and registering the
+modal to the client on startup with <code>timeout=None</code> and sending the same modal's
+rows per-execution.</p>
+<p>Custom IDs have some special handling which allows you to track some metadata
+for specific modal executions. Custom IDs are split into two parts as
+<code>"{match}:{metadata}"</code> where the "match" part is what Yuyo will use to find the
+executor for a modal call and the "metadata"
+(<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ModalContext.id_metadata</a>) part
+represents any developer added metadata for the modal.</p>
+<p>If should be noted that Custom IDs can never be longer than 100 characters in
+total length.</p>
 
 
 
