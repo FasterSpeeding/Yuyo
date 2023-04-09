@@ -2357,10 +2357,9 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_executor">ComponentClient.deregister_executor</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_text_menu">yuyo.components.with_static_text_menu</a> decorator for declaring a static text select menu on
   a <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass.</li>
-<li><code>options</code> parameter to [ActionColumnExecutor.add_static_text_select][yuyo.components.ActionColumnExecutor.add_static_text_select],
-  [ActionColumnExecutor.add_text_select][yuyo.components.ActionColumnExecutor.add_text_select], and
-  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select] for
-  passing option builders.</li>
+<li><code>options</code> parameter to <code>ActionColumnExecutor.add_static_text_select</code>,
+  <code>ActionColumnExecutor.add_text_select</code>, and <code>ActionRowExecutor.add_text_select</code> for passing
+  option builders.</li>
 <li><code>ComponentContext.id_match</code> and <code>ModalContext.id_metadata</code> convenient properties for getting
   the matching and metadata parts of the component's custom ID.</li>
 <li><code>Modal.id_match</code>, <code>Modal.id_metadata</code> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.ModalContext.component_ids">ModalContext.component_ids</a>
@@ -2430,8 +2429,8 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
   to allow for the stateless reuse of component executors.</li>
 <li><code>AbstractComponentExecutor.has_expired</code>.</li>
 <li><code>ActionRowExecutor.is_full</code>.</li>
-<li>[ComponentClient.set_executor][yuyo.components.ComponentClient.set_executor],
-  this has been replaced by <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">Component.register_executor</a>.</li>
+<li><code>ComponentClient.set_executor</code>, this has been replaced by
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">Component.register_executor</a>.</li>
 <li>Passing <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor">yuyo.components.ActionRowExecutor</a> to
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_row">ActionColumnExecutor.add_row</a>. This
   now takes <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
@@ -2446,11 +2445,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li>Some convenience properties to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentContext">ComponentContext</a> for getting select
   menu values:<ul>
-<li>[.select_channels][yuyo.components.ComponentContext.select_channels]</li>
-<li>[.select_roles][yuyo.components.ComponentContext.select_roles]</li>
-<li>[.select_texts][yuyo.components.ComponentContext.select_texts]</li>
-<li>[.select_users][yuyo.components.ComponentContext.select_users]</li>
-<li>[.select_members][yuyo.components.ComponentContext.select_members]</li>
+<li><code>.select_channels</code></li>
+<li><code>.select_roles</code></li>
+<li><code>.select_texts</code></li>
+<li><code>.select_users</code></li>
+<li><code>.select_members</code></li>
 </ul>
 </li>
 <li>The <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.Context">yuyo.components.Context</a> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.Context">yuyo.modals.Context</a> aliases.</li>
@@ -2489,8 +2488,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li>The deprecated <code>yuyo.components.MultiComponentExecutor</code> and <code>yuyo.components.ChildActionRowExecutor</code>
   types.</li>
-<li>[ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] can no-longer be used
-  to add link buttons.</li>
+<li><code>ActionRowExecutor.add_button</code> can no-longer be used to add link buttons.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.Modal">yuyo.modals.Modal</a> subclasses will no-longer inherits fields.</li>
 </ul>
 <h2 id="191a1-2023-03-07"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.9.0a1...v1.9.1a1">1.9.1a1</a> - 2023-03-07<a class="headerlink" href="#191a1-2023-03-07" title="Permanent link">#</a></h2>
@@ -2573,9 +2571,9 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li><code>yuyo.components.MultiComponentExecutor</code> and <code>yuyo.components.ChildActionRowExecutor</code>.
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> should be used instead.</li>
-<li>Using [ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] to add
-  specifically link buttons. <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_link_button">ActionRowExecutor.add_link_button</a>
-  should be used instead.</li>
+<li>Using <code>ActionRowExecutor.add_button</code> to add specifically link buttons.
+  <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_link_button">ActionRowExecutor.add_link_button</a> should be
+  used instead.</li>
 </ul>
 <h3 id="fixed_7">Fixed<a class="headerlink" href="#fixed_7" title="Permanent link">#</a></h3>
 <ul>
@@ -2592,8 +2590,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">#</a></h3>
 <ul>
 <li>Support for the new select menu types to <code>yuyo.to_builder</code>.</li>
-<li>[ActionRowExecutor.add_channel_select][yuyo.components.ActionRowExecutor.add_channel_select]
-  for adding channel select menus to an action row.</li>
+<li><code>ActionRowExecutor.add_channel_select</code> for adding channel select menus to an action row.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_select_menu">ActionRowExecutor.add_select_menu</a> for
   adding the other new select menu types to an action row.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a> type which can be used to represent a response page in the paginators.
@@ -2616,12 +2613,10 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li><code>lines</code> is now positional only in <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.async_paginate_string">yuyo.pagination.async_paginate_string</a>,
   <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.sync_paginate_string">yuyo.pagination.sync_paginate_string</a> and <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.paginate_string">yuyo.pagination.paginate_string</a>.</li>
 <li>Renamed <code>add_callback</code> to <code>set_callback</code> on <code>ComponentExecutor</code> and <code>ReactionHandler</code>.</li>
-<li>[ActionRowExecutor.add_button][yuyo.components.ActionRowExecutor.add_button] now takes all
-  the button's options as arguments.
+<li><code>ActionRowExecutor.add_button</code> now takes all the button's options as arguments.
   This also now returns the action row and adds the button to the row immediately (without
   any calls to <code>add_to_parent</code>).</li>
-<li>Renamed the old <code>ActionRowExecutor.add_select_menu</code> to
-  [ActionRowExecutor.add_text_select][yuyo.components.ActionRowExecutor.add_text_select]
+<li>Renamed the old <code>ActionRowExecutor.add_select_menu</code> to <code>ActionRowExecutor.add_text_select</code>
   and added the other select menu's config as keyword-arguments.</li>
 <li>Renamed <code>add_handler</code> to <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionClient.set_handler">ReactionClient.set_handler</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionClient.set_handler">ReactionClient.set_handler</a>'s arguments are now all
