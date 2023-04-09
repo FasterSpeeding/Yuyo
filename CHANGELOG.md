@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members]
   now correctly disables auto chunking when [False][] is passed after it has been previously
   enabled. This now also always changes the configuration for `chunk_presences`.
-- Some typoed function names which incorrectly used "interative" instead of "interactive".
+- Some typoed function names which were missing the "c" in "interactive".
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed
