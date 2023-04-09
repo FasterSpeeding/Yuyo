@@ -24,11 +24,6 @@ from yuyo import components
 
 def action_column_of_menus():
     class Column(components.ActionColumnExecutor):
-        __slots__ = ()
-
-        def __init__(self) -> None:
-            ...
-
         @components.as_channel_menu
         async def on_channel_menu(self, ctx: components.Context) -> None:
             ctx.selected_channels

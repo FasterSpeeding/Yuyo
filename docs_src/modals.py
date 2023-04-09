@@ -25,13 +25,8 @@ from yuyo import modals
 
 def modal_class():
     class Modal(modals.Modal):
-        __slots__ = ("_response",)
-
-        def __init__(self, response: str) -> None:
-            self._response = response
-
         async def callback(self, ctx: modals.Context) -> None:
-            await ctx.respond(self._response)
+            await ctx.respond("response")
 
 
 def modal_class_fields():
