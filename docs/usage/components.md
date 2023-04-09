@@ -23,11 +23,11 @@ configured it). These selections are communicated to the bot once the user has
 finished selecting options via and interaction and there's several different
 resources they can be selecting:
 
-* Text menus: let the bot pre-define up to 25 options
-* User menus: let the user pick up to 25 users (in the current guild)?
-* Role menus: let the user pick up to 25 roles (in the current guild)?
-* Channel menus: let the user pick up to 25 of the current guild's channels
-* Mentionable menus: let the user pick up to 25 roles and users (in the current guild)?
+* Text menus: lets the bot pre-define up to 25 text options
+* User menus: lets the user pick up to 25 users (in the current guild)?
+* Role menus: lets the user pick up to 25 roles (in the current guild)?
+* Channel menus: lets the user pick up to 25 of the current guild's channels
+* Mentionable menus: lets the user pick up to 25 roles and users (in the current guild)?
 
 ### Declaring Components
 
