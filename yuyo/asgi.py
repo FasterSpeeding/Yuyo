@@ -786,7 +786,7 @@ class AsgiBot(hikari.RESTBotAware):
         if self._is_alive:
             raise RuntimeError("The client is already running")
 
-        await asyncio.gather(*(callback() for callback in self._adapter.on_startup))
+        await asyncio.gather(*(callback(self) for callback in self._on_startup))
         await self._start()
 
     async def _close(self) -> None:
@@ -817,7 +817,7 @@ class AsgiBot(hikari.RESTBotAware):
         if not self._is_alive or not self._join_event:
             raise RuntimeError("The client is not running")
 
-        await asyncio.gather(*(callback() for callback in self._adapter.on_shutdown))
+        await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
         await self._close()
 
     async def join(self) -> None:
@@ -847,7 +847,9 @@ class AsgiBot(hikari.RESTBotAware):
             await callback(self)
 
         self._on_shutdown[callback] = shutdown_callback
-        self._adapter.add_shutdown_callback(shutdown_callback)
+
+        if self._is_asgi_managed:
+            self._adapter.add_shutdown_callback(shutdown_callback)
 
     def remove_shutdown_callback(
         self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -871,7 +873,8 @@ class AsgiBot(hikari.RESTBotAware):
             raise ValueError(callback) from None
 
         else:
-            self._adapter.remove_shutdown_callback(registered_callback)
+            if self._is_asgi_managed:
+                self._adapter.remove_shutdown_callback(registered_callback)
 
     def add_startup_callback(
         self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -894,7 +897,9 @@ class AsgiBot(hikari.RESTBotAware):
             await callback(self)
 
         self._on_startup[callback] = startup_callback
-        self._adapter.add_startup_callback(startup_callback)
+
+        if self._is_asgi_managed:
+            self._adapter.add_startup_callback(startup_callback)
 
     def remove_startup_callback(
         self, callback: collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -918,4 +923,5 @@ class AsgiBot(hikari.RESTBotAware):
             raise ValueError(callback) from None
 
         else:
-            self._adapter.remove_startup_callback(registered_callback)
+            if self._is_asgi_managed:
+                self._adapter.remove_startup_callback(registered_callback)
