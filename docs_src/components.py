@@ -11,6 +11,10 @@
 
 # pyright: reportUnusedClass=none
 # pyright: reportUnusedFunction=none
+# pyright: reportUnusedVariable=none
+
+import uuid
+
 import alluka
 import hikari
 import tanjun
@@ -77,9 +81,9 @@ def creating_a_component():
 
 def creating_a_static_component():
     class ColumnCls(components.ActionColumnExecutor):
-        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, custom_id="GLOBALLY_UNIQUE", emoji="👍")
         async def on_button(self, ctx: components.Context) -> None:
-            ...
+            session_id = uuid.UUID(ctx.id_metadata)
 
     column = ColumnCls()
 
@@ -91,4 +95,5 @@ def creating_a_static_component():
     async def command_callback(
         ctx: tanjun.abc.AppCommandContext, component_client: alluka.Injected[components.Client]
     ) -> None:
-        await ctx.respond(components=ColumnCls(id_metadata={}).rows)
+        session_id = uuid.uuid4()
+        await ctx.respond(components=ColumnCls(id_metadata={"GLOBALLY_UNIQUE": str(session_id)}).rows)
