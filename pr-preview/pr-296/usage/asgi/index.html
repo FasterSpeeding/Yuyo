@@ -682,8 +682,8 @@ message components and modals as part of an ASGI server.</p>
 
 <span class="kn">import</span> <span class="nn">yuyo</span>
 
-<span class="n">rest_bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">])</span>
-<span class="n">tanjun</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">rest_bot</span><span class="p">)</span>
+<span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">],</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">tanjun</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
 
 <span class="c1"># ... more setup</span>
 </code></pre></div>
@@ -698,9 +698,9 @@ such as using <a href="https://fastapi.tiangolo.com/">FastAPI</a>'s
 mount this bot within an existing FastAPI server on a specific route:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">fastapi</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">(</span><span class="n">on_startup</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">start</span><span class="p">],</span> <span class="n">on_shutdown</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">close</span><span class="p">])</span>
 
-<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">rest_bot</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>
 </code></pre></div>
 
 
