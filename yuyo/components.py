@@ -4318,7 +4318,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated. Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button]."""  # noqa: E501
+        """Deprecated method.
+        
+        Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button].
+        """
         return cls.with_static_interative_button(  # pyright: ignore [ reportDeprecated ]
             style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
@@ -4877,7 +4880,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        """Deprecated alias of [.with_static_channel_menu][yuyo.components.ActionColumnExecutor.with_static_channel_menu]."""
+        """Deprecated method.
+
+        Use [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu].
+        """
         return cls.with_static_channel_menu(  # pyright: ignore [ reportDeprecated ]
             custom_id=custom_id,
             channel_types=channel_types,
