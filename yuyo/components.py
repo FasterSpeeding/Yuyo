@@ -4319,7 +4319,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Deprecated method.
-        
+
         Use [.add_static_interactive_button][yuyo.components.ActionColumnExecutor.add_static_interactive_button].
         """
         return cls.with_static_interative_button(  # pyright: ignore [ reportDeprecated ]
