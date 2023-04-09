@@ -153,7 +153,7 @@ default_sessions = [
 extra_test_installs = ["."]
 mypy_allowed_to_fail = true
 mypy_targets = ["docs_src", "yuyo"]
-path_ignore = "yuyo\\/_internal\\/vendor\\/|docs\\/images\\/.+"
+path_ignore = "yuyo\\/_internal\\/vendor\\/|docs\\/usage\\/images\\/.+"
 project_name = "yuyo"
 top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./tests"]
 
