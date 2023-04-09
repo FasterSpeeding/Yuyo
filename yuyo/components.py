@@ -2817,7 +2817,7 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     ) -> Self:
         """Deprecated alias of [.add_interactive_button][yuyo.components.ActionRowExecutor.add_interactive_button]."""
         return self.add_interactive_button(
-            style, callback, custom_id=custom_id, emoji=emoji, label=labe, is_disabled=is_disabled
+            style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
     def add_interactive_button(
@@ -4242,7 +4242,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             style, callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
-    @classmetho
     @classmethod
     def add_static_interactive_button(
         cls,
