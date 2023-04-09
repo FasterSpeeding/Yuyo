@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some typoed function names which were missing the "c" in "interactive".
 - [AsgiBot.start][yuyo.asgi.AsgiBot.start] and [AsgiBot.close][yuyo.asgi.AsgiBot.close]
   will now call the startup and shutdown callbacks respectively when `asgi_managed=False`.
+- [ModalClient.register_modal][yuyo.modals.ModalClient.register_client] now uses
+  a static timeout by default, rather than sliding.
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed
