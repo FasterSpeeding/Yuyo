@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members]
   now correctly disables auto chunking when [False][] is passed after it has been previously
   enabled. This now also always changes the configuration for `chunk_presences`.
+- Some typoed function names which were missing the "c" in "interactive".
 
 ### [1.11.1a1] - 2023-04-05
 ### Changed
@@ -109,10 +110,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed `ComponentClient.get_executor` to [ComponentClient.get_executor_for_message][yuyo.components.ComponentClient.get_executor_for_message].
 - Renamed `ComponentClient.remove_executor` to [ComponentClient.deregister_message][yuyo.components.ComponentClient.deregister_message].
 - Renamed `add_` and `with_` component methods to better match Hikari's new naming scheme:
-    * `ActionRowExecutor.add_button` to `.add_interative_button`
+    * `ActionRowExecutor.add_button` to `.add_interactive_button`
     * `ActionRowExecutor.add_channel_select` to `.add_channel_menu`
     * `ActionRowExecutor.add_text_select` to `.add_text_menu`
-    * `ActionColumnExecutor.add_button` to `.add_interative_button`
+    * `ActionColumnExecutor.add_button` to `.add_interactive_button`
     * `ActionColumnExecutor.add_channel_select` to `.add_channel_menu`
     * `ActionColumnExecutor.add_text_select` to `.add_text_menu`
     * `ActionColumnExecutor.add_static_button` to `.add_static_interactive_button`
