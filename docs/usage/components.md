@@ -34,11 +34,27 @@ resources they can be selecting:
 There's several different ways to declare components using Yuyo:
 
 ```py
---8<-- "./docs_src/components.py:26:46"
+--8<-- "./docs_src/components.py:30:53"
 ```
 
 ```py
---8<-- "./docs_src/components.py:50:55"
+--8<-- "./docs_src/components.py:57:70"
+```
+
+```py
+--8<-- "./docs_src/components.py:74:84"
+```
+
+```py
+--8<-- "./docs_src/components.py:88:93"
+```
+
+```py
+--8<-- "./docs_src/components.py:97:101"
+```
+
+```py
+--8<-- "./docs_src/components.py:105:108"
 ```
 
 ### Handling Component Interactions
@@ -48,7 +64,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:59:74"
+--8<-- "./docs_src/components.py:112:127"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -64,7 +80,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:78:94"
+--8<-- "./docs_src/components.py:131:147"
 ```
 
 Alternatively, components can be reused by registering the modal to the client
@@ -72,7 +88,7 @@ on startup with `timeout=None` and sending the same modal's rows per-exevution.
 
 Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. Custom IDs are split into two parts as
-`"{match}:{metadata}"` where the "match" part is what Yuyo wil use to find the
+`"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
 executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
 represents any developer added metadata for that specific component.

@@ -14,19 +14,15 @@ support text input right now.
 There's several different ways to declare modals using Yuyo:
 
 ```py
---8<-- "./docs_src/modals.py:27:29"
+--8<-- "./docs_src/modals.py:27:36"
 ```
 
 ```py
---8<-- "./docs_src/modals.py:33:42"
+--8<-- "./docs_src/modals.py:40:42"
 ```
 
 ```py
---8<-- "./docs_src/modals.py:46:48"
-```
-
-```py
---8<-- "./docs_src/modals.py:52:60"
+--8<-- "./docs_src/modals.py:46:54"
 ```
 
 ### Handling Modal Interactions
@@ -36,7 +32,7 @@ There's two main ways to handle modal interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/modals.py:64:76"
+--8<-- "./docs_src/modals.py:58:71"
 ```
 
 Subclassing [Modal][yuyo.modals.Modal] allows you to associate state with a
@@ -52,7 +48,7 @@ the parent interaction's custom ID as the modal's custom ID (as shown above).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/modals.py:80:96"
+--8<-- "./docs_src/modals.py:75:91"
 ```
 
 Alternatively, modals can be reused by using a global custom ID and registering the

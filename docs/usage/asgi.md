@@ -26,5 +26,5 @@ mount this bot within an existing FastAPI server on a specific route:
 ```
 
 The extra steps this example goes through to let FastAPI startup and shutdown
-the [AsgiBot][yuyo.asgi.AsgiBot] are only neccessary when mounting as a FastAPI
+the [AsgiBot][yuyo.asgi.AsgiBot] are only necessary when mounting as a FastAPI
 sub-application.

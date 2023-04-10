@@ -25,12 +25,6 @@ from yuyo import modals
 
 def modal_class():
     class Modal(modals.Modal):
-        async def callback(self, ctx: modals.Context) -> None:
-            await ctx.respond("response")
-
-
-def modal_class_fields():
-    class Modal(modals.Modal):
         async def callback(
             self,
             ctx: modals.Context,
@@ -42,7 +36,7 @@ def modal_class_fields():
             await ctx.respond("hi")
 
 
-def modal_template_fields():
+def modal_template():
     @modals.as_modal_template
     async def modal_template(ctx: modals.Context, field: str = modals.text_input("label")) -> None:
         await ctx.respond("hi")
@@ -72,8 +66,9 @@ def creating_a_modal():
 
     async def command_callback(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
         modal = Modal("state")
-        modal_client.register_modal(str(ctx.interaction.id), modal)
-        await ctx.create_modal_response("Title", str(ctx.interaction.id), components=modal.rows)
+        custom_id = str(ctx.interaction.id)
+        modal_client.register_modal(custom_id, modal)
+        await ctx.create_modal_response("Title", custom_id, components=modal.rows)
 
 
 def creating_a_static_modal():

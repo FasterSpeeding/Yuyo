@@ -22,6 +22,10 @@ import tanjun
 from yuyo import components
 
 
+async def callback(ctx: components.Context) -> None:
+    await ctx.respond("Hi")
+
+
 def action_column_of_menus():
     class Column(components.ActionColumnExecutor):
         @components.as_channel_menu
@@ -32,6 +36,9 @@ def action_column_of_menus():
         async def on_role_menu(self, ctx: components.Context) -> None:
             ctx.selected_roles
 
+        @components.with_option("op3", "value3")
+        @components.with_option("opt2", "value2")
+        @components.with_option("opt1", "value1")
         @components.as_text_menu
         async def on_text_menu(self, ctx: components.Context) -> None:
             ctx.selected_texts
@@ -46,6 +53,37 @@ def action_column_of_menus():
             ctx.selected_users
 
 
+def action_column_decoratored_menus():
+    @components.with_static_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
+    @components.with_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
+    @components.with_static_text_menu(
+        callback,
+        options=[
+            hikari.impl.SelectOptionBuilder("opt1", "value1"),
+            hikari.impl.SelectOptionBuilder("opt2", "value2"),
+            hikari.impl.SelectOptionBuilder("opt3", "value3"),
+        ],
+    )
+    @components.with_static_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, callback)
+    @components.with_static_channel_menu(callback)
+    class Column(components.ActionColumnExecutor):
+        ...
+
+
+def action_column_menu_methods():
+    column = (
+        components.ActionColumnExecutor()
+        .add_channel_menu(callback)
+        .add_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, callback)
+        .add_text_menu(callback)
+        .add_option("opt1", "value1")
+        .add_option("opt2", "value2")
+        .add_option("opt3", "value3")
+        .parent.add_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
+        .add_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
+    )
+
+
 def action_column_of_buttons():
     class Column(components.ActionColumnExecutor):
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
@@ -53,6 +91,21 @@ def action_column_of_buttons():
             ...
 
         link_button = components.link_button("https://example.com", label="label")
+
+
+def action_column_button_methods():
+    column = (
+        components.ActionColumnExecutor()
+        .add_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
+        .add_link_button("https://example.com", label="label")
+    )
+
+
+def action_column_decorated_buttons():
+    @components.with_static_link_button("https://example.com", label="label")
+    @components.with_static_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
+    class Column(components.ActionColumnExecutor):
+        ...
 
 
 def creating_a_component():
