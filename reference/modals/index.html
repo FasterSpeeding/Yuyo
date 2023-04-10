@@ -1321,8 +1321,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.modals.AbstractModal.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -1682,7 +1682,8 @@ works for <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal<
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to <code>parameter</code>, if provided, or a UUID and cannot be
+longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
@@ -1924,7 +1925,8 @@ and the default is a string that's &lt;=4000 characters in length.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to <code>parameter</code>, if provided, or a UUID and cannot be
+longer than 100 characters.</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
 interactions. Anything after <code>":"</code> is metadata.</p>
             <p>
@@ -3993,7 +3995,7 @@ and <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> su
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to the name of the parameter/attribute this is assigned to.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4194,7 +4196,8 @@ and the default is a string that's &lt;=4000 characters in length.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to <code>parameter</code>, if provided, or a UUID and cannot be longer
+than 100 characters.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4412,7 +4415,8 @@ and the default is a string that's &lt;=4000 characters in length.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The field's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to <code>parameter</code>, if provided, or a UUID and cannot be longer
+than 100 characters.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
