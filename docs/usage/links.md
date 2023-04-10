@@ -54,9 +54,8 @@ DM channels.
 --8<-- "./docs_src/links.py:47:50"
 ```
 
-[links.make_channel_link][yuyo.links.make_channel_link] offers an alternative
-way to make a channel link string which doesn't require having a Bot or REST
-app in scope.
+[links.make_channel_link][yuyo.links.make_channel_link] lets you make a channel
+link string.
 
 ##### Invite links
 
@@ -70,9 +69,8 @@ app in scope.
 --8<-- "./docs_src/links.py:63:64"
 ```
 
-[links.make_invite_link][yuyo.links.make_invite_link] offers an alternative
-way to make an invite link string which doesn't require having a Bot or REST
-app in scope.
+[links.make_invite_link][yuyo.links.make_invite_link] lets you make an invite
+link string.
 
 ##### Message links
 
@@ -89,9 +87,8 @@ DM messages.
 --8<-- "./docs_src/links.py:84:88"
 ```
 
-[links.make_message_link][yuyo.links.make_message_link] offers an alternative
-way to make a message link string which doesn't require having a Bot or REST
-app in scope.
+[links.make_message_link][yuyo.links.make_message_link] lets you make a message
+link string.
 
 ##### Guild template links
 
@@ -105,9 +102,8 @@ app in scope.
 --8<-- "./docs_src/links.py:100:101"
 ```
 
-[links.make_template_link][yuyo.links.make_template_link] offers an alternative
-way to make a template link string which doesn't require having a Bot or REST
-app in scope.
+[links.make_template_link][yuyo.links.make_template_link] lets you make a
+template link string.
 
 ##### Webhook links
 
@@ -124,6 +120,5 @@ therefore has all the webhook execute methods you'll find on interaction and web
 --8<-- "./docs_src/links.py:114:115"
 ```
 
-[links.make_webhook_link][yuyo.links.make_webhook_link] offers an alternative
-way to make a webhook link string which doesn't require having a Bot or REST
-app in scope.
+[links.make_webhook_link][yuyo.links.make_webhook_link] lets you make a webhook
+link string.

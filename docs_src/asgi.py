@@ -10,17 +10,22 @@
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 import os
 
+import fastapi
 import tanjun
 
 import yuyo
 
-bot = yuyo.asgi.AsgiBot(os.environ["TOKEN"], asgi_managed=False)
-tanjun.Client.from_rest_bot(bot)
 
-# ... more setup
+def make_asgi_bot():
+    bot = yuyo.asgi.AsgiBot(os.environ["TOKEN"])
+    tanjun.Client.from_rest_bot(bot)
 
-import fastapi
+    # ... more setup
 
-app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
 
-app.mount("/bot", bot)
+def fastapi_mount():
+    bot = yuyo.asgi.AsgiBot(os.environ["TOKEN"], asgi_managed=False)
+
+    app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
+
+    app.mount("/bot", bot)
