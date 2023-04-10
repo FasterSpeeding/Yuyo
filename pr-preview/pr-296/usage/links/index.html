@@ -861,9 +861,8 @@ DM channels.</p>
 <span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_channel_link</span><span class="p">(</span><span class="mi">543123</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/@me/543123&quot;</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_channel_link">links.make_channel_link</a> offers an alternative
-way to make a channel link string which doesn't require having a Bot or REST
-app in scope.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_channel_link">links.make_channel_link</a> lets you make a channel
+link string.</p>
 <h5 id="invite-links">Invite links<a class="headerlink" href="#invite-links" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">InviteLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.gg/nekosmeowers&quot;</span><span class="p">)</span>
 
@@ -876,9 +875,8 @@ app in scope.</p>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_invite_link</span><span class="p">(</span><span class="s2">&quot;codecode&quot;</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.gg/codecode&quot;</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_invite_link">links.make_invite_link</a> offers an alternative
-way to make an invite link string which doesn't require having a Bot or REST
-app in scope.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_invite_link">links.make_invite_link</a> lets you make an invite
+link string.</p>
 <h5 id="message-links">Message links<a class="headerlink" href="#message-links" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">MessageLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span><span class="p">)</span>
 
@@ -903,9 +901,8 @@ DM messages.</p>
 <span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_message_link</span><span class="p">(</span><span class="mi">333333333</span><span class="p">,</span> <span class="mi">5555555555</span><span class="p">)</span>
 <span class="n">link</span>  <span class="c1"># value: &quot;https://discord.com/channels/@me/333333333/5555555555&quot;</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_message_link">links.make_message_link</a> offers an alternative
-way to make a message link string which doesn't require having a Bot or REST
-app in scope.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_message_link">links.make_message_link</a> lets you make a message
+link string.</p>
 <h5 id="guild-template-links">Guild template links<a class="headerlink" href="#guild-template-links" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">TemplateLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.new/aaaaaaaaaa&quot;</span><span class="p">)</span>
 
@@ -917,9 +914,8 @@ app in scope.</p>
 <div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_template_link</span><span class="p">(</span><span class="s2">&quot;cododododoe&quot;</span><span class="p">)</span>
 <span class="n">raw_link</span>  <span class="c1"># value: &quot;https://discord.new/aaaaaaaaaa&quot;</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_template_link">links.make_template_link</a> offers an alternative
-way to make a template link string which doesn't require having a Bot or REST
-app in scope.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_template_link">links.make_template_link</a> lets you make a
+template link string.</p>
 <h5 id="webhook-links">Webhook links<a class="headerlink" href="#webhook-links" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="n">link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">WebhookLink</span><span class="o">.</span><span class="n">from_link</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span><span class="p">)</span>
 
@@ -934,9 +930,8 @@ therefore has all the webhook execute methods you'll find on interaction and web
 <div class="highlight"><pre><span></span><code><span class="n">raw_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_webhook_link</span><span class="p">(</span><span class="mi">123321</span><span class="p">,</span> <span class="s2">&quot;hfdssdasd&quot;</span><span class="p">)</span>
 <span class="n">raw_link</span>  <span class="c1"># value: &quot;https://discord.com/api/webhooks/123321123/efsdfasdsa&quot;</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_webhook_link">links.make_webhook_link</a> offers an alternative
-way to make a webhook link string which doesn't require having a Bot or REST
-app in scope.</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_webhook_link">links.make_webhook_link</a> lets you make a webhook
+link string.</p>
 
 
 

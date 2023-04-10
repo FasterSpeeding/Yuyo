@@ -676,13 +676,7 @@
 <p>The <a class="autorefs autorefs-internal" href="../../reference/asgi/#yuyo.asgi.AsgiBot">AsgiBot</a> acts as an ASGI application which will handle
 the interaction requests received from Discord for slash commands, context menus,
 message components and modals as part of an ASGI server.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">import</span> <span class="nn">tanjun</span>
-
-<span class="kn">import</span> <span class="nn">yuyo</span>
-
-<span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">],</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">])</span>
 <span class="n">tanjun</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="n">from_rest_bot</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
 
 <span class="c1"># ... more setup</span>
@@ -696,12 +690,15 @@ line to run this bot using <a href="https://www.uvicorn.org/">Uvicorn</a>:</p>
 such as using <a href="https://fastapi.tiangolo.com/">FastAPI</a>'s
 <a href="https://fastapi.tiangolo.com/advanced/sub-applications/">sub-applications</a> to
 mount this bot within an existing FastAPI server on a specific route:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">fastapi</span>
+<div class="highlight"><pre><span></span><code><span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">],</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">(</span><span class="n">on_startup</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">start</span><span class="p">],</span> <span class="n">on_shutdown</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">close</span><span class="p">])</span>
 
 <span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>
 </code></pre></div>
+<p>The extra steps this example goes through to let FastAPI startup and shutdown
+the <a class="autorefs autorefs-internal" href="../../reference/asgi/#yuyo.asgi.AsgiBot">AsgiBot</a> are only necessary when mounting as a FastAPI
+sub-application.</p>
 
 
 
