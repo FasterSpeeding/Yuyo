@@ -31,7 +31,7 @@ There's several different ways to declare modals using Yuyo:
 
 ### Handling Modal Interactions
 
-There's two ways to handle modal interactions with Yuyo:
+There's two main ways to handle modal interactions with Yuyo:
 
 ##### Stateful
 
