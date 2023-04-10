@@ -2202,7 +2202,7 @@ class ComponentClient:
             The component client to allow chaining.
         """
         if timeout is _internal.NO_DEFAULT:
-            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30))
+            timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=-1)
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()
