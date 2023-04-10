@@ -43,6 +43,8 @@ There's several different ways to declare components using Yuyo:
 
 ### Handling Component Interactions
 
+There's two ways to handle component interactions with Yuyo:
+
 ##### Stateful
 
 ```py
