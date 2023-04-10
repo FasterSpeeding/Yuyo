@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modal's callback.
 - [yuyo.modals.as_modal][] and [yuyo.modals.as_modal_template][] both now allow passing
   `parse_signature` typing wise.
+- [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+  now defaults to unlimited uses instead of 1 use.
 
 ### [1.11.0a1] - 2023-04-02
 ### Added
