@@ -55,6 +55,10 @@ you to associate state with a specific message's components through OOP.
 When doing this you'll usually be creating an instance of the components column
 per message.
 
+[ComponentClient.register_component][yuyo.components.ComponentClient.register_component]
+defaults `timeout` to a 30 second sliding timeout (meaning that the timer
+resets every use).
+
 ##### Stateless
 
 ```py

@@ -46,8 +46,8 @@ When doing this you'll usually be creating an instance of the modal per
 interaction and associating this with a specific modal execution by using
 the parent interaction's custom ID as the modal's custom ID (as shown above).
 
-[ModalClient.register_modal][yuyo.modals.ModalClient] defaults `timeout` to a 30
-second one use timeout.
+[ModalClient.register_modal][yuyo.modals.ModalClient.register_modal] defaults
+`timeout` to a 30 second one use timeout.
 
 ##### Stateless
 
