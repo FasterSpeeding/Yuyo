@@ -312,6 +312,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1112a1-2023-04-10" class="md-nav__link">
     1.11.2a1 - 2023-04-10
   </a>
@@ -1423,6 +1430,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1112a1-2023-04-10" class="md-nav__link">
     1.11.2a1 - 2023-04-10
   </a>
@@ -2293,6 +2307,88 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.2a1...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">#</a></h2>
+<p>Removed</p>
+<h6 id="_1"><a class="headerlink" href="#_1" title="Permanent link">#</a></h6>
+<ul>
+<li>The following deprecated functionality and aliases:<ul>
+<li>Allowing callback to be passed as the first argument and type as the
+second argument for
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.add_select_menu">ActionRowExecutor.add_select_menu</a>,
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_select_menu">ActionColumnExecutor.add_select_menu</a>,
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_select_menu">ActionColumnExecutor.add_static_select_menu</a>,
+and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_select_menu">components.with_static_select_menu</a>.</li>
+<li><code>timeout</code> keyword argument from
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentExecutor.__init__">ComponentExecutor.__init__</a>,
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor.__init__">ActionRowExecutor.__init__</a>,
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.__init__">ActionColumnExecutor.__init__</a>,
+and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a>.</li>
+<li><code>custom_id</code> keyword argument from
+<a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.Modal.add_static_text_input">Modal.add_static_text_input</a>,
+<a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.Modal.add_text_input">Modal.add_text_input</a>,
+<a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.with_static_text_input">modals.with_static_text_input</a>,
+<a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.with_text_input">modals.with_text_input</a>,
+and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.text_input">modals.text_input</a>.</li>
+<li>Passing <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor">yuyo.components.ActionRowExecutor</a> to <code>ActionColumnExecutor.add_row</code></li>
+<li><code>ComponentContext.select_channels</code></li>
+<li><code>ComponentContext.select_roles</code></li>
+<li><code>ComponentContext.select_texts</code></li>
+<li><code>ComponentContext.select_users</code></li>
+<li><code>ComponentContext.select_members</code></li>
+<li><code>ComponentClient.set_constant_id</code></li>
+<li><code>ComponentClient.get_constant_id</code></li>
+<li><code>ComponentClient.remove_constant_id</code></li>
+<li><code>ComponentClient.with_constant_id</code></li>
+<li><code>ComponentClient.set_executor</code></li>
+<li><code>ComponentClient.get_executor</code></li>
+<li><code>ComponentClient.remove_executor</code></li>
+<li><code>AbstractComponentExecutor.has_expired</code></li>
+<li><code>AbstractComponentExecutor.timeout</code></li>
+<li><code>ComponentExecutor.has_expired</code></li>
+<li><code>ComponentExecutor.timeout</code></li>
+<li><code>ActionRowExecutor.has_expired</code></li>
+<li><code>ActionRowExecutor.timeout</code></li>
+<li><code>ActionRowExecutor.is_full</code></li>
+<li><code>ActionRowExecutor.add_button</code></li>
+<li><code>ActionRowExecutor.add_interative_button</code></li>
+<li><code>ActionRowExecutor.add_select_menu</code></li>
+<li><code>ActionRowExecutor.add_channel_select</code></li>
+<li><code>ActionRowExecutor.add_text_select</code></li>
+<li><code>ActionColumnExecutor.timeout</code></li>
+<li><code>ActionColumnExecutor.has_expired</code></li>
+<li><code>ActionColumnExecutor.add_button</code></li>
+<li><code>ActionColumnExecutor.add_interative_button</code></li>
+<li><code>ActionColumnExecutor.add_static_button</code></li>
+<li><code>ActionColumnExecutor.add_static_interative_button</code></li>
+<li><code>ActionColumnExecutor.with_static_button</code></li>
+<li><code>ActionColumnExecutor.with_static_interative_button</code></li>
+<li><code>ActionColumnExecutor.with_static_select_menu</code></li>
+<li><code>ActionColumnExecutor.add_channel_select</code></li>
+<li><code>ActionColumnExecutor.add_static_channel_select</code></li>
+<li><code>ActionColumnExecutor.with_static_channel_select</code></li>
+<li><code>ActionColumnExecutor.with_static_channel_menu</code></li>
+<li><code>ActionColumnExecutor.add_text_select</code></li>
+<li><code>ActionColumnExecutor.add_static_text_select</code></li>
+<li><code>ComponentPaginator.timeout</code></li>
+<li><code>ComponentPaginator.has_expired</code></li>
+<li><code>components.with_static_button</code></li>
+<li><code>components.with_static_interative_button</code></li>
+<li><code>components.with_static_channel_select</code></li>
+<li><code>InviteLink.fetch</code></li>
+<li><code>InviteLink.get</code></li>
+<li><code>MessageLink.fetch</code></li>
+<li><code>MessageLink.get</code></li>
+<li><code>TemplateLink.fetch</code></li>
+<li><code>WebhookLink.fetch</code></li>
+<li><code>modals.AbstractTimeout</code></li>
+<li><code>modals.BasicTimeout</code></li>
+<li><code>modals.NeverTimeout</code></li>
+<li><code>ModalClient.set_modal</code></li>
+<li><code>ModalClient.remove_modal</code></li>
+<li><code>timeouts.BasicTimeout</code></li>
+<li><code>yuyo.BasicTimeout</code></li>
+</ul>
+</li>
+</ul>
 <h3 id="1112a1-2023-04-10"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.11.1a1...v1.11.2a1">1.11.2a1</a> - 2023-04-10<a class="headerlink" href="#1112a1-2023-04-10" title="Permanent link">#</a></h3>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">#</a></h3>
 <ul>
