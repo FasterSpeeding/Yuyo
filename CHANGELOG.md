@@ -5,6 +5,85 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+Removed
+#######
+- The following deprecated functionality and aliases:
+    * Allowing callback to be passed as the first argument and type as the
+    second argument for
+    [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu],
+    [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu],
+    [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu],
+    and [components.with_static_select_menu][yuyo.components.with_static_select_menu].
+    * `timeout` keyword argument from
+    [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
+    [ActionRowExecutor.\_\_init\_\_][yuyo.components.ActionRowExecutor.__init__],
+    [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__],
+    and [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
+    * `custom_id` keyword argument from
+    [Modal.add_static_text_input][yuyo.modals.Modal.add_static_text_input],
+    [Modal.add_text_input][yuyo.modals.Modal.add_text_input],
+    [modals.with_static_text_input][yuyo.modals.with_static_text_input],
+    [modals.with_text_input][yuyo.modals.with_text_input],
+    and [modals.text_input][yuyo.modals.text_input].
+    * Passing [yuyo.components.ActionRowExecutor][] to `ActionColumnExecutor.add_row`
+    * `ComponentContext.select_channels`
+    * `ComponentContext.select_roles`
+    * `ComponentContext.select_texts`
+    * `ComponentContext.select_users`
+    * `ComponentContext.select_members`
+    * `ComponentClient.set_constant_id`
+    * `ComponentClient.get_constant_id`
+    * `ComponentClient.remove_constant_id`
+    * `ComponentClient.with_constant_id`
+    * `ComponentClient.set_executor`
+    * `ComponentClient.get_executor`
+    * `ComponentClient.remove_executor`
+    * `AbstractComponentExecutor.has_expired`
+    * `AbstractComponentExecutor.timeout`
+    * `ComponentExecutor.has_expired`
+    * `ComponentExecutor.timeout`
+    * `ActionRowExecutor.has_expired`
+    * `ActionRowExecutor.timeout`
+    * `ActionRowExecutor.is_full`
+    * `ActionRowExecutor.add_button`
+    * `ActionRowExecutor.add_interative_button`
+    * `ActionRowExecutor.add_select_menu`
+    * `ActionRowExecutor.add_channel_select`
+    * `ActionRowExecutor.add_text_select`
+    * `ActionColumnExecutor.timeout`
+    * `ActionColumnExecutor.has_expired`
+    * `ActionColumnExecutor.add_button`
+    * `ActionColumnExecutor.add_interative_button`
+    * `ActionColumnExecutor.add_static_button`
+    * `ActionColumnExecutor.add_static_interative_button`
+    * `ActionColumnExecutor.with_static_button`
+    * `ActionColumnExecutor.with_static_interative_button`
+    * `ActionColumnExecutor.with_static_select_menu`
+    * `ActionColumnExecutor.add_channel_select`
+    * `ActionColumnExecutor.add_static_channel_select`
+    * `ActionColumnExecutor.with_static_channel_select`
+    * `ActionColumnExecutor.with_static_channel_menu`
+    * `ActionColumnExecutor.add_text_select`
+    * `ActionColumnExecutor.add_static_text_select`
+    * `ComponentPaginator.timeout`
+    * `ComponentPaginator.has_expired`
+    * `components.with_static_button`
+    * `components.with_static_interative_button`
+    * `components.with_static_channel_select`
+    * `InviteLink.fetch`
+    * `InviteLink.get`
+    * `MessageLink.fetch`
+    * `MessageLink.get`
+    * `TemplateLink.fetch`
+    * `WebhookLink.fetch`
+    * `modals.AbstractTimeout`
+    * `modals.BasicTimeout`
+    * `modals.NeverTimeout`
+    * `ModalClient.set_modal`
+    * `ModalClient.remove_modal`
+    * `timeouts.BasicTimeout`
+    * `yuyo.BasicTimeout`
+
 ## [1.13.0a1] - 2023-04-25
 ### Added
 - [components.Paginator][yuyo.components.Paginator] alias of
