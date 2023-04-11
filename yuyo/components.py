@@ -3899,7 +3899,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     Examples
     --------
-
     Sub-components can be added to an instance of the column executor using
     chainable methods on it:
 
