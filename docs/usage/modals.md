@@ -19,7 +19,7 @@ multiple lines of text.
 
 There's several different ways to declare modals using Yuyo:
 
-##### Modal classes
+##### Subclasses
 
 When working with modal classes you'll be adding "static" fields which are
 included on every instance of the modal class. There's a couple of ways to
@@ -60,7 +60,7 @@ the add (class) method.
 [as_modal_template][yuyo.modals.as_modal_template] provides a short hand for
 creating a [Modal][yuyo.modals.Modal] subclass from a callback.
 
-##### Modal instances
+##### Instances
 
 ```py
 --8<-- "./docs_src/modals.py:58:62"
@@ -76,7 +76,7 @@ ways to create instances of modals from a callback.
 These only support the signature field descriptors and modal dataclasses when
 `parse_signature=True` is explicitly passed.
 
-##### Modal dataclass
+##### Options Dataclass
 
 ```py
 --8<-- "./docs_src/modals.py:77:85"
