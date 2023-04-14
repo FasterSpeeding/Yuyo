@@ -22,7 +22,7 @@ tooling such as [Hypercorn](https://pgjones.gitlab.io/hypercorn/),
 [Daphne](https://github.com/django/daphne),
 or using [FastAPI](https://fastapi.tiangolo.com/)'s
 [sub-applications](https://fastapi.tiangolo.com/advanced/sub-applications/)
-to mount this bot within an existing FastAPI server on a specific route:
+to mount this bot on a specific route within an existing FastAPI server:
 
 ```py
 --8<-- "./docs_src/asgi.py:30:34"
