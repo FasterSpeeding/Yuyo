@@ -17,10 +17,12 @@ line to run this bot using [Uvicorn](https://www.uvicorn.org/):
 uvicorn bot:rest_bot
 ```
 
-But since ASGI is a generic standard, you can also run this bot in other tooling
-such as [Gunicorn](https://gunicorn.org/), or using [FastAPI](https://fastapi.tiangolo.com/)'s
-[sub-applications](https://fastapi.tiangolo.com/advanced/sub-applications/) to
-mount this bot within an existing FastAPI server on a specific route:
+But since ASGI is a generic standard, you can also run this bot in other
+tooling such as [Hypercorn](https://pgjones.gitlab.io/hypercorn/),
+[Daphne](https://github.com/django/daphne),
+or using [FastAPI](https://fastapi.tiangolo.com/)'s
+[sub-applications](https://fastapi.tiangolo.com/advanced/sub-applications/)
+to mount this bot within an existing FastAPI server on a specific route:
 
 ```py
 --8<-- "./docs_src/asgi.py:30:34"
