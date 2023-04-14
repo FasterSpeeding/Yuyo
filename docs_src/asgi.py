@@ -10,6 +10,7 @@
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 import os
 
+import agraffe  # type: ignore  # TODO: add py.typed to agraffe
 import fastapi  # type: ignore
 import tanjun
 
@@ -29,3 +30,11 @@ def fastapi_mount() -> None:
     app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
 
     app.mount("/bot", bot)
+
+
+def serverless():
+    bot = yuyo.AsgiBot(os.environ["TOKEN"].strip(), "Bot")
+
+    # ... Setup bot
+
+    entry_point = agraffe.Agraffe(bot)

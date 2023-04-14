@@ -5,7 +5,7 @@ the interaction requests received from Discord for slash commands, context menus
 message components and modals as part of an ASGI server.
 
 ```py
---8<-- "./docs_src/asgi.py:20:23"
+--8<-- "./docs_src/asgi.py:21:24"
 ```
 
 If the above example was saved in the file "bot.py"
@@ -17,14 +17,25 @@ uvicorn bot:rest_bot
 ```
 
 But since ASGI is a generic standard, you can also run this bot in other tooling
-such as using [FastAPI](https://fastapi.tiangolo.com/)'s
+such as [Gunicorn](https://gunicorn.org/), or using [FastAPI](https://fastapi.tiangolo.com/)'s
 [sub-applications](https://fastapi.tiangolo.com/advanced/sub-applications/) to
 mount this bot within an existing FastAPI server on a specific route:
 
 ```py
---8<-- "./docs_src/asgi.py:27:31"
+--8<-- "./docs_src/asgi.py:28:32"
 ```
 
 The extra steps this example goes through to let FastAPI startup and shutdown
 the [AsgiBot][yuyo.asgi.AsgiBot] are only necessary when mounting as a FastAPI
 sub-application.
+
+#### Serverless
+
+```py
+--8<-- "./docs_src/asgi.py:36:40"
+```
+
+Thanks to the flexibility of the ASGI standard, this can also be used with
+serverless frameworks people have implemented ASGI adapters for. The above
+example uses [agraffe](https://pypi.org/project/agraffe/) to create an entry
+point for AWS Lambdas, Azure Functions, or Google Cloud Functions.
