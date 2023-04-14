@@ -63,8 +63,6 @@ def action_column_of_buttons():
 
 
 def action_column_decoratored_menus():
-    @components.with_static_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
-    @components.with_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
     @components.with_static_text_menu(
         callback,
         options=[
@@ -78,7 +76,11 @@ def action_column_decoratored_menus():
     class Column(components.ActionColumnExecutor):
         ...
 
+    Column.add_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
+    Column.add_static_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
 
+
+# fmt: off
 def action_column_menu_methods():
     column = (
         components.ActionColumnExecutor()
@@ -88,9 +90,11 @@ def action_column_menu_methods():
         .add_option("opt1", "value1")
         .add_option("opt2", "value2")
         .add_option("opt3", "value3")
-        .parent.add_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
+        .parent
+        .add_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
         .add_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
     )
+# fmt: on
 
 
 def action_column_button_methods():
@@ -99,13 +103,6 @@ def action_column_button_methods():
         .add_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
         .add_link_button("https://example.com", label="label")
     )
-
-
-def action_column_decorated_buttons():
-    @components.with_static_link_button("https://example.com", label="label")
-    @components.with_static_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
-    class Column(components.ActionColumnExecutor):
-        ...
 
 
 def creating_a_component():
