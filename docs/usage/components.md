@@ -24,10 +24,15 @@ finished selecting options via and interaction and there's several different
 resources they can be selecting:
 
 * Text menus: lets the bot pre-define up to 25 text options
-* User menus: lets the user pick up to 25 users (in the current guild)?
-* Role menus: lets the user pick up to 25 roles (in the current guild)?
-* Channel menus: lets the user pick up to 25 of the current guild's channels
-* Mentionable menus: lets the user pick up to 25 roles and users (in the current guild)?
+* User menus: lets the user pick up to 25 users
+* Role menus: lets the user pick up to 25 roles
+* Channel menus: lets the user pick up to 25 channels
+* Mentionable menus: lets the user pick up to 25 roles and users
+
+!!! note
+    As of writing user, role, channel and mentionable menus only let you select
+    entities from the current guild. Only text menus working properly in DM
+    channels.
 
 ### Declaring Components
 
