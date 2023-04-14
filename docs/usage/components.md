@@ -33,28 +33,29 @@ resources they can be selecting:
 
 There's several different ways to declare components using Yuyo:
 
+### Subclassing
+
 ```py
 --8<-- "./docs_src/components.py:30:53"
 ```
 
 ```py
---8<-- "./docs_src/components.py:57:70"
+--8<-- "./docs_src/components.py:57:62"
 ```
 
-```py
---8<-- "./docs_src/components.py:74:84"
-```
 
 ```py
---8<-- "./docs_src/components.py:88:93"
+--8<-- "./docs_src/components.py:66:79"
+```
+
+### Builder
+
+```py
+--8<-- "./docs_src/components.py:83:93"
 ```
 
 ```py
 --8<-- "./docs_src/components.py:97:101"
-```
-
-```py
---8<-- "./docs_src/components.py:105:108"
 ```
 
 ### Handling Component Interactions

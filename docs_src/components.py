@@ -53,6 +53,15 @@ def action_column_of_menus():
             ctx.selected_users
 
 
+def action_column_of_buttons():
+    class Column(components.ActionColumnExecutor):
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
+        async def on_button(self, ctx: components.Context) -> None:
+            ...
+
+        link_button = components.link_button("https://example.com", label="label")
+
+
 def action_column_decoratored_menus():
     @components.with_static_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
     @components.with_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
@@ -82,15 +91,6 @@ def action_column_menu_methods():
         .parent.add_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
         .add_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
     )
-
-
-def action_column_of_buttons():
-    class Column(components.ActionColumnExecutor):
-        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
-        async def on_button(self, ctx: components.Context) -> None:
-            ...
-
-        link_button = components.link_button("https://example.com", label="label")
 
 
 def action_column_button_methods():
