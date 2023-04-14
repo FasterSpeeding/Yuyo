@@ -681,6 +681,47 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#responding-to-components" class="md-nav__link">
+    Responding to Components
+  </a>
+  
+    <nav class="md-nav" aria-label="Responding to Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ephemeral-responses" class="md-nav__link">
+    Ephemeral responses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferrals" class="md-nav__link">
+    Deferrals
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-the-source-message" class="md-nav__link">
+    Updating the source message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-responses" class="md-nav__link">
+    Modal responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -830,6 +871,47 @@
           <li class="md-nav__item">
   <a href="#stateless" class="md-nav__link">
     Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responding-to-components" class="md-nav__link">
+    Responding to Components
+  </a>
+  
+    <nav class="md-nav" aria-label="Responding to Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ephemeral-responses" class="md-nav__link">
+    Ephemeral responses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferrals" class="md-nav__link">
+    Deferrals
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-the-source-message" class="md-nav__link">
+    Updating the source message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-responses" class="md-nav__link">
+    Modal responses
   </a>
   
 </li>
@@ -1039,6 +1121,66 @@ represents any developer added metadata for that specific component.</p>
 <p>It should be noted that interactive components should be given constant custom
 IDs when using an action column statelessly and that Custom IDs can never be
 longer than 100 characters in total length.</p>
+<h3 id="responding-to-components">Responding to Components<a class="headerlink" href="#responding-to-components" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span>
+            <span class="s2">&quot;Message content&quot;</span><span class="p">,</span>
+            <span class="n">attachments</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="s2">&quot;https://img3.gelbooru.com/images/40/5a/405ad89e26a8ec0e96fd09dd1ade334b.jpg&quot;</span><span class="p">)],</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.respond">ComponentContext.respond</a> is used to
+respond to an interaction with a new message, this has a similar signature
+to Hikari's message respond method but will only be guaranteed to return a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.Message">hikari.Message</a> object when <code>ensure_result=True</code> is
+passed.</p>
+<h5 id="ephemeral-responses">Ephemeral responses<a class="headerlink" href="#ephemeral-responses" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="s2">&quot;Starting cat&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_followup</span><span class="p">(</span><span class="s2">&quot;The cat rules us all now&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Ephemeral responses mark the response message as private (so that only the
+author can see it) and temporary. A response can be marked as ephemeral by
+passing <code>ephemeral=True</code> to either
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentContext.create_initial_response">ComponentContext.create_initial_response</a>
+(when initially responding to the interaction with a message response) or
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.create_followup">ComponentContext.create_followup</a>
+(for followup responses).</p>
+<h5 id="deferrals">Deferrals<a class="headerlink" href="#deferrals" title="Permanent link">#</a></h5>
+<p>Interactions need an initial response within 3 seconds but, if you can't give a
+response within 3 seconds, you can defer the first response using
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentContext.defer">ComponentContext.defer</a>.</p>
+<p>A deferral should then be finished by editing in the initial response using either
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.edit_initial_response">ComponentContext.edit_initial_response</a>
+or <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.respond">ComponentContext.respond</a> and if you
+want a response to be a ephemeral message create then you'll have to pass
+<code>ephemeral=True</code> when deferring.</p>
+<h5 id="updating-the-source-message">Updating the source message<a class="headerlink" href="#updating-the-source-message" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="n">response_type</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">ResponseType</span><span class="o">.</span><span class="n">MESSAGE_UPDATE</span><span class="p">,</span> <span class="n">attachments</span><span class="o">=</span><span class="p">[])</span>
+</code></pre></div>
+<p>You can also use the initial response to edit the message the component being
+used is on. To do this you need to pass
+<code>response_type=hikari.ResponseType.MESSAGE_UPDATE</code> while calling
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentContext.create_initial_response">ComponentContext.create_initial_response</a>.
+After doing this any further calls to
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.delete_initial_response">ComponentContext.delete_initial_response</a>
+and <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.edit_initial_response">ComponentContext.edit_initial_response</a>
+will target the source message as well.</p>
+<p>You cannot change the ephemeral state of the source message.</p>
+<p>You need to pass <code>response_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE</code>
+When deferring with the intent to update the source message.</p>
+<h5 id="modal-responses">Modal responses<a class="headerlink" href="#modal-responses" title="Permanent link">#</a></h5>
+<p>You can also create a Modal prompt as the initial response to a component
+interaction.</p>
+<p>For more information on how to handle modals see the <a href="../modals">Modals usage guide</a>, where
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentContext.create_modal_response">ComponentContext.create_modal_response</a>
+should be used to create the initial prompt.</p>
 
 
 

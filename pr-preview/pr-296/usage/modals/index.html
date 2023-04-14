@@ -707,6 +707,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#responding-to-modals" class="md-nav__link">
+    Responding to Modals
+  </a>
+  
+    <nav class="md-nav" aria-label="Responding to Modals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ephemeral-responses" class="md-nav__link">
+    Ephemeral responses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferrals" class="md-nav__link">
+    Deferrals
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -800,6 +827,33 @@
           <li class="md-nav__item">
   <a href="#stateless" class="md-nav__link">
     Stateless
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responding-to-modals" class="md-nav__link">
+    Responding to Modals
+  </a>
+  
+    <nav class="md-nav" aria-label="Responding to Modals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ephemeral-responses" class="md-nav__link">
+    Ephemeral responses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferrals" class="md-nav__link">
+    Deferrals
   </a>
   
 </li>
@@ -976,6 +1030,45 @@ executor for a modal call and the "metadata"
 represents any developer added metadata for the modal.</p>
 <p>If should be noted that Custom IDs can never be longer than 100 characters in
 total length.</p>
+<h3 id="responding-to-modals">Responding to Modals<a class="headerlink" href="#responding-to-modals" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span>
+        <span class="s2">&quot;Message content&quot;</span><span class="p">,</span>
+        <span class="n">attachments</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="s2">&quot;https://img3.gelbooru.com/images/81/f2/81f26993b71525683a3267b16ecd0ea9.jpg&quot;</span><span class="p">)],</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.respond">ModalContext.respond</a> is used to
+respond to an interaction with a new message, this has a similar signature
+to Hikari's message respond method but will only be guaranteed to return a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.Message">hikari.Message</a> object when <code>ensure_result=True</code> is
+passed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You cannot create another modal prompt in response to a modal interaction.</p>
+</div>
+<h5 id="ephemeral-responses">Ephemeral responses<a class="headerlink" href="#ephemeral-responses" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="s2">&quot;Initiating Mower&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_followup</span><span class="p">(</span><span class="s2">&quot;Meowing finished&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Ephemeral responses mark the response message as private (so that only the
+author can see it) and temporary. A response can be marked as ephemeral by
+passing <code>ephemeral=True</code> to either
+<a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalContext.create_initial_response">ModalContext.create_initial_response</a>
+(when initially responding to the interaction) or
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.create_followup">ModalContext.create_followup</a>
+(for followup responses).</p>
+<h5 id="deferrals">Deferrals<a class="headerlink" href="#deferrals" title="Permanent link">#</a></h5>
+<p>Interactions need an initial response within 3 seconds but, if you can't give a
+response within 3 seconds, you can defer the first response using
+<a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalContext.defer">ModalContext.defer</a>.</p>
+<p>A deferral should then be finished by editing in the initial response using either
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.edit_initial_response">ModalContext.edit_initial_response</a>
+or <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.respond">ModalContext.respond</a> and if you
+want a response to be ephemeral then you'll have to pass <code>ephemeral=True</code> when
+deferring.</p>
 
 
 
