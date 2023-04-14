@@ -26,7 +26,7 @@ async def callback(ctx: components.Context) -> None:
     await ctx.respond("Hi")
 
 
-def action_column_of_menus():
+def action_column_of_menus() -> None:
     class Column(components.ActionColumnExecutor):
         @components.as_channel_menu
         async def on_channel_menu(self, ctx: components.Context) -> None:
@@ -53,7 +53,7 @@ def action_column_of_menus():
             ctx.selected_users
 
 
-def action_column_of_buttons():
+def action_column_of_buttons() -> None:
     class Column(components.ActionColumnExecutor):
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
         async def on_button(self, ctx: components.Context) -> None:
@@ -62,7 +62,7 @@ def action_column_of_buttons():
         link_button = components.link_button("https://example.com", label="label")
 
 
-def action_column_decoratored_menus():
+def action_column_decoratored_menus() -> None:
     @components.with_static_text_menu(
         callback,
         options=[
@@ -81,7 +81,7 @@ def action_column_decoratored_menus():
 
 
 # fmt: off
-def action_column_menu_methods():
+def action_column_menu_methods()  -> None:
     column = (
         components.ActionColumnExecutor()
         .add_channel_menu(callback)
@@ -97,7 +97,7 @@ def action_column_menu_methods():
 # fmt: on
 
 
-def action_column_button_methods():
+def action_column_button_methods() -> None:
     column = (
         components.ActionColumnExecutor()
         .add_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
@@ -105,7 +105,7 @@ def action_column_button_methods():
     )
 
 
-def creating_a_component():
+def creating_a_component() -> None:
     class ColumnCls(components.ActionColumnExecutor):
         __slots__ = ("state",)
 
@@ -124,7 +124,7 @@ def creating_a_component():
         component_client.register_executor(column, message=message)
 
 
-def creating_a_static_component():
+def creating_a_static_component() -> None:
     class ColumnCls(components.ActionColumnExecutor):
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, custom_id="GLOBALLY_UNIQUE", emoji="👍")
         async def on_button(self, ctx: components.Context) -> None:

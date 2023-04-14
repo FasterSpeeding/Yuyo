@@ -43,7 +43,7 @@ async def channel_link(app: hikari.RESTAware):
     str(link)  # value: "https://discord.com/channels/453123/67765564"
 
 
-def make_channel_link():
+def make_channel_link() -> None:
     link = links.make_channel_link(123312, guild=6534234)
     link  # value: "https://discord.com/channels/6534234/123312"
     link = links.make_channel_link(543123)
@@ -59,7 +59,7 @@ async def invite_link(app: hikari.RESTAware):
     str(link)  # value: "https://discord.gg/nekosmeowers"
 
 
-def make_invite_link():
+def make_invite_link() -> None:
     link = links.make_invite_link("codecode")
     link  # value: "https://discord.gg/codecode"
 
@@ -80,7 +80,7 @@ async def message_link(app: hikari.RESTAware):
     str(link)  # value: "https://discord.com/channels/54123123321123/2134432234342/56445234124"
 
 
-def make_message_link():
+def make_message_link() -> None:
     #                             (channel_id, message_id)
     link = links.make_message_link(654323412, 4534512332, guild=123321)
     link  # value: "https://discord.com/channels/123321/654323412/4534512332"
@@ -96,7 +96,7 @@ async def template_link(app: hikari.RESTAware):
     str(link)  # value: "https://discord.new/aaaaaaaaaa"
 
 
-def make_template_link():
+def make_template_link() -> None:
     raw_link = links.make_template_link("cododododoe")
     raw_link  # value: "https://discord.new/aaaaaaaaaa"
 
@@ -110,6 +110,6 @@ async def webhook_link(app: hikari.RESTAware):
     str(link)  # value: "https://discord.com/api/webhooks/123321123/efsdfasdsa"
 
 
-def make_webhook_link():
+def make_webhook_link() -> None:
     raw_link = links.make_webhook_link(123321, "hfdssdasd")
     raw_link  # value: "https://discord.com/api/webhooks/123321123/efsdfasdsa"

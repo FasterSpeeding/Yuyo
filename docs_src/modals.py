@@ -23,7 +23,7 @@ import tanjun
 from yuyo import modals
 
 
-def modal_class():
+def modal_class() -> None:
     class Modal(modals.Modal):
         async def callback(
             self,
@@ -36,7 +36,7 @@ def modal_class():
             await ctx.respond("hi")
 
 
-def modal_class_decorated():
+def modal_class_decorated() -> None:
     @modals.with_static_text_input("label", parameter="field", default=None)
     class Modal(modals.Modal):
         async def callback(self, ctx: modals.Context, field: typing.Optional[str], other_field: str) -> None:
@@ -45,7 +45,7 @@ def modal_class_decorated():
     Modal.add_static_text_input("other label", parameter="other_field")
 
 
-def modal_template():
+def modal_template() -> None:
     @modals.with_static_text_input("label", parameter="field", default=None)
     @modals.as_modal_template
     async def modal_template(ctx: modals.Context, field: str, other_field: str = modals.text_input("label")) -> None:
@@ -54,7 +54,7 @@ def modal_template():
     modal_template.add_static_text_input("other label")
 
 
-def decorated_modal():
+def decorated_modal() -> None:
     @modals.with_text_input("other label", parameter="other")
     @modals.with_text_input("label", parameter="field")
     @modals.as_modal
@@ -62,7 +62,7 @@ def decorated_modal():
         ...
 
 
-def modal_methods():
+def modal_methods() -> None:
     async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
         ...
 
@@ -73,7 +73,7 @@ def modal_methods():
     )
 
 
-def modal_dataclass():
+def modal_dataclass() -> None:
     class ModalOptions(modals.ModalOptions):
         field: str = modals.text_input("label", min_length=5, max_length=500)
         other_field: typing.Optional[str] = modals.text_input(
@@ -85,7 +85,7 @@ def modal_dataclass():
         options.field
 
 
-def creating_a_modal():
+def creating_a_modal() -> None:
     class Modal(modals.Modal):
         __slots__ = ("state",)
 
@@ -102,7 +102,7 @@ def creating_a_modal():
         await ctx.create_modal_response("Title", custom_id, components=modal.rows)
 
 
-def creating_a_static_modal():
+def creating_a_static_modal() -> None:
     # parse_signature defaults to False for as_modal and modal (unlike as_modal_template).
     @modals.as_modal(parse_signature=True)
     async def modal(ctx: modals.Context, field: str = modals.text_input("field")) -> None:

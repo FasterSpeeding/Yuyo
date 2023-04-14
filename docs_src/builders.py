@@ -15,9 +15,9 @@ import hikari
 import yuyo
 
 
-def to_cmd_builder(cmd: hikari.PartialCommand):
+def to_cmd_builder(cmd: hikari.PartialCommand) -> None:
     builder = yuyo.to_builder.to_cmd_builder(cmd)
 
 
-def to_msg_action_row_builder(row: hikari.MessageActionRowComponent):
+def to_msg_action_row_builder(row: hikari.MessageActionRowComponent) -> None:
     builder = yuyo.to_builder.to_msg_action_row_builder(row)
