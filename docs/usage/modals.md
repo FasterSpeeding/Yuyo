@@ -130,3 +130,44 @@ represents any developer added metadata for the modal.
 
 If should be noted that Custom IDs can never be longer than 100 characters in
 total length.
+
+### Responding to Modals
+
+```py
+--8<-- "./docs_src/modals.py:126:131"
+```
+
+[ModalContext.respond][yuyo.components.BaseContext.respond] is used to
+respond to an interaction with a new message, this has a similar signature
+to Hikari's message respond method but will only be guaranteed to return a
+[hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
+passed.
+
+!!! note
+    You cannot create another modal prompt in response to a modal interaction.
+
+##### Ephemeral responses
+
+```py
+--8<-- "./docs_src/modals.py:135:138"
+```
+
+Ephemeral responses mark the response message as private (so that only the
+author can see it) and temporary. A response can be marked as ephemeral by
+passing `ephemeral=True` to either
+[ModalContext.create_initial_response][yuyo.modals.ModalContext.create_initial_response]
+(when initially responding to the interaction) or
+[ModalContext.create_followup][yuyo.components.BaseContext.create_followup]
+(for followup responses).
+
+##### Deferrals
+
+Interactions need an initial rseponse within 3 seconds. If you can't give a
+response within 3 seconds, you can defer the first response using
+[ModalContext.defer][yuyo.modals.ModalContext.defer].
+
+A deferral should then be finished by editing in the initial response using either
+[ModalContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+or [ModalContext.respond][yuyo.components.BaseContext.respond] and if you
+want a response to be ephemeral then you'll have to pass `ephemeral=True` when
+deferring.

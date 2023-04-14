@@ -142,3 +142,28 @@ def creating_a_static_component() -> None:
     ) -> None:
         session_id = uuid.uuid4()
         await ctx.respond(components=ColumnCls(id_metadata={"GLOBALLY_UNIQUE": str(session_id)}).rows)
+
+
+def create_response() -> None:
+    class ColumnCls(components.ActionColumnExecutor):
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
+        async def on_button(self, ctx: components.Context) -> None:
+            await ctx.respond(
+                "Message content",
+                attachments=[hikari.URL("https://img3.gelbooru.com/images/40/5a/405ad89e26a8ec0e96fd09dd1ade334b.jpg")],
+            )
+
+
+def ephemeral_response() -> None:
+    class ColumnCls(components.ActionColumnExecutor):
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
+        async def on_button(self, ctx: components.Context) -> None:
+            await ctx.create_initial_response("Starting cat", ephemeral=True)
+            await ctx.create_followup("The cat rules us all now", ephemeral=True)
+
+
+def updating_source() -> None:
+    class ColumnCls(components.ActionColumnExecutor):
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
+        async def on_button(self, ctx: components.Context) -> None:
+            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, attachments=[])

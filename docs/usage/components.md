@@ -136,3 +136,67 @@ represents any developer added metadata for that specific component.
 It should be noted that interactive components should be given constant custom
 IDs when using an action column statelessly and that Custom IDs can never be
 longer than 100 characters in total length.
+
+### Responding to Components
+
+```py
+--8<-- "./docs_src/components.py:148:154"
+```
+
+[ComponentContext.respond][yuyo.components.BaseContext.respond] is used to
+respond to an interaction with a new message, this has a similar signature
+to Hikari's message respond method but will only be guaranteed to return a
+[hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
+passed.
+
+##### Ephemeral responses
+
+```py
+--8<-- "./docs_src/components.py:158:162"
+```
+
+Ephemeral responses mark the response message as private (so that only the
+author can see it) and temporary. A response can be marked as ephemeral by
+passing `ephemeral=True` to either
+[ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response]
+(when initially responding to the interaction with a message response) or
+[ComponentContext.create_followup][yuyo.components.BaseContext.create_followup]
+(for followup responses).
+
+##### Deferrals
+
+Interactions need an initial rseponse within 3 seconds. If you can't give a
+response within 3 seconds, you can defer the first response using
+[ComponentContext.defer][yuyo.components.ComponentContext.defer].
+
+A deferral should then be finished by editing in the initial response using either
+[ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+or [ComponentContext.respond][yuyo.components.BaseContext.respond] and if you
+want a response to be a ephemeral message create then you'll have to pass
+`ephemeral=True` when deferring.
+
+##### Updating the source message
+
+```py
+--8<-- "./docs_src/components.py:166:169"
+```
+
+You can also use the initial response to edit the message the component being
+used is on. To do this you need to pass
+`response_type=hikari.ResponseType.MESSAGE_UPDATE` while calling
+[ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response].
+After doing this any further calls to
+[ComponentContext.delete_initial_response][yuyo.components.BaseContext.delete_initial_response]
+and [ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+will target the source message as well.
+
+You cannot change the ephemeral state of the source message.
+
+##### Modal responses
+
+You can also create a Modal prompt as the initial response to a component
+interaction.
+
+For more information on how to handle modals see the [Modals usage guide](../modals), where
+[ComponentContext.create_modal_response][yuyo.components.ComponentContext.create_modal_response]
+should be used to create the initial prompt.

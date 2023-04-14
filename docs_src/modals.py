@@ -120,3 +120,19 @@ def creating_a_static_modal() -> None:
     ) -> None:
         session_id = uuid.uuid4()
         await ctx.create_modal_response("Title", f"{MODAL_ID}:{session_id}")
+
+
+def create_response() -> None:
+    @modals.as_modal(parse_signature=True)
+    async def modal(ctx: modals.Context) -> None:
+        await ctx.respond(
+            "Message content",
+            attachments=[hikari.URL("https://img3.gelbooru.com/images/81/f2/81f26993b71525683a3267b16ecd0ea9.jpg")],
+        )
+
+
+def ephemeral_response() -> None:
+    @modals.as_modal(parse_signature=True)
+    async def modal(ctx: modals.Context) -> None:
+        await ctx.create_initial_response("Initiating Mower", ephemeral=True)
+        await ctx.create_followup("Meowing finished", ephemeral=True)
