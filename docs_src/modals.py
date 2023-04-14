@@ -28,30 +28,61 @@ def modal_class():
         async def callback(
             self,
             ctx: modals.Context,
-            field: str = modals.text_input("name", min_length=5, max_length=50, default="John Doe"),
+            field: str = modals.text_input("label", min_length=5, max_length=50, default="John Doe"),
             other_field: typing.Optional[str] = modals.text_input(
-                "label", style=hikari.TextInputStyle.PARAGRAPH, default=None
+                "other label", style=hikari.TextInputStyle.PARAGRAPH, default=None
             ),
         ) -> None:
             await ctx.respond("hi")
 
 
+def modal_class_decorated():
+    @modals.with_static_text_input("label", parameter="field", default=None)
+    class Modal(modals.Modal):
+        async def callback(self, ctx: modals.Context, field: typing.Optional[str], other_field: str) -> None:
+            ctx.interaction.components
+
+    Modal.add_static_text_input("other label", parameter="other_field")
+
+
 def modal_template():
+    @modals.with_static_text_input("label", parameter="field", default=None)
     @modals.as_modal_template
-    async def modal_template(ctx: modals.Context, field: str = modals.text_input("label")) -> None:
+    async def modal_template(ctx: modals.Context, field: str, other_field: str = modals.text_input("label")) -> None:
         await ctx.respond("hi")
 
+    modal_template.add_static_text_input("other label")
 
-def modal_template_dataclass():
+
+def decorated_modal():
+    @modals.with_text_input("other label", parameter="other")
+    @modals.with_text_input("label", parameter="field")
+    @modals.as_modal
+    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
+        ...
+
+
+def modal_methods():
+    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
+        ...
+
+    modal = (
+        modals.modal(callback)
+        .add_text_input("label", parameter="field")
+        .add_text_input("other label", parameter="other_field", default=None)
+    )
+
+
+def modal_dataclass():
     class ModalOptions(modals.ModalOptions):
         field: str = modals.text_input("label", min_length=5, max_length=500)
         other_field: typing.Optional[str] = modals.text_input(
-            "label", default=None, style=hikari.TextInputStyle.PARAGRAPH
+            "other label", default=None, style=hikari.TextInputStyle.PARAGRAPH
         )
 
-    @modals.as_modal_template
-    async def modal_template(ctx: modals.Context, options: ModalOptions) -> None:
-        ...
+    @modals.as_modal(parse_signature=True)
+    async def modal(ctx: modals.Context, options: ModalOptions) -> None:
+        options.field
 
 
 def creating_a_modal():
