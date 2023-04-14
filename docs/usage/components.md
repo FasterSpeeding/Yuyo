@@ -165,7 +165,7 @@ passing `ephemeral=True` to either
 
 ##### Deferrals
 
-Interactions need an initial rseponse within 3 seconds. If you can't give a
+Interactions need an initial response within 3 seconds but, if you can't give a
 response within 3 seconds, you can defer the first response using
 [ComponentContext.defer][yuyo.components.ComponentContext.defer].
 
@@ -191,6 +191,9 @@ and [ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_in
 will target the source message as well.
 
 You cannot change the ephemeral state of the source message.
+
+You need to pass `response_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE`
+When deferring with the intent to update the source message.
 
 ##### Modal responses
 

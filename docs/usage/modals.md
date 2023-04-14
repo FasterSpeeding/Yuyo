@@ -162,7 +162,7 @@ passing `ephemeral=True` to either
 
 ##### Deferrals
 
-Interactions need an initial rseponse within 3 seconds. If you can't give a
+Interactions need an initial response within 3 seconds but, if you can't give a
 response within 3 seconds, you can defer the first response using
 [ModalContext.defer][yuyo.modals.ModalContext.defer].
 

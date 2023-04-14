@@ -81,7 +81,7 @@ def action_column_decoratored_menus() -> None:
 
 
 # fmt: off
-def action_column_menu_methods()  -> None:
+def action_column_menu_methods() -> None:
     column = (
         components.ActionColumnExecutor()
         .add_channel_menu(callback)
