@@ -733,10 +733,12 @@ message components and modals as part of an ASGI server.</p>
 line to run this bot using <a href="https://www.uvicorn.org/">Uvicorn</a>:</p>
 <div class="highlight"><pre><span></span><code>uvicorn bot:rest_bot
 </code></pre></div>
-<p>But since ASGI is a generic standard, you can also run this bot in other tooling
-such as <a href="https://gunicorn.org/">Gunicorn</a>, or using <a href="https://fastapi.tiangolo.com/">FastAPI</a>'s
-<a href="https://fastapi.tiangolo.com/advanced/sub-applications/">sub-applications</a> to
-mount this bot within an existing FastAPI server on a specific route:</p>
+<p>But since ASGI is a generic standard, you can also run this bot in other
+tooling such as <a href="https://pgjones.gitlab.io/hypercorn/">Hypercorn</a>,
+<a href="https://github.com/django/daphne">Daphne</a>,
+or using <a href="https://fastapi.tiangolo.com/">FastAPI</a>'s
+<a href="https://fastapi.tiangolo.com/advanced/sub-applications/">sub-applications</a>
+to mount this bot within an existing FastAPI server on a specific route:</p>
 <div class="highlight"><pre><span></span><code><span class="n">bot</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">asgi</span><span class="o">.</span><span class="n">AsgiBot</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOKEN&quot;</span><span class="p">],</span> <span class="n">asgi_managed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">(</span><span class="n">on_startup</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">start</span><span class="p">],</span> <span class="n">on_shutdown</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">close</span><span class="p">])</span>
