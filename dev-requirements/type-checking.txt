@@ -4,6 +4,9 @@
 #
 #    pip-compile-cross-platform dev-requirements/type-checking.in --output-file dev-requirements/type-checking.txt --min-python-version 3.9.0,<3.12
 #
+agraffe==0.7.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:2bc70168854801fa3d8c5cefc9f17515d17a6b938c61894667e98714d804e3cc \
+    --hash=sha256:fc1cb578bb9bc8290cb9f7317babe61d20fb794a73b49f7087743fe26d5ac13a
 aiohttp==3.8.4 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:03543dcf98a6619254b409be2d22b51f21ec66272be4ebda7b04e6412e4b2e14 \
     --hash=sha256:03baa76b730e4e15a45f81dfe29a8d910314143414e528737f8589ec60cf7391 \
