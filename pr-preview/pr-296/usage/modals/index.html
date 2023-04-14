@@ -651,6 +651,33 @@
     Declaring Modals
   </a>
   
+    <nav class="md-nav" aria-label="Declaring Modals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modal-classes" class="md-nav__link">
+    Modal classes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-instances" class="md-nav__link">
+    Modal instances
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-dataclass" class="md-nav__link">
+    Modal dataclass
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -726,6 +753,33 @@
     Declaring Modals
   </a>
   
+    <nav class="md-nav" aria-label="Declaring Modals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modal-classes" class="md-nav__link">
+    Modal classes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-instances" class="md-nav__link">
+    Modal instances
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modal-dataclass" class="md-nav__link">
+    Modal dataclass
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -779,31 +833,90 @@ the user who triggered the relevant interaction (as shown above) and only
 support text input right now.</p>
 <h3 id="declaring-modals">Declaring Modals<a class="headerlink" href="#declaring-modals" title="Permanent link">#</a></h3>
 <p>There's several different ways to declare modals using Yuyo:</p>
+<h5 id="modal-classes">Modal classes<a class="headerlink" href="#modal-classes" title="Permanent link">#</a></h5>
+<p>When working with modal classes you'll be adding "static" fields which are
+included on every instance of the modal class. There's a couple of ways to
+declare these:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span>
-        <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;John Doe&quot;</span><span class="p">),</span>
+        <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;John Doe&quot;</span><span class="p">),</span>
         <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
-            <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+            <span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+<p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> lets you create a unique modal template.
+<code>Modal</code> subclasses will never inherit fields.</p>
+<p>You can define the fields that'll appear on all instances of a modal template
+by setting field descriptors as argument defaults for the modal's callback
+(as shown above).</p>
+<p>The following descriptors are supported:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.text_input">text_input</a></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">components</span>
+
+<span class="n">Modal</span><span class="o">.</span><span class="n">add_static_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">)</span>
 </code></pre></div>
+<p>You can also define the template's fields by manually calling the <code>add_static_{}</code>
+class methods either directly or through one of the provided decorator functions.
+Note that decorators are executed from the bottom upwards and this will be
+reflected in the order of these fields.</p>
+<p>When using this approach the field's value/default will only be passed to the
+callback if you explicitly pass the relevant argument's name as <code>parameter=</code> to
+the add (class) method.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+
+<span class="n">modal_template</span><span class="o">.</span><span class="n">add_static_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.as_modal_template">as_modal_template</a> provides a short hand for
+creating a <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> subclass from a callback.</p>
+<h5 id="modal-instances">Modal instances<a class="headerlink" href="#modal-instances" title="Permanent link">#</a></h5>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="n">modal</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">modals</span><span class="o">.</span><span class="n">modal</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.as_modal">as_modal</a> and <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.modal">modal</a> both provide
+ways to create instances of modals from a callback.</p>
+<p>These only support the signature field descriptors and modal dataclasses when
+<code>parse_signature=True</code> is explicitly passed.</p>
+<h5 id="modal-dataclass">Modal dataclass<a class="headerlink" href="#modal-dataclass" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModalOptions</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">ModalOptions</span><span class="p">):</span>
     <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
     <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span>
+        <span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span>
     <span class="p">)</span>
 
-<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">ModalOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="o">...</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">ModalOptions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">field</span>
 </code></pre></div>
+<p>Another aspect of signature parsing is <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalOptions">ModalOptions</a>.
+This is a dataclass of modal fields which supports declaring said fields by
+using the same descriptors listed earlier as class variables.</p>
+<p>To use this dataclass with a modal you then have to use it as a modal</p>
+<p>This supports inheriting fields from other modal options dataclasses (including
+mixed inheritance) but does not support slotting nor custom <code>__init__</code>s.</p>
 <h3 id="handling-modal-interactions">Handling Modal Interactions<a class="headerlink" href="#handling-modal-interactions" title="Permanent link">#</a></h3>
 <p>There's two main ways to handle modal interactions with Yuyo:</p>
 <h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>
@@ -822,8 +935,8 @@ support text input right now.</p>
     <span class="n">modal_client</span><span class="o">.</span><span class="n">register_modal</span><span class="p">(</span><span class="n">custom_id</span><span class="p">,</span> <span class="n">modal</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_modal_response</span><span class="p">(</span><span class="s2">&quot;Title&quot;</span><span class="p">,</span> <span class="n">custom_id</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="n">modal</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
 </code></pre></div>
-<p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> allows you to associate state with a
-specific modal execution through OOP.</p>
+<p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> let you associate state with a specific
+modal execution through OOP.</p>
 <p>When doing this you'll usually be creating an instance of the modal per
 interaction and associating this with a specific modal execution by using
 the parent interaction's custom ID as the modal's custom ID (as shown above).</p>
