@@ -641,6 +641,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#subclassing" class="md-nav__link">
+    Subclassing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#builder" class="md-nav__link">
+    Builder
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#handling-component-interactions" class="md-nav__link">
     Handling Component Interactions
   </a>
@@ -785,6 +799,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#subclassing" class="md-nav__link">
+    Subclassing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#builder" class="md-nav__link">
+    Builder
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#handling-component-interactions" class="md-nav__link">
     Handling Component Interactions
   </a>
@@ -836,6 +864,7 @@ some messages sent by bots.</p>
 are interactive, meaning that an interaction will be sent to the bot when a
 user clicks on it. The only non-interactive style being link buttons, which
 simply open the set link in a browser for the user who clicked on it.</p>
+<p>A row can have up to 5 buttons in it.</p>
 <h3 id="select-menus">Select Menus<a class="headerlink" href="#select-menus" title="Permanent link">#</a></h3>
 <p><img alt="select menu example" src="../images/select_menu_example.png" /></p>
 <p>Select menus let users select between 0 to 25 options (dependent on how the bot
@@ -844,13 +873,25 @@ finished selecting options via and interaction and there's several different
 resources they can be selecting:</p>
 <ul>
 <li>Text menus: lets the bot pre-define up to 25 text options</li>
-<li>User menus: lets the user pick up to 25 users (in the current guild)?</li>
-<li>Role menus: lets the user pick up to 25 roles (in the current guild)?</li>
-<li>Channel menus: lets the user pick up to 25 of the current guild's channels</li>
-<li>Mentionable menus: lets the user pick up to 25 roles and users (in the current guild)?</li>
+<li>User menus: lets the user pick up to 25 users</li>
+<li>Role menus: lets the user pick up to 25 roles</li>
+<li>Channel menus: lets the user pick up to 25 channels</li>
+<li>Mentionable menus: lets the user pick up to 25 roles and users</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As of writing user, role, channel and mentionable menus only let you select
+entities from the current guild. Only text menus working properly in DM
+channels.</p>
+</div>
+<p>Each select menu takes up a whole row.</p>
 <h3 id="declaring-components">Declaring Components<a class="headerlink" href="#declaring-components" title="Permanent link">#</a></h3>
+<p>When adding sub-components to a select menu, they'll either be appended to the
+last row or they'll be added to a new row if the new entry wouldn't fit in the
+last row.</p>
+<p>A message can only have up to 5 component rows on it.</p>
 <p>There's several different ways to declare components using Yuyo:</p>
+<h3 id="subclassing">Subclassing<a class="headerlink" href="#subclassing" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
     <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_channel_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -876,9 +917,29 @@ resources they can be selecting:</p>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_users</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="nd">@components</span><span class="o">.</span><span class="n">with_static_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">MENTIONABLE_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_text_menu</span><span class="p">(</span>
+<p>When subclassing <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>,
+you can use any of the following class descriptors to add "static"
+sub-components (which'll be included on every instance and subclass of the
+column) to it:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_channel_menu">as_channel_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_interactive_button">as_interactive_button</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_select_menu">as_select_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_text_menu">as_text_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.link_button">link_button</a></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="n">link_button</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Most of these descriptors decorate a callback which'll be called when that
+specific sub-component is used by a user, with the only exception being
+link buttons which open a link for the user instead of sending an interaction
+to the bot.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@components</span><span class="o">.</span><span class="n">with_static_text_menu</span><span class="p">(</span>
     <span class="n">callback</span><span class="p">,</span>
     <span class="n">options</span><span class="o">=</span><span class="p">[</span>
         <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">SelectOptionBuilder</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">),</span>
@@ -890,7 +951,15 @@ resources they can be selecting:</p>
 <span class="nd">@components</span><span class="o">.</span><span class="n">with_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
     <span class="o">...</span>
+
+<span class="n">Column</span><span class="o">.</span><span class="n">add_static_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+<span class="n">Column</span><span class="o">.</span><span class="n">add_static_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">MENTIONABLE_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
 </code></pre></div>
+<p>Alternatively, static sub-components can be added to an
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass using the
+<code>add_static_{}</code> class methods or the relevant <code>with_static_{}</code> class decorator
+functions.</p>
+<h3 id="builder">Builder<a class="headerlink" href="#builder" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
@@ -899,16 +968,10 @@ resources they can be selecting:</p>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">add_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">parent</span>
+    <span class="o">.</span><span class="n">add_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">MENTIONABLE_SELECT_MENU</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
 <span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="o">...</span>
-
-    <span class="n">link_button</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
@@ -916,11 +979,9 @@ resources they can be selecting:</p>
     <span class="o">.</span><span class="n">add_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="nd">@components</span><span class="o">.</span><span class="n">with_static_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
-<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
-    <span class="o">...</span>
-</code></pre></div>
+<p>You can also dynamically build a
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> after initialising
+it by using the chainable <code>add_{}</code> methods it provides to add sub-components.</p>
 <h3 id="handling-component-interactions">Handling Component Interactions<a class="headerlink" href="#handling-component-interactions" title="Permanent link">#</a></h3>
 <p>There's two main ways to handle component interactions with Yuyo:</p>
 <h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>

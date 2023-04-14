@@ -829,9 +829,13 @@
 for a slash command, context menu or message component interaction.</p>
 <p><img alt="modal example" src="../images/modal_example.png" /></p>
 <p>Modals take the shape of dialogue boxes which show up on top of everything for
-the user who triggered the relevant interaction (as shown above) and only
-support text input right now.</p>
+the user who triggered the relevant interaction (as shown above)</p>
 <h3 id="declaring-modals">Declaring Modals<a class="headerlink" href="#declaring-modals" title="Permanent link">#</a></h3>
+<p>The only field type supported for modals right now are text inputs.</p>
+<p>A modal can have up to 5 text inputs in it and there are two different
+flavours of text inputs: the default "sentence" style which only users
+input a single line of text and the "paragraph" style which allows
+multiple lines of text.</p>
 <p>There's several different ways to declare modals using Yuyo:</p>
 <h5 id="modal-classes">Modal classes<a class="headerlink" href="#modal-classes" title="Permanent link">#</a></h5>
 <p>When working with modal classes you'll be adding "static" fields which are
@@ -865,9 +869,9 @@ by setting field descriptors as argument defaults for the modal's callback
 <span class="n">Modal</span><span class="o">.</span><span class="n">add_static_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>You can also define the template's fields by manually calling the <code>add_static_{}</code>
-class methods either directly or through one of the provided decorator functions.
-Note that decorators are executed from the bottom upwards and this will be
-reflected in the order of these fields.</p>
+class methods either directly or through one of the provided <code>with_static_{}</code>
+decorator functions. Note that decorators are executed from the bottom upwards
+and this will be reflected in the order of these fields.</p>
 <p>When using this approach the field's value/default will only be passed to the
 callback if you explicitly pass the relevant argument's name as <code>parameter=</code> to
 the add (class) method.</p>
