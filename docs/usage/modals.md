@@ -39,9 +39,9 @@ The following descriptors are supported:
 ```
 
 You can also define the template's fields by manually calling the `add_static_{}`
-class methods either directly or through one of the provided decorator functions.
-Note that decorators are executed from the bottom upwards and this will be
-reflected in the order of these fields.
+class methods either directly or through one of the provided `with_static_{}`
+decorator functions. Note that decorators are executed from the bottom upwards
+and this will be reflected in the order of these fields.
 
 When using this approach the field's value/default will only be passed to the
 callback if you explicitly pass the relevant argument's name as `parameter=` to
