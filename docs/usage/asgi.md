@@ -1,7 +1,8 @@
 # Asgi
 
-The [AsgiBot][yuyo.asgi.AsgiBot] acts as an ASGI application which will handle
-the interaction requests received from Discord for slash commands, context menus,
+The [AsgiBot][yuyo.asgi.AsgiBot] is a [RESTBot][hikari.RESTBotAware]
+implmentation which acts as an ASGI application which will handle the
+interaction requests received from Discord for slash commands, context menus,
 message components and modals as part of an ASGI server.
 
 ```py
