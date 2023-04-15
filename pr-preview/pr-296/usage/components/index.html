@@ -607,6 +607,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#making-a-component-client" class="md-nav__link">
+    Making a Component Client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#types-of-components" class="md-nav__link">
     Types of components
   </a>
@@ -806,6 +813,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#making-a-component-client" class="md-nav__link">
+    Making a Component Client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#types-of-components" class="md-nav__link">
     Types of components
   </a>
@@ -939,6 +953,31 @@
 <h1 id="message-components">Message Components<a class="headerlink" href="#message-components" title="Permanent link">#</a></h1>
 <p>Message components are the interactive buttons and select menus you'll see on
 some messages sent by bots.</p>
+<h3 id="making-a-component-client">Making a Component Client<a class="headerlink" href="#making-a-component-client" title="Permanent link">#</a></h3>
+<p>The Component client keeps track of registered components and handles
+executing them.</p>
+<p>This can be created with any of the following class methods:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentClient.from_gateway_bot">ComponentClient.from_gateway_bot</a>:
+    Create a component client from a Hikari GatewayBot (i.e.
+    <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.GatewayBot</a>).</li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentClient.from_rest_bot">ComponentClient.from_rest_bot</a>:
+    Create a component client from a Hikari RESTBot (i.e.
+    <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/rest_bot/#hikari.impl.rest_bot.RESTBot">hikari.RESTBot</a>).</li>
+<li>
+<p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentClient.from_tanjun">ComponentClient.from_tanjun</a>:
+    Create a component client from a Tanjun <a class="autorefs autorefs-external" href="https://tanjun.cursed.solutions/reference/abc/#tanjun.abc.Client">Client</a>.</p>
+<p>This method will make the component client use Tanjun's Alluka client for
+dependency injection, essentially mirroring the dependencies registered for
+Tanjun's DI while also registering
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentClient">ComponentClient</a> as a type dependency.</p>
+</li>
+</ul>
+<p>Client state can be managed through dependency injection. This is implemented using
+<a class="autorefs autorefs-external" href="https://alluka.cursed.solutions/reference/#alluka">Alluka</a> and more information about it can be found in Alluka's
+<a href="https://alluka.cursed.solutions/usage/">usage guide</a>.</p>
+<p>For the sake of simplicity, the following examples all assume the component
+client can be accessed through Alluka style dependency injection.</p>
 <h3 id="types-of-components">Types of components<a class="headerlink" href="#types-of-components" title="Permanent link">#</a></h3>
 <h5 id="buttons">Buttons<a class="headerlink" href="#buttons" title="Permanent link">#</a></h5>
 <p><img alt="button colours" src="../images/button_colours.png" /></p>
@@ -1110,8 +1149,8 @@ resets every use).</p>
     <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">ColumnCls</span><span class="p">(</span><span class="n">id_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;GLOBALLY_UNIQUE&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)})</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
 </code></pre></div>
-<p>Alternatively, components can be reused by registering the modal to the client
-on startup with <code>timeout=None</code> and sending the same modal's rows per-exevution.</p>
+<p>Alternatively, components can be reused by registering the component to the client
+on startup with <code>timeout=None</code> and sending the same component's rows per-exevution.</p>
 <p>Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. Custom IDs are split into two parts as
 <code>"{match}:{metadata}"</code> where the "match" part is what Yuyo will use to find the

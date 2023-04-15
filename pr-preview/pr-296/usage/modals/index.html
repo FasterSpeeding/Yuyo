@@ -647,6 +647,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#making-a-modal-client" class="md-nav__link">
+    Making a Modal client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#declaring-modals" class="md-nav__link">
     Declaring Modals
   </a>
@@ -776,6 +783,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#making-a-modal-client" class="md-nav__link">
+    Making a Modal client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#declaring-modals" class="md-nav__link">
     Declaring Modals
   </a>
@@ -883,7 +897,31 @@
 for a slash command, context menu or message component interaction.</p>
 <p><img alt="modal example" src="../images/modal_example.png" /></p>
 <p>Modals take the shape of dialogue boxes which show up on top of everything for
-the user who triggered the relevant interaction (as shown above)</p>
+the user who triggered the relevant interaction (as shown above).</p>
+<h3 id="making-a-modal-client">Making a Modal client<a class="headerlink" href="#making-a-modal-client" title="Permanent link">#</a></h3>
+<p>The Modal client keeps track of registered modals and handles executing them.</p>
+<p>This can be created with any of the following class methods:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient.from_gateway_bot">ModalClient.from_gateway_bot</a>:
+    Create a modal client from a Hikari GatewayBot (i.e.
+    <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.GatewayBot</a>).</li>
+<li><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient.from_rest_bot">ModalClient.from_rest_bot</a>:
+    Create a modal client from a Hikari RESTBot (i.e.
+    <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/rest_bot/#hikari.impl.rest_bot.RESTBot">hikari.RESTBot</a>).</li>
+<li>
+<p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient.from_tanjun">ModalClient.from_tanjun</a>:
+    Create a modal client from a Tanjun <a class="autorefs autorefs-external" href="https://tanjun.cursed.solutions/reference/abc/#tanjun.abc.Client">Client</a>.</p>
+<p>This method will make the modal client use  Tanjun's Alluka client for
+dependency injection, essentially mirroring the dependencies registered
+for Tanjun's DI while also registering
+<a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient">ModalClient</a> as a type dependency.</p>
+</li>
+</ul>
+<p>Client state can be managed through dependency injection. This is implemented using
+<a class="autorefs autorefs-external" href="https://alluka.cursed.solutions/reference/#alluka">Alluka</a> and more information about it can be found in Alluka's
+<a href="https://alluka.cursed.solutions/usage/">usage guide</a>.</p>
+<p>For the sake of simplicity, the following examples all assume the modal client
+can be accessed through Alluka style dependency injection.</p>
 <h3 id="declaring-modals">Declaring Modals<a class="headerlink" href="#declaring-modals" title="Permanent link">#</a></h3>
 <p>The only field type supported for modals right now are text inputs.</p>
 <p>A modal can have up to 5 text inputs in it and there are two different
