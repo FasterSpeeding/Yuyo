@@ -1002,7 +1002,7 @@ resources they can be selecting:</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>As of writing user, role, channel and mentionable menus only let you select
-entities from the current guild. Only text menus working properly in DM
+entities from the current guild. Only text menus work properly in DM
 channels.</p>
 </div>
 <p>Each select menu takes up a whole row.</p>
@@ -1022,7 +1022,7 @@ last row.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_role_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;op3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
     <span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
     <span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
     <span class="nd">@components</span><span class="o">.</span><span class="n">as_text_menu</span>
