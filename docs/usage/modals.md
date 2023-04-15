@@ -13,9 +13,9 @@ the user who triggered the relevant interaction (as shown above)
 The only field type supported for modals right now are text inputs.
 
 A modal can have up to 5 text inputs in it and there are two different
-flavours of text inputs: the default "sentence" style which only users
-input a single line of text and the "paragraph" style which allows
-multiple lines of text.
+flavours of text inputs: the default "sentence" style which only lets
+users input a single line of text and the "paragraph" style which
+allows multiple lines of text.
 
 There's several different ways to declare modals using Yuyo:
 
