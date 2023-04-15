@@ -36,7 +36,7 @@ def action_column_of_menus() -> None:
         async def on_role_menu(self, ctx: components.Context) -> None:
             ctx.selected_roles
 
-        @components.with_option("op3", "value3")
+        @components.with_option("opt3", "value3")
         @components.with_option("opt2", "value2")
         @components.with_option("opt1", "value1")
         @components.as_text_menu
