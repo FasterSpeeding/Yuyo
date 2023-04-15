@@ -34,6 +34,7 @@
 # This leads to too many false-positives around mocks.
 
 import datetime
+import inspect
 from unittest import mock
 
 import alluka
@@ -1004,6 +1005,14 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+
+def test_ensure_parse_channel_types_has_every_channel_class():
+    for _, attribute in inspect.getmembers(hikari):
+        if isinstance(attribute, type) and issubclass(attribute, hikari.PartialChannel):
+            result = yuyo.components._parse_channel_types(attribute)
+
+            assert result
 
 
 def test_with_static_select_menu():
