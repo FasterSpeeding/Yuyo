@@ -1128,7 +1128,7 @@ you to associate state with a specific message's components through OOP.</p>
 <p>When doing this you'll usually be creating an instance of the components column
 per message.</p>
 <p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentClient.register_executor">ComponentClient.register_executor</a>
-defaults <code>timeout</code> to a 2 minute sliding timeout (meaning that the timer
+defaults <code>timeout</code> to a 30 second sliding timeout (meaning that the timer
 resets every use).</p>
 <h5 id="stateless">Stateless<a class="headerlink" href="#stateless" title="Permanent link">#</a></h5>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
