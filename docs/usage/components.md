@@ -3,6 +3,34 @@
 Message components are the interactive buttons and select menus you'll see on
 some messages sent by bots.
 
+### Making a Component Client
+
+The Component client keeps track of registered components and handles
+executing them.
+
+This can be created with any of the following class methods:
+
+* [ComponentClient.from_gateway_bot][yuyo.components.ComponentClient.from_gateway_bot]:
+    Create a component client from a Hikari GatewayBot (i.e.
+    [hikari.GatewayBot][hikari.impl.gateway_bot.GatewayBot]).
+* [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot]:
+    Create a component client from a Hikari RESTBot (i.e.
+    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot]).
+* [ComponentClient.from_tanjun][yuyo.components.ComponentClient.from_tanjun]:
+    Create a component client from a Tanjun [Client][tanjun.abc.Client].
+
+    This method will make the component client use Tanjun's Alluka client for
+    dependency injection, essentially mirroring the dependencies registered for
+    Tanjun's DI while also registering
+    [ComponentClient][yuyo.components.ComponentClient] as a type dependency.
+
+Client state can be managed through dependency injection. This is implemented using
+[Alluka][alluka] and more information about it can be found in Alluka's
+[usage guide](https://alluka.cursed.solutions/usage/).
+
+For the sake of simplicity, the following examples all assume the component
+client can be accessed through Alluka style dependency injection.
+
 ### Types of components
 
 ##### Buttons
@@ -123,8 +151,8 @@ resets every use).
 --8<-- "./docs_src/components.py:128:144"
 ```
 
-Alternatively, components can be reused by registering the modal to the client
-on startup with `timeout=None` and sending the same modal's rows per-exevution.
+Alternatively, components can be reused by registering the component to the client
+on startup with `timeout=None` and sending the same component's rows per-exevution.
 
 Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. Custom IDs are split into two parts as

@@ -6,7 +6,34 @@ for a slash command, context menu or message component interaction.
 ![modal example](./images/modal_example.png)
 
 Modals take the shape of dialogue boxes which show up on top of everything for
-the user who triggered the relevant interaction (as shown above)
+the user who triggered the relevant interaction (as shown above).
+
+### Making a Modal client
+
+The Modal client keeps track of registered modals and handles executing them.
+
+This can be created with any of the following class methods:
+
+* [ModalClient.from_gateway_bot][yuyo.modals.ModalClient.from_gateway_bot]:
+    Create a modal client from a Hikari GatewayBot (i.e.
+    [hikari.GatewayBot][hikari.impl.gateway_bot.GatewayBot]).
+* [ModalClient.from_rest_bot][yuyo.modals.ModalClient.from_rest_bot]:
+    Create a modal client from a Hikari RESTBot (i.e.
+    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot]).
+* [ModalClient.from_tanjun][yuyo.modals.ModalClient.from_tanjun]:
+    Create a modal client from a Tanjun [Client][tanjun.abc.Client].
+
+    This method will make the modal client use  Tanjun's Alluka client for
+    dependency injection, essentially mirroring the dependencies registered
+    for Tanjun's DI while also registering
+    [ModalClient][yuyo.modals.ModalClient] as a type dependency.
+
+Client state can be managed through dependency injection. This is implemented using
+[Alluka][alluka] and more information about it can be found in Alluka's
+[usage guide](https://alluka.cursed.solutions/usage/).
+
+For the sake of simplicity, the following examples all assume the modal client
+can be accessed through Alluka style dependency injection.
 
 ### Declaring Modals
 
