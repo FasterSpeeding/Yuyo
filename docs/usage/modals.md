@@ -15,11 +15,11 @@ The Modal client keeps track of registered modals and handles executing them.
 This can be created with any of the following class methods:
 
 * [ModalClient.from_gateway_bot][yuyo.modals.ModalClient.from_gateway_bot]:
-    Create a modal client from a Hikari GatewayBot (i.e.
+    Create a modal client from a Hikari gateway bot (i.e.
     [hikari.GatewayBot][hikari.impl.gateway_bot.GatewayBot]).
 * [ModalClient.from_rest_bot][yuyo.modals.ModalClient.from_rest_bot]:
-    Create a modal client from a Hikari RESTBot (i.e.
-    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot]).
+    Create a modal client from a Hikari REST bot (i.e.
+    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot] or [yuyo.asgi.AsgiBot][]).
 * [ModalClient.from_tanjun][yuyo.modals.ModalClient.from_tanjun]:
     Create a modal client from a Tanjun [Client][tanjun.abc.Client].
 
