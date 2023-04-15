@@ -164,6 +164,8 @@ def _as_strategy(strategy: type[_LoadableStrategyT], /) -> type[_LoadableStrateg
 class CacheStrategy(_LoadableStrategy):
     """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
 
+    This tracks per-shard guild counts.
+
     !!! warning
         This will only function properly if GUILD intents are declared
         and the guild cache resource is enabled.
@@ -213,7 +215,7 @@ class CacheStrategy(_LoadableStrategy):
 class SakeStrategy(AbstractCountStrategy):
     """Async cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
 
-    This relies on [Sake][sake].
+    This relies on [Sake][sake] and tracks the global guild count.
     """
 
     __slots__ = ("_cache", "_is_shard_bound")
@@ -256,6 +258,8 @@ class SakeStrategy(AbstractCountStrategy):
 @_as_strategy
 class EventStrategy(_LoadableStrategy):
     """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
+
+    This tracks per-guild counts.
 
     !!! warning
         This will only function properly if GUILD intents are declared.

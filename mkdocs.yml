@@ -32,7 +32,10 @@ theme:
 
 markdown_extensions:
   - admonition
+  - attr_list
   - pymdownx.details
+  - pymdownx.snippets:
+      dedent_subsections: true
   - pymdownx.superfences
   - markdown_include.include
   - toc:
@@ -62,5 +65,6 @@ plugins:
 
 watch:
   - CHANGELOG.md
+  - docs_src
   - README.md
   - yuyo
