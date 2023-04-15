@@ -32,7 +32,7 @@ Client state can be managed through dependency injection. This is implemented us
 [Alluka][alluka] and more information about it can be found in Alluka's
 [usage guide](https://alluka.cursed.solutions/usage/). The alluka client
 used for modal execution can be found at
-[ComponentClient.alluka][yuyo.components.ComponentClient.alluka]
+[ComponentClient.alluka][yuyo.components.ComponentClient.alluka].
 
 For the sake of simplicity, the following examples all assume the modal client
 can be accessed through Alluka style dependency injection.
