@@ -113,7 +113,8 @@ Another aspect of signature parsing is [ModalOptions][yuyo.modals.ModalOptions].
 This is a dataclass of modal fields which supports declaring said fields by
 using the same descriptors listed earlier as class variables.
 
-To use this dataclass with a modal you then have to use it as a modal.
+To use this dataclass with a modal you then have to use it as type-hint for
+one of the modal callback's arguments.
 
 This supports inheriting fields from other modal options dataclasses (including
 mixed inheritance) but does not support slotting nor custom `__init__`s.
