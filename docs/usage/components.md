@@ -61,7 +61,7 @@ resources they can be selecting:
 
 !!! note
     As of writing user, role, channel and mentionable menus only let you select
-    entities from the current guild. Only text menus working properly in DM
+    entities from the current guild. Only text menus work properly in DM
     channels.
 
 Each select menu takes up a whole row.
