@@ -11,11 +11,11 @@ executing them.
 This can be created with any of the following class methods:
 
 * [ComponentClient.from_gateway_bot][yuyo.components.ComponentClient.from_gateway_bot]:
-    Create a component client from a Hikari GatewayBot (i.e.
+    Create a component client from a Hikari gateway bot (i.e.
     [hikari.GatewayBot][hikari.impl.gateway_bot.GatewayBot]).
 * [ComponentClient.from_rest_bot][yuyo.components.ComponentClient.from_rest_bot]:
-    Create a component client from a Hikari RESTBot (i.e.
-    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot]).
+    Create a component client from a Hikari REST bot (i.e.
+    [hikari.RESTBot][hikari.impl.rest_bot.RESTBot] or [yuyo.asgi.AsgiBot][]).
 * [ComponentClient.from_tanjun][yuyo.components.ComponentClient.from_tanjun]:
     Create a component client from a Tanjun [Client][tanjun.abc.Client].
 
