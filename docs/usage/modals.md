@@ -30,7 +30,7 @@ This can be created with any of the following class methods:
 
 Client state can be managed through dependency injection. This is implemented using
 [Alluka][alluka] and more information about it can be found in Alluka's
-[usage guide](https://alluka.cursed.solutions/usage/). The alluka client
+[usage guide](https://alluka.cursed.solutions/usage/). The Alluka client
 used for modal execution can be found at
 [ComponentClient.alluka][yuyo.components.ComponentClient.alluka].
 
