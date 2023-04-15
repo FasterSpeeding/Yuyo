@@ -1010,7 +1010,8 @@ ways to create instances of modals from a callback.</p>
 <p>Another aspect of signature parsing is <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalOptions">ModalOptions</a>.
 This is a dataclass of modal fields which supports declaring said fields by
 using the same descriptors listed earlier as class variables.</p>
-<p>To use this dataclass with a modal you then have to use it as a modal.</p>
+<p>To use this dataclass with a modal you then have to use it as type-hint for
+one of the modal callback's arguments.</p>
 <p>This supports inheriting fields from other modal options dataclasses (including
 mixed inheritance) but does not support slotting nor custom <code>__init__</code>s.</p>
 <h3 id="handling-modal-interactions">Handling Modal Interactions<a class="headerlink" href="#handling-modal-interactions" title="Permanent link">#</a></h3>
