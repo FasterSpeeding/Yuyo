@@ -21,7 +21,7 @@ import yuyo
 
 def make_asgi_bot() -> None:
     rest_bot = yuyo.asgi.AsgiBot(os.environ["TOKEN"])
-    tanjun.Client.from_rest_bot(bot)
+    tanjun.Client.from_rest_bot(rest_bot)
 
     # ... more setup
 
