@@ -119,7 +119,7 @@ async def async_paginate_string(
     if wrapper:
         char_limit -= len(wrapper) + 2
 
-    # As this is incremented before yielding and zero-index we have to start at -1
+    # As this is incremented before yielding and zero-index we have to start at -1. 
     page_size = 0
     page: list[str] = []
     lines = _internal.aiter_(lines)
