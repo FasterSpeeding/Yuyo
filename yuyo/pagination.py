@@ -113,8 +113,8 @@ async def async_paginate_string(
 
     Returns
     -------
-    collections.abc.AsyncIterator[tuple[str, int]]
-        An async iterator of page tuples (string context to int zero-based index).
+    collections.abc.AsyncIterator[str]
+        An async iterator of each page's content.
     """
     if wrapper:
         char_limit -= len(wrapper) + 2
@@ -184,8 +184,8 @@ def sync_paginate_string(
 
     Returns
     -------
-    collections.abc.Iterator[tuple[str, int]]
-        An iterator of page tuples (string context to int zero-based index).
+    collections.abc.Iterator[str]
+        An iterator of each page's content.
     """
     if wrapper:
         char_limit -= len(wrapper) + 2
@@ -278,9 +278,9 @@ def paginate_string(
 
     Returns
     -------
-    collections.abc.AsyncIterator[tuple[str, int]] | collections.abc.Iterator[tuple[str, int]]
-        An iterator of page tuples (string context to int zero-based index).
-    """  # noqa: E501  - line too long
+    collections.abc.AsyncIterator[str] | collections.abc.Iterator[str]
+        An iterator of each page's content.
+    """
     if isinstance(lines, collections.AsyncIterable):
         return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
