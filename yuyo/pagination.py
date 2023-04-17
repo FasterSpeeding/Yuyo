@@ -113,13 +113,13 @@ async def async_paginate_string(
 
     Returns
     -------
-    collections.abc.AsyncIterator[str] 
+    collections.abc.AsyncIterator[str]
         An async iterator of each page's content.
     """
     if wrapper:
         char_limit -= len(wrapper) + 2
 
-    # As this is incremented before yielding and zero-index we have to start at -1. 
+    # As this is incremented before yielding and zero-index we have to start at -1.
     page_size = 0
     page: list[str] = []
     lines = _internal.aiter_(lines)
@@ -184,7 +184,7 @@ def sync_paginate_string(
 
     Returns
     -------
-    collections.abc.Iterator[str] 
+    collections.abc.Iterator[str]
         An iterator of each page's content.
     """
     if wrapper:
@@ -280,7 +280,7 @@ def paginate_string(
     -------
     collections.abc.AsyncIterator[str] | collections.abc.Iterator[str]
         An iterator of each page's content.
-    """ 
+    """
     if isinstance(lines, collections.AsyncIterable):
         return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
