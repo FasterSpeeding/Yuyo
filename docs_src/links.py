@@ -98,7 +98,7 @@ async def template_link(app: hikari.RESTAware):
 
 def make_template_link() -> None:
     raw_link = links.make_template_link("cododododoe")
-    raw_link  # value: "https://discord.new/aaaaaaaaaa"
+    raw_link  # value: "https://discord.new/cododododoe"
 
 
 async def webhook_link(app: hikari.RESTAware):
@@ -112,4 +112,4 @@ async def webhook_link(app: hikari.RESTAware):
 
 def make_webhook_link() -> None:
     raw_link = links.make_webhook_link(123321, "hfdssdasd")
-    raw_link  # value: "https://discord.com/api/webhooks/123321123/efsdfasdsa"
+    raw_link  # value: "https://discord.com/api/webhooks/123321/hfdssdasd"
