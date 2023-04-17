@@ -202,7 +202,7 @@ response within 3 seconds, you can defer the first response using
 A deferral should then be finished by editing in the initial response using either
 [ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
 or [ComponentContext.respond][yuyo.components.BaseContext.respond] and if you
-want a response to be a ephemeral message create then you'll have to pass
+want a response to be an ephemeral message create then you'll have to pass
 `ephemeral=True` when deferring.
 
 ##### Updating the source message
