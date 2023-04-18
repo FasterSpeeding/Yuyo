@@ -947,7 +947,8 @@ declare these:</p>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>Subclassing <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> lets you create a unique modal template.
-<code>Modal</code> subclasses will never inherit fields.</p>
+<code>Modal</code> subclasses will never inherit fields. The modal's execution callback
+must always be called <code>callback</code> when subclassing.</p>
 <p>You can define the fields that'll appear on all instances of a modal template
 by setting field descriptors as argument defaults for the modal's callback
 (as shown above).</p>
@@ -1025,7 +1026,7 @@ mixed inheritance) but does not support slotting nor custom <code>__init__</code
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">command_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">AppCommandContext</span><span class="p">,</span> <span class="n">modal_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">modals</span><span class="o">.</span><span class="n">Client</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
