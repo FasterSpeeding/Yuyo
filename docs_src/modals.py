@@ -92,7 +92,7 @@ def creating_a_modal() -> None:
         def __init__(self, state: str) -> None:
             self.state = state
 
-        async def modal_template(self, ctx: modals.Context, field: str = modals.text_input("field")) -> None:
+        async def callback(self, ctx: modals.Context, field: str = modals.text_input("field")) -> None:
             await ctx.respond(self.state)
 
     async def command_callback(ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.Client]) -> None:
