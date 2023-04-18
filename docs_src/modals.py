@@ -119,7 +119,7 @@ def creating_a_static_modal() -> None:
         ctx: tanjun.abc.AppCommandContext, modal_client: alluka.Injected[modals.ModalClient]
     ) -> None:
         session_id = uuid.uuid4()
-        await ctx.create_modal_response("Title", f"{MODAL_ID}:{session_id}")
+        await ctx.create_modal_response("Title", f"{MODAL_ID}:{session_id}", components=modal.rows)
 
 
 def create_response() -> None:
