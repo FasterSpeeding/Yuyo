@@ -59,7 +59,8 @@ declare these:
 ```
 
 Subclassing [Modal][yuyo.modals.Modal] lets you create a unique modal template.
-`Modal` subclasses will never inherit fields.
+`Modal` subclasses will never inherit fields. The modal's execution callback
+must always be called `callback` when subclassing.
 
 You can define the fields that'll appear on all instances of a modal template
 by setting field descriptors as argument defaults for the modal's callback
