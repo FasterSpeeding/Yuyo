@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [ModalOptions][yuyo.modals.ModalOptions] attributes now correctly expose the values passed to
-  the modal rather internal descriptors.
+  the modal rather than internal descriptors.
 - [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members]
   now correctly disables auto chunking when [False][] is passed after it has been previously
   enabled. This now also always changes the configuration for `chunk_presences`.
