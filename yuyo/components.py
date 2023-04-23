@@ -3977,18 +3977,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_callbacks", "_rows", "_timeout")
+    __slots__ = ("_callbacks", "_ephemeral_default", "_rows", "_timeout")
 
-    _all_static_fields: typing.ClassVar[list[_StaticField]] = []
-    """Atomic sequence of all the static fields on this class.
-
-    This includes inherited fields.
-    """
-
-    _static_fields: typing.ClassVar[list[_StaticField]] = []
-    """Atomic sequence of the static fields declared on this specific class.
+    _added_static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
+    """Dict of match IDs to the static fields added to this class through add method calls.
 
     This doesn't include inherited fields.
+    """
+
+    _static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
+    """Dict of match IDs to the static fields on this class.
+
+    This includes inherited fields and fields added through method calls.
     """
 
     @typing.overload
@@ -3996,6 +3996,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     def __init__(
         self,
         *,
+        ephemeral_default: bool = False,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None],
         _stack_level: int = 0,
@@ -4003,12 +4004,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ...
 
     @typing.overload
-    def __init__(self, *, id_metadata: typing.Optional[collections.Mapping[str, str]] = None) -> None:
+    def __init__(
+        self, *, ephemeral_default: bool = False, id_metadata: typing.Optional[collections.Mapping[str, str]] = None
+    ) -> None:
         ...
 
     def __init__(
         self,
         *,
+        ephemeral_default: bool = False,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
         _stack_level: int = 0,
@@ -4017,6 +4021,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         Parameters
         ----------
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this executor
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
         id_metadata
             Mapping of metadata to append to the custom_ids in this column.
         """
@@ -4028,10 +4036,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             )
 
         self._callbacks: dict[str, CallbackSig] = {}
+        self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
-        for field in self._all_static_fields.copy():
+        for field in self._static_fields.values():
             if id_metadata and (metadata := id_metadata.get(field.id_match)):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
@@ -4048,27 +4057,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 )
 
     def __init_subclass__(cls) -> None:
-        cls._all_static_fields = []
-        cls._static_fields = []
+        cls._added_static_fields = {}
+        cls._static_fields = {
+            attr.id_match: attr.to_field()
+            for _, attr in inspect.getmembers(cls)
+            if isinstance(attr, _ComponentDescriptor)
+        }
 
-        # TODO: allow overriding these?
-        memo: set[str] = set()
-        # This slice ignores [object, ..., type[Self]] and flips the order.
+        # This slice ignores [object, ...] and flips the order.
         for super_cls in cls.mro()[-2:0:-1]:
-            if not issubclass(super_cls, ActionColumnExecutor):
-                continue
-
-            for field in super_cls._static_fields:
-                if field.id_match not in memo:
-                    memo.add(field.id_match)
-                    cls._all_static_fields.append(field)
-
-        for _, attr in inspect.getmembers(cls):
-            if isinstance(attr, _ComponentDescriptor) and attr.id_match not in memo:
-                field = attr.to_field()
-                cls._all_static_fields.append(field)
-                cls._static_fields.append(field)
-                memo.add(field.id_match)
+            if issubclass(super_cls, ActionColumnExecutor):
+                cls._static_fields.update(super_cls._added_static_fields)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -4120,6 +4119,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
@@ -4300,8 +4300,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
             ),
         )
-        cls._all_static_fields.append(field)
-        cls._static_fields.append(field)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
         return cls
 
     @classmethod
@@ -4422,13 +4422,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         if cls is ActionColumnExecutor:
             raise RuntimeError("Can only add static components to subclasses")
 
+        custom_id = _internal.random_custom_id()
         field = _StaticField(
-            _internal.random_custom_id(),
-            None,
-            hikari.impl.LinkButtonBuilder(url=url, emoji=emoji, label=label, is_disabled=is_disabled),
+            custom_id, None, hikari.impl.LinkButtonBuilder(url=url, emoji=emoji, label=label, is_disabled=is_disabled)
         )
-        cls._all_static_fields.append(field)
-        cls._static_fields.append(field)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
         return cls
 
     @typing.overload
@@ -4650,8 +4649,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             ),
         )
-        cls._all_static_fields.append(field)
-        cls._static_fields.append(field)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
         return cls
 
     @classmethod
@@ -4860,8 +4859,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             ),
         )
-        cls._all_static_fields.append(field)
-        cls._static_fields.append(field)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
         return cls
 
     @classmethod
@@ -5108,8 +5107,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         field = _StaticField(id_match, callback, component)
-        cls._all_static_fields.append(field)
-        cls._static_fields.append(field)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
         return component
 
 
