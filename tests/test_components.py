@@ -696,7 +696,7 @@ class TestActionColumnExecutor:
 
     def test_add_static_select_menu(self):
         class Column(yuyo.components.ActionColumnExecutor):
-            ...
+            __slots__ = ()
 
         mock_callback = mock.Mock()
 
@@ -725,7 +725,7 @@ class TestActionColumnExecutor:
 
     def test_add_static_select_menu_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
-            ...
+            __slots__ = ()
 
         mock_callback = mock.Mock()
 
@@ -1234,6 +1234,320 @@ class TestActionColumnExecutor:
         assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
         assert row.components[0].type is hikari.ComponentType.CHANNEL_SELECT_MENU
 
+    def test_inheritance(self) -> None:
+        class Column1(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            link_button = yuyo.components.link_button("https://example.com/br", label="br")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="beepy")
+            async def beepy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="aaaa")
+            async def a_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="butt no")
+            async def button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            another_link_button = yuyo.components.link_button("https://example.com/beep", label="beep")
+
+        class Column2(Column1):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_menu(custom_id="Chan")
+            async def channel_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column3(Column2):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="butt")
+            async def butt_on(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="blazy")
+            async def blazy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            link_me = yuyo.components.link_button("https://example.com/meep", label="meepo")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="x")
+            async def x_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="xx butt")
+            async def xx_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column4(Column3):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="aaaeeeeaaaa")
+            async def user_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        column = Column4()
+
+        assert len(column.rows) == 4
+
+        row = column.rows[0]
+        assert len(row.components) == 5
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "br"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "beepy"
+        component = row.components[2]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "aaaa"
+        component = row.components[3]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "butt no"
+        component = row.components[4]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "beep"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "Chan"
+
+        row = column.rows[2]
+        assert len(row.components) == 5
+        component = row.components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "butt"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "blazy"
+        component = row.components[2]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "meepo"
+        component = row.components[3]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "x"
+        component = row.components[4]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "xx butt"
+
+        row = column.rows[3]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "aaaeeeeaaaa"
+
+    def test_inheritance_with_incomplete_button_row(self) -> None:
+        class Column1(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            link_button = yuyo.components.link_button("https://example.com/br", label="br")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="disco")
+            async def a_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column2(Column1):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_menu(custom_id="yeet")
+            async def channel_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="usm")
+            async def b_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        column = Column2()
+
+        assert len(column.rows) == 3
+
+        row = column.rows[0]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "br"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "disco"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "yeet"
+
+        row = column.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "usm"
+
+    def test_inheritance_overflows_buttons(self) -> None:
+        class Column1(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="dag")
+            async def other_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="succ")
+            async def a_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            l_button = yuyo.components.link_button("https://example.com", label="basson")
+
+        class Column2(Column1):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="prim")
+            async def new_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="sec")
+            async def e_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            new_l = yuyo.components.link_button("https://example.com/e", label="suninthesky")
+
+        column = Column2()
+
+        assert len(column.rows) == 2
+
+        row = column.rows[0]
+        assert len(row.components) == 5
+        component = row.components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "dag"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "succ"
+        component = row.components[2]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "basson"
+        component = row.components[3]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "prim"
+        component = row.components[4]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "sec"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "suninthesky"
+
+    def test_inheritance_with_menus(self) -> None:
+        class Column1(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.with_option("b", "c")
+            @yuyo.components.with_option("a", "b")
+            @yuyo.components.as_text_menu(custom_id="yeet")
+            async def text_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, custom_id="meat")
+            async def role_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column2(Column1):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="beep")
+            async def user_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_channel_menu(custom_id="meow")
+            async def channel_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        column = Column2()
+
+        assert len(column.rows) == 4
+
+        row = column.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.custom_id == "yeet"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "meat"
+
+        row = column.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "beep"
+
+        row = column.rows[3]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "meow"
+
+    def test_mixed_inheritance(self) -> None:
+        class Column1(yuyo.components.ActionColumnExecutor):
+            link_button = yuyo.components.link_button("https://example.com/link", label="lalala")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="aae")
+            async def e_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column2(yuyo.components.ActionColumnExecutor):
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="iou")
+            async def user_select(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="air")
+            async def a_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column3(yuyo.components.ActionColumnExecutor):
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="show time")
+            async def f_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class MixedColumn(Column3, Column2, Column1):
+            ...
+
+        column = MixedColumn()
+
+        assert len(column.rows) == 3
+
+        row = column.rows[0]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.label == "lalala"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "aae"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.custom_id == "iou"
+
+        row = column.rows[2]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "air"
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.label == "show time"
+
 
 def test_ensure_parse_channel_types_has_every_channel_class():
     for _, attribute in inspect.getmembers(hikari):
@@ -1256,7 +1570,7 @@ def test_with_static_select_menu():
         is_disabled=True,
     )
     class Column(yuyo.components.ActionColumnExecutor):
-        ...
+        __slots__ = ()
 
     column = Column()
 
@@ -1280,7 +1594,7 @@ def test_with_static_select_menu_with_defaults():
 
     @yuyo.components.with_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, mock_callback)
     class Column(yuyo.components.ActionColumnExecutor):
-        ...
+        __slots__ = ()
 
     column = Column()
 
@@ -1301,7 +1615,7 @@ def test_with_static_select_menu_with_defaults():
 
 def test_with_static_select_menu_with_deprecated_order():
     class Column(yuyo.components.ActionColumnExecutor):
-        ...
+        __slots__ = ()
 
     mock_callback = mock.Mock()
 
