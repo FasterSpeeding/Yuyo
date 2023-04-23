@@ -1006,6 +1006,234 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
+    def test_static_button_row_behaviour(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="correct")
+            async def button_00(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="thai")
+            async def button_01(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="thigh")
+            async def button_02(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="meow")
+            async def button_03(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            button_04 = yuyo.components.link_button("https://example.com", label="op")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="stare")
+            async def button_05(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            button_06 = yuyo.components.link_button("https://example.com/nyaa", label="Lia")
+
+            button_07 = yuyo.components.link_button("https://example.com/meow", label="Omfie")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="nyaa")
+            async def button_08(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="doctor")
+            async def button_09(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="wow")
+            async def button_10(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="he")
+            async def button_11(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="sucks")
+            async def button_12(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            button_13 = yuyo.components.link_button("https://example.com/davinci", label="de")
+
+        column = Column()
+
+        assert len(column.rows) == 3
+
+        row = column.rows[0]
+        assert len(row.components) == 5
+        assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
+        assert row.components[0].label == "correct"
+        assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
+        assert row.components[1].label == "thai"
+        assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
+        assert row.components[2].label == "thigh"
+        assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
+        assert row.components[3].label == "meow"
+        assert isinstance(row.components[4], hikari.api.LinkButtonBuilder)
+        assert row.components[4].label == "op"
+
+        row = column.rows[1]
+        assert len(row.components) == 5
+        row.components[0]
+        assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
+        assert row.components[0].label == "stare"
+        row.components[1]
+        assert isinstance(row.components[1], hikari.api.LinkButtonBuilder)
+        assert row.components[1].label == "Lia"
+        row.components[2]
+        assert isinstance(row.components[2], hikari.api.LinkButtonBuilder)
+        assert row.components[2].label == "Omfie"
+        row.components[3]
+        assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
+        assert row.components[3].label == "nyaa"
+        row.components[4]
+        assert isinstance(row.components[4], hikari.api.InteractiveButtonBuilder)
+        assert row.components[4].label == "doctor"
+
+        row = column.rows[2]
+        assert len(row.components) == 4
+        row.components[0]
+        assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
+        assert row.components[0].label == "wow"
+        row.components[1]
+        assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
+        assert row.components[1].label == "he"
+        row.components[2]
+        assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
+        assert row.components[2].label == "sucks"
+        row.components[3]
+        assert isinstance(row.components[3], hikari.api.LinkButtonBuilder)
+        assert row.components[3].label == "de"
+
+    def test_static_select_menu_row_behaviour(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
+            async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_channel_menu()
+            async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.with_option("e", "f")
+            @yuyo.components.with_option("c", "d")
+            @yuyo.components.with_option("a", "b")
+            @yuyo.components.as_text_menu()
+            async def select_menu_2(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
+            async def select_menu_3(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU)
+            async def select_menu_4(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        column = Column()
+
+        assert len(column.rows) == 5
+
+        row = column.rows[0]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.ROLE_SELECT_MENU
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.CHANNEL_SELECT_MENU
+
+        row = column.rows[2]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.TEXT_SELECT_MENU
+
+        row = column.rows[3]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.USER_SELECT_MENU
+
+        row = column.rows[4]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
+
+    def test_mixed_static_row_behaviour(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="cc")
+            async def button_0(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="be")
+            async def button_1(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="the")
+            async def button_2(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="cat")
+            async def button_3(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            button_4 = yuyo.components.link_button("https://example.com", label="girl")
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
+            async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="meow")
+            async def button_6(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            button_7 = yuyo.components.link_button("https://example.com", label="me")
+
+            @yuyo.components.as_channel_menu()
+            async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        column = Column()
+
+        assert len(column.rows) == 4
+
+        row = column.rows[0]
+        assert len(row.components) == 5
+        assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
+        assert row.components[0].label == "cc"
+        assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
+        assert row.components[1].label == "be"
+        assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
+        assert row.components[2].label == "the"
+        assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
+        assert row.components[3].label == "cat"
+        assert isinstance(row.components[4], hikari.api.LinkButtonBuilder)
+        assert row.components[4].label == "girl"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.ROLE_SELECT_MENU
+
+        row = column.rows[2]
+        assert len(row.components) == 2
+        assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
+        assert row.components[0].label == "meow"
+        assert isinstance(row.components[1], hikari.api.LinkButtonBuilder)
+        assert row.components[1].label == "me"
+
+        row = column.rows[3]
+        assert len(row.components) == 1
+        assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
+        assert row.components[0].type is hikari.ComponentType.CHANNEL_SELECT_MENU
+
 
 def test_ensure_parse_channel_types_has_every_channel_class():
     for _, attribute in inspect.getmembers(hikari):
@@ -1093,234 +1321,3 @@ def test_with_static_select_menu_with_deprecated_order():
     assert isinstance(component, hikari.api.SelectMenuBuilder)
     assert component.type is hikari.ComponentType.USER_SELECT_MENU
     assert component.custom_id == "meowers"
-
-
-def test_static_button_row_behaviour():
-    class Column(yuyo.components.ActionColumnExecutor):
-        __slots__ = ()
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="correct")
-        async def button_00(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="thai")
-        async def button_01(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="thigh")
-        async def button_02(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="meow")
-        async def button_03(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        button_04 = yuyo.components.link_button("https://example.com", label="op")
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="stare")
-        async def button_05(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        button_06 = yuyo.components.link_button("https://example.com/nyaa", label="Lia")
-
-        button_07 = yuyo.components.link_button("https://example.com/meow", label="Omfie")
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="nyaa")
-        async def button_08(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="doctor")
-        async def button_09(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="wow")
-        async def button_10(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="he")
-        async def button_11(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="sucks")
-        async def button_12(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        button_13 = yuyo.components.link_button("https://example.com/davinci", label="de")
-
-    column = Column()
-
-    assert len(column.rows) == 3
-
-    row = column.rows[0]
-    assert len(row.components) == 5
-    assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
-    assert row.components[0].label == "correct"
-    assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
-    assert row.components[1].label == "thai"
-    assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
-    assert row.components[2].label == "thigh"
-    assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
-    assert row.components[3].label == "meow"
-    assert isinstance(row.components[4], hikari.api.LinkButtonBuilder)
-    assert row.components[4].label == "op"
-
-    row = column.rows[1]
-    assert len(row.components) == 5
-    row.components[0]
-    assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
-    assert row.components[0].label == "stare"
-    row.components[1]
-    assert isinstance(row.components[1], hikari.api.LinkButtonBuilder)
-    assert row.components[1].label == "Lia"
-    row.components[2]
-    assert isinstance(row.components[2], hikari.api.LinkButtonBuilder)
-    assert row.components[2].label == "Omfie"
-    row.components[3]
-    assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
-    assert row.components[3].label == "nyaa"
-    row.components[4]
-    assert isinstance(row.components[4], hikari.api.InteractiveButtonBuilder)
-    assert row.components[4].label == "doctor"
-
-    row = column.rows[2]
-    assert len(row.components) == 4
-    row.components[0]
-    assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
-    assert row.components[0].label == "wow"
-    row.components[1]
-    assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
-    assert row.components[1].label == "he"
-    row.components[2]
-    assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
-    assert row.components[2].label == "sucks"
-    row.components[3]
-    assert isinstance(row.components[3], hikari.api.LinkButtonBuilder)
-    assert row.components[3].label == "de"
-
-
-def test_static_select_menu_row_behaviour():
-    class Column(yuyo.components.ActionColumnExecutor):
-        __slots__ = ()
-
-        @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
-        async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_channel_menu()
-        async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.with_option("e", "f")
-        @yuyo.components.with_option("c", "d")
-        @yuyo.components.with_option("a", "b")
-        @yuyo.components.as_text_menu()
-        async def select_menu_2(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
-        async def select_menu_3(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU)
-        async def select_menu_4(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-    column = Column()
-
-    assert len(column.rows) == 5
-
-    row = column.rows[0]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.ROLE_SELECT_MENU
-
-    row = column.rows[1]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.CHANNEL_SELECT_MENU
-
-    row = column.rows[2]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.TEXT_SELECT_MENU
-
-    row = column.rows[3]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.USER_SELECT_MENU
-
-    row = column.rows[4]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
-
-
-def test_mixed_static_row_behaviour():
-    class Column(yuyo.components.ActionColumnExecutor):
-        __slots__ = ()
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="cc")
-        async def button_0(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="be")
-        async def button_1(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="the")
-        async def button_2(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="cat")
-        async def button_3(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        button_4 = yuyo.components.link_button("https://example.com", label="girl")
-
-        @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
-        async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="meow")
-        async def button_6(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-        button_7 = yuyo.components.link_button("https://example.com", label="me")
-
-        @yuyo.components.as_channel_menu()
-        async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
-            ...
-
-    column = Column()
-
-    assert len(column.rows) == 4
-
-    row = column.rows[0]
-    assert len(row.components) == 5
-    assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
-    assert row.components[0].label == "cc"
-    assert isinstance(row.components[1], hikari.api.InteractiveButtonBuilder)
-    assert row.components[1].label == "be"
-    assert isinstance(row.components[2], hikari.api.InteractiveButtonBuilder)
-    assert row.components[2].label == "the"
-    assert isinstance(row.components[3], hikari.api.InteractiveButtonBuilder)
-    assert row.components[3].label == "cat"
-    assert isinstance(row.components[4], hikari.api.LinkButtonBuilder)
-    assert row.components[4].label == "girl"
-
-    row = column.rows[1]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.ROLE_SELECT_MENU
-
-    row = column.rows[2]
-    assert len(row.components) == 2
-    assert isinstance(row.components[0], hikari.api.InteractiveButtonBuilder)
-    assert row.components[0].label == "meow"
-    assert isinstance(row.components[1], hikari.api.LinkButtonBuilder)
-    assert row.components[1].label == "me"
-
-    row = column.rows[3]
-    assert len(row.components) == 1
-    assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
-    assert row.components[0].type is hikari.ComponentType.CHANNEL_SELECT_MENU
