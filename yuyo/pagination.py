@@ -33,7 +33,6 @@ from __future__ import annotations
 
 __all__: list[str] = [
     "Page",
-    "Paginator",
     "aenumerate",
     "async_paginate_string",
     "paginate_string",
