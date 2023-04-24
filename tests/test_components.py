@@ -1548,6 +1548,275 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.InteractiveButtonBuilder)
         assert component.label == "show time"
 
+    def test_overriding_behaviour(self):
+        class ParentColumn(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="aaaaa", placeholder="place", min_values=1, max_values=5)
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            link_button = yuyo.components.link_button("https://example.com/freaky", emoji="e", label="lab")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, custom_id="123", emoji="o", label="lab man")
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_channel_menu(custom_id="cust", channel_types=[hikari.ChannelType.GUILD_TEXT], placeholder="meow", min_values=4, max_values=7)
+            async def chan_chan(self, ctx: yuyo.components.Context) -> None:
+                ...
+    
+            @yuyo.components.with_option("name", "value")
+            @yuyo.components.with_option("op", "boop")
+            @yuyo.components.with_option("no", "way")
+            @yuyo.components.as_text_menu(custom_id="custard", placeholder="hold", min_values=1, max_values=3)
+            async def tt_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+        class Column(ParentColumn):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_menu(custom_id="nop", channel_types=[hikari.ChannelType.GUILD_FORUM], placeholder="noooo", min_values=4, max_values=16)
+            async def chan_chan(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, custom_id="981", emoji="u", label="lab woman", is_disabled=True)
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_select_menu(
+                hikari.ComponentType.USER_SELECT_MENU, custom_id="op", placeholder="no", min_values=5, max_values=9, is_disabled=True
+            )
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            link_button = yuyo.components.link_button("https://example.com/beaky", emoji="usa", label="remix", is_disabled=True)
+
+            new_butt = yuyo.components.link_button("https://example.com/new", label="new")
+
+
+        parent_column = ParentColumn()
+
+        assert len(parent_column.rows) == 4
+
+        row = parent_column.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "aaaaa"
+        assert component.placeholder == "place"
+        assert component.min_values == 1
+        assert component.max_values == 5
+        assert component.is_disabled is False
+
+        row = parent_column.rows[1]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://example.com/freaky"
+        assert component.emoji == "e"
+        assert component.label == "lab"
+        assert component.is_disabled is False
+
+        component = row.components[1]
+        assert isinstance(component,hikari.api.InteractiveButtonBuilder)
+        assert component.style is hikari.ButtonStyle.PRIMARY
+        assert component.custom_id == "123"
+        assert component.emoji == "o"
+        assert component.label == "lab man"
+        assert component.is_disabled is False
+
+        row =  parent_column.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "cust"
+        assert component.channel_types == [hikari.ChannelType.GUILD_TEXT]
+        assert component.placeholder == "meow"
+        assert component.min_values == 4
+        assert component.max_values == 7
+
+        row =  parent_column.rows[3]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.custom_id == "custard"
+        assert component.placeholder =="hold"
+        assert component.min_values == 1
+        assert component.max_values ==3
+        assert component.options == [
+            hikari.impl.SelectOptionBuilder(label="no", value="way"),
+            hikari.impl.SelectOptionBuilder(label="op", value="boop"),
+            hikari.impl.SelectOptionBuilder(label="name", value="value"),
+        ]
+
+        column = Column()
+
+        assert len(column.rows) == 5
+
+        for index, row in enumerate(column.rows):
+            print(index, row.components[0].type)
+
+        row = column.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "op"
+        assert component.placeholder == "no"
+        assert component.min_values == 5
+        assert component.max_values == 9
+        assert component.is_disabled is True
+
+        row = column.rows[1]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://example.com/beaky"
+        assert component.emoji == "usa"
+        assert component.label == "remix"
+        assert component.is_disabled is True
+
+        component = row.components[1]
+        assert isinstance(component,hikari.api.InteractiveButtonBuilder)
+        assert component.style is hikari.ButtonStyle.SECONDARY
+        assert component.custom_id == "981"
+        assert component.emoji == "u"
+        assert component.label == "lab woman"
+        assert component.is_disabled is True
+
+        row =  column.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "nop"
+        assert component.channel_types == [hikari.ChannelType.GUILD_FORUM]
+        assert component.placeholder == "noooo"
+        assert component.min_values == 4
+        assert component.max_values == 16
+
+        row =  column.rows[3]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.custom_id == "custard"
+        assert component.placeholder =="hold"
+        assert component.min_values == 1
+        assert component.max_values ==3
+        assert component.options == [
+            hikari.impl.SelectOptionBuilder(label="no", value="way"),
+            hikari.impl.SelectOptionBuilder(label="op", value="boop"),
+            hikari.impl.SelectOptionBuilder(label="name", value="value"),
+        ]
+
+        row = column.rows[4]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://example.com/new"
+        assert component.label == "new"
+
+
+    def test_overriding_with_not_implemented(self):
+        class ParentColumn(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            link_button = yuyo.components.link_button("https://freaky")
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+
+        class Column(ParentColumn):
+            __slots__ = ()
+
+            on_a_select_menu = NotImplemented
+            link_button = NotImplemented
+            meowy_button = NotImplemented
+
+        assert ParentColumn().rows
+        assert not Column().rows
+
+    def test_overriding_mixed(self):
+        class ParentColumn(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            link_button = yuyo.components.link_button("https://freaky")
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU, custom_id="hey!")
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="meow")
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+
+        class Column(ParentColumn):
+            __slots__ = ()
+
+            on_a_select_menu = NotImplemented
+
+            @yuyo.components.as_channel_menu(custom_id="custoard")
+            async def channel_menu(self, ctx: yuyo.components.Context) -> None:
+                ...
+
+            link_button = yuyo.components.link_button("https://example.com/l")
+
+        parent_column = ParentColumn()
+
+        assert len(parent_column.rows) == 3
+
+        row = parent_column.rows[0]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://freaky"
+
+        row = parent_column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "hey!"
+
+        row = parent_column.rows[2]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.style is hikari.ButtonStyle.PRIMARY
+        assert component.label =="meow"
+
+
+        assert len(parent_column.rows) ==  3
+
+        column = Column()
+
+        assert len(column.rows) == 2
+
+        row = column.rows[0]
+        assert len(row.components) == 2
+        component = row.components[0]
+        assert isinstance(component, hikari.api.LinkButtonBuilder)
+        assert component.url == "https://example.com/l"
+
+        component = row.components[1]
+        assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.style is hikari.ButtonStyle.PRIMARY
+        assert component.label =="meow"
+
+        row = column.rows[1]
+        assert len(row.components) == 1
+        component = row.components[0]
+        assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "custoard"
+
 
 def test_ensure_parse_channel_types_has_every_channel_class():
     for _, attribute in inspect.getmembers(hikari):
