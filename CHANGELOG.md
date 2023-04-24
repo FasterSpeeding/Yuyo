@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - `ephemeral_default` option to [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
+- Shorthand methods and functions for adding/declaring mentionable, role and user menus:
+  * [components.as_mentionable_menu][yuyo.components.as_mentionable_menu]
+  * [components.as_role_menu][yuyo.components.as_role_menu]
+  * [components.as_user_menu][yuyo.components.as_user_menu]
+  * [ActionColumnExecutor.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
+  * [ActionColumnExecutor.add_static_mentionable_menu][yuyo.components.ActionColumnExecutor.add_static_mentionable_menu]
+  * [ActionColumnExecutor.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
+  * [ActionColumnExecutor.add_static_role_menu][yuyo.components.ActionColumnExecutor.add_static_role_menu]
+  * [ActionColumnExecutor.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
+  * [ActionColumnExecutor.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
+  * [ActionRowExecutor.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
+  * [ActionRowExecutor.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
+  * [ActionRowExecutor.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
 
 ### Changed
 - [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now allows overriding
