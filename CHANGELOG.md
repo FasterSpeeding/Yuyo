@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ComponentPaginator][yuyo.components.ComponentPaginator] now implements
   [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] rather than
   `ActionRowExecutor`.
-
   The main (breaking) consequence of this change is that you now need to pass
   `pagintor.rows` to `components` rather than passing the paginator itself to
   `component`.
