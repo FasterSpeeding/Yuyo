@@ -3089,8 +3089,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -3115,8 +3115,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -3891,7 +3891,6 @@ displayed label.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4039,7 +4038,6 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -4855,7 +4853,6 @@ displayed label.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5029,7 +5026,6 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5617,7 +5613,6 @@ should be used to add options to this select menu.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -5976,7 +5971,6 @@ should be used to add options to this select menu.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -6957,7 +6951,6 @@ displayed label.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -7104,7 +7097,6 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -7466,7 +7458,6 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>callback</code></td>
           <td class="doc-param-details">
             <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -8145,8 +8136,8 @@ and <code>components</code> are passed or both <code>embed</code> and <code>embe
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.create_initial_response" class="headerlink" title="Permanent link">#</a></h3>
@@ -8545,8 +8536,8 @@ longer than <code>max_rate_limit</code> when making a request.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.defer" class="headerlink" title="Permanent link">#</a></h3>
@@ -14113,7 +14104,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
 
 <p><strong>Examples:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CustomColumn</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_mentionable_menu</span><span class="p">(</span><span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_role_menu</span><span class="p">(</span><span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_select_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </code></pre></div>
@@ -14485,7 +14476,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
 
 <p><strong>Examples:</strong></p>
     <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CustomColumn</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_mentionable_menu</span><span class="p">(</span><span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_user_menu</span><span class="p">(</span><span class="n">max_values</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_select_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">ComponentContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </code></pre></div>
