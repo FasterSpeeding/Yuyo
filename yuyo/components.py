@@ -4057,7 +4057,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def __init_subclass__(cls) -> None:
         cls._added_static_fields = {}
-        cls._static_fields = {}
         added_static_fields: dict[str, _StaticField] = {}
         namespace: dict[str, typing.Any] = {}
 
@@ -4065,13 +4064,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, ActionColumnExecutor):
                 added_static_fields.update(super_cls._added_static_fields)
+                namespace.update(super_cls.__dict__)
 
-            namespace.update(super_cls.__dict__)
-
-        for attr in namespace.values():
-            if isinstance(attr, _ComponentDescriptor):
-                cls._static_fields[attr.id_match] = attr.to_field()
-
+        cls._static_fields = {
+            attr.id_match: attr.to_field() for attr in namespace.values() if isinstance(attr, _ComponentDescriptor)
+        }
         cls._static_fields.update(added_static_fields)
 
     @property
