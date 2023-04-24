@@ -406,6 +406,10 @@ class Paginator:
         self._index = -1
         self._iterator = None
 
+    @property
+    def _is_behind_buffer(self) -> bool:
+        return len(self._buffer) >= self._index + 2
+
     async def step_forward(self) -> typing.Optional[Page]:
         """Move this forward a page.
 
@@ -416,7 +420,7 @@ class Paginator:
             the last page.
         """
         # Check to see if we're behind the buffer before trying to go forward in the generator.
-        if len(self._buffer) >= self._index + 2:
+        if self._is_behind_buffer:
             self._index += 1
             return self._buffer[self._index]
 
@@ -482,13 +486,9 @@ class Paginator:
         """
         if self._iterator:
             self._buffer.extend(map(Page.from_entry, await _internal.collect_iterable(self._iterator)))
-            self._index = len(self._buffer) - 1
             self._iterator = None
 
-            if self._buffer:
-                return self._buffer[self._index]
-
-        elif self._buffer:
+        if self._buffer and self._is_behind_buffer:
             self._index = len(self._buffer) - 1
             return self._buffer[-1]
 

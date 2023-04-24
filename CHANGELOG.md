@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [reactions.Client][yuyo.reactions.Client] now correctly points towards
   [reactions.ReactionClient][yuyo.reactions.ReactionClient].
+- Some edge cases where the paginators were sending the current page in response
+  to a reaction/interaction instead of giving a noop response or just not
+  responding.
 
 ### Removed
 - `timeout` argument from [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
