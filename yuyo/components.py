@@ -6091,47 +6091,18 @@ def with_static_text_menu(
     return decorator
 
 
-class ComponentPaginator(ActionRowExecutor):
+class ComponentPaginator(ActionColumnExecutor):
     """Standard implementation of an action row executor used for pagination.
 
     This is a convenience class that allows you to easily implement a paginator.
+
+    !!! note
+        This doesn't use action column's "static" components so any static
+        components added to base-classes of this will appear before the
+        pagination components.
     """
 
     __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
-
-    @typing.overload
-    @typing_extensions.deprecated("Passing `timeout` here is deprecated. Pass it to set_executor instead")
-    def __init__(
-        self,
-        iterator: _internal.IteratorT[pagination.EntryT],
-        /,
-        *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
-        ephemeral_default: bool = False,
-        triggers: collections.Collection[str] = (
-            pagination.LEFT_TRIANGLE,
-            pagination.STOP_SQUARE,
-            pagination.RIGHT_TRIANGLE,
-        ),
-        timeout: typing.Union[datetime.timedelta, None, _internal.NoDefault],
-    ) -> None:
-        ...
-
-    @typing.overload
-    def __init__(
-        self,
-        iterator: _internal.IteratorT[pagination.EntryT],
-        /,
-        *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
-        ephemeral_default: bool = False,
-        triggers: collections.Collection[str] = (
-            pagination.LEFT_TRIANGLE,
-            pagination.STOP_SQUARE,
-            pagination.RIGHT_TRIANGLE,
-        ),
-    ) -> None:
-        ...
 
     def __init__(
         self,
@@ -6145,7 +6116,6 @@ class ComponentPaginator(ActionRowExecutor):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = _internal.NO_DEFAULT,
     ) -> None:
         """Initialise a component paginator.
 
@@ -6177,13 +6147,10 @@ class ComponentPaginator(ActionRowExecutor):
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(  # pyright: ignore [ reportDeprecated ]
-            ephemeral_default=ephemeral_default, timeout=timeout, _stack_level=1
-        )
+        super().__init__(ephemeral_default=ephemeral_default)
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._buffer: list[pagination.Page] = []
-        self._ephemeral_default = ephemeral_default
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
@@ -6448,6 +6415,7 @@ class ComponentPaginator(ActionRowExecutor):
             style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
+    @typing_extensions.deprecated("Use .rows")
     def builder(self) -> collections.Sequence[hikari.api.ComponentBuilder]:
         """Get a sequence of the component builders for this paginator.
 
@@ -6456,7 +6424,7 @@ class ComponentPaginator(ActionRowExecutor):
         collections.abc.Sequence[hikari.api.ComponentBuilder]
             The component builders for this paginator.
         """
-        return [self]
+        return self.rows
 
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
@@ -6542,10 +6510,10 @@ class ComponentPaginator(ActionRowExecutor):
 
             if self._buffer:
                 response = self._buffer[self._index]
-                await ctx.edit_initial_response(components=self.builder(), **response.to_kwargs())
+                await ctx.edit_initial_response(components=self.rows, **response.to_kwargs())
 
             else:
-                await ctx.edit_initial_response(components=self.builder())
+                await ctx.edit_initial_response(components=self.rows)
 
         elif self._buffer:
             self._index = len(self._buffer) - 1
