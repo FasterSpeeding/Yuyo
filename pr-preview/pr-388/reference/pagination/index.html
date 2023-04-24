@@ -572,6 +572,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.close" class="md-nav__link">
+    close()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#yuyo.pagination.Paginator.jump_to_first" class="md-nav__link">
     jump_to_first()
   </a>
@@ -970,6 +977,13 @@
           <li class="md-nav__item">
   <a href="#yuyo.pagination.Paginator.__init__" class="md-nav__link">
     __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.close" class="md-nav__link">
+    close()
   </a>
   
 </li>
@@ -1568,6 +1582,26 @@ is the message content and tuple[1] is an embed to send.</p>
 
 
 
+<h3 id="yuyo.pagination.Paginator.close" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">close</span>
+
+
+<a href="#yuyo.pagination.Paginator.close" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Close the paginator.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="yuyo.pagination.Paginator.jump_to_first" class="doc doc-heading">
         <span class="doc doc-object-name doc-function-name">jump_to_first</span>
 
@@ -1595,8 +1629,9 @@ is the message content and tuple[1] is an embed to send.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The first page in this paginator, or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on
-the first page.</p>
+            <p>The first page in this paginator.</p>
+<p>This will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on the first page or if
+the paginator hasn't been moved forward to the first entry yet.</p>
           </td>
         </tr>
     </tbody>
@@ -1683,8 +1718,9 @@ the last page.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The previous page in this paginator, or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already
-the first page.</p>
+            <p>The previous page in this paginator.</p>
+<p>This will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on the first page or if
+the paginator hasn't been moved forward to the first entry yet.</p>
           </td>
         </tr>
     </tbody>
