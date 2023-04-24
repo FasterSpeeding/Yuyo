@@ -3978,13 +3978,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     __slots__ = ("_callbacks", "_ephemeral_default", "_rows", "_timeout")
 
-    _added_static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
+    _added_static_fields: typing.ClassVar[list[_StaticField]] = []
     """Dict of match IDs to the static fields added to this class through add method calls.
 
     This doesn't include inherited fields.
     """
 
-    _static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
+    _static_fields: typing.ClassVar[list[_StaticField]] = []
     """Dict of match IDs to the static fields on this class.
 
     This includes inherited fields and fields added through method calls.
@@ -4039,7 +4039,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
         self._timeout: typing.Union[datetime.timedelta, _internal.NoDefault, None] = timeout
 
-        for field in self._static_fields.values():
+        for field in self._static_fields:
             if id_metadata and (metadata := id_metadata.get(field.id_match)):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
@@ -4056,20 +4056,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 )
 
     def __init_subclass__(cls) -> None:
-        cls._added_static_fields = {}
-        added_static_fields: dict[str, _StaticField] = {}
+        cls._added_static_fields = []
+        added_static_fields: list[_StaticField] = []
         namespace: dict[str, typing.Any] = {}
 
         # This slice ignores [object, ...] and flips the order.
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, ActionColumnExecutor):
-                added_static_fields.update(super_cls._added_static_fields)
+                added_static_fields.extend(super_cls._added_static_fields)
                 namespace.update(super_cls.__dict__)
 
-        cls._static_fields = {
-            attr.id_match: attr.to_field() for attr in namespace.values() if isinstance(attr, _ComponentDescriptor)
-        }
-        cls._static_fields.update(added_static_fields)
+        cls._static_fields = [attr.to_field() for attr in namespace.values() if isinstance(attr, _ComponentDescriptor)]
+        cls._static_fields.extend(added_static_fields)
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -4302,8 +4300,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 style=style, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
             ),
         )
-        cls._added_static_fields[custom_id] = field
-        cls._static_fields[custom_id] = field
+        cls._added_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -4428,8 +4426,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         field = _StaticField(
             custom_id, None, hikari.impl.LinkButtonBuilder(url=url, emoji=emoji, label=label, is_disabled=is_disabled)
         )
-        cls._added_static_fields[custom_id] = field
-        cls._static_fields[custom_id] = field
+        cls._added_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @typing.overload
@@ -4651,8 +4649,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             ),
         )
-        cls._added_static_fields[custom_id] = field
-        cls._static_fields[custom_id] = field
+        cls._added_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -4861,8 +4859,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 is_disabled=is_disabled,
             ),
         )
-        cls._added_static_fields[custom_id] = field
-        cls._static_fields[custom_id] = field
+        cls._added_static_fields.append(field)
+        cls._static_fields.append(field)
         return cls
 
     @classmethod
@@ -5109,8 +5107,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             is_disabled=is_disabled,
         )
         field = _StaticField(id_match, callback, component)
-        cls._added_static_fields[custom_id] = field
-        cls._static_fields[custom_id] = field
+        cls._added_static_fields.append(field)
+        cls._static_fields.append(field)
         return component
 
 
