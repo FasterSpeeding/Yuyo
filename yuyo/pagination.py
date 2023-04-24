@@ -391,8 +391,7 @@ class Paginator:
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
-            This should be an iterator of tuples of `(hikari.UndefinedOr[str],
-            hikari.UndefinedOr[hikari.Embed])`.
+            This should be an iterator of [yuyo.paginaton.Page]s.
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
@@ -422,13 +421,19 @@ class Paginator:
             self._index += 1
             return self._buffer[self._index]
 
-        # If page is not None then the generator's position was pushed forwards.
-        if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
+        # The iterator is finished and cannot be pushed any further.
+        if not self._iterator:
+            return None  # MyPy
+
+        # If entry is not None then the generator's position was pushed forwards.
+        if entry := await _internal.seek_iterator(self._iterator, default=None):
             page = Page.from_entry(entry)
             self._index += 1
             self._buffer.append(page)
             return page
 
+        # Otherwise the generator has been depleted.
+        self._iterator = None
         return None  # MyPy
 
     def step_back(self) -> typing.Optional[Page]:
@@ -455,9 +460,11 @@ class Paginator:
             The first page in this paginator, or [None][] if this is already on
             the first page.
         """
-        if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else None):
+        # -1 indicates this hasn't started yet and 0 indicates this is already
+        # on the first entry.
+        if self._index > 0:
             self._index = 0
-            return first_entry
+            return self._buffer[0]
 
         return None  # MyPy compat
 

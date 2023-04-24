@@ -304,10 +304,7 @@ class ReactionPaginator(ReactionHandler):
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
 
-            `entry[0]` represents the message's possible content and can either be
-            [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
-            the message's possible embed and can either be [hikari.embeds.Embed][]
-            or [hikari.undefined.UNDEFINED][].
+            This should be an iterator of [yuyo.paginaton.Page]s.
         authors
             An iterable of IDs of the users who can call this paginator.
 
