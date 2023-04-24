@@ -6428,11 +6428,11 @@ class ComponentPaginator(ActionColumnExecutor):
         Examples
         --------
         ```py
-        response_paginator = yuyo.ComponentPaginator(pages, authors=[ctx.author.id])
-        first_response = await response_paginator.get_next_entry()
+        paginator = yuyo.ComponentPaginator(pages, authors=[ctx.author.id])
+        first_response = await paginator.get_next_entry()
         assert first_response
-        message = await ctx.respond(component=response_paginator, **first_response.to_kwargs(), ensure_result=True)
-        component_client.register_executor(response_paginator, message=message)
+        message = await ctx.respond(components=paginator.rows, **first_response.to_kwargs(), ensure_result=True)
+        component_client.register_executor(paginator, message=message)
         ```
 
         Returns
