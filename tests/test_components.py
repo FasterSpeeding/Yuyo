@@ -545,7 +545,10 @@ class TestActionRowExecutor:
     def test_add_select_menu(self):
         mock_callback = mock.Mock()
 
-        row = yuyo.components.ActionRowExecutor().add_select_menu(
+        with pytest.warns(DeprecationWarning):
+            row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
+
+        row.add_select_menu(
             hikari.ComponentType.ROLE_SELECT_MENU,
             mock_callback,
             custom_id="custom",
@@ -570,7 +573,10 @@ class TestActionRowExecutor:
     def test_add_select_menu_with_defaults(self):
         mock_callback = mock.Mock()
 
-        row = yuyo.components.ActionRowExecutor().add_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, mock_callback)
+        with pytest.warns(DeprecationWarning):
+            row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
+
+        row.add_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, mock_callback)
 
         assert len(row.components) == 1
         component = row.components[0]
@@ -586,7 +592,9 @@ class TestActionRowExecutor:
 
     def test_add_select_menu_with_deprecated_order(self):
         mock_callback = mock.Mock()
-        row = yuyo.components.ActionRowExecutor()
+
+        with pytest.warns(DeprecationWarning):
+            row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
 
         with pytest.warns(DeprecationWarning):
             row.add_select_menu(  # pyright: ignore [ reportDeprecated ]
@@ -602,7 +610,8 @@ class TestActionRowExecutor:
         assert component.custom_id == "meow meow"
 
     def test_text_menu_builder_uses_option_count_when_max_values_too_high(self):
-        action_row = yuyo.components.ActionRowExecutor()
+        with pytest.warns(DeprecationWarning):
+            action_row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
 
         (
             action_row.add_text_menu(mock.AsyncMock(), max_values=20)
@@ -615,7 +624,8 @@ class TestActionRowExecutor:
         assert action_row.build()["components"][0]["max_values"] == 4
 
     def test_text_menu_builder_uses_max_values_when_enough_options(self):
-        action_row = yuyo.components.ActionRowExecutor()
+        with pytest.warns(DeprecationWarning):
+            action_row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
 
         (
             action_row.add_text_menu(mock.AsyncMock(), max_values=3)

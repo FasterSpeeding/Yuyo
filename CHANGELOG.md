@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] rather than
   `ActionRowExecutor`.
 
+### Deprecated
+- [yuyo.components.ActionRowExecutor][] in favour of the action column executor.
+- [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row].
+
 ### Removed
 - `timeout` argument from [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
 
