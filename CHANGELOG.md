@@ -5,6 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `ephemeral_default` option to [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
+
+### Changed
+- [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now allows overriding
+  inherited component class descriptors.
+- The `add_static` methods on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+  now override any previously added sub-component with the same match ID rather than
+  append a duplicate entry.
+
+### Fixed
+- [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now respects the order
+  component descriptors were defined on the class.
+
 ### [1.11.2a1] - 2023-04-10
 ### Added
 - Support for parsing message links to [yuyo.links][].
