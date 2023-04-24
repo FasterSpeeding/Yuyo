@@ -15,7 +15,7 @@
         <link rel="next" href="../links/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7a7fce14.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -1020,7 +1020,7 @@ last row.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_channel_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_channels</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">ROLE_SELECT_MENU</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_role_menu</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_role_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
 
@@ -1031,11 +1031,11 @@ last row.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_texts</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">USER_SELECT_MENU</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_user_menu</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_user_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_users</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_select_menu</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">MENTIONABLE_SELECT_MENU</span><span class="p">)</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_mentionable_menu</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_mentionable_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_roles</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">selected_users</span>
@@ -1047,8 +1047,10 @@ column) to it:</p>
 <ul>
 <li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_channel_menu">as_channel_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_interactive_button">as_interactive_button</a></li>
-<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_select_menu">as_select_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_mentionable_menu">as_mentionable_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_role_menu">as_role_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_text_menu">as_text_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.as_user_menu">as_user_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.link_button">link_button</a></li>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
@@ -1262,7 +1264,7 @@ should be used to create the initial prompt.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.407015b8.min.js"></script>
+      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
       
     
   </body>
