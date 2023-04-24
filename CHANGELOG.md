@@ -5,14 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [components.Paginator][yuyo.components.Paginator] alias of
+  [components.ComponentPaginator][yuyo.components.ComponentPaginator].
+- [reactions.Handler][yuyo.reactions.Handler] alias of
+  [reactions.ReactionHandler][yuyo.reactions.ReactionHandler].
+- [reactions.Paginator][yuyo.reactions.Paginator] alias of
+  [reactions.ReactionPaginator][yuyo.reactions.ReactionPaginator].
+
 ### Changed
 - [ComponentPaginator][yuyo.components.ComponentPaginator] now implements
   [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] rather than
   `ActionRowExecutor`.
 
+  The main (breaking) consequence of this change is that you now need to pass
+  `pagintor.rows` to `components` rather than passing the paginator itself to
+  `component.
+
 ### Deprecated
 - [yuyo.components.ActionRowExecutor][] in favour of the action column executor.
 - [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row].
+
+### Fixed
+- [reactions.Client][yuyo.reactions.Client] now correctly points towards
+  [reactions.ReactionClient][yuyo.reactions.ReactionClient].
 
 ### Removed
 - `timeout` argument from [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].

@@ -664,7 +664,7 @@ class ReactionPaginator(ReactionHandler):
 
 
 Paginator = ReactionPaginator
-"""Alias of [ReactionPaginator][yuyo.reactions.ReactionPaginator]"""
+"""Alias of [ReactionPaginator][yuyo.reactions.ReactionPaginator]."""
 
 
 class ReactionClient:
@@ -913,4 +913,4 @@ class ReactionClient:
 
 
 Client = ReactionClient
-"""Alias of [ReactionClient][yuyo.reactions.ReactionClient]"""
+"""Alias of [ReactionClient][yuyo.reactions.ReactionClient]."""
