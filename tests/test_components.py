@@ -573,7 +573,6 @@ class TestActionRowExecutor:
     def test_add_select_menu_with_defaults(self):
         mock_callback = mock.Mock()
 
-
         with pytest.warns(DeprecationWarning):
             row = yuyo.components.ActionRowExecutor()  # pyright: ignore [ reportDeprecated ]
 
