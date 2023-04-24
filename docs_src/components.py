@@ -32,7 +32,7 @@ def action_column_of_menus() -> None:
         async def on_channel_menu(self, ctx: components.Context) -> None:
             ctx.selected_channels
 
-        @components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
+        @components.as_role_menu
         async def on_role_menu(self, ctx: components.Context) -> None:
             ctx.selected_roles
 
@@ -43,11 +43,11 @@ def action_column_of_menus() -> None:
         async def on_text_menu(self, ctx: components.Context) -> None:
             ctx.selected_texts
 
-        @components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
+        @components.as_user_menu
         async def on_user_menu(self, ctx: components.Context) -> None:
             ctx.selected_users
 
-        @components.as_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU)
+        @components.as_mentionable_menu
         async def on_mentionable_menu(self, ctx: components.Context) -> None:
             ctx.selected_roles
             ctx.selected_users
