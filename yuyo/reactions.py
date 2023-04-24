@@ -274,14 +274,14 @@ class ReactionHandler(AbstractReactionHandler):
             self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
-Client = ReactionHandler
+Handler = ReactionHandler
 """Alias of [ReactionHandler][yuyo.reactions.ReactionHandler]."""
 
 
 class ReactionPaginator(ReactionHandler):
     """Standard implementation of a reaction handler for pagination."""
 
-    __slots__ = ("_buffer", "_index", "_iterator", "_reactions")
+    __slots__ = ("_paginator", "_reactions")
 
     def __init__(
         self,
@@ -304,10 +304,7 @@ class ReactionPaginator(ReactionHandler):
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
 
-            `entry[0]` represents the message's possible content and can either be
-            [str][] or [hikari.undefined.UNDEFINED][] and `entry[1]` represents
-            the message's possible embed and can either be [hikari.embeds.Embed][]
-            or [hikari.undefined.UNDEFINED][].
+            This should be an iterator of [yuyo.paginaton.Page][]s.
         authors
             An iterable of IDs of the users who can call this paginator.
 
@@ -322,9 +319,7 @@ class ReactionPaginator(ReactionHandler):
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
-        self._buffer: list[pagination.Page] = []
-        self._index = -1
-        self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
+        self._paginator = pagination.Paginator(iterator)
         self._reactions: list[typing.Union[hikari.CustomEmoji, str]] = []
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
@@ -509,6 +504,7 @@ class ReactionPaginator(ReactionHandler):
             raise HandlerClosed() from exc
 
     async def _on_disable(self, _: ReactionEventT, /) -> None:
+        self._paginator.close()
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
@@ -518,16 +514,12 @@ class ReactionPaginator(ReactionHandler):
         raise HandlerClosed
 
     async def _on_first(self, _: ReactionEventT, /) -> None:
-        if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
-            await self._edit_message(first_entry)
+        if page := self._paginator.jump_to_first():
+            await self._edit_message(page)
 
     async def _on_last(self, _: ReactionEventT, /) -> None:
-        if self._iterator:
-            self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
-
-        if self._buffer:
-            self._index = len(self._buffer) - 1
-            await self._edit_message(self._buffer[-1])
+        if page := await self._paginator.jump_to_last():
+            await self._edit_message(page)
 
     async def get_next_entry(self) -> typing.Optional[pagination.Page]:
         """Get the next entry in this paginator.
@@ -537,28 +529,15 @@ class ReactionPaginator(ReactionHandler):
         yuyo.pagination.Page | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
-        # Check to see if we're behind the buffer before trying to go forward in the generator.
-        if len(self._buffer) >= self._index + 2:
-            self._index += 1
-            return self._buffer[self._index]
-
-        # If entry is not None then the generator's position was pushed forwards.
-        if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
-            entry = pagination.Page.from_entry(entry)
-            self._index += 1
-            self._buffer.append(entry)
-            return entry
-
-        return None  # MyPy
+        return await self._paginator.step_forward()
 
     async def _on_next(self, _: ReactionEventT, /) -> None:
-        if entry := await self.get_next_entry():
+        if entry := await self._paginator.step_forward():
             await self._edit_message(entry)
 
     async def _on_previous(self, _: ReactionEventT, /) -> None:
-        if self._index > 0:
-            self._index -= 1
-            await self._edit_message(self._buffer[self._index])
+        if entry := self._paginator.step_back():
+            await self._edit_message(entry)
 
     def add_author(self, user: hikari.SnowflakeishOr[hikari.User], /) -> Self:
         """Add a author/owner to this handler.
@@ -674,7 +653,7 @@ class ReactionPaginator(ReactionHandler):
         if self._message is not None:
             raise RuntimeError("ReactionPaginator is already running")
 
-        entry = await self.get_next_entry()
+        entry = await self._paginator.step_forward()
 
         if entry is None:
             raise ValueError("ReactionPaginator iterator yielded no pages.")
@@ -682,6 +661,10 @@ class ReactionPaginator(ReactionHandler):
         message = await rest.create_message(channel_id, **entry.to_kwargs())
         await self.open(message, add_reactions=add_reactions)
         return message
+
+
+Paginator = ReactionPaginator
+"""Alias of [ReactionPaginator][yuyo.reactions.ReactionPaginator]."""
 
 
 class ReactionClient:
@@ -866,7 +849,7 @@ class ReactionClient:
     def get_handler(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractReactionHandler]:
-        """Get a reference to a paginator registered in this reaction client.
+        """Get a reference to a handler registered in this reaction client.
 
         !!! note
             This does not call [yuyo.reactions.AbstractReactionHandler.close][].
@@ -874,19 +857,19 @@ class ReactionClient:
         Parameters
         ----------
         message
-            The message ID to remove a paginator for.
+            The message ID to remove a handler for.
 
         Returns
         -------
         AbstractReactionHandler | None
-            The object of the registered paginator if found else [None][].
+            The object of the registered handler if found else [None][].
         """
         return self._handlers.get(hikari.Snowflake(message))
 
     def remove_handler(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractReactionHandler]:
-        """Remove a paginator from this reaction client.
+        """Remove a handler from this reaction client.
 
         !!! note
             This does not call [yuyo.reactions.AbstractReactionHandler.close][].
@@ -894,12 +877,12 @@ class ReactionClient:
         Parameters
         ----------
         message
-            The message ID to remove a paginator for.
+            The message ID to remove a handler for.
 
         Returns
         -------
         AbstractReactionHandler | None
-            The object of the registered paginator if found else [None][].
+            The object of the registered handler if found else [None][].
         """
         return self._handlers.pop(hikari.Snowflake(message))
 
@@ -927,3 +910,7 @@ class ReactionClient:
             self.blacklist.append((await self._rest.fetch_my_user()).id)
             self._event_manager.subscribe(hikari.ReactionAddEvent, self._on_reaction_event)
             self._event_manager.subscribe(hikari.ReactionDeleteEvent, self._on_reaction_event)
+
+
+Client = ReactionClient
+"""Alias of [ReactionClient][yuyo.reactions.ReactionClient]."""
