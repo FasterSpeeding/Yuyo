@@ -404,7 +404,7 @@ class Paginator:
         self._iterator: typing.Optional[_internal.IteratorT[EntryT]] = iterator
 
     @property
-    def finished_iterating(self) -> bool:
+    def has_finished_iterating(self) -> bool:
         """Whether this has finished iterating over the original iterator."""
         return self._iterator is None
 

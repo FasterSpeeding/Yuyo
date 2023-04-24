@@ -6463,7 +6463,7 @@ class ComponentPaginator(ActionColumnExecutor):
         raise ExecutorClosed(already_closed=False)
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:
-        deferring = not self._paginator.finished_iterating
+        deferring = not self._paginator.has_finished_iterating
         if deferring:
             # TODO: option to not lock on last
             loading_component = ctx.interaction.app.rest.build_message_action_row().add_interactive_button(
