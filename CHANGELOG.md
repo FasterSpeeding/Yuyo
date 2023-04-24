@@ -7,15 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Removed
 - The following deprecated functionality and aliases:
+    * `ActionRowExecutor` in favour of the new action column executor.
     * Allowing callback to be passed as the first argument and type as the
     second argument for
-    [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu],
     [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu],
     [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu],
     and [components.with_static_select_menu][yuyo.components.with_static_select_menu].
     * `timeout` keyword argument from
     [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
-    [ActionRowExecutor.\_\_init\_\_][yuyo.components.ActionRowExecutor.__init__],
     [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__],
     and [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
     * `custom_id` keyword argument from
@@ -24,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     [modals.with_static_text_input][yuyo.modals.with_static_text_input],
     [modals.with_text_input][yuyo.modals.with_text_input],
     and [modals.text_input][yuyo.modals.text_input].
-    * Passing [yuyo.components.ActionRowExecutor][] to `ActionColumnExecutor.add_row`
     * `ComponentContext.select_channels`
     * `ComponentContext.select_roles`
     * `ComponentContext.select_texts`
@@ -41,14 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `AbstractComponentExecutor.timeout`
     * `ComponentExecutor.has_expired`
     * `ComponentExecutor.timeout`
-    * `ActionRowExecutor.has_expired`
-    * `ActionRowExecutor.timeout`
-    * `ActionRowExecutor.is_full`
-    * `ActionRowExecutor.add_button`
-    * `ActionRowExecutor.add_interative_button`
-    * `ActionRowExecutor.add_select_menu`
-    * `ActionRowExecutor.add_channel_select`
-    * `ActionRowExecutor.add_text_select`
     * `ActionColumnExecutor.timeout`
     * `ActionColumnExecutor.has_expired`
     * `ActionColumnExecutor.add_button`
@@ -64,8 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ActionColumnExecutor.with_static_channel_menu`
     * `ActionColumnExecutor.add_text_select`
     * `ActionColumnExecutor.add_static_text_select`
-    * `ComponentPaginator.timeout`
-    * `ComponentPaginator.has_expired`
+    * `ComponentPaginator.builder`
+    * `ComponentPaginator.add_row`
     * `components.with_static_button`
     * `components.with_static_interative_button`
     * `components.with_static_channel_select`

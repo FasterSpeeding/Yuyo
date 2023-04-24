@@ -34,7 +34,6 @@ from __future__ import annotations
 
 __all__: list[str] = [
     "ActionColumnExecutor",
-    "ActionRowExecutor",
     "AsgiAdapter",
     "AsgiBot",
     "Backoff",
@@ -87,7 +86,6 @@ from .chunk_tracker import ChunkTracker
 from .chunk_tracker import FinishedChunkingEvent
 from .chunk_tracker import ShardFinishedChunkingEvent
 from .components import ActionColumnExecutor
-from .components import ActionRowExecutor  # pyright: ignore [ reportDeprecated ]
 from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
