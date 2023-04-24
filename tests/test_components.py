@@ -845,7 +845,92 @@ class TestActionColumnExecutor:
         assert component.label is hikari.UNDEFINED
         assert component.is_disabled is False
 
-    def test_with_select_menu_descriptor(self):
+    def test_with_mentionable_menu_descriptor(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_mentionable_menu(
+                custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
+            )
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
+        assert component.custom_id == "cust"
+        assert component.is_disabled is True
+        assert component.placeholder == "place me"
+        assert component.min_values == 3
+        assert component.max_values == 12
+
+    def test_with_mentionable_menu_descriptor_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_mentionable_menu
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
+
+    def test_with_role_menu_descriptor(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_role_menu(
+                custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
+            )
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
+        assert component.custom_id == "cust"
+        assert component.is_disabled is True
+        assert component.placeholder == "place me"
+        assert component.min_values == 3
+        assert component.max_values == 12
+
+    def test_with_role_menu_descriptor_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_role_menu
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
+    def test_with_user_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -861,13 +946,14 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
         assert component.custom_id == "cust"
         assert component.is_disabled is True
         assert component.placeholder == "place me"
         assert component.min_values == 3
         assert component.max_values == 12
 
-    def test_with_select_menu_descriptor_with_defaults(self):
+    def test_with_user_menu_descriptor_with_defaults(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -881,6 +967,49 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.is_disabled is False
+        assert component.placeholder is hikari.UNDEFINED
+        assert component.min_values == 0
+        assert component.max_values == 1
+    def test_with_select_menu_descriptor(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(
+                hikari.ComponentType.USER_SELECT_MENU, custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
+            )
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "cust"
+        assert component.is_disabled is True
+        assert component.placeholder == "place me"
+        assert component.min_values == 3
+        assert component.max_values == 12
+
+    def test_with_select_menu_descriptor_with_defaults(self):
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                ...
+
+        rows = Column().rows
+
+        assert len(rows) == 1
+        assert len(rows[0].components) == 1
+        component = rows[0].components[0]
+        assert isinstance(component, hikari.api.SelectMenuBuilder)
+        assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
