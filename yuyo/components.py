@@ -4912,7 +4912,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
-        The following methods should be used instead:
+        The following class methods should be used instead:
 
         * [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu]
         * [.add_static_mentionable_menu][yuyo.components.ActionColumnExecutor.add_static_mentionable_menu]
