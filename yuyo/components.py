@@ -2642,12 +2642,12 @@ def _no_callback(*args: typing.Any) -> typing.NoReturn:
     raise RuntimeError("Not implemented")
 
 
+@typing_extensions.deprecated("Use ActionColumnExecutor")
 class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
-    """Class used for handling the execution of an action row.
+    """Deprecated class used for handling the execution of an action row.
 
-    You likely want [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-    which provides an interface for handling all the components on a message
-    instead of this.
+    [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] should be used
+    now instead.
     """
 
     __slots__ = ("_components", "_stored_type")
@@ -4442,29 +4442,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         """The rows in this column."""
         return self._rows.copy()
 
-    @typing.overload
-    @typing_extensions.deprecated("Use ActionRowExecutor.add_to_column")
-    def add_row(self, row: ActionRowExecutor, /) -> Self:
-        ...
-
-    @typing.overload
-    def add_row(self, row: hikari.api.MessageActionRowBuilder, /) -> Self:
-        ...
-
-    def add_row(self, row: typing.Union[hikari.api.MessageActionRowBuilder, ActionRowExecutor], /) -> Self:
-        """Add an action row executor to this column.
-
-        Parameters
-        ----------
-        row
-            The action row executor to add.
-
-        Returns
-        -------
-        Self
-            The column executor to enable chained calls.
-        """
-        if isinstance(row, ActionRowExecutor):
+    @typing_extensions.deprecated("This no-longer supports directly adding rows")
+    def add_row(
+        self,
+        row: typing.Union[
+            hikari.api.MessageActionRowBuilder, ActionRowExecutor  # pyright: ignore [ reportDeprecated ]
+        ],
+        /,
+    ) -> Self:
+        """Deprecated method for adding an action row executor to this column."""
+        if isinstance(row, ActionRowExecutor):  # pyright: ignore [ reportDeprecated ]
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
