@@ -1683,9 +1683,6 @@ class TestActionColumnExecutor:
 
         assert len(column.rows) == 5
 
-        for index, row in enumerate(column.rows):
-            print(index, row.components[0].type)
-
         row = column.rows[0]
         assert len(row.components) == 1
         component = row.components[0]
