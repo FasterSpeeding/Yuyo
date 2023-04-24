@@ -930,6 +930,7 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
     def test_with_user_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -972,12 +973,18 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
     def test_with_select_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
             @yuyo.components.as_select_menu(
-                hikari.ComponentType.USER_SELECT_MENU, custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
+                hikari.ComponentType.USER_SELECT_MENU,
+                custom_id="cust",
+                is_disabled=True,
+                placeholder="place me",
+                min_values=3,
+                max_values=12,
             )
             async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
                 ...
