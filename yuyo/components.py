@@ -3015,8 +3015,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -3063,8 +3061,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -3111,8 +3107,6 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -3800,7 +3794,7 @@ def as_role_menu(
     --------
     ```py
     class CustomColumn(components.ActionColumnExecutor):
-        @components.as_mentionable_menu(max_values=5)
+        @components.as_role_menu(max_values=5)
         async def on_select_menu(self, ctx: components.ComponentContext) -> None:
             ...
     ```
@@ -3876,7 +3870,7 @@ def as_user_menu(
     --------
     ```py
     class CustomColumn(components.ActionColumnExecutor):
-        @components.as_mentionable_menu(max_values=5)
+        @components.as_user_menu(max_values=5)
         async def on_select_menu(self, ctx: components.ComponentContext) -> None:
             ...
     ```
@@ -5043,8 +5037,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -5094,8 +5086,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -5150,8 +5140,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -5201,8 +5189,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -5257,8 +5243,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
@@ -5308,8 +5292,6 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         ----------
         callback
             Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
         custom_id
             The select menu's custom ID.
 
