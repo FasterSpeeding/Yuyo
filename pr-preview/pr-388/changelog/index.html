@@ -2593,6 +2593,9 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li><a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.Client">reactions.Client</a> now correctly points towards
   <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionClient">reactions.ReactionClient</a>.</li>
+<li>Some edge cases where the paginators were sending the current page in response
+  to a reaction/interaction instead of giving a noop response or just not
+  responding.</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">#</a></h3>
 <ul>
