@@ -391,7 +391,7 @@ class Paginator:
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
-            This should be an iterator of [yuyo.paginaton.Page]s.
+            This should be an iterator of [Page][yuyo.paginaton.Page]s.
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)

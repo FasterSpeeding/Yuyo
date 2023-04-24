@@ -6111,7 +6111,7 @@ class ComponentPaginator(ActionColumnExecutor):
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
-            This should be an iterator of [yuyo.paginaton.Page]s.
+            This should be an iterator of [yuyo.paginaton.Page][]s.
         authors
             The authors of the entries.
 
