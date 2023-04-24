@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now respects the order
-  component descriptors were defined on the class.
+  component descriptors were defined in on the class.
 
 ### [1.11.2a1] - 2023-04-10
 ### Added
