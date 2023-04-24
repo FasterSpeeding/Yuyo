@@ -13300,8 +13300,7 @@ pagination components.</p>
           <td><code>iterator</code></td>
           <td class="doc-param-details">
             <p>The iterator to paginate.</p>
-<p>This should be an iterator of tuples of <code>(hikari.UndefinedOr[str],
-hikari.UndefinedOr[hikari.Embed])</code>.</p>
+<p>This should be an iterator of [yuyo.paginaton.Page]s.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -16946,10 +16945,7 @@ if this is for a unicode emoji.</p>
           <td class="doc-param-details">
             <p>Either an asynchronous or synchronous iterator of the entries this
 should paginate through.</p>
-<p><code>entry[0]</code> represents the message's possible content and can either be
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a> or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a> and <code>entry[1]</code> represents
-the message's possible embed and can either be <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a>
-or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>.</p>
+<p>This should be an iterator of [yuyo.paginaton.Page]s.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
