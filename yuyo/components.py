@@ -6089,7 +6089,7 @@ class ComponentPaginator(ActionColumnExecutor):
         pagination components.
     """
 
-    __slots__ = ("_authors", "_buffer", "_index", "_iterator", "_lock")
+    __slots__ = ("_authors", "_lock", "_paginator")
 
     def __init__(
         self,
@@ -6137,10 +6137,8 @@ class ComponentPaginator(ActionColumnExecutor):
         super().__init__(ephemeral_default=ephemeral_default)
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
-        self._buffer: list[pagination.Page] = []
-        self._index: int = -1
-        self._iterator: typing.Optional[_internal.IteratorT[pagination.EntryT]] = iterator
         self._lock = asyncio.Lock()
+        self._paginator = pagination.Paginator(iterator)
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
             self.add_first_button()
@@ -6443,47 +6441,30 @@ class ComponentPaginator(ActionColumnExecutor):
         yuyo.pagination.Page | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
-        # Check to see if we're behind the buffer before trying to go forward in the generator.
-        if len(self._buffer) >= self._index + 2:
-            self._index += 1
-            return self._buffer[self._index]
-
-        # If entry is not None then the generator's position was pushed forwards.
-        if self._iterator and (entry := await _internal.seek_iterator(self._iterator, default=None)):
-            entry = pagination.Page.from_entry(entry)
-            self._index += 1
-            self._buffer.append(entry)
-            return entry
-
-        return None  # MyPy
+        return await self._paginator.step_forward()
 
     async def _on_first(self, ctx: ComponentContext, /) -> None:
-        if self._index != 0 and (first_entry := self._buffer[0] if self._buffer else await self.get_next_entry()):
-            self._index = 0
-            await ctx.create_initial_response(
-                response_type=hikari.ResponseType.MESSAGE_UPDATE, **first_entry.to_kwargs()
-            )
+        if page := self._paginator.jump_to_first():
+            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
 
     async def _on_previous(self, ctx: ComponentContext, /) -> None:
-        if self._index > 0:
-            self._index -= 1
-            response = self._buffer[self._index]
-            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **response.to_kwargs())
+        if page := self._paginator.step_back():
+            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
-        self._iterator = None
         await ctx.defer(defer_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
         await ctx.delete_initial_response()
         raise ExecutorClosed(already_closed=False)
 
     async def _on_last(self, ctx: ComponentContext, /) -> None:
-        if self._iterator:
+        deferring = not self._paginator.finished_iterating
+        if deferring:
             # TODO: option to not lock on last
             loading_component = ctx.interaction.app.rest.build_message_action_row().add_interactive_button(
                 hikari.ButtonStyle.SECONDARY, "loading", is_disabled=True, emoji=878377505344614461
@@ -6491,29 +6472,20 @@ class ComponentPaginator(ActionColumnExecutor):
             await ctx.create_initial_response(
                 component=loading_component, response_type=hikari.ResponseType.MESSAGE_UPDATE
             )
-            self._buffer.extend(map(pagination.Page.from_entry, await _internal.collect_iterable(self._iterator)))
-            self._index = len(self._buffer) - 1
-            self._iterator = None
 
-            if self._buffer:
-                response = self._buffer[self._index]
-                await ctx.edit_initial_response(components=self.rows, **response.to_kwargs())
+        if page := await self._paginator.jump_to_last():
+            if deferring:
+                await ctx.edit_initial_response(components=self.rows, **page.to_kwargs())
 
             else:
-                await ctx.edit_initial_response(components=self.rows)
-
-        elif self._buffer:
-            self._index = len(self._buffer) - 1
-            response = self._buffer[-1]
-            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **response.to_kwargs())
+                await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
 
     async def _on_next(self, ctx: ComponentContext, /) -> None:
-        if entry := await self.get_next_entry():
-            await ctx.defer(defer_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
-            await ctx.edit_initial_response(**entry.to_kwargs())
+        if page := await self._paginator.step_forward():
+            await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
@@ -6522,3 +6494,7 @@ class ComponentPaginator(ActionColumnExecutor):
 def _noop(ctx: ComponentContext, /) -> _CoroT:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
+
+
+Paginator = ComponentPaginator
+"""Alias of [ComponentPaginator][yuyo.components.ComponentPaginator]"""
