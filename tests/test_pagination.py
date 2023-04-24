@@ -314,11 +314,7 @@ class TestPaginator:
         expected_page_2 = pagination.Page("Charlie")
         expected_page_3 = pagination.Page("yeet")
         expected_page_4 = pagination.Page("salty")
-        paginator = pagination.Paginator(
-            iter(
-                [expected_page_1, expected_page_2, expected_page_3, expected_page_4]
-            )
-        )
+        paginator = pagination.Paginator(iter([expected_page_1, expected_page_2, expected_page_3, expected_page_4]))
 
         assert await paginator.jump_to_last() is expected_page_4
 
