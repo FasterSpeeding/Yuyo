@@ -5229,11 +5229,11 @@ interactions. Anything after <code>":"</code> is metadata.</p>
       <p>Add a select menu to this action column.</p>
 <p>The following methods should be used instead:</p>
 <ul>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_channel_menu">ActionColumnExecutor.add_channel_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_mentionable_menu">ActionColumnExecutor.add_mentionable_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_role_menu">ActionColumnExecutor.add_role_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_text_menu">ActionColumnExecutor.add_text_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_user_menu">ActionColumnExecutor.add_user_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_channel_menu">.add_channel_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_mentionable_menu">.add_mentionable_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_role_menu">.add_role_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_text_menu">.add_text_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_user_menu">.add_user_menu</a></li>
 </ul>
 
   </div>
@@ -6179,175 +6179,12 @@ interactions. Anything after <code>":"</code> is metadata.</p>
       <p>Add a select menu to all subclasses and instances of this action column class.</p>
 <p>The following methods should be used instead:</p>
 <ul>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_channel_menu">ActionColumnExecutor.add_channel_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_mentionable_menu">ActionColumnExecutor.add_mentionable_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_role_menu">ActionColumnExecutor.add_role_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_text_menu">ActionColumnExecutor.add_text_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_user_menu">ActionColumnExecutor.add_user_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_static_channel_menu">.add_static_channel_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_static_mentionable_menu">.add_static_mentionable_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_static_role_menu">.add_static_role_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_static_text_menu">.add_static_text_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor.add_static_user_menu">.add_static_user_menu</a></li>
 </ul>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>type_</code></td>
-          <td class="doc-param-details">
-            <p>The type of select menu to add.</p>
-<p>Passing callback here is deprecated.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.components" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#module-hikari.components">components</a>.<a class="autorefs autorefs-external" title="hikari.components.ComponentType" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType">ComponentType</a> | <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>callback</code></td>
-          <td class="doc-param-details">
-            <p>Callback which is called when this select menu is used.</p>
-<p>Passing type here is deprecated.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-internal" href="#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.components" href="components/#yuyo.components">components</a>.<a class="autorefs autorefs-internal" title="yuyo.components.CallbackSig" href="components/#yuyo.components.CallbackSig">CallbackSig</a></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>custom_id</code></td>
-          <td class="doc-param-details">
-            <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
-<p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>None</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>placeholder</code></td>
-          <td class="doc-param-details">
-            <p>Placeholder text to show when no entries have been selected.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>hikari.UNDEFINED</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>min_values</code></td>
-          <td class="doc-param-details">
-            <p>The minimum amount of entries which need to be selected.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>0</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_values</code></td>
-          <td class="doc-param-details">
-            <p>The maximum amount of entries which can be selected.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>1</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>is_disabled</code></td>
-          <td class="doc-param-details">
-            <p>Whether this select menu should be marked as disabled.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>False</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#type">type</a>[<span title="typing_extensions.Self">Self</span>]</code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The action column class to enable chained calls.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>When called directly on <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">components.ActionColumnExecutor</a>
-(rather than on a subclass).</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 
@@ -8223,11 +8060,11 @@ interactions. Anything after <code>":"</code> is metadata.</p>
       <p>Add a select menu to this action row.</p>
 <p>The following methods should be used instead:</p>
 <ul>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_channel_menu">ActionRowExecutor.add_channel_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_mentionable_menu">ActionRowExecutor.add_mentionable_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_role_menu">ActionRowExecutor.add_role_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_text_menu">ActionRowExecutor.add_text_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_user_menu">ActionRowExecutor.add_user_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_channel_menu">.add_channel_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_mentionable_menu">.add_mentionable_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_role_menu">.add_role_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_text_menu">.add_text_menu</a></li>
+<li><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionRowExecutor.add_user_menu">.add_user_menu</a></li>
 </ul>
 
   </div>
