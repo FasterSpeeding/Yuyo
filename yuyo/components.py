@@ -6457,6 +6457,7 @@ class ComponentPaginator(ActionColumnExecutor):
             await _noop(ctx)
 
     async def _on_disable(self, ctx: ComponentContext, /) -> None:
+        self._paginator.close()
         await ctx.defer(defer_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
         await ctx.delete_initial_response()
         raise ExecutorClosed(already_closed=False)

@@ -407,6 +407,12 @@ class Paginator:
         """Whether this has finished iterating over the original iterator."""
         return self._iterator is None
 
+    def close(self) -> None:
+        """Close the paginator."""
+        self._buffer.clear()
+        self._index = -1
+        self._iterator = None
+
     async def step_forward(self) -> typing.Optional[Page]:
         """Move this forward a page.
 
@@ -442,8 +448,10 @@ class Paginator:
         Returns
         -------
         yuyo.pagination.Page | None
-            The previous page in this paginator, or [None][] if this is already
-            the first page.
+            The previous page in this paginator.
+
+            This will be [None][] if this is already on the first page or if
+            the paginator hasn't been moved forward to the first entry yet.
         """
         if self._index > 0:
             self._index -= 1
@@ -457,8 +465,10 @@ class Paginator:
         Returns
         -------
         yuyo.pagination.Page | None
-            The first page in this paginator, or [None][] if this is already on
-            the first page.
+            The first page in this paginator.
+
+            This will be [None][] if this is already on the first page or if
+            the paginator hasn't been moved forward to the first entry yet.
         """
         # -1 indicates this hasn't started yet and 0 indicates this is already
         # on the first entry.

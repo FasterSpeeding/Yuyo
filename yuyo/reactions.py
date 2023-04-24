@@ -504,6 +504,7 @@ class ReactionPaginator(ReactionHandler):
             raise HandlerClosed() from exc
 
     async def _on_disable(self, _: ReactionEventT, /) -> None:
+        self._paginator.close()
         if message := self._message:
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
