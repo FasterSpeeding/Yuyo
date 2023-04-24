@@ -91,8 +91,10 @@ column) to it:
 
 * [as_channel_menu][yuyo.components.as_channel_menu]
 * [as_interactive_button][yuyo.components.as_interactive_button]
-* [as_select_menu][yuyo.components.as_select_menu]
+* [as_mentionable_menu][yuyo.components.as_mentionable_menu]
+* [as_role_menu][yuyo.components.as_role_menu]
 * [as_text_menu][yuyo.components.as_text_menu]
+* [as_user_menu][yuyo.components.as_user_menu]
 * [link_button][yuyo.components.link_button]
 
 ```py

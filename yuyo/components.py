@@ -42,8 +42,11 @@ __all__: list[str] = [
     "WaitForExecutor",
     "as_channel_menu",
     "as_interactive_button",
+    "as_mentionable_menu",
+    "as_role_menu",
     "as_select_menu",
     "as_text_menu",
+    "as_user_menu",
     "link_button",
     "with_option",
     "with_static_text_menu",
@@ -2959,38 +2962,13 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
     ) -> Self:
         """Add a select menu to this action row.
 
-        For channel select menus and text select menus see
-        [ActionRowExecutor.add_channel_menu][yuyo.components.ActionRowExecutor.add_channel_menu] and
-        [ActionRowExecutor.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu] respectively.
+        The following methods should be used instead:
 
-        Parameters
-        ----------
-        type_ : hikari.components.ComponentType | int
-            The type of select menu to add.
-
-            Passing callback here is deprecated.
-        callback : yuyo.components.CallbackSig
-            Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
-        custom_id
-            The select menu's custom ID.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        Self
-            The action row to enable chained calls.
+        * [.add_channel_menu][yuyo.components.ActionRowExecutor.add_channel_menu]
+        * [.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
+        * [.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
+        * [.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu]
+        * [.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
@@ -3018,6 +2996,144 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
                     is_disabled=is_disabled,
                 )
             )
+        )
+
+    def add_mentionable_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a mentionable select menu to this action row.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_role_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a role select menu to this action row.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.ROLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_user_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a user select menu to this action row.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action row to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.USER_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
         )
 
     @typing_extensions.deprecated("Use .add_channel_menu")
@@ -3496,14 +3612,92 @@ def as_select_menu(
 ]:
     """Declare a select menu on an action column class.
 
-    For channel select menus and text select menus see
-    [as_channel_menu][yuyo.components.as_channel_menu] and
-    [as_text_menu][yuyo.components.as_text_menu] respectively.
+    The following decorators should be used instead:
+
+    * [as_channel_menu][yuyo.components.as_channel_menu]
+    * [as_mentionable_menu][yuyo.components.as_mentionable_menu]
+    * [as_role_menu][yuyo.components.as_role_menu]
+    * [as_text_menu][yuyo.components.as_text_menu]
+    * [as_user_menu][yuyo.components.as_user_menu]
+    """
+    return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
+
+
+def _as_select_menu(
+    type_: typing.Union[hikari.ComponentType, int],
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    ],
+    _SelectMenu[_SelfT, _P],
+]:
+    def decorator(
+        callback_: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]
+    ) -> _SelectMenu[_SelfT, _P]:
+        return _SelectMenu(
+            callback_,
+            type_,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    if callback:
+        return decorator(callback)
+
+    return decorator
+
+
+@typing.overload
+def as_mentionable_menu(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _SelectMenu[_SelfT, _P]:
+    ...
+
+
+@typing.overload
+def as_mentionable_menu(
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+]:
+    ...
+
+
+def as_mentionable_menu(
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    ],
+    _SelectMenu[_SelfT, _P],
+]:
+    """Declare a mentionable select menu on an action column class.
 
     Parameters
     ----------
-    type_
-        The type of select menu to add.
     custom_id
         The select menu's custom ID.
 
@@ -3524,12 +3718,172 @@ def as_select_menu(
     --------
     ```py
     class CustomColumn(components.ActionColumnExecutor):
-        @components.as_select_menu(ComponentType.USER_SELECT_MENU, max_values=5)
+        @components.as_mentionable_menu(max_values=5)
         async def on_select_menu(self, ctx: components.ComponentContext) -> None:
             ...
     ```
     """
-    return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
+    return _as_select_menu(
+        hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+@typing.overload
+def as_role_menu(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _SelectMenu[_SelfT, _P]:
+    ...
+
+
+@typing.overload
+def as_role_menu(
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+]:
+    ...
+
+
+def as_role_menu(
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    ],
+    _SelectMenu[_SelfT, _P],
+]:
+    """Declare a role select menu on an action column class.
+
+    Parameters
+    ----------
+    custom_id
+        The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_role_menu(max_values=5)
+        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+    return _as_select_menu(
+        hikari.ComponentType.ROLE_SELECT_MENU,
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+@typing.overload
+def as_user_menu(
+    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+) -> _SelectMenu[_SelfT, _P]:
+    ...
+
+
+@typing.overload
+def as_user_menu(
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[
+    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+]:
+    ...
+
+
+def as_user_menu(
+    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> typing.Union[
+    collections.Callable[
+        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    ],
+    _SelectMenu[_SelfT, _P],
+]:
+    """Declare a user select menu on an action column class.
+
+    Parameters
+    ----------
+    custom_id
+        The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        @components.as_user_menu(max_values=5)
+        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+            ...
+    ```
+    """
+    return _as_select_menu(
+        hikari.ComponentType.USER_SELECT_MENU,
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
@@ -3951,9 +4305,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     component's callback:
 
     * [as_interactive_button][yuyo.components.as_interactive_button]
-    * [as_select_menu][yuyo.components.as_select_menu]
     * [as_channel_menu][yuyo.components.as_channel_menu]
+    * [as_mentionable_menu][yuyo.components.as_mentionable_menu]
+    * [as_role_menu][yuyo.components.as_role_menu]
     * [as_text_menu][yuyo.components.as_text_menu]
+    * [as_user_menu][yuyo.components.as_user_menu]
 
     [link_button][yuyo.components.link_button] returns a descriptor without
     decorating any callback.
@@ -4477,40 +4833,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> Self:
         """Add a select menu to this action column.
 
-        For channel select menus and text select menus see
-        [ActionColumnExecutor.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu] and
-        [ActionColumnExecutor.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu] respectively.
+        The following methods should be used instead:
 
-        Parameters
-        ----------
-        type_ : hikari.components.ComponentType | int
-            The type of select menu to add.
-
-            Passing callback here is deprecated.
-        callback : yuyo.components.CallbackSig
-            Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
-        custom_id
-            The select menu's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        Self
-            The action column to enable chained calls.
+        * [.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu]
+        * [.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
+        * [.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
+        * [.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]
+        * [.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
@@ -4583,46 +4912,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ) -> type[Self]:
         """Add a select menu to all subclasses and instances of this action column class.
 
-        For channel select menus and text select menus see
-        [ActionColumnExecutor.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu] and
-        [ActionColumnExecutor.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu] respectively.
+        The following class methods should be used instead:
 
-        Parameters
-        ----------
-        type_ : hikari.components.ComponentType | int
-            The type of select menu to add.
-
-            Passing callback here is deprecated.
-        callback : yuyo.components.CallbackSig
-            Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
-        custom_id
-            The select menu's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        type[Self]
-            The action column class to enable chained calls.
-
-        Raises
-        ------
-        RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-            (rather than on a subclass).
+        * [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu]
+        * [.add_static_mentionable_menu][yuyo.components.ActionColumnExecutor.add_static_mentionable_menu]
+        * [.add_static_role_menu][yuyo.components.ActionColumnExecutor.add_static_role_menu]
+        * [.add_static_text_menu][yuyo.components.ActionColumnExecutor.add_static_text_menu]
+        * [.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
@@ -4686,6 +4982,315 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             return callback
 
         return decorator
+
+    def add_mentionable_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a mentionable select menu to this action column.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action column to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    @classmethod
+    def add_static_mentionable_menu(
+        cls,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        """Add a mentionable select menu to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+        return cls.add_static_select_menu(
+            hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_role_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a role select menu to this action column.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action column to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.ROLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    @classmethod
+    def add_static_role_menu(
+        cls,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        """Add a role select menu to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+        return cls.add_static_select_menu(
+            hikari.ComponentType.ROLE_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    def add_user_menu(
+        self,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> Self:
+        """Add a user select menu to this action column.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        Self
+            The action column to enable chained calls.
+        """
+        return self.add_select_menu(
+            hikari.ComponentType.USER_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
+
+    @classmethod
+    def add_static_user_menu(
+        cls,
+        callback: CallbackSig,
+        /,
+        *,
+        custom_id: typing.Optional[str] = None,
+        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        min_values: int = 0,
+        max_values: int = 1,
+        is_disabled: bool = False,
+    ) -> type[Self]:
+        """Add a user select menu to all subclasses and instances of this action column class.
+
+        Parameters
+        ----------
+        callback
+            Callback which is called when this select menu is used.
+        custom_id
+            The select menu's custom ID.
+
+            Defaults to a UUID and cannot be longer than 100 characters.
+
+            Only `custom_id.split(":", 1)[0]` will be used to match against
+            interactions. Anything after `":"` is metadata.
+        placeholder
+            Placeholder text to show when no entries have been selected.
+        min_values
+            The minimum amount of entries which need to be selected.
+        max_values
+            The maximum amount of entries which can be selected.
+        is_disabled
+            Whether this select menu should be marked as disabled.
+
+        Returns
+        -------
+        type[Self]
+            The action column class to enable chained calls.
+
+        Raises
+        ------
+        RuntimeError
+            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            (rather than on a subclass).
+        """
+        return cls.add_static_select_menu(
+            hikari.ComponentType.USER_SELECT_MENU,
+            callback,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        )
 
     @typing_extensions.deprecated("Use .add_channel_menu")
     def add_channel_select(
