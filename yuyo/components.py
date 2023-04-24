@@ -2964,11 +2964,11 @@ class ActionRowExecutor(ComponentExecutor, hikari.api.ComponentBuilder):
 
         The following methods should be used instead:
 
-        * [ActionRowExecutor.add_channel_menu][yuyo.components.ActionRowExecutor.add_channel_menu]
-        * [ActionRowExecutor.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
-        * [ActionRowExecutor.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
-        * [ActionRowExecutor.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu]
-        * [ActionRowExecutor.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
+        * [.add_channel_menu][yuyo.components.ActionRowExecutor.add_channel_menu]
+        * [.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
+        * [.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
+        * [.add_text_menu][yuyo.components.ActionRowExecutor.add_text_menu]
+        * [.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
@@ -4835,11 +4835,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         The following methods should be used instead:
 
-        * [ActionColumnExecutor.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu]
-        * [ActionColumnExecutor.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
-        * [ActionColumnExecutor.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
-        * [ActionColumnExecutor.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]
-        * [ActionColumnExecutor.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
+        * [.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu]
+        * [.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
+        * [.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
+        * [.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]
+        * [.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
@@ -4914,48 +4914,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         The following methods should be used instead:
 
-        * [ActionColumnExecutor.add_channel_menu][yuyo.components.ActionColumnExecutor.add_channel_menu]
-        * [ActionColumnExecutor.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
-        * [ActionColumnExecutor.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
-        * [ActionColumnExecutor.add_text_menu][yuyo.components.ActionColumnExecutor.add_text_menu]
-        * [ActionColumnExecutor.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
-
-        Parameters
-        ----------
-        type_ : hikari.components.ComponentType | int
-            The type of select menu to add.
-
-            Passing callback here is deprecated.
-        callback : yuyo.components.CallbackSig
-            Callback which is called when this select menu is used.
-
-            Passing type here is deprecated.
-        custom_id
-            The select menu's custom ID.
-
-            Defaults to a UUID and cannot be longer than 100 characters.
-
-            Only `custom_id.split(":", 1)[0]` will be used to match against
-            interactions. Anything after `":"` is metadata.
-        placeholder
-            Placeholder text to show when no entries have been selected.
-        min_values
-            The minimum amount of entries which need to be selected.
-        max_values
-            The maximum amount of entries which can be selected.
-        is_disabled
-            Whether this select menu should be marked as disabled.
-
-        Returns
-        -------
-        type[Self]
-            The action column class to enable chained calls.
-
-        Raises
-        ------
-        RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-            (rather than on a subclass).
+        * [.add_static_channel_menu][yuyo.components.ActionColumnExecutor.add_static_channel_menu]
+        * [.add_static_mentionable_menu][yuyo.components.ActionColumnExecutor.add_static_mentionable_menu]
+        * [.add_static_role_menu][yuyo.components.ActionColumnExecutor.add_static_role_menu]
+        * [.add_static_text_menu][yuyo.components.ActionColumnExecutor.add_static_text_menu]
+        * [.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
         """
         if isinstance(type_, int):
             assert isinstance(callback, collections.Callable)
