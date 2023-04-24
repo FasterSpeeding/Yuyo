@@ -31,13 +31,7 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: list[str] = [
-    "Page",
-    "aenumerate",
-    "async_paginate_string",
-    "paginate_string",
-    "sync_paginate_string",
-]
+__all__: list[str] = ["Page", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
 import textwrap
 import typing
