@@ -1422,7 +1422,7 @@ def as_modal_template(
     Parameters
     ----------
     ephemeral_default
-        Whether this modal's responses should default to ephemeral.
+        Whether this modal template's responses should default to ephemeral.
     parse_signature
         Whether to parse the signature for parameter descriptors and
         [ModalOptions][yuyo.modals.ModalOptions] type-hints.
