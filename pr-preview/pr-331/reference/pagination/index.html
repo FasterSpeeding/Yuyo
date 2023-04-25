@@ -550,6 +550,68 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator" class="md-nav__link">
+    Paginator
+  </a>
+  
+    <nav class="md-nav" aria-label="Paginator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.has_finished_iterating" class="md-nav__link">
+    has_finished_iterating
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.close" class="md-nav__link">
+    close()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.jump_to_first" class="md-nav__link">
+    jump_to_first()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.jump_to_last" class="md-nav__link">
+    jump_to_last()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.step_back" class="md-nav__link">
+    step_back()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.step_forward" class="md-nav__link">
+    step_forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.pagination.aenumerate" class="md-nav__link">
     aenumerate()
   </a>
@@ -888,6 +950,68 @@
           <li class="md-nav__item">
   <a href="#yuyo.pagination.Page.to_kwargs" class="md-nav__link">
     to_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator" class="md-nav__link">
+    Paginator
+  </a>
+  
+    <nav class="md-nav" aria-label="Paginator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.has_finished_iterating" class="md-nav__link">
+    has_finished_iterating
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.close" class="md-nav__link">
+    close()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.jump_to_first" class="md-nav__link">
+    jump_to_first()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.jump_to_last" class="md-nav__link">
+    jump_to_last()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.step_back" class="md-nav__link">
+    step_back()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.pagination.Paginator.step_forward" class="md-nav__link">
+    step_forward()
   </a>
   
 </li>
@@ -1335,6 +1459,314 @@ is the message content and tuple[1] is an embed to send.</p>
           </td>
           <td class="doc-returns-details">
             <p>The create message kwargs for this page.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="yuyo.pagination.Paginator" class="doc doc-heading">
+        <span class="doc doc-object-name doc-class-name">Paginator</span>
+
+
+<a href="#yuyo.pagination.Paginator" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Standard implementation of a paginator.</p>
+<p>To use this with components or reactions see the following classes:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../components/#yuyo.components.ComponentPaginator">ComponentPaginator</a></li>
+<li><a class="autorefs autorefs-internal" href="../reactions/#yuyo.reactions.ReactionPaginator">ReactionPaginator</a></li>
+</ul>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="yuyo.pagination.Paginator.has_finished_iterating" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">has_finished_iterating</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#yuyo.pagination.Paginator.has_finished_iterating" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">has_finished_iterating</span><span class="p">:</span> <span class="nb">bool</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Whether this has finished iterating over the original iterator.</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.pagination.Paginator.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise a paginator.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>iterator</code></td>
+          <td class="doc-param-details">
+            <p>The iterator to paginate.</p>
+<p>This should be an iterator of [Page][yuyo.paginaton.Page]s.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Iterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterator">Iterator</a>[<a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.EntryT" href="#yuyo.pagination.EntryT">EntryT</a>] | <a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.AsyncIterator" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.AsyncIterator">AsyncIterator</a>[<a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.EntryT" href="#yuyo.pagination.EntryT">EntryT</a>]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.close" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">close</span>
+
+
+<a href="#yuyo.pagination.Paginator.close" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Close the paginator.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.jump_to_first" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">jump_to_first</span>
+
+
+<a href="#yuyo.pagination.Paginator.jump_to_first" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">jump_to_first</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Jump to the first page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="#yuyo.pagination.Page">Page</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The first page in this paginator.</p>
+<p>This will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on the first page or if
+the paginator hasn't been moved forward to the first entry yet.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.jump_to_last" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">jump_to_last</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.pagination.Paginator.jump_to_last" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">jump_to_last</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Jump to the last page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="#yuyo.pagination.Page">Page</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The last page in this paginator, or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on
+the last page.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.step_back" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">step_back</span>
+
+
+<a href="#yuyo.pagination.Paginator.step_back" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">step_back</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Move back a page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="#yuyo.pagination.Page">Page</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The previous page in this paginator.</p>
+<p>This will be <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on the first page or if
+the paginator hasn't been moved forward to the first entry yet.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.pagination.Paginator.step_forward" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">step_forward</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#yuyo.pagination.Paginator.step_forward" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">step_forward</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Move this forward a page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RETURNS</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+              <span class="doc-returns-annotation">
+                  <code><a class="autorefs autorefs-internal" href="../#yuyo">yuyo</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination" href="#yuyo.pagination">pagination</a>.<a class="autorefs autorefs-internal" title="yuyo.pagination.Page" href="#yuyo.pagination.Page">Page</a> | None</code>
+              </span>
+          </td>
+          <td class="doc-returns-details">
+            <p>The next page in this paginator, or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> if this is already on
+the last page.</p>
           </td>
         </tr>
     </tbody>
