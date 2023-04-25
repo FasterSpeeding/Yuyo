@@ -34,6 +34,7 @@ from __future__ import annotations
 __all__: list[str] = [
     "ActionColumnExecutor",
     "ComponentClient",
+    "with_static_channel_menu",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
