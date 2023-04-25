@@ -14,12 +14,14 @@
 # pyright: reportUnusedVariable=none
 
 import uuid
+from collections import abc as collections
 
 import alluka
 import hikari
 import tanjun
 
 from yuyo import components
+from yuyo import pagination
 
 
 async def callback(ctx: components.Context) -> None:
@@ -205,3 +207,40 @@ def updating_source() -> None:
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
         async def on_button(self, ctx: components.Context) -> None:
             await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, attachments=[])
+
+
+def paginator() -> None:
+    async def command(ctx: tanjun.abc.Context, component_client: alluka.Injected[components.Client]) -> None:
+        pages = [pagination.Page("Page 1"), pagination.Page("Page 2"), pagination.Page("Page 3")]
+        paginator = components.Paginator(iter(pages))
+
+        message = await ctx.respond(components=paginator.rows, ensure_result=True)
+        component_client.register_executor(paginator, message=message)
+
+
+async def _async_iterator() -> collections.AsyncIterator[str]:
+    yield "meow"
+
+
+def async_paginate(bot: hikari.GatewayBot) -> None:
+    pages = (pagination.Page(content) async for content in _async_iterator())
+    paginator = components.Paginator(pages)
+
+
+def all_buttons(pages: collections.Iterator[pagination.Page]) -> None:
+    paginator = (
+        components.Paginator(pages, triggers=[])
+        .add_first_button()
+        .add_previous_button()
+        .add_stop_button()
+        .add_next_button()
+        .add_last_button()
+    )
+
+
+def wait_for() -> None:
+    ...
+
+
+def stream() -> None:
+    ...
