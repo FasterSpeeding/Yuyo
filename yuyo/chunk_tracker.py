@@ -608,7 +608,9 @@ class ChunkTracker:
             data.missing_chunks.remove(chunk_index)
 
             if not_found_ids:
-                data.not_found_ids.update(map(hikari.Snowflake, not_found_ids))
+                data.not_found_ids.update(  # Pyright bug
+                    map(hikari.Snowflake, not_found_ids)  # pyright: ignore [ reportGeneralTypeIssues ]
+                )
 
             if not data.missing_chunks:
                 del self._requests[nonce]
