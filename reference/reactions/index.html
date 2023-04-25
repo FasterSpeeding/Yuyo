@@ -495,6 +495,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.reactions.Handler" class="md-nav__link">
+    Handler
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.reactions.Paginator" class="md-nav__link">
+    Paginator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionEventT" class="md-nav__link">
     ReactionEventT
   </a>
@@ -1015,6 +1029,20 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.reactions.Handler" class="md-nav__link">
+    Handler
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yuyo.reactions.Paginator" class="md-nav__link">
+    Paginator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.reactions.ReactionEventT" class="md-nav__link">
     ReactionEventT
   </a>
@@ -1369,12 +1397,58 @@
   </span>
 
 <a href="#yuyo.reactions.Client" class="headerlink" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">Client</span> <span class="o">=</span> <span class="n">ReactionHandler</span>
+<div class="highlight"><pre><span></span><code><span class="n">Client</span> <span class="o">=</span> <span class="n">ReactionClient</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionClient">ReactionClient</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="yuyo.reactions.Handler" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">Handler</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.reactions.Handler" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">Handler</span> <span class="o">=</span> <span class="n">ReactionHandler</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
   
       <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionHandler">ReactionHandler</a>.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="yuyo.reactions.Paginator" class="doc doc-heading">
+        <span class="doc doc-object-name doc-attribute-name">Paginator</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#yuyo.reactions.Paginator" class="headerlink" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">Paginator</span> <span class="o">=</span> <span class="n">ReactionPaginator</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator">ReactionPaginator</a>.</p>
   </div>
 
 </div>
@@ -1442,8 +1516,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -1468,8 +1542,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1493,8 +1567,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.on_reaction_event" class="headerlink" title="Permanent link">#</a></h3>
@@ -1578,8 +1652,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -2073,7 +2147,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get a reference to a paginator registered in this reaction client.</p>
+      <p>Get a reference to a handler registered in this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
@@ -2090,7 +2164,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
         <tr>
           <td><code>message</code></td>
           <td class="doc-param-details">
-            <p>The message ID to remove a paginator for.</p>
+            <p>The message ID to remove a handler for.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2117,7 +2191,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The object of the registered paginator if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+            <p>The object of the registered handler if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -2165,7 +2239,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Remove a paginator from this reaction client.</p>
+      <p>Remove a handler from this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
@@ -2182,7 +2256,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
         <tr>
           <td><code>message</code></td>
           <td class="doc-param-details">
-            <p>The message ID to remove a paginator for.</p>
+            <p>The message ID to remove a handler for.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2209,7 +2283,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The object of the registered paginator if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+            <p>The object of the registered handler if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -2650,10 +2724,7 @@ if this is for a unicode emoji.</p>
           <td class="doc-param-details">
             <p>Either an asynchronous or synchronous iterator of the entries this
 should paginate through.</p>
-<p><code>entry[0]</code> represents the message's possible content and can either be
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a> or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a> and <code>entry[1]</code> represents
-the message's possible embed and can either be <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a>
-or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>.</p>
+<p>This should be an iterator of <a class="autorefs autorefs-internal" href="../pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a>s.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>

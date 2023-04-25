@@ -5162,51 +5162,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Add an action row executor to this column.</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>row</code></td>
-          <td class="doc-param-details">
-            <p>The action row executor to add.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.MessageActionRowBuilder">MessageActionRowBuilder</span>, <a class="autorefs autorefs-internal" title="yuyo.components.ActionRowExecutor" href="components/#yuyo.components.ActionRowExecutor">ActionRowExecutor</a>]</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><span title="typing_extensions.Self">Self</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The column executor to enable chained calls.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+      <p>Deprecated method for adding an action row executor to this column.</p>
 
   </div>
 
@@ -7067,10 +7023,9 @@ interactions. Anything after <code>":"</code> is metadata.</p>
         Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.ComponentExecutor" href="components/#yuyo.components.ComponentExecutor">ComponentExecutor</a></code>, <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.ComponentBuilder">ComponentBuilder</span></code></p>
 
   
-      <p>Class used for handling the execution of an action row.</p>
-<p>You likely want <a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
-which provides an interface for handling all the components on a message
-instead of this.</p>
+      <p>Deprecated class used for handling the execution of an action row.</p>
+<p><a class="autorefs autorefs-internal" href="components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> should be used
+now instead.</p>
 
 
 
@@ -13291,11 +13246,17 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.ActionRowExecutor" href="components/#yuyo.components.ActionRowExecutor">ActionRowExecutor</a></code></p>
+        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.ActionColumnExecutor" href="components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a></code></p>
 
   
       <p>Standard implementation of an action row executor used for pagination.</p>
 <p>This is a convenience class that allows you to easily implement a paginator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This doesn't use action column's "static" components so any static
+components added to base-classes of this will appear before the
+pagination components.</p>
+</div>
 
 
 
@@ -13320,7 +13281,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 
 
 <a href="#yuyo.components.ComponentPaginator.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">_internal</span><span class="o">.</span><span class="n">NO_DEFAULT</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">LEFT_TRIANGLE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">STOP_SQUARE</span><span class="p">,</span> <span class="n">pagination</span><span class="o">.</span><span class="n">RIGHT_TRIANGLE</span><span class="p">))</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -13339,8 +13300,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
           <td><code>iterator</code></td>
           <td class="doc-param-details">
             <p>The iterator to paginate.</p>
-<p>This should be an iterator of tuples of <code>(hikari.UndefinedOr[str],
-hikari.UndefinedOr[hikari.Embed])</code>.</p>
+<p>This should be an iterator of <a class="autorefs autorefs-internal" href="pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a>s.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -14108,11 +14068,11 @@ displayed label.</p>
 and will still internally store the entry and increment the position of the paginator.</p>
 
 <p><strong>Examples:</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="n">response_paginator</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">ComponentPaginator</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
-<span class="n">first_response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response_paginator</span><span class="o">.</span><span class="n">get_next_entry</span><span class="p">()</span>
+    <div class="highlight"><pre><span></span><code><span class="n">paginator</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">ComponentPaginator</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+<span class="n">first_response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">paginator</span><span class="o">.</span><span class="n">get_next_entry</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">first_response</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">response_paginator</span><span class="p">,</span> <span class="o">**</span><span class="n">first_response</span><span class="o">.</span><span class="n">to_kwargs</span><span class="p">(),</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">response_paginator</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">paginator</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="o">**</span><span class="n">first_response</span><span class="o">.</span><span class="n">to_kwargs</span><span class="p">(),</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">paginator</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
 </code></pre></div>
 
   <table>
@@ -16408,7 +16368,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get a reference to a paginator registered in this reaction client.</p>
+      <p>Get a reference to a handler registered in this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
@@ -16425,7 +16385,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
         <tr>
           <td><code>message</code></td>
           <td class="doc-param-details">
-            <p>The message ID to remove a paginator for.</p>
+            <p>The message ID to remove a handler for.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -16452,7 +16412,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The object of the registered paginator if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+            <p>The object of the registered handler if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -16500,7 +16460,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Remove a paginator from this reaction client.</p>
+      <p>Remove a handler from this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
@@ -16517,7 +16477,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
         <tr>
           <td><code>message</code></td>
           <td class="doc-param-details">
-            <p>The message ID to remove a paginator for.</p>
+            <p>The message ID to remove a handler for.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -16544,7 +16504,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
               </span>
           </td>
           <td class="doc-returns-details">
-            <p>The object of the registered paginator if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+            <p>The object of the registered handler if found else <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
           </td>
         </tr>
     </tbody>
@@ -16985,10 +16945,7 @@ if this is for a unicode emoji.</p>
           <td class="doc-param-details">
             <p>Either an asynchronous or synchronous iterator of the entries this
 should paginate through.</p>
-<p><code>entry[0]</code> represents the message's possible content and can either be
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a> or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a> and <code>entry[1]</code> represents
-the message's possible embed and can either be <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a>
-or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>.</p>
+<p>This should be an iterator of <a class="autorefs autorefs-internal" href="pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a>s.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
