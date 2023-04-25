@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `timeout` argument from [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
+- `"WaitFor"` from `yuyo.components.__all__`.
 
 ## [1.12.0a1] - 2023-04-24
 ### Added
