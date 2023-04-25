@@ -51,7 +51,6 @@ import typing
 
 import hikari
 import hikari.urls
-import typing_extensions
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
@@ -373,11 +372,6 @@ class InviteLink(hikari.InviteCode, BaseLink):
         """
         return await self._app.rest.fetch_invite(self._code)
 
-    @typing_extensions.deprecated("Use .fetch_invite")
-    async def fetch(self) -> hikari.Invite:
-        """Deprecated alias of [InviteLink.fetch_invite][yuyo.links.InviteLink.fetch_invite]."""
-        return await self.fetch_invite()
-
     def get_invite(self) -> typing.Optional[hikari.InviteWithMetadata]:
         """Get the invite this links to from the cache.
 
@@ -390,11 +384,6 @@ class InviteLink(hikari.InviteCode, BaseLink):
             return self._app.cache.get_invite(self._code)
 
         return None  # MyPy compat
-
-    @typing_extensions.deprecated("Use .get_invite")
-    def get(self) -> typing.Optional[hikari.InviteWithMetadata]:
-        """Deprecated alias of [InviteLink.get_invite][yuyo.links.InviteLink.get_invite]."""
-        return self.get_invite()
 
 
 def make_message_link(
@@ -492,11 +481,6 @@ class MessageLink(ChannelLink):
         """
         return await self._app.rest.fetch_message(self._channel_id, self._message_id)
 
-    @typing_extensions.deprecated("Use .fetch_message")
-    async def fetch(self) -> hikari.Message:
-        """Deprecated alias of [MessageLink.fetch_message][yuyo.links.MessageLink.fetch_message]."""
-        return await self.fetch_message()
-
     def get_message(self) -> typing.Optional[hikari.Message]:
         """Get the message this links to from the cache.
 
@@ -509,11 +493,6 @@ class MessageLink(ChannelLink):
             return self._app.cache.get_message(self._message_id)
 
         return None
-
-    @typing_extensions.deprecated("Use .get_message")
-    def get(self) -> typing.Optional[hikari.Message]:
-        """Deprecated alias of [MessageLink.get_message][yuyo.links.MessageLink.get_message]."""
-        return self.get_message()
 
 
 def make_template_link(template: typing.Union[hikari.Template, str], /) -> str:
@@ -590,11 +569,6 @@ class TemplateLink(BaseLink):
             If an internal error occurs on Discord while handling the request.
         """
         return await self._app.rest.fetch_template(self._code)
-
-    @typing_extensions.deprecated("Use .fetch_template")
-    async def fetch(self) -> hikari.Template:
-        """Deprecated alias of [TemplateLink.fetch_template][yuyo.links.TemplateLink.fetch_template]."""
-        return await self.fetch_template()
 
 
 def make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], token: str, /) -> str:
@@ -686,8 +660,3 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         webhook = await self._app.rest.fetch_webhook(self._webhook_id, token=self._token)
         assert isinstance(webhook, hikari.IncomingWebhook)
         return webhook
-
-    @typing_extensions.deprecated("Use .fetch_webhook")
-    async def fetch(self) -> hikari.IncomingWebhook:
-        """Deprecated alias of [WebhookLink.fetch_webhook][yuyo.links.WebhookLink.fetch_webhook]."""
-        return await self.fetch_webhook()

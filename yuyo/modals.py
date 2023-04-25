@@ -55,7 +55,6 @@ import functools
 import itertools
 import types
 import typing
-import warnings
 
 import alluka as alluka_
 import hikari
@@ -82,24 +81,6 @@ _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 
 _ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
 """Type hint of the builder response types allows for modal interactions."""
-
-
-AbstractTimeout = timeouts.AbstractTimeout
-"""Deprecated alias of [yuyo.timeouts.AbstractTimeout][]."""
-
-
-@typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
-class BasicTimeout(timeouts.SlidingTimeout):
-    """Deprecated alias of [yuyo.timeouts.SlidingTimeout][]."""
-
-    __slots__ = ()
-
-
-@typing_extensions.deprecated("Use yuyo.timeouts.NeverTimeout")
-class NeverTimeout(timeouts.NeverTimeout):
-    """Deprecated alias of [yuyo.timeouts.NeverTimeout][]."""
-
-    __slots__ = ()
 
 
 class _NoDefaultEnum(enum.Enum):
@@ -665,18 +646,6 @@ class ModalClient:
             .set_flags(hikari.MessageFlag.EPHEMERAL)
         )
 
-    @typing_extensions.deprecated("Use .register_modal")
-    def set_modal(
-        self,
-        custom_id: str,
-        modal: AbstractModal,
-        /,
-        *,
-        prefix_match: bool = False,
-        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
-    ) -> Self:
-        return self.register_modal(custom_id, modal, timeout=timeout)
-
     def register_modal(
         self,
         custom_id: str,
@@ -749,10 +718,6 @@ class ModalClient:
             return entry[1]
 
         return None
-
-    @typing_extensions.deprecated("Use .deregister_modal")
-    def remove_modal(self, custom_id: str, /) -> Self:
-        return self.deregister_modal(custom_id)
 
     def deregister_modal(self, custom_id: str, /) -> Self:
         """Remove the modal set for a custom ID.
@@ -1073,7 +1038,6 @@ class Modal(AbstractModal):
         return self
 
     @classmethod
-    @typing.overload
     def add_static_text_input(
         cls,
         label: str,
@@ -1086,44 +1050,6 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        parameter: typing.Optional[str] = None,
-    ) -> type[Self]:
-        ...
-
-    @classmethod
-    @typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-    @typing.overload
-    def add_static_text_input(
-        cls,
-        label: str,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Any = NO_DEFAULT,
-        min_length: int = 0,
-        max_length: int = 4000,
-        prefix_match: bool = True,
-        parameter: typing.Optional[str] = None,
-    ) -> type[Self]:
-        ...
-
-    @classmethod
-    def add_static_text_input(
-        cls,
-        label: str,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Any = NO_DEFAULT,
-        min_length: int = 0,
-        max_length: int = 4000,
-        prefix_match: typing.Optional[bool] = None,
         parameter: typing.Optional[str] = None,
     ) -> type[Self]:
         """Add a text input field to all instances and subclasses of this modal class.
@@ -1163,10 +1089,6 @@ class Modal(AbstractModal):
             Maximum length the input text can be.
 
             This can be greater than or equal to 1 and less than or equal to 4000.
-        prefix_match
-            Deprecated config.
-
-            This behaviour is now always enabled.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1184,9 +1106,6 @@ class Modal(AbstractModal):
             When called directly on [modals.Modal][yuyo.modals.Modal]
             (rather than on a subclass).
         """
-        if prefix_match is not None:
-            warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
-
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
 
@@ -1208,7 +1127,6 @@ class Modal(AbstractModal):
 
         return cls
 
-    @typing.overload
     def add_text_input(
         self,
         label: str,
@@ -1221,42 +1139,6 @@ class Modal(AbstractModal):
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        parameter: typing.Optional[str] = None,
-    ) -> Self:
-        ...
-
-    @typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-    @typing.overload
-    def add_text_input(
-        self,
-        label: str,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Any = NO_DEFAULT,
-        min_length: int = 0,
-        max_length: int = 4000,
-        prefix_match: bool = True,
-        parameter: typing.Optional[str] = None,
-    ) -> Self:
-        ...
-
-    def add_text_input(
-        self,
-        label: str,
-        /,
-        *,
-        custom_id: typing.Optional[str] = None,
-        style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-        placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        default: typing.Any = NO_DEFAULT,
-        min_length: int = 0,
-        max_length: int = 4000,
-        prefix_match: typing.Optional[bool] = None,
         parameter: typing.Optional[str] = None,
     ) -> Self:
         """Add a text input field to this modal instance.
@@ -1296,10 +1178,6 @@ class Modal(AbstractModal):
             Maximum length the input text can be.
 
             This can be greater than or equal to 1 and less than or equal to 4000.
-        prefix_match
-            Deprecated config.
-
-            This behaviour is now always enabled.
         parameter
             Name of the parameter the text for this field should be passed to.
 
@@ -1311,9 +1189,6 @@ class Modal(AbstractModal):
         Self
             The modal instance to enable call chaining.
         """
-        if prefix_match is not None:
-            warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
-
         _, component, field = _make_text_input(
             custom_id=custom_id,
             label=label,
@@ -1582,7 +1457,6 @@ def as_modal_template(
     return decorator
 
 
-@typing.overload
 def with_static_text_input(
     label: str,
     /,
@@ -1594,42 +1468,6 @@ def with_static_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    parameter: typing.Optional[str] = None,
-) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
-    ...
-
-
-@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-@typing.overload
-def with_static_text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Any = NO_DEFAULT,
-    min_length: int = 0,
-    max_length: int = 4000,
-    prefix_match: bool = True,
-    parameter: typing.Optional[str] = None,
-) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
-    ...
-
-
-def with_static_text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Any = NO_DEFAULT,
-    min_length: int = 0,
-    max_length: int = 4000,
-    prefix_match: typing.Optional[bool] = None,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
@@ -1666,10 +1504,6 @@ def with_static_text_input(
         Maximum length the input text can be.
 
         This can be greater than or equal to 1 and less than or equal to 4000.
-    prefix_match
-        Deprecated config.
-
-        This behaviour is now always enabled.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1681,9 +1515,6 @@ def with_static_text_input(
     type[Modal]
         The decorated modal class.
     """
-    if prefix_match is not None:
-        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
-
     return lambda modal_cls: modal_cls.add_static_text_input(
         label,
         custom_id=custom_id,
@@ -1695,42 +1526,6 @@ def with_static_text_input(
         max_length=max_length,
         parameter=parameter,
     )
-
-
-@typing.overload
-def with_text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Any = NO_DEFAULT,
-    min_length: int = 0,
-    max_length: int = 4000,
-    parameter: typing.Optional[str] = None,
-) -> collections.abc.Callable[[_ModalT], _ModalT]:
-    ...
-
-
-@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-@typing.overload
-def with_text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Any = NO_DEFAULT,
-    min_length: int = 0,
-    max_length: int = 4000,
-    prefix_match: bool = True,
-    parameter: typing.Optional[str] = None,
-) -> collections.abc.Callable[[_ModalT], _ModalT]:
-    ...
 
 
 def with_text_input(
@@ -1781,10 +1576,6 @@ def with_text_input(
         Maximum length the input text can be.
 
         This can be greater than or equal to 1 and less than or equal to 4000.
-    prefix_match
-        Deprecated config.
-
-        This behaviour is now always enabled.
     parameter
         Name of the parameter the text for this field should be passed to.
 
@@ -1796,9 +1587,6 @@ def with_text_input(
     Modal
         The decorated modal instance.
     """
-    if prefix_match is not None:
-        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
-
     return lambda modal: modal.add_text_input(
         label,
         custom_id=custom_id,
@@ -1932,24 +1720,6 @@ def text_input(
     ...
 
 
-@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-@typing.overload
-def text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: _T,
-    min_length: int = 0,
-    max_length: int = 4000,
-    prefix_match: bool = True,
-) -> typing.Union[str, _T]:
-    ...
-
-
 @typing.overload
 def text_input(
     label: str,
@@ -1961,23 +1731,6 @@ def text_input(
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_length: int = 0,
     max_length: int = 4000,
-) -> str:
-    ...
-
-
-@typing_extensions.deprecated("prefix_match has been deprecated as this behaviour is now always active")
-@typing.overload
-def text_input(
-    label: str,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    min_length: int = 0,
-    max_length: int = 4000,
-    prefix_match: bool = True,
 ) -> str:
     ...
 
@@ -1993,7 +1746,6 @@ def text_input(
     default: typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]] = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: typing.Optional[bool] = None,
 ) -> typing.Union[str, _T]:
     """Descriptor used to declare a text input field.
 
@@ -2028,10 +1780,6 @@ def text_input(
         Maximum length the input text can be.
 
         This can be greater than or equal to 1 and less than or equal to 4000.
-    prefix_match
-        Deprecated config.
-
-        This behaviour is now always enabled.
 
     Examples
     --------
@@ -2061,9 +1809,6 @@ def text_input(
         ...
     ```
     """
-    if prefix_match is not None:
-        warnings.warn("prefix_match has been deprecated as this behaviour is now always active")
-
     descriptor = _TextInputDescriptor(
         label,
         custom_id=custom_id,

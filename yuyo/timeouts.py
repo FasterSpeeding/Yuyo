@@ -31,13 +31,11 @@
 """Classes used for handling timing out components and reaction handlers."""
 from __future__ import annotations
 
-__all__ = ["BasicTimeout", "NeverTimeout", "SlidingTimeout", "StaticTimeout"]
+__all__ = ["NeverTimeout", "SlidingTimeout", "StaticTimeout"]
 
 import abc
 import datetime
 import typing
-
-import typing_extensions
 
 
 class AbstractTimeout(abc.ABC):
@@ -107,13 +105,6 @@ class SlidingTimeout(AbstractTimeout):
 
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         return self._uses_left == 0
-
-
-@typing_extensions.deprecated("Use yuyo.timeouts.SlidingTimeout")
-class BasicTimeout(SlidingTimeout):
-    """Deprecated alias of [SlidingTimeout][yuyo.timeouts.SlidingTimeout]."""
-
-    __slots__ = ()
 
 
 class NeverTimeout(AbstractTimeout):
