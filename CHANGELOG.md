@@ -94,8 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [yuyo.pagination.Paginator][] class.
 
 ### Deprecated
-- [yuyo.components.ActionRowExecutor][] in favour of the action column executor.
-- [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row].
+- `yuyo.components.ActionRowExecutor` in favour of the action column executor.
+- `ActionColumnExecutor.add_row`.
 
 ### Fixed
 - [reactions.Client][yuyo.reactions.Client] now correctly points towards
@@ -121,9 +121,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * [ActionColumnExecutor.add_static_role_menu][yuyo.components.ActionColumnExecutor.add_static_role_menu]
     * [ActionColumnExecutor.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
     * [ActionColumnExecutor.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
-    * [ActionRowExecutor.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
-    * [ActionRowExecutor.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
-    * [ActionRowExecutor.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
+    * `ActionRowExecutor.add_mentionable_menu`
+    * `ActionRowExecutor.add_role_menu`
+    * `ActionRowExecutor.add_user_menu`
 
 ### Changed
 - [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now allows overriding
@@ -166,7 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `callback` and `type` have been flipped (making `type` the first argument and `callback`
    the second one) for the following functions:
-    * [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu]
+    * `ActionRowExecutor.add_select_menu`
     * [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu]
     * [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu]
     * [with_static_select_menu][yuyo.components.with_static_select_menu]
@@ -264,7 +264,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This has been replaced with passing [yuyo.components.SingleExecutor][] to
   [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor].
 - Passing `timeout` to [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
-  [ActionRowExecutor.\_\_init\_\_][yuyo.components.ActionRowExecutor.__init__],
+  `ActionRowExecutor.__init__`,
   [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__], and
   [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
   This has been replaced by passing `timeout` to
@@ -274,8 +274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ActionRowExecutor.is_full`.
 - `ComponentClient.set_executor`, this has been replaced by
   [Component.register_executor][yuyo.components.ComponentClient.register_executor].
-- Passing [yuyo.components.ActionRowExecutor][] to
-  [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row]. This
+- Passing `yuyo.components.ActionRowExecutor` to `ActionColumnExecutor.add_row`. This
   now takes [hikari.api.MessageActionRowBuilder][hikari.api.special_endpoints.MessageActionRowBuilder].
 - The `prefix_match` parameter as this is now always enabled.
 
@@ -335,7 +334,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [yuyo.modals.modal][] and [yuyo.modals.as_modal][] no-longer lead to Alluka's type-hint introspection
   raising an exception.
 - Handling of defaulting empty modal text inputs.
-- Add `type` property to [yuyo.components.ActionRowExecutor][] and
+- Add `type` property to `yuyo.components.ActionRowExecutor` and
   `yuyo.components.ChildActionRowExecutor` to fix compatibility with `Hikari>=2.0.0.dev117`.
 
 ## [1.9.0a1] - 2023-02-27
@@ -393,8 +392,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `yuyo.components.MultiComponentExecutor` and `yuyo.components.ChildActionRowExecutor`.
   [yuyo.components.ActionColumnExecutor][] should be used instead.
 - Using `ActionRowExecutor.add_button` to add specifically link buttons.
-  [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button] should be
-  used instead.
+  `ActionRowExecutor.add_link_button` should be used instead.
 
 ### Fixed
 - The `add_{}_button` methods on [ComponentPaginator][yuyo.components.ComponentPaginator] now ignore
@@ -409,8 +407,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for the new select menu types to `yuyo.to_builder`.
 - `ActionRowExecutor.add_channel_select` for adding channel select menus to an action row.
-- [ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
-  adding the other new select menu types to an action row.
+- `ActionRowExecutor.add_select_menu` for adding the other new select menu types to an action row.
 - [yuyo.pagination.Page][] type which can be used to represent a response page in the paginators.
   This allows configuring attachments and multiple embeds for a page.
 - Methods for manually setting the buttons for [yuyo.components.ComponentPaginator][] and
