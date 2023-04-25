@@ -71,13 +71,13 @@ def action_column_decoratored_menus() -> None:
             hikari.impl.SelectOptionBuilder("opt3", "value3"),
         ],
     )
-    @components.with_static_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, callback)
+    @components.with_static_role_menu(callback)
     @components.with_static_channel_menu(callback)
     class Column(components.ActionColumnExecutor):
         ...
 
-    Column.add_static_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
-    Column.add_static_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
+    Column.add_static_user_menu(callback)
+    Column.add_static_mentionable_menu(callback)
 
 
 # fmt: off
@@ -85,14 +85,14 @@ def action_column_menu_methods() -> None:
     column = (
         components.ActionColumnExecutor()
         .add_channel_menu(callback)
-        .add_select_menu(hikari.ComponentType.ROLE_SELECT_MENU, callback)
+        .add_role_menu(callback)
         .add_text_menu(callback)
         .add_option("opt1", "value1")
         .add_option("opt2", "value2")
         .add_option("opt3", "value3")
         .parent
-        .add_select_menu(hikari.ComponentType.USER_SELECT_MENU, callback)
-        .add_select_menu(hikari.ComponentType.MENTIONABLE_SELECT_MENU, callback)
+        .add_user_menu(callback)
+        .add_mentionable_menu(callback)
     )
 # fmt: on
 
