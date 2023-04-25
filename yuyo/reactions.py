@@ -305,7 +305,7 @@ class ReactionPaginator(ReactionHandler):
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
 
-            This should be an iterator of [yuyo.paginaton.Page][]s.
+            This should be an iterator of [yuyo.pagination.Page][]s.
         authors
             An iterable of IDs of the users who can call this paginator.
 
