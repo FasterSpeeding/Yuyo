@@ -2036,7 +2036,7 @@ class ComponentClient:
 
             If this is left as [None][] then this executor will be registered
             globally for its custom IDs.
-        timeout : typing.Optional[yuyo.timeouts.AbstractTimeout]
+        timeout
             The executor's timeout.
 
             This defaults to a 30 second sliding timeout.
