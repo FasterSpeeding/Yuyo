@@ -669,9 +669,9 @@ python-dateutil==2.8.2 ; python_full_version >= "3.9.0" and python_version < "3.
 redis==4.5.4 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:2c19e6767c474f2e85167909061d525ed65bea9301c0770bb151e041b7ac89a2 \
     --hash=sha256:73ec35da4da267d6847e47f68730fdd5f62e2ca69e3ef5885c6a78a9374c3893
-setuptools==67.7.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:6f0839fbdb7e3cfef1fc38d7954f5c1c26bf4eebb155a55c9bf8faf997b9fb67 \
-    --hash=sha256:bb16732e8eb928922eabaa022f881ae2b7cdcfaf9993ef1f5e841a96d32b8e0c
+setuptools==67.7.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:23aaf86b85ca52ceb801d32703f12d77517b2556af839621c641fca11287952b \
+    --hash=sha256:f104fa03692a2602fa0fec6c6a9e63b6c8a968de13e17c026957dd1f53d80990
 six==1.16.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
