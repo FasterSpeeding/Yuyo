@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ## [1.14.0] - 2023-05-25
 ### Added
-- The missed `"with {} menu"` component decorator functions:
+- The missed `"with_static_{}_menu"` component decorator functions:
 
     * [yuyo.components.with_static_mentionable_menu][]
     * [yuyo.components.with_static_role_menu][]
