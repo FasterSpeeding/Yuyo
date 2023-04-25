@@ -2671,8 +2671,8 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 </ul>
 <h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
 <ul>
-<li>[yuyo.components.ActionRowExecutor][] in favour of the action column executor.</li>
-<li>[ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row].</li>
+<li><code>yuyo.components.ActionRowExecutor</code> in favour of the action column executor.</li>
+<li><code>ActionColumnExecutor.add_row</code>.</li>
 </ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">#</a></h3>
 <ul>
@@ -2700,9 +2700,9 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_role_menu">ActionColumnExecutor.add_static_role_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_user_menu">ActionColumnExecutor.add_user_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_user_menu">ActionColumnExecutor.add_static_user_menu</a></li>
-<li>[ActionRowExecutor.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]</li>
-<li>[ActionRowExecutor.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]</li>
-<li>[ActionRowExecutor.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]</li>
+<li><code>ActionRowExecutor.add_mentionable_menu</code></li>
+<li><code>ActionRowExecutor.add_role_menu</code></li>
+<li><code>ActionRowExecutor.add_user_menu</code></li>
 </ul>
 </li>
 </ul>
@@ -2755,7 +2755,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <ul>
 <li><code>callback</code> and <code>type</code> have been flipped (making <code>type</code> the first argument and <code>callback</code>
    the second one) for the following functions:<ul>
-<li>[ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu]</li>
+<li><code>ActionRowExecutor.add_select_menu</code></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_select_menu">ActionColumnExecutor.add_select_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_select_menu">ActionColumnExecutor.add_static_select_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_select_menu">with_static_select_menu</a></li>
@@ -2864,7 +2864,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
   This has been replaced with passing <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.SingleExecutor">yuyo.components.SingleExecutor</a> to
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">ComponentClient.register_executor</a>.</li>
 <li>Passing <code>timeout</code> to <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentExecutor.__init__">ComponentExecutor.__init__</a>,
-  [ActionRowExecutor.__init__][yuyo.components.ActionRowExecutor.__init__],
+  <code>ActionRowExecutor.__init__</code>,
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.__init__">ActionColumnExecutor.__init__</a>, and
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a>.
   This has been replaced by passing <code>timeout</code> to
@@ -2874,8 +2874,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <li><code>ActionRowExecutor.is_full</code>.</li>
 <li><code>ComponentClient.set_executor</code>, this has been replaced by
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">Component.register_executor</a>.</li>
-<li>Passing [yuyo.components.ActionRowExecutor][] to
-  [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row]. This
+<li>Passing <code>yuyo.components.ActionRowExecutor</code> to <code>ActionColumnExecutor.add_row</code>. This
   now takes <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">hikari.api.MessageActionRowBuilder</a>.</li>
 <li>The <code>prefix_match</code> parameter as this is now always enabled.</li>
 </ul>
@@ -2949,7 +2948,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <li><a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.modal">yuyo.modals.modal</a> and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals.as_modal">yuyo.modals.as_modal</a> no-longer lead to Alluka's type-hint introspection
   raising an exception.</li>
 <li>Handling of defaulting empty modal text inputs.</li>
-<li>Add <code>type</code> property to [yuyo.components.ActionRowExecutor][] and
+<li>Add <code>type</code> property to <code>yuyo.components.ActionRowExecutor</code> and
   <code>yuyo.components.ChildActionRowExecutor</code> to fix compatibility with <code>Hikari&gt;=2.0.0.dev117</code>.</li>
 </ul>
 <h2 id="190a1-2023-02-27"><a href="https://github.com/FasterSpeeding/Yuyo/compare/v1.8.0a1.post1...v1.9.0a1">1.9.0a1</a> - 2023-02-27<a class="headerlink" href="#190a1-2023-02-27" title="Permanent link">#</a></h2>
@@ -3015,8 +3014,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <li><code>yuyo.components.MultiComponentExecutor</code> and <code>yuyo.components.ChildActionRowExecutor</code>.
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">yuyo.components.ActionColumnExecutor</a> should be used instead.</li>
 <li>Using <code>ActionRowExecutor.add_button</code> to add specifically link buttons.
-  [ActionRowExecutor.add_link_button][yuyo.components.ActionRowExecutor.add_link_button] should be
-  used instead.</li>
+  <code>ActionRowExecutor.add_link_button</code> should be used instead.</li>
 </ul>
 <h3 id="fixed_9">Fixed<a class="headerlink" href="#fixed_9" title="Permanent link">#</a></h3>
 <ul>
@@ -3034,8 +3032,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <ul>
 <li>Support for the new select menu types to <code>yuyo.to_builder</code>.</li>
 <li><code>ActionRowExecutor.add_channel_select</code> for adding channel select menus to an action row.</li>
-<li>[ActionRowExecutor.add_select_menu][yuyo.components.ActionRowExecutor.add_select_menu] for
-  adding the other new select menu types to an action row.</li>
+<li><code>ActionRowExecutor.add_select_menu</code> for adding the other new select menu types to an action row.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a> type which can be used to represent a response page in the paginators.
   This allows configuring attachments and multiple embeds for a page.</li>
 <li>Methods for manually setting the buttons for <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator">yuyo.components.ComponentPaginator</a> and
