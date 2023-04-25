@@ -158,7 +158,8 @@ class ReactionHandler(AbstractReactionHandler):
             If this is empty then the handler is considered public and
             any user will be able to trigger it.
         """
-        return frozenset(self._authors)
+        # Pyright bug
+        return frozenset(self._authors)  # pyright: ignore [ reportGeneralTypeIssues ]
 
     @property
     def has_expired(self) -> bool:
