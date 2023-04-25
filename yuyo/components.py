@@ -34,7 +34,6 @@ from __future__ import annotations
 __all__: list[str] = [
     "ActionColumnExecutor",
     "ComponentClient",
-    "with_static_channel_menu",
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
@@ -48,6 +47,7 @@ __all__: list[str] = [
     "as_user_menu",
     "link_button",
     "with_option",
+    "with_static_channel_menu",
     "with_static_mentionable_menu",
     "with_static_role_menu",
     "with_static_text_menu",
