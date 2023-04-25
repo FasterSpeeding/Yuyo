@@ -6496,4 +6496,4 @@ def _noop(ctx: ComponentContext, /) -> _CoroT:
 
 
 Paginator = ComponentPaginator
-"""Alias of [ComponentPaginator][yuyo.components.ComponentPaginator]"""
+"""Alias of [ComponentPaginator][yuyo.components.ComponentPaginator]."""
