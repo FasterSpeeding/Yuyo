@@ -4476,14 +4476,39 @@ def with_static_select_menu(
 ) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
     """Add a static select menu to the decorated action column class.
 
-    For channel select menus and text select menus see
-    [yuyo.components.with_static_channel_menu][] and
-    [yuyo.components.with_static_text_menu][] respectively.
+    The following decorators should be used instead:
+
+    * [yuyo.components.with_static_channel_menu][]
+    * [yuyo.components.with_static_mentionable_menu][]
+    * [yuyo.components.with_static_role_menu][]
+    * [yuyo.components.with_static_text_menu][]
+    * [yuyo.components.with_static_user_menu][]
+    """
+    return lambda executor: executor.add_static_select_menu(
+        type_,
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+def with_static_mentionable_menu(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Add a static mentionable menu to the decorated action column class.
 
     Parameters
     ----------
-    type_
-        The type of select menu to add.
     callback
         Callback which is called when this select menu is used.
     custom_id
@@ -4507,8 +4532,101 @@ def with_static_select_menu(
     type[tanjun.components.ActionColumnExecutor]
         The decorated action column class.
     """
-    return lambda executor: executor.add_static_select_menu(
-        type_,
+    return lambda executor: executor.add_static_mentionable_menu(
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+def with_static_role_menu(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Add a static role menu to the decorated action column class.
+
+    Parameters
+    ----------
+    callback
+        Callback which is called when this select menu is used.
+    custom_id
+        The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Returns
+    -------
+    type[tanjun.components.ActionColumnExecutor]
+        The decorated action column class.
+    """
+    return lambda executor: executor.add_static_role_menu(
+        callback,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
+
+
+def with_static_user_menu(
+    callback: CallbackSig,
+    /,
+    *,
+    custom_id: typing.Optional[str] = None,
+    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+    min_values: int = 0,
+    max_values: int = 1,
+    is_disabled: bool = False,
+) -> collections.Callable[[type[_ActionColumnExecutorT]], type[_ActionColumnExecutorT]]:
+    """Add a static user menu to the decorated action column class.
+
+    Parameters
+    ----------
+    callback
+        Callback which is called when this select menu is used.
+    custom_id
+        The select menu's custom ID.
+
+        Defaults to a UUID and cannot be longer than 100 characters.
+
+        Only `custom_id.split(":", 1)[0]` will be used to match against
+        interactions. Anything after `":"` is metadata.
+    placeholder
+        Placeholder text to show when no entries have been selected.
+    min_values
+        The minimum amount of entries which need to be selected.
+    max_values
+        The maximum amount of entries which can be selected.
+    is_disabled
+        Whether this select menu should be marked as disabled.
+
+    Returns
+    -------
+    type[tanjun.components.ActionColumnExecutor]
+        The decorated action column class.
+    """
+    return lambda executor: executor.add_static_user_menu(
         callback,
         custom_id=custom_id,
         placeholder=placeholder,
