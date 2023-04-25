@@ -120,7 +120,7 @@ functions.
 ```
 
 [column_template][yuyo.components.column_template] provides a shorthand for
-creating a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+creating an [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
 subclass where the same `add_static_{}` class methods can be used to build the
 template.
 
