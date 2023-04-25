@@ -37,9 +37,6 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "with_static_mentionable_menu",
-    "with_static_role_menu",
-    "with_static_user_menu",
     "WaitForExecutor",
     "as_channel_menu",
     "as_interactive_button",
@@ -50,7 +47,10 @@ __all__: list[str] = [
     "as_user_menu",
     "link_button",
     "with_option",
+    "with_static_mentionable_menu",
+    "with_static_role_menu",
     "with_static_text_menu",
+    "with_static_user_menu",
 ]
 
 import abc
