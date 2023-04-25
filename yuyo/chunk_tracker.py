@@ -130,8 +130,8 @@ class ChunkRequestFinishedEvent(hikari.ShardEvent):
 class FinishedChunkingEvent(hikari.Event):
     """Event that's dispatched when the startup chunking has finished for the bot.
 
-    This indicates that any cache member and presences resources should be
-    complete globally.
+    This indicates that the member and presence caches should be complete
+    globally.
 
     This will only be fired once after bot startups.
     """
@@ -154,8 +154,8 @@ class FinishedChunkingEvent(hikari.Event):
 class ShardFinishedChunkingEvent(hikari.ShardEvent):
     """Event that's dispatched when the startup chunking has finished for a shard.
 
-    This indicates that any cache member and presences resources should be
-    complete for guilds covered by this shard.
+    This indicates that the member and presence caches should be complete for
+    guilds covered by this shard.
 
     This will be fired after every shard identify which triggers chunking
     (including re-identifies).
@@ -608,7 +608,9 @@ class ChunkTracker:
             data.missing_chunks.remove(chunk_index)
 
             if not_found_ids:
-                data.not_found_ids.update(map(hikari.Snowflake, not_found_ids))
+                data.not_found_ids.update(  # Pyright bug
+                    map(hikari.Snowflake, not_found_ids)  # pyright: ignore [ reportGeneralTypeIssues ]
+                )
 
             if not data.missing_chunks:
                 del self._requests[nonce]

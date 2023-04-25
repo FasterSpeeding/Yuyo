@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "hikari-yuyo"
-version = "1.11.1a1"
+version = "1.12.0a1"
 readme = "README.md"
 requires-python = ">=3.9.0,<3.12"
 license = {file = "LICENSE"}
@@ -107,6 +107,7 @@ ignore = [
     "E231",    # missing whitespace after ','
 ]
 per-file-ignores = [
+    "docs_src/*.py: D100, D101, D103, E800, FA100, FA101, F841, INP001, N806, TC002",
     "examples/*.py: D103, FA101",
     "noxfile.py: D100, FA101, F401, F403, INP001",
     "tests/*.py: CCE002, CFQ001, D100, D101, D103, D104, FA100, FA101",
@@ -135,8 +136,13 @@ warn_redundant_casts = false
 allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
-# Ignore vendored modules
-exclude = ["yuyo/_internal/vendor/"]
+# Ignore vendored modules and doc_src files which fail to parse
+exclude = [
+    "docs_src/chunk_tracker.py",
+    "docs_src/links.py",
+    "docs_src/list_status.py",
+    "yuyo/_internal/vendor/",
+]
 
 [tool.piped]
 default_sessions = [
@@ -150,11 +156,11 @@ default_sessions = [
     "verify-types",
 ]
 extra_test_installs = ["."]
-path_ignore = "yuyo\\/_internal\\/vendor\\/"
 mypy_allowed_to_fail = true
-mypy_targets = ["yuyo"]
+mypy_targets = ["docs_src", "yuyo"]
+path_ignore = "yuyo\\/_internal\\/vendor\\/|docs\\/usage\\/images\\/.+"
 project_name = "yuyo"
-top_level_targets = ["./examples", "./noxfile.py", "./yuyo", "./tests"]
+top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./tests"]
 
 [tool.piped.github_actions.freeze_for_pr]
 [tool.piped.github_actions.lint]
@@ -173,9 +179,12 @@ python_versions = ["3.9", "3.10", "3.11"]
 [tool.piped.github_actions.verify_locks]
 [tool.piped.github_actions.verify_types]
 
+[tool.pycln]
+exclude = "docs_src"
+
 [tool.pyright]
 exclude = ["yuyo/_internal/vendor"]
-include = ["examples", "noxfile.py", "tests", "yuyo"]
+include = ["docs_src", "examples", "noxfile.py", "tests", "yuyo"]
 
 pythonVersion = "3.9"
 typeCheckingMode = "strict"

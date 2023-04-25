@@ -6,6 +6,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- [components.Paginator][yuyo.components.Paginator] alias of
+  [components.ComponentPaginator][yuyo.components.ComponentPaginator].
+- [reactions.Handler][yuyo.reactions.Handler] alias of
+  [reactions.ReactionHandler][yuyo.reactions.ReactionHandler].
+- [reactions.Paginator][yuyo.reactions.Paginator] alias of
+  [reactions.ReactionPaginator][yuyo.reactions.ReactionPaginator].
+
+### Changed
+- [ComponentPaginator][yuyo.components.ComponentPaginator] now implements
+  [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] rather than
+  `ActionRowExecutor`.
+  The main (breaking) consequence of this change is that you now need to pass
+  `pagintor.rows` to `components` rather than passing the paginator itself to
+  `component`.
+- Moved out the paginator logic used by [yuyo.components.ComponentPaginator][]
+  and [yuyo.reactions.ReactionPaginator][] to the new
+  [yuyo.pagination.Paginator][] class.
+
+### Deprecated
+- [yuyo.components.ActionRowExecutor][] in favour of the action column executor.
+- [ActionColumnExecutor.add_row][yuyo.components.ActionColumnExecutor.add_row].
+
+### Fixed
+- [reactions.Client][yuyo.reactions.Client] now correctly points towards
+  [reactions.ReactionClient][yuyo.reactions.ReactionClient].
+- Some edge cases where the paginators were sending the current page in response
+  to a reaction/interaction instead of giving a noop response or just not
+  responding.
+
+### Removed
+- `timeout` argument from [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
+
+## [1.12.0a1] - 2023-04-24
+### Added
+- `ephemeral_default` option to [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
+- Shorthand methods and functions for adding/declaring mentionable, role and user menus:
+    * [components.as_mentionable_menu][yuyo.components.as_mentionable_menu]
+    * [components.as_role_menu][yuyo.components.as_role_menu]
+    * [components.as_user_menu][yuyo.components.as_user_menu]
+    * [ActionColumnExecutor.add_mentionable_menu][yuyo.components.ActionColumnExecutor.add_mentionable_menu]
+    * [ActionColumnExecutor.add_static_mentionable_menu][yuyo.components.ActionColumnExecutor.add_static_mentionable_menu]
+    * [ActionColumnExecutor.add_role_menu][yuyo.components.ActionColumnExecutor.add_role_menu]
+    * [ActionColumnExecutor.add_static_role_menu][yuyo.components.ActionColumnExecutor.add_static_role_menu]
+    * [ActionColumnExecutor.add_user_menu][yuyo.components.ActionColumnExecutor.add_user_menu]
+    * [ActionColumnExecutor.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
+    * [ActionRowExecutor.add_mentionable_menu][yuyo.components.ActionRowExecutor.add_mentionable_menu]
+    * [ActionRowExecutor.add_role_menu][yuyo.components.ActionRowExecutor.add_role_menu]
+    * [ActionRowExecutor.add_user_menu][yuyo.components.ActionRowExecutor.add_user_menu]
+
+### Changed
+- [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now allows overriding
+  inherited component class descriptors.
+- The `add_static` methods on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+  now override any previously added sub-component with the same match ID rather than
+  append a duplicate entry.
+
+### Fixed
+- [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] now respects the order
+  component descriptors were defined in on the class.
+
+### [1.11.2a1] - 2023-04-10
+### Added
 - Support for parsing message links to [yuyo.links][].
 
 ### Changed
@@ -22,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - [ModalOptions][yuyo.modals.ModalOptions] attributes now correctly expose the values passed to
-  the modal rather internal descriptors.
+  the modal rather than internal descriptors.
 - [ChunkTracker.set_auto_chunk_members][yuyo.chunk_tracker.ChunkTracker.set_auto_chunk_members]
   now correctly disables auto chunking when [False][] is passed after it has been previously
   enabled. This now also always changes the configuration for `chunk_presences`.
@@ -54,6 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modal's callback.
 - [yuyo.modals.as_modal][] and [yuyo.modals.as_modal_template][] both now allow passing
   `parse_signature` typing wise.
+- [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+  now defaults to unlimited uses instead of 1 use.
 
 ### [1.11.0a1] - 2023-04-02
 ### Added
@@ -561,7 +625,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.11.1a1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.12.0a1...HEAD
+[1.12.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.11.2a1...v1.12.0a1
+[1.11.2a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.11.1a1...v1.11.2a1
 [1.11.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.11.0a1...v1.11.1a1
 [1.11.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.1a1...v1.11.0a1
 [1.10.1a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.10.0a1...v1.10.1a1

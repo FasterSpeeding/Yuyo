@@ -113,8 +113,8 @@ async def async_paginate_string(
 
     Returns
     -------
-    collections.abc.AsyncIterator[tuple[str, int]]
-        An async iterator of page tuples (string context to int zero-based index).
+    collections.abc.AsyncIterator[str]
+        An async iterator of each page's content.
     """
     if wrapper:
         char_limit -= len(wrapper) + 2
@@ -184,8 +184,8 @@ def sync_paginate_string(
 
     Returns
     -------
-    collections.abc.Iterator[tuple[str, int]]
-        An iterator of page tuples (string context to int zero-based index).
+    collections.abc.Iterator[str]
+        An iterator of each page's content.
     """
     if wrapper:
         char_limit -= len(wrapper) + 2
@@ -278,9 +278,9 @@ def paginate_string(
 
     Returns
     -------
-    collections.abc.AsyncIterator[tuple[str, int]] | collections.abc.Iterator[tuple[str, int]]
-        An iterator of page tuples (string context to int zero-based index).
-    """  # noqa: E501  - line too long
+    collections.abc.AsyncIterator[str] | collections.abc.Iterator[str]
+        An iterator of each page's content.
+    """
     if isinstance(lines, collections.AsyncIterable):
         return async_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
@@ -363,3 +363,133 @@ class Page:
             The create message kwargs for this page.
         """
         return {"attachments": self._attachments, "content": self._content, "embeds": self._embeds}
+
+
+class Paginator:
+    """Standard implementation of a paginator.
+
+    To use this with components or reactions see the following classes:
+
+    * [ComponentPaginator][yuyo.components.ComponentPaginator]
+    * [ReactionPaginator][yuyo.reactions.ReactionPaginator]
+    """
+
+    __slots__ = ("_buffer", "_index", "_iterator")
+
+    def __init__(self, iterator: _internal.IteratorT[EntryT], /) -> None:
+        """Initialise a paginator.
+
+        Parameters
+        ----------
+        iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
+            The iterator to paginate.
+
+            This should be an iterator of [Page][yuyo.pagination.Page]s.
+        """
+        if not isinstance(
+            iterator, (collections.Iterator, collections.AsyncIterator)
+        ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
+            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+
+        self._buffer: list[Page] = []
+        self._index: int = -1
+        self._iterator: typing.Optional[_internal.IteratorT[EntryT]] = iterator
+
+    @property
+    def has_finished_iterating(self) -> bool:
+        """Whether this has finished iterating over the original iterator."""
+        return self._iterator is None
+
+    def close(self) -> None:
+        """Close the paginator."""
+        self._buffer.clear()
+        self._index = -1
+        self._iterator = None
+
+    @property
+    def _is_behind_buffer(self) -> bool:
+        return len(self._buffer) >= self._index + 2
+
+    async def step_forward(self) -> typing.Optional[Page]:
+        """Move this forward a page.
+
+        Returns
+        -------
+        yuyo.pagination.Page | None
+            The next page in this paginator, or [None][] if this is already on
+            the last page.
+        """
+        # Check to see if we're behind the buffer before trying to go forward in the generator.
+        if self._is_behind_buffer:
+            self._index += 1
+            return self._buffer[self._index]
+
+        # The iterator is finished and cannot be pushed any further.
+        if not self._iterator:
+            return None  # MyPy
+
+        # If entry is not None then the generator's position was pushed forwards.
+        if entry := await _internal.seek_iterator(self._iterator, default=None):
+            page = Page.from_entry(entry)
+            self._index += 1
+            self._buffer.append(page)
+            return page
+
+        # Otherwise the generator has been depleted.
+        self._iterator = None
+        return None  # MyPy
+
+    def step_back(self) -> typing.Optional[Page]:
+        """Move back a page.
+
+        Returns
+        -------
+        yuyo.pagination.Page | None
+            The previous page in this paginator.
+
+            This will be [None][] if this is already on the first page or if
+            the paginator hasn't been moved forward to the first entry yet.
+        """
+        if self._index > 0:
+            self._index -= 1
+            return self._buffer[self._index]
+
+        return None  # MyPy compat
+
+    def jump_to_first(self) -> typing.Optional[Page]:
+        """Jump to the first page.
+
+        Returns
+        -------
+        yuyo.pagination.Page | None
+            The first page in this paginator.
+
+            This will be [None][] if this is already on the first page or if
+            the paginator hasn't been moved forward to the first entry yet.
+        """
+        # -1 indicates this hasn't started yet and 0 indicates this is already
+        # on the first entry.
+        if self._index > 0:
+            self._index = 0
+            return self._buffer[0]
+
+        return None  # MyPy compat
+
+    async def jump_to_last(self) -> typing.Optional[Page]:
+        """Jump to the last page.
+
+        Returns
+        -------
+        yuyo.pagination.Page | None
+            The last page in this paginator, or [None][] if this is already on
+            the last page.
+        """
+        if self._iterator:
+            self._buffer.extend(map(Page.from_entry, await _internal.collect_iterable(self._iterator)))
+            self._iterator = None
+
+        if self._buffer and self._is_behind_buffer:
+            self._index = len(self._buffer) - 1
+            return self._buffer[-1]
+
+        return None  # MyPy compat
