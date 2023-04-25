@@ -4394,7 +4394,7 @@ def _append_row(
 def column_template(ephemeral_default: bool = False) -> type[ActionColumnExecutor]:
     """Create a column template through a decorator callback.
 
-    The returned type acts like any other slotted action column executor and
+    The returned type acts like any other slotted action column subclass and
     supports the same `add_static` class methods and initialisation signature.
 
     Parameters
