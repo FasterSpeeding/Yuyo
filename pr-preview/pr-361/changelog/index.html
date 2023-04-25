@@ -2576,14 +2576,14 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <ul>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator">ComponentPaginator</a> now implements
   <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> rather than
-  <code>ActionRowExecutor</code>.</li>
-</ul>
-<p>The main (breaking) consequence of this change is that you now need to pass
+  <code>ActionRowExecutor</code>.
+  The main (breaking) consequence of this change is that you now need to pass
   <code>pagintor.rows</code> to <code>components</code> rather than passing the paginator itself to
-  <code>component</code>.
-- Moved out the paginator logic used by <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator">yuyo.components.ComponentPaginator</a>
+  <code>component</code>.</li>
+<li>Moved out the paginator logic used by <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentPaginator">yuyo.components.ComponentPaginator</a>
   and <a class="autorefs autorefs-internal" href="../reference/reactions/#yuyo.reactions.ReactionPaginator">yuyo.reactions.ReactionPaginator</a> to the new
-  <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Paginator">yuyo.pagination.Paginator</a> class.</p>
+  <a class="autorefs autorefs-internal" href="../reference/pagination/#yuyo.pagination.Paginator">yuyo.pagination.Paginator</a> class.</li>
+</ul>
 <h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h3>
 <ul>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionRowExecutor">yuyo.components.ActionRowExecutor</a> in favour of the action column executor.</li>
