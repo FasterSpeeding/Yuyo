@@ -1416,8 +1416,8 @@ def as_modal_template(
 ]:
     """Create a modal template through a decorator callback.
 
-    This supports the same decorators and parameter descriptors for declaring
-    the modal's entries as a normal modal class.
+    The return type acts like any other slotted modal subclass and supports the
+    same decorators and parameter descriptors for declaring the modal's entries.
 
     Parameters
     ----------
