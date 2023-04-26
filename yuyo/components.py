@@ -110,6 +110,25 @@ def _now() -> datetime.datetime:
     return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
+def _consume(
+    value: typing.Optional[_T], callback: collections.Callable[[_T], _OtherT], /
+) -> typing.Union[_OtherT, collections.Callable[[_T], _OtherT]]:
+    if value is not None:
+        return callback(value)
+
+    return callback
+
+
+def _decorate(
+    value: typing.Optional[_T], callback: collections.Callable[[_T], object], /
+) -> typing.Union[_T, collections.Callable[[_T], _T]]:
+    def decorator(value_: _T) -> _T:
+        callback(value_)
+        return value_
+
+    return _consume(value, decorator)
+
+
 class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     """Base class for components contexts."""
 
@@ -2731,41 +2750,6 @@ def as_select_menu(
     return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
 
 
-def _as_select_menu(
-    type_: typing.Union[hikari.ComponentType, int],
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
-    /,
-    *,
-    custom_id: typing.Optional[str] = None,
-    placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    min_values: int = 0,
-    max_values: int = 1,
-    is_disabled: bool = False,
-) -> typing.Union[
-    collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ],
-    _SelectMenu[_SelfT, _P],
-]:
-    def decorator(
-        callback_: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]
-    ) -> _SelectMenu[_SelfT, _P]:
-        return _SelectMenu(
-            callback_,
-            type_,
-            custom_id=custom_id,
-            placeholder=placeholder,
-            min_values=min_values,
-            max_values=max_values,
-            is_disabled=is_disabled,
-        )
-
-    if callback:
-        return decorator(callback)
-
-    return decorator
-
-
 @typing.overload
 def as_mentionable_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
@@ -2831,14 +2815,17 @@ def as_mentionable_menu(
             ...
     ```
     """
-    return _as_select_menu(
-        hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+    return _consume(
         callback,
-        custom_id=custom_id,
-        placeholder=placeholder,
-        min_values=min_values,
-        max_values=max_values,
-        is_disabled=is_disabled,
+        lambda callback_: _SelectMenu(
+            callback_,
+            hikari.ComponentType.MENTIONABLE_SELECT_MENU,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        ),
     )
 
 
@@ -2907,14 +2894,17 @@ def as_role_menu(
             ...
     ```
     """
-    return _as_select_menu(
-        hikari.ComponentType.ROLE_SELECT_MENU,
+    return _consume(
         callback,
-        custom_id=custom_id,
-        placeholder=placeholder,
-        min_values=min_values,
-        max_values=max_values,
-        is_disabled=is_disabled,
+        lambda callback_: _SelectMenu(
+            callback_,
+            hikari.ComponentType.ROLE_SELECT_MENU,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        ),
     )
 
 
@@ -2983,14 +2973,17 @@ def as_user_menu(
             ...
     ```
     """
-    return _as_select_menu(
-        hikari.ComponentType.USER_SELECT_MENU,
+    return _consume(
         callback,
-        custom_id=custom_id,
-        placeholder=placeholder,
-        min_values=min_values,
-        max_values=max_values,
-        is_disabled=is_disabled,
+        lambda callback_: _SelectMenu(
+            callback_,
+            hikari.ComponentType.USER_SELECT_MENU,
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
+        ),
     )
 
 
@@ -3118,16 +3111,12 @@ def as_channel_menu(
             ...
     ```
     """
-
-    def decorator(
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-    ) -> _ChannelSelect[_SelfT, _P]:
-        return _ChannelSelect(callback, custom_id, channel_types, placeholder, min_values, max_values, is_disabled)
-
-    if callback:
-        return decorator(callback)
-
-    return decorator
+    return _consume(
+        callback,
+        lambda callback_: _ChannelSelect(
+            callback_, custom_id, channel_types, placeholder, min_values, max_values, is_disabled
+        ),
+    )
 
 
 class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
@@ -3263,16 +3252,12 @@ def as_text_menu(
             ...
     ```
     """
-
-    def decorator(
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-    ) -> _TextMenuDescriptor[_SelfT, _P]:
-        return _TextMenuDescriptor(callback, custom_id, options, placeholder, min_values, max_values, is_disabled)
-
-    if callback:
-        return decorator(callback)
-
-    return decorator
+    return _consume(
+        callback,
+        lambda callback_: _TextMenuDescriptor(
+            callback_, custom_id, options, placeholder, min_values, max_values, is_disabled
+        ),
+    )
 
 
 def with_option(
@@ -3929,7 +3914,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_mentionable_menu(self, callback_: _CallbackSigT, /) -> _CallbackSigT:
+    def with_mentionable_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @typing.overload
@@ -3947,7 +3932,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_mentionable_menu(
         self,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -3976,22 +3961,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled
             Whether this select menu should be marked as disabled.
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.add_mentionable_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: self.add_mentionable_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     @classmethod
     def add_static_mentionable_menu(
@@ -4050,7 +4030,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_mentionable_menu(cls, callback_: _CallbackSigT, /) -> _CallbackSigT:
+    def with_static_mentionable_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @classmethod
@@ -4070,7 +4050,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_mentionable_menu(
         cls,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4105,22 +4085,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_mentionable_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: cls.add_static_mentionable_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     def add_role_menu(
         self,
@@ -4171,7 +4146,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_role_menu(self, callback_: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
+    def with_role_menu(self, callback: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
         ...
 
     @typing.overload
@@ -4189,7 +4164,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_role_menu(
         self,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4218,22 +4193,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled
             Whether this select menu should be marked as disabled.
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.add_role_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: self.add_role_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     @classmethod
     def add_static_role_menu(
@@ -4292,7 +4262,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_role_menu(cls, callback_: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
+    def with_static_role_menu(cls, callback: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
         ...
 
     @classmethod
@@ -4312,7 +4282,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_role_menu(
         cls,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4347,22 +4317,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_role_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: cls.add_static_role_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     def add_user_menu(
         self,
@@ -4413,7 +4378,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_user_menu(self, callback_: _CallbackSigT, /) -> _CallbackSigT:
+    def with_user_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @typing.overload
@@ -4431,7 +4396,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_user_menu(
         self,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4460,22 +4425,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled
             Whether this select menu should be marked as disabled.
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.add_user_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: self.add_user_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     @classmethod
     def add_static_user_menu(
@@ -4534,7 +4494,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_user_menu(cls, callback_: _CallbackSigT, /) -> _CallbackSigT:
+    def with_static_user_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @classmethod
@@ -4554,7 +4514,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_user_menu(
         cls,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4589,22 +4549,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_user_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: cls.add_static_user_menu(
+                callback_,
                 custom_id=custom_id,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     def add_channel_menu(
         self,
@@ -4662,7 +4617,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @typing.overload
-    def with_channel_menu(self, callback_: _CallbackSigT, /) -> _CallbackSigT:
+    def with_channel_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @typing.overload
@@ -4683,7 +4638,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_channel_menu(
         self,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4717,23 +4672,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled
             Whether this select menu should be marked as disabled.
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            self.add_channel_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: self.add_channel_menu(
+                callback_,
                 custom_id=custom_id,
                 channel_types=channel_types,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     @classmethod
     def add_static_channel_menu(
@@ -4830,7 +4780,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_channel_menu(
         cls,
-        callback_: typing.Optional[_CallbackSigT] = None,
+        callback: typing.Optional[_CallbackSigT] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -4870,23 +4820,18 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-
-        def decorator(callback: _CallbackSigT, /) -> _CallbackSigT:
-            cls.add_static_channel_menu(
-                callback,
+        return _decorate(
+            callback,
+            lambda callback_: cls.add_static_channel_menu(
+                callback_,
                 custom_id=custom_id,
                 channel_types=channel_types,
                 placeholder=placeholder,
                 min_values=min_values,
                 max_values=max_values,
                 is_disabled=is_disabled,
-            )
-            return callback
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+            ),
+        )
 
     def add_text_menu(
         self,
@@ -4972,7 +4917,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_text_menu(
         self,
-        callback_: typing.Optional[collections.Callable[_P, _CoroT]] = None,
+        callback: typing.Optional[collections.Callable[_P, _CoroT]] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -5009,23 +4954,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         is_disabled
             Whether this select menu should be marked as disabled.
         """
-
-        def decorator(callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-            builder = self.add_text_menu(
-                callback,
-                custom_id=custom_id,
-                options=options,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
-            )
-            return _WrappedTextMenuBuilder(callback, builder)
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+        return _consume(
+            callback,
+            lambda callback_: _WrappedTextMenuBuilder(
+                callback_,
+                self.add_text_menu(
+                    callback_,
+                    custom_id=custom_id,
+                    options=options,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                ),
+            ),
+        )
 
     @classmethod
     def add_static_text_menu(
@@ -5104,7 +5047,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_text_menu(cls, callback_: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
+    def with_static_text_menu(cls, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
         ...
 
     @classmethod
@@ -5125,7 +5068,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_text_menu(
         cls,
-        callback_: typing.Optional[collections.Callable[_P, _CoroT]] = None,
+        callback: typing.Optional[collections.Callable[_P, _CoroT]] = None,
         /,
         *,
         custom_id: typing.Optional[str] = None,
@@ -5168,23 +5111,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
-
-        def decorator(callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-            builder = cls.add_static_text_menu(
-                callback,
-                custom_id=custom_id,
-                options=options,
-                placeholder=placeholder,
-                min_values=min_values,
-                max_values=max_values,
-                is_disabled=is_disabled,
-            )
-            return _WrappedTextMenuBuilder(callback, builder)
-
-        if callback_:
-            return decorator(callback_)
-
-        return decorator
+        return _consume(
+            callback,
+            lambda callback_: _WrappedTextMenuBuilder(
+                callback_,
+                cls.add_static_text_menu(
+                    callback_,
+                    custom_id=custom_id,
+                    options=options,
+                    placeholder=placeholder,
+                    min_values=min_values,
+                    max_values=max_values,
+                    is_disabled=is_disabled,
+                ),
+            ),
+        )
 
 
 # TODO: maybe don't use paramspec here
