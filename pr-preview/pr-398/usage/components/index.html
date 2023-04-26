@@ -1064,21 +1064,20 @@ column) to it:</p>
 specific sub-component is used by a user, with the only exception being
 link buttons which open a link for the user instead of sending an interaction
 to the bot.</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@components</span><span class="o">.</span><span class="n">with_static_text_menu</span><span class="p">(</span>
-    <span class="n">callback</span><span class="p">,</span>
-    <span class="n">options</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">SelectOptionBuilder</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">),</span>
-        <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">SelectOptionBuilder</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">),</span>
-        <span class="n">hikari</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">SelectOptionBuilder</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">),</span>
-    <span class="p">],</span>
-<span class="p">)</span>
-<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-<span class="nd">@components</span><span class="o">.</span><span class="n">with_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
     <span class="o">...</span>
 
-<span class="n">Column</span><span class="o">.</span><span class="n">add_static_user_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-<span class="n">Column</span><span class="o">.</span><span class="n">add_static_mentionable_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="p">(</span>
+    <span class="n">Column</span><span class="o">.</span><span class="n">add_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_text_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">parent</span>
+    <span class="o">.</span><span class="n">add_static_user_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_mentionable_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="p">)</span>
 </code></pre></div>
 <p>Alternatively, static sub-components can be added to an
 <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass using the

@@ -2646,22 +2646,20 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.with_text_menu">ActionColumnExecutor.with_text_menu</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.with_static_text_menu">ActionColumnExecutor.with_static_text_menu</a>.</li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.column_template">yuyo.components.column_template</a> shorthand function for creating a column subclass.</li>
-<li>The missed <code>"with_static_{}_menu"</code> component column decorator functions:<ul>
-<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_mentionable_menu">yuyo.components.with_static_mentionable_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_role_menu">yuyo.components.with_static_role_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_user_menu">yuyo.components.with_static_user_menu</a></li>
-</ul>
-</li>
 </ul>
 <h3 id="removed">Removed<a class="headerlink" href="#removed" title="Permanent link">#</a></h3>
 <ul>
+<li><code>yuyo.components.with_static_interactive_button</code></li>
+<li><code>yuyo.components.with_static_link_button</code></li>
+<li><code>yuyo.components.with_static_select_menu</code></li>
+<li><code>yuyo.components.with_static_channel_menu</code></li>
+<li><code>yuyo.components.with_static_text_menu</code></li>
 <li>The following deprecated functionality and aliases:<ul>
 <li><code>ActionRowExecutor</code> in favour of the new action column executor.</li>
 <li>Allowing callback to be passed as the first argument and type as the
 second argument for
-<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_select_menu">ActionColumnExecutor.add_select_menu</a>,
-<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_select_menu">ActionColumnExecutor.add_static_select_menu</a>,
-and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_select_menu">components.with_static_select_menu</a>.</li>
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_select_menu">ActionColumnExecutor.add_select_menu</a>, and
+<a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_select_menu">ActionColumnExecutor.add_static_select_menu</a>.</li>
 <li><code>timeout</code> keyword argument from
 <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentExecutor.__init__">ComponentExecutor.__init__</a>,
 <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.__init__">ActionColumnExecutor.__init__</a>,
@@ -2835,7 +2833,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
 <li><code>ActionRowExecutor.add_select_menu</code></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_select_menu">ActionColumnExecutor.add_select_menu</a></li>
 <li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor.add_static_select_menu">ActionColumnExecutor.add_static_select_menu</a></li>
-<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_select_menu">with_static_select_menu</a></li>
+<li><code>with_static_select_menu</code></li>
 </ul>
 </li>
 <li>Renamed the component context select menu data properties:<ul>
@@ -2875,7 +2873,7 @@ and <a class="autorefs autorefs-internal" href="../reference/modals/#yuyo.modals
   (rather than the component executors) and makes binding to a specific message optional.
   This consists of <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.register_executor">ComponentClient.register_executor</a>
   and <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ComponentClient.deregister_executor">ComponentClient.deregister_executor</a>.</li>
-<li><a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.with_static_text_menu">yuyo.components.with_static_text_menu</a> decorator for declaring a static text select menu on
+<li><code>yuyo.components.with_static_text_menu</code> decorator for declaring a static text select menu on
   a <a class="autorefs autorefs-internal" href="../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass.</li>
 <li><code>options</code> parameter to <code>ActionColumnExecutor.add_static_text_select</code>,
   <code>ActionColumnExecutor.add_text_select</code>, and <code>ActionRowExecutor.add_text_select</code> for passing
