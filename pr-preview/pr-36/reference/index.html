@@ -10676,8 +10676,8 @@ pagination components.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
-<p>If None is passed here then the paginator will be public (meaning that
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
 anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
@@ -13991,9 +13991,9 @@ any user will be able to trigger it.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>An iterable of IDs of the users who can call this paginator.</p>
+            <p>An iterable of IDs of the users who can call this executor.</p>
 <p>If left empty then all users will be able to call this
-paginator.</p>
+executor.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -14009,7 +14009,7 @@ paginator.</p>
         <tr>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
-            <p>How long it should take for this paginator to timeout.</p>
+            <p>How long it should take for this executor to timeout.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -16456,8 +16456,7 @@ when <code>max_uses</code> is reached.</p>
 <p>This should also be passed for <code>timeout=</code>.</p>
 
 <p><strong>Examples:</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+    <div class="highlight"><pre><span></span><code><span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
 <span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
 
@@ -16467,7 +16466,7 @@ when <code>max_uses</code> is reached.</p>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;timed out&quot;</span><span class="p">)</span>
 
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">responses</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">])</span>
+    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -16511,7 +16510,7 @@ when <code>max_uses</code> is reached.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
+            <p>Users who are allowed to use the components this represents.</p>
 <p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
 anybody can use it).</p>
             <p>

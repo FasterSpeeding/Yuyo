@@ -1074,6 +1074,26 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.components.StreamExecutor" class="md-nav__link">
+    StreamExecutor
+  </a>
+  
+    <nav class="md-nav" aria-label="StreamExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.StreamExecutor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.components.WaitForExecutor" class="md-nav__link">
     WaitForExecutor
   </a>
@@ -2190,6 +2210,26 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#yuyo.components.StreamExecutor" class="md-nav__link">
+    StreamExecutor
+  </a>
+  
+    <nav class="md-nav" aria-label="StreamExecutor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yuyo.components.StreamExecutor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#yuyo.components.WaitForExecutor" class="md-nav__link">
     WaitForExecutor
   </a>
@@ -2495,7 +2535,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Alias of [StreamExecutor][yuyo.components.StreamExecutor].</p>
+      <p>Alias of <a class="autorefs autorefs-internal" href="#yuyo.components.StreamExecutor">StreamExecutor</a>.</p>
   </div>
 
 </div>
@@ -2563,8 +2603,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -9686,8 +9726,8 @@ pagination components.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
-<p>If None is passed here then the paginator will be public (meaning that
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
 anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
@@ -10669,6 +10709,151 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 
 
 
+<h2 id="yuyo.components.StreamExecutor" class="doc doc-heading">
+        <span class="doc doc-object-name doc-class-name">StreamExecutor</span>
+
+
+<a href="#yuyo.components.StreamExecutor" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="yuyo.components.AbstractComponentExecutor" href="#yuyo.components.AbstractComponentExecutor">AbstractComponentExecutor</a></code>, <code><a class="autorefs autorefs-internal" title="yuyo.timeouts" href="../timeouts/#yuyo.timeouts">timeouts</a>.<a class="autorefs autorefs-internal" title="yuyo.timeouts.AbstractTimeout" href="../timeouts/#yuyo.timeouts.AbstractTimeout">AbstractTimeout</a></code></p>
+
+  
+      <p>Stream over the received component interactions.</p>
+<p>This should also be passed for <code>timeout=</code>.</p>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<span class="n">stream</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">stream</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="yuyo.components.StreamExecutor.__init__" class="doc doc-heading">
+        <span class="doc doc-object-name doc-function-name">__init__</span>
+
+
+<a href="#yuyo.components.StreamExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_backlog</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialise a stream executor.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>PARAMETER</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>authors</code></td>
+          <td class="doc-param-details">
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
+anybody can use it).</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterable">Iterable</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.User">User</span>]]]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ephemeral_default</code></td>
+          <td class="doc-param-details">
+            <p>Whether or not the responses made on contexts spawned from this paginator
+should default to ephemeral (meaning only the author can see them) unless
+<code>flags</code> is specified on the response method.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>False</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_backlog</code></td>
+          <td class="doc-param-details">
+            <p>The maximum amount of interaction contexts this should cache.</p>
+<p>Any extra interactions will be rejected while the backlog is full.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a></code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>5</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td class="doc-param-details">
+            <p>How long this should wait between iterations for a matching
+interaction to be recveived before ending the iteration.</p>
+<p>This alone does not close the stream.</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/datetime.html#module-datetime">datetime</a>.<a class="autorefs autorefs-external" title="datetime.timedelta" href="https://docs.python.org/3.9/library/datetime.html#datetime.timedelta">timedelta</a>, None]</code>
+                </span>
+            </p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h2 id="yuyo.components.WaitForExecutor" class="doc doc-heading">
         <span class="doc doc-object-name doc-class-name">WaitForExecutor</span>
 
@@ -10685,8 +10870,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 <p>This should also be passed for <code>timeout=</code>.</p>
 
 <p><strong>Examples:</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+    <div class="highlight"><pre><span></span><code><span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
 <span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
 
@@ -10696,7 +10880,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;timed out&quot;</span><span class="p">)</span>
 
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">responses</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">])</span>
+    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -10740,7 +10924,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
+            <p>Users who are allowed to use the components this represents.</p>
 <p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
 anybody can use it).</p>
             <p>
