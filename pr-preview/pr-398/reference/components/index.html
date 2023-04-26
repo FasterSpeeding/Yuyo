@@ -2582,8 +2582,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.custom_ids" class="headerlink" title="Permanent link">#</a></h3>
@@ -13625,14 +13625,15 @@ displayed label.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </code></pre></div>
-<p>```py
-column = components.ActionColumnExecutor()</p>
-<p>@components.with_option("name3", "value3")
-@components.with_option("name2", "value2")
-@components.with_option("name1", "value1")
-@column.with_text_menu
-async def on_text_menu(ctx: components.Context) -&gt; None:
-    ...</p>
+<div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
+
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;name3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;name2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;name1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
+<span class="nd">@column</span><span class="o">.</span><span class="n">with_text_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
 
   </div>
 
