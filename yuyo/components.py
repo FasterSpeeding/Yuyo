@@ -2696,13 +2696,13 @@ WaitFor = WaitForExecutor
 """Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
 
 
-class ComponentStream(AbstractComponentExecutor):
+class StreamExecutor(AbstractComponentExecutor):
     __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_max_backlog", "_timeout")
 
     def __init__(
         self,
         *,
-        authors: typing.Optional[typing.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
         timeout: datetime.timedelta,
         ephemeral_default: bool = False,
         max_backlog: int = 5,
@@ -2717,7 +2717,7 @@ class ComponentStream(AbstractComponentExecutor):
         self._timeout = timeout
 
     @property
-    def custom_ids(self) -> typing.Collection[str]:
+    def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
         return []
 
@@ -2736,8 +2736,8 @@ class ComponentStream(AbstractComponentExecutor):
 
     def __exit__(
         self,
-        exc_type: typing.Optional[typing.Type[Exception]],
-        exc: typing.Optional[Exception],
+        exc_type: typing.Optional[type[BaseException]],
+        exc: typing.Optional[BaseException],
         exc_traceback: typing.Optional[types.TracebackType],
     ) -> Self:
         self.close()
@@ -2757,7 +2757,7 @@ class ComponentStream(AbstractComponentExecutor):
 
         self._queue = None
 
-    def __aiter__(self) -> typing.AsyncIterator[ComponentContext]:
+    def __aiter__(self) -> collections.AsyncIterator[ComponentContext]:
         return self
 
     async def __anext__(self) -> ComponentContext:
@@ -2774,23 +2774,21 @@ class ComponentStream(AbstractComponentExecutor):
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         if not self._queue:
-            await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This bot isn't ready for that yet", ephemeral=True
-            )
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
             return
 
         if self._authors and ctx.interaction.user.id not in self._authors:
-            await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "You are not allowed to use this component", ephemeral=True
-            )
+            await ctx.create_initial_response("You are not allowed to use this component", ephemeral=True)
             return
 
         try:
             self._queue.put_nowait(ctx)
         except asyncio.QueueFull:
-            await ctx.create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE, "This bot isn't ready for that yet", ephemeral=True
-            )
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
+
+
+Stream = StreamExecutor
+"""Alias of [StreamExecutor][yuyo.components.StreamExecutor]."""
 
 
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
