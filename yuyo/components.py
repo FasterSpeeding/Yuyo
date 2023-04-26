@@ -2696,22 +2696,23 @@ WaitFor = WaitForExecutor
 """Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
 
 
-class StreamExecutor(AbstractComponentExecutor):
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_made_at", "_max_backlog", "_timeout")
+class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
+    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_max_backlog", "_timeout")
 
     def __init__(
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
-        timeout: datetime.timedelta,
         ephemeral_default: bool = False,
         max_backlog: int = 5,
+        timeout: typing.Union[float, int, datetime.timedelta, None],
     ) -> None:
+        if timeout is not None and isinstance(timeout, datetime.timedelta):
+            timeout = timeout.total_seconds()
+
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
-        self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
-        self._made_at: typing.Optional[datetime.datetime] = None
         self._max_backlog = max_backlog
         self._queue: typing.Optional[asyncio.Queue[ComponentContext]] = None
         self._timeout = timeout
@@ -2723,12 +2724,7 @@ class StreamExecutor(AbstractComponentExecutor):
 
     @property
     def has_expired(self) -> bool:
-        # <<inherited docstring from AbstractComponentExecutor>>.
-        return bool(
-            self._finished
-            or self._made_at
-            and self._timeout < datetime.datetime.now(tz=datetime.timezone.utc) - self._made_at
-        )
+        return self._finished
 
     def __enter__(self) -> Self:
         self.open()
@@ -2743,18 +2739,23 @@ class StreamExecutor(AbstractComponentExecutor):
         self.close()
         return self
 
+    def increment_uses(self) -> bool:
+        return self._finished
+
     def open(self) -> None:
         if self._queue is not None:
             raise RuntimeError("Stream is already active")
 
         # Assert that this is called in a running event loop
         asyncio.get_running_loop()
+        self._finished = False
         self._queue = asyncio.Queue(maxsize=self._max_backlog)
 
     def close(self) -> None:
         if self._queue is None:
             raise RuntimeError("Stream is not active")
 
+        self._finished = True
         self._queue = None
 
     def __aiter__(self) -> collections.AsyncIterator[ComponentContext]:
@@ -2765,7 +2766,7 @@ class StreamExecutor(AbstractComponentExecutor):
             raise RuntimeError("Stream is not active")
 
         try:
-            return await self._queue.get()
+            return await asyncio.wait_for(self._queue.get(), timeout=self._timeout)
 
         except asyncio.TimeoutError:
             raise StopAsyncIteration from None
@@ -2773,6 +2774,9 @@ class StreamExecutor(AbstractComponentExecutor):
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
+        if self._finished:
+            raise ExecutorClosed
+
         if not self._queue:
             await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
             return
