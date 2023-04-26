@@ -3302,6 +3302,7 @@ def with_option(
     @column.with_text_menu
     async def on_text_menu(ctx: components.Context) -> None:
         ...
+    ```
     """
     return lambda text_select: text_select.add_option(
         label, value, description=description, emoji=emoji, is_default=is_default
