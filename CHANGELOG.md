@@ -8,12 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.14.0] - 2023-05-25
 ### Added
 - [yuyo.components.column_template][] shorthand function for creating a column subclass.
-- The missed `"with_static_{}_menu"` component column decorator functions:
-    * [yuyo.components.with_static_mentionable_menu][]
-    * [yuyo.components.with_static_role_menu][]
-    * [yuyo.components.with_static_user_menu][]
 
 ### Removed
+- `yuyo.components.with_static_interactive_button`
+- `yuyo.components.with_static_link_button`
+- `yuyo.components.with_static_select_menu`
+- `yuyo.components.with_static_channel_menu`
+- `yuyo.components.with_static_text_menu`
 - The following deprecated functionality and aliases:
     * `ActionRowExecutor` in favour of the new action column executor.
     * Allowing callback to be passed as the first argument and type as the
