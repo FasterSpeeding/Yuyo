@@ -2697,6 +2697,23 @@ WaitFor = WaitForExecutor
 
 
 class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
+    """Stream over the received component interactions.
+
+    This should also be passed for `timeout=`.
+
+    Examples
+    --------
+    ```py
+    message = await ctx.respond("hi, pick an option", components=[...])
+    stream = yuyo.components.Stream(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
+    component_client.register_executor(stream, message=message, timeout=stream)
+
+    with stream:
+        async for result in stream:
+            await result.respond("...")
+    ```
+    """
+
     __slots__ = ("_authors", "_ephemeral_default", "_finished", "_max_backlog", "_timeout")
 
     def __init__(
@@ -2707,6 +2724,29 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         max_backlog: int = 5,
         timeout: typing.Union[float, int, datetime.timedelta, None],
     ) -> None:
+        """Initialise a stream executor.
+
+        Parameters
+        ----------
+        authors
+            Users who are allowed to use the components this represents.
+
+            If [None][] is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        max_backlog
+            The maximum amount of interaction contexts this should cache.
+
+            Any extra interactions will be rejected while the backlog is full.
+        timeout
+            How long this should wait between iterations for a matching
+            interaction to be recveived before ending the iteration.
+
+            This alone does not close the stream.
+        """
         if timeout is not None and isinstance(timeout, datetime.timedelta):
             timeout = timeout.total_seconds()
 
