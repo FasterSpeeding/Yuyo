@@ -1416,13 +1416,13 @@ def as_modal_template(
 ]:
     """Create a modal template through a decorator callback.
 
-    This supports the same decorators and parameter descriptors for declaring
-    the modal's entries as a normal modal class.
+    The return type acts like any other slotted modal subclass and supports the
+    same decorators and parameter descriptors for declaring the modal's entries.
 
     Parameters
     ----------
     ephemeral_default
-        Whether this modal's responses should default to ephemeral.
+        Whether this modal template's responses should default to ephemeral.
     parse_signature
         Whether to parse the signature for parameter descriptors and
         [ModalOptions][yuyo.modals.ModalOptions] type-hints.

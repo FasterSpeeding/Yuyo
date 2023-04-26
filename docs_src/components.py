@@ -81,6 +81,23 @@ def action_column_decoratored_menus() -> None:
 
 
 # fmt: off
+def column_template() -> None:
+    column_template = (
+        components.column_template()
+        .add_static_channel_menu(callback)
+        .add_static_role_menu(callback)
+        .add_static_text_menu(callback)
+        .add_option("opt1", "value1")
+        .add_option("opt2", "value2")
+        .add_option("opt3", "value3")
+        .parent
+        .add_static_user_menu(callback)
+        .add_static_mentionable_menu(callback)
+    )
+# fmt: on
+
+
+# fmt: off
 def action_column_menu_methods() -> None:
     column = (
         components.ActionColumnExecutor()

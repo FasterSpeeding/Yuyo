@@ -45,6 +45,7 @@ __all__: list[str] = [
     "as_select_menu",
     "as_text_menu",
     "as_user_menu",
+    "column_template",
     "link_button",
     "with_option",
     "with_static_channel_menu",
@@ -4388,6 +4389,39 @@ def _append_row(
     row = hikari.impl.MessageActionRowBuilder()
     rows.append(row)
     return row
+
+
+def column_template(ephemeral_default: bool = False) -> type[ActionColumnExecutor]:
+    """Create a column template through a decorator callback.
+
+    The returned type acts like any other slotted action column subclass and
+    supports the same `add_static` class methods and initialisation signature.
+
+    Parameters
+    ----------
+    ephemeral_default
+        Whether this column template's responses should default to ephemeral.
+
+    Returns
+    -------
+    type[ActionColumnExecutor]
+        The new column template.
+    """
+    _ephemeral_default = ephemeral_default
+    del ephemeral_default
+
+    class Column(ActionColumnExecutor):
+        __slots__ = ()
+
+        def __init__(
+            self,
+            *,
+            ephemeral_default: bool = _ephemeral_default,
+            id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        ) -> None:
+            super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
+
+    return Column
 
 
 def with_static_interactive_button(
