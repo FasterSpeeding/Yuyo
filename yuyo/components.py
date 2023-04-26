@@ -2610,7 +2610,7 @@ def as_interactive_button(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_interactive_button(ButtonStyle.DANGER, label="label")
-        async def on_button(self, ctx: components.ComponentContext) -> None:
+        async def on_button(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -2811,7 +2811,7 @@ def as_mentionable_menu(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_mentionable_menu(max_values=5)
-        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+        async def on_select_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -2890,7 +2890,7 @@ def as_role_menu(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_role_menu(max_values=5)
-        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+        async def on_select_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -2969,7 +2969,7 @@ def as_user_menu(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_user_menu(max_values=5)
-        async def on_select_menu(self, ctx: components.ComponentContext) -> None:
+        async def on_select_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -3107,7 +3107,7 @@ def as_channel_menu(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_channel_menu(channel_types=[hikari.TextableChannel])
-        async def on_channel_menu(self, ctx: components.ComponentContext) -> None:
+        async def on_channel_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -3245,10 +3245,8 @@ def as_text_menu(
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.with_option("label", "value")
-        @components.as_text_menu(
-            options=[special_endpoints.SelectOptionBuilder(label="label", value="value")]
-        )
-        async def on_text_menu(self, ctx: components.ComponentContext) -> None:
+        @components.as_text_menu
+        async def on_text_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
@@ -3269,7 +3267,7 @@ def with_option(
     emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
     is_default: bool = False,
 ) -> collections.Callable[[_TextMenuT], _TextMenuT]:
-    """Add an option to a text select menu descriptor through a decorator call.
+    """Add an option to a text select menu through a decorator call.
 
     Parameters
     ----------
@@ -3287,12 +3285,23 @@ def with_option(
     Examples
     --------
     ```py
+    class Column(components.AbstractColumnExecutor):
         @components.with_option("other label", "other value")
         @components.with_option("label", "value")
         @components.as_text_menu
-        async def on_text_menu(self, ctx: components.ComponentContext) -> None:
+        async def on_text_menu(self, ctx: components.Context) -> None:
             ...
     ```
+
+    ```py
+    column = components.ActionColumnExecutor()
+
+    @components.with_option("name3", "value3")
+    @components.with_option("name2", "value2")
+    @components.with_option("name1", "value1")
+    @column.with_text_menu
+    async def on_text_menu(ctx: components.Context) -> None:
+        ...
     """
     return lambda text_select: text_select.add_option(
         label, value, description=description, emoji=emoji, is_default=is_default
@@ -3349,7 +3358,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     chainable methods on it:
 
     ```py
-    async def callback_1(ctx: components.ComponentContext) -> None:
+    async def callback_1(ctx: components.Context) -> None:
         await ctx.respond("meow")
 
     components = (
@@ -3368,10 +3377,10 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         through decorator calls will follow the same order.
 
     ```py
-    async def callback_1(ctx: components.ComponentContext) -> None:
+    async def callback_1(ctx: components.Context) -> None:
         await ctx.respond("meow")
 
-    async def callback_2(ctx: components.ComponentContext) -> None:
+    async def callback_2(ctx: components.Context) -> None:
         await ctx.respond("meow")
 
     @components.with_static_select_menu(callback_1, hikari.ComponentType.USER_SELECT_MENU, max_values=5)
@@ -3410,17 +3419,17 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```py
     class CustomColumn(components.ActionColumnExecutor):
         @components.as_interactive_button(ButtonStyle.PRIMARY, label="label")
-        async def left_button(self, ctx: components.ComponentContext) -> None:
+        async def left_button(self, ctx: components.Context) -> None:
             ...
 
         link_button = components.link_button(url="https://example.com", label="Go to page")
 
         @components.as_interactive_button(ButtonStyle.SECONDARY, label="meow")
-        async def right_button(self, ctx: components.ComponentContext) -> None:
+        async def right_button(self, ctx: components.Context) -> None:
             ...
 
         @components.as_channel_menu(channel_types=[hikari.TextableChannel])
-        async def text_select_menu(self, ctx: components.ComponentContext) -> None:
+        async def text_select_menu(self, ctx: components.Context) -> None:
             ...
     ```
     """
