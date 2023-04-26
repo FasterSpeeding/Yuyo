@@ -62,22 +62,23 @@ def action_column_of_buttons() -> None:
         link_button = components.link_button("https://example.com", label="label")
 
 
+# fmt: off
 def action_column_decoratored_menus() -> None:
-    @components.with_static_text_menu(
-        callback,
-        options=[
-            hikari.impl.SelectOptionBuilder("opt1", "value1"),
-            hikari.impl.SelectOptionBuilder("opt2", "value2"),
-            hikari.impl.SelectOptionBuilder("opt3", "value3"),
-        ],
-    )
-    @components.with_static_role_menu(callback)
-    @components.with_static_channel_menu(callback)
     class Column(components.ActionColumnExecutor):
         ...
 
-    Column.add_static_user_menu(callback)
-    Column.add_static_mentionable_menu(callback)
+    (
+        Column.add_static_channel_menu(callback)
+        .add_static_role_menu(callback)
+        .add_static_text_menu(callback)
+        .add_option("opt1", "value1")
+        .add_option("opt2", "value2")
+        .add_option("opt3", "value3")
+        .parent
+        .add_static_user_menu(callback)
+        .add_static_mentionable_menu(callback)
+    )
+# fmt: on
 
 
 # fmt: off

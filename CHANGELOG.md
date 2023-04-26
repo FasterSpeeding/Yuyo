@@ -19,9 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ActionRowExecutor` in favour of the new action column executor.
     * Allowing callback to be passed as the first argument and type as the
     second argument for
-    [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu],
-    [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu],
-    and [components.with_static_select_menu][yuyo.components.with_static_select_menu].
+    [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu], and
+    [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu].
     * `timeout` keyword argument from
     [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
     [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__],
@@ -178,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ActionRowExecutor.add_select_menu`
     * [ActionColumnExecutor.add_select_menu][yuyo.components.ActionColumnExecutor.add_select_menu]
     * [ActionColumnExecutor.add_static_select_menu][yuyo.components.ActionColumnExecutor.add_static_select_menu]
-    * [with_static_select_menu][yuyo.components.with_static_select_menu]
+    * `with_static_select_menu`
 - Renamed the component context select menu data properties:
     * `ComponentContext.select_channels` to [ComponentContext.selected_channels][yuyo.components.ComponentContext.selected_channels]
     * `ComponentContext.select_roles` to [ComponentContext.selected_roles][yuyo.components.ComponentContext.selected_roles]
@@ -211,7 +210,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (rather than the component executors) and makes binding to a specific message optional.
   This consists of [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
   and [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor].
-- [yuyo.components.with_static_text_menu][] decorator for declaring a static text select menu on
+- `yuyo.components.with_static_text_menu` decorator for declaring a static text select menu on
   a [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass.
 - `options` parameter to `ActionColumnExecutor.add_static_text_select`,
   `ActionColumnExecutor.add_text_select`, and `ActionRowExecutor.add_text_select` for passing
