@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ## [1.14.0] - 2023-05-25
 ### Added
+- [ActionColumnExecutor.with_interactive_button][yuyo.components.ActionColumnExecutor.with_interactive_button].
+- [ActionColumnExecutor.with_static_interactive_button][yuyo.components.ActionColumnExecutor.with_static_interactive_button].
+- [ActionColumnExecutor.with_mentionable_menu][yuyo.components.ActionColumnExecutor.with_mentionable_menu].
+- [ActionColumnExecutor.with_static_mentionable_menu][yuyo.components.ActionColumnExecutor.with_static_mentionable_menu].
+- [ActionColumnExecutor.with_role_menu][yuyo.components.ActionColumnExecutor.with_role_menu].
+- [ActionColumnExecutor.with_static_role_menu][yuyo.components.ActionColumnExecutor.with_static_role_menu].
+- [ActionColumnExecutor.with_user_menu][yuyo.components.ActionColumnExecutor.with_user_menu].
+- [ActionColumnExecutor.with_static_user_menu][yuyo.components.ActionColumnExecutor.with_static_user_menu].
+- [ActionColumnExecutor.with_channel_menu][yuyo.components.ActionColumnExecutor.with_channel_menu].
+- [ActionColumnExecutor.with_text_menu][yuyo.components.ActionColumnExecutor.with_text_menu].
+- [ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu].
 - [yuyo.components.column_template][] shorthand function for creating a column subclass.
 
 ### Removed
@@ -59,7 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `ActionColumnExecutor.add_channel_select`
     * `ActionColumnExecutor.add_static_channel_select`
     * `ActionColumnExecutor.with_static_channel_select`
-    * `ActionColumnExecutor.with_static_channel_menu`
     * `ActionColumnExecutor.add_text_select`
     * `ActionColumnExecutor.add_static_text_select`
     * `ComponentPaginator.builder`

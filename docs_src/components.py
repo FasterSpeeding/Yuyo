@@ -63,39 +63,43 @@ def action_column_of_buttons() -> None:
 
 
 # fmt: off
-def action_column_decoratored_menus() -> None:
-    class Column(components.ActionColumnExecutor):
-        ...
-
-    (
-        Column.add_static_channel_menu(callback)
-        .add_static_role_menu(callback)
-        .add_static_text_menu(callback)
-        .add_option("opt1", "value1")
-        .add_option("opt2", "value2")
-        .add_option("opt3", "value3")
-        .parent
-        .add_static_user_menu(callback)
-        .add_static_mentionable_menu(callback)
-    )
-# fmt: on
-
-
-# fmt: off
-def column_template() -> None:
+def column_template_builder() -> None:
     column_template = (
         components.column_template()
         .add_static_channel_menu(callback)
-        .add_static_role_menu(callback)
         .add_static_text_menu(callback)
         .add_option("opt1", "value1")
         .add_option("opt2", "value2")
         .add_option("opt3", "value3")
         .parent
-        .add_static_user_menu(callback)
-        .add_static_mentionable_menu(callback)
+        .add_static_role_menu(callback)
+        .add_static_link_button("https://example.com")
+        .add_static_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
     )
 # fmt: on
+
+
+def column_template_decorator_methods() -> None:
+    column_template = components.column_template()
+
+    @column_template.with_static_channel_menu
+    async def on_channel_menu(ctx: components.Context) -> None:
+        ...
+
+    @components.with_option("opt3", "value3")
+    @components.with_option("opt2", "value2")
+    @components.with_option("opt1", "value1")
+    @column_template.with_static_text_menu
+    async def on_text_menu(ctx: components.Context) -> None:
+        ...
+
+    @column_template.with_static_role_menu
+    async def on_role_menu(ctx: components.Context) -> None:
+        ...
+
+    @column_template.with_static_interactive_button(hikari.ButtonStyle.DANGER, label="👍")
+    async def on_button(ctx: components.Context) -> None:
+        ...
 
 
 # fmt: off
@@ -103,24 +107,39 @@ def action_column_menu_methods() -> None:
     column = (
         components.ActionColumnExecutor()
         .add_channel_menu(callback)
-        .add_role_menu(callback)
         .add_text_menu(callback)
         .add_option("opt1", "value1")
         .add_option("opt2", "value2")
         .add_option("opt3", "value3")
         .parent
-        .add_user_menu(callback)
-        .add_mentionable_menu(callback)
+        .add_role_menu(callback)
+        .add_link_button("https://example.com", label="label")
+        .add_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
     )
 # fmt: on
 
 
-def action_column_button_methods() -> None:
-    column = (
-        components.ActionColumnExecutor()
-        .add_interactive_button(hikari.ButtonStyle.DANGER, callback, label="👍")
-        .add_link_button("https://example.com", label="label")
-    )
+def action_column_with_methods() -> None:
+    column = components.ActionColumnExecutor()
+
+    @column.with_channel_menu
+    async def on_channel_menu(ctx: components.Context) -> None:
+        ...
+
+    @components.with_option("opt3", "value3")
+    @components.with_option("opt2", "value2")
+    @components.with_option("opt1", "value1")
+    @column.with_text_menu
+    async def on_text_menu(ctx: components.Context) -> None:
+        ...
+
+    @column.with_role_menu
+    async def on_role_menu(ctx: components.Context) -> None:
+        ...
+
+    @column.with_interactive_button(hikari.ButtonStyle.DANGER, label="👍")
+    async def on_button(ctx: components.Context) -> None:
+        ...
 
 
 def creating_a_component() -> None:
