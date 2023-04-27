@@ -107,36 +107,43 @@ link buttons which open a link for the user instead of sending an interaction
 to the bot.
 
 ```py
---8<-- "./docs_src/components.py:67:80"
+--8<-- "./docs_src/components.py:67:78"
 ```
 
 Alternatively, static sub-components can be added to an
-[ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass using the
-`add_static_{}` class methods or the relevant `with_static_{}` class decorator
-functions.
+[ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass using its
+chainable `add_static_{}` class methods.
 
 ```py
---8<-- "./docs_src/components.py:86:97"
+--8<-- "./docs_src/components.py:83:102"
 ```
 
-[column_template][yuyo.components.column_template] provides a shorthand for
-creating an [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
-subclass where the same `add_static_{}` class methods can be used to build the
-template.
+Or by using its `with_static_{}` decorator class methods. The only
+sub-component type which cannot be added through a decorator call is link
+buttons.
+
+!!! note
+    [column_template][yuyo.components.column_template] just provides a shorthand
+    for creating an [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+    subclass and all of these class methods also work on a normal class.
+
 
 ### Builder
 
 ```py
---8<-- "./docs_src/components.py:103:114"
-```
-
-```py
---8<-- "./docs_src/components.py:119:123"
+--8<-- "./docs_src/components.py:107:118"
 ```
 
 You can also dynamically build a
 [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] after initialising
-it by using the chainable `add_{}` methods it provides to add sub-components.
+it by using its chainable `add_{}` methods to add sub-components.
+
+```py
+--8<-- "./docs_src/components.py:123:142"
+```
+
+Or by using its `with_{}` decorator methods. The only sub-component type which
+can't be added through a decorator call is link buttons.
 
 ### Handling Component Interactions
 
@@ -145,7 +152,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:127:142"
+--8<-- "./docs_src/components.py:146:161"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -161,7 +168,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:146:162"
+--8<-- "./docs_src/components.py:165:181"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -181,7 +188,7 @@ longer than 100 characters in total length.
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:166:172"
+--8<-- "./docs_src/components.py:185:191"
 ```
 
 [ComponentContext.respond][yuyo.components.BaseContext.respond] is used to
@@ -193,7 +200,7 @@ passed.
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:176:180"
+--8<-- "./docs_src/components.py:195:199"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -219,7 +226,7 @@ want a response to be an ephemeral message create then you'll have to pass
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:184:188"
+--8<-- "./docs_src/components.py:203:206"
 ```
 
 You can also use the initial response to edit the message the component being
