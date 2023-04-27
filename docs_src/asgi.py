@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Yuyo Examples - A collection of examples for Yuyo.
-# Written in 2023 by Faster Lucina@lmbyrne.dev
+# Written in 2023 by Faster SpeedingLucina@lmbyrne.dev
 #
 # To the extent possible under law, the author(s) have dedicated all copyright
 # and related and neighboring rights to this software to the public domain worldwide.
