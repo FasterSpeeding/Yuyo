@@ -1064,65 +1064,92 @@ column) to it:</p>
 specific sub-component is used by a user, with the only exception being
 link buttons which open a link for the user instead of sending an interaction
 to the bot.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Column</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
-    <span class="o">...</span>
-
-<span class="p">(</span>
-    <span class="n">Column</span><span class="o">.</span><span class="n">add_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_static_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_static_text_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">parent</span>
-    <span class="o">.</span><span class="n">add_static_user_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_static_mentionable_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-<span class="p">)</span>
-</code></pre></div>
-<p>Alternatively, static sub-components can be added to an
-<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass using the
-<code>add_static_{}</code> class methods or the relevant <code>with_static_{}</code> class decorator
-functions.</p>
 <div class="highlight"><pre><span></span><code><span class="n">column_template</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">components</span><span class="o">.</span><span class="n">column_template</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_static_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_static_text_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">parent</span>
-    <span class="o">.</span><span class="n">add_static_user_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_static_mentionable_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_static_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.column_template">column_template</a> provides a shorthand for
-creating an <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
-subclass where the same <code>add_static_{}</code> class methods can be used to build the
-template.</p>
+<p>Alternatively, static sub-components can be added to an
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass using its
+chainable <code>add_static_{}</code> class methods.</p>
+<div class="highlight"><pre><span></span><code><span class="n">column_template</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">column_template</span><span class="p">()</span>
+
+<span class="nd">@column_template</span><span class="o">.</span><span class="n">with_static_channel_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_channel_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
+<span class="nd">@column_template</span><span class="o">.</span><span class="n">with_static_text_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@column_template</span><span class="o">.</span><span class="n">with_static_role_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_role_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@column_template</span><span class="o">.</span><span class="n">with_static_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>Or by using its <code>with_static_{}</code> decorator class methods. The only
+sub-component type which cannot be added through a decorator call is link
+buttons.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.column_template">column_template</a> just provides a shorthand
+for creating an <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>
+subclass and all of these class methods also work on a normal class.</p>
+</div>
 <h3 id="builder">Builder<a class="headerlink" href="#builder" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_text_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">parent</span>
-    <span class="o">.</span><span class="n">add_user_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_mentionable_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-<span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_role_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_link_button</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>You can also dynamically build a
 <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> after initialising
-it by using the chainable <code>add_{}</code> methods it provides to add sub-components.</p>
+it by using its chainable <code>add_{}</code> methods to add sub-components.</p>
+<div class="highlight"><pre><span></span><code><span class="n">column</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">()</span>
+
+<span class="nd">@column</span><span class="o">.</span><span class="n">with_channel_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_channel_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt3&quot;</span><span class="p">,</span> <span class="s2">&quot;value3&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt2&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">)</span>
+<span class="nd">@components</span><span class="o">.</span><span class="n">with_option</span><span class="p">(</span><span class="s2">&quot;opt1&quot;</span><span class="p">,</span> <span class="s2">&quot;value1&quot;</span><span class="p">)</span>
+<span class="nd">@column</span><span class="o">.</span><span class="n">with_text_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_text_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@column</span><span class="o">.</span><span class="n">with_role_menu</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_role_menu</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="nd">@column</span><span class="o">.</span><span class="n">with_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_button</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>Or by using its <code>with_{}</code> decorator methods. The only sub-component type which
+can't be added through a decorator call is link buttons.</p>
 <h3 id="handling-component-interactions">Handling Component Interactions<a class="headerlink" href="#handling-component-interactions" title="Permanent link">#</a></h3>
 <p>There's two main ways to handle component interactions with Yuyo:</p>
 <h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>
