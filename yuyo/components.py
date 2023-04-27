@@ -77,7 +77,6 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     _OtherT = typing.TypeVar("_OtherT")
-    _ActionColumnExecutorT = typing.TypeVar("_ActionColumnExecutorT", bound="ActionColumnExecutor")
     _TextMenuT = typing.TypeVar(
         "_TextMenuT", "_TextMenuDescriptor[typing.Any, typing.Any]", "_WrappedTextMenuBuilder[...]"
     )
@@ -4156,7 +4155,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_role_menu(self, callback: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
+    def with_role_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @typing.overload
@@ -4272,7 +4271,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_role_menu(cls, callback: typing.Optional[_CallbackSigT] = None, /) -> _CallbackSigT:
+    def with_static_role_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
         ...
 
     @classmethod
