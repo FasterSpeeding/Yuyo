@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ## [1.14.0] - 2023-05-25
 ### Added
+- `authors` option to
+  [components.ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
 - [ActionColumnExecutor.with_interactive_button][yuyo.components.ActionColumnExecutor.with_interactive_button].
 - [ActionColumnExecutor.with_static_interactive_button][yuyo.components.ActionColumnExecutor.with_static_interactive_button].
 - [ActionColumnExecutor.with_mentionable_menu][yuyo.components.ActionColumnExecutor.with_mentionable_menu].

@@ -133,8 +133,8 @@ class ReactionHandler(AbstractReactionHandler):
         authors
             An iterable of IDs of the users who can call this handler.
 
-            If left empty then all users will be able to call this
-            handler.
+            If no users are provided then the reactions will be public (meaning
+            that anybody can use it).
         timeout
             How long it should take for this handler to timeout.
         """
@@ -309,8 +309,8 @@ class ReactionPaginator(ReactionHandler):
         authors
             An iterable of IDs of the users who can call this paginator.
 
-            If left empty then all users will be able to call this
-            paginator.
+            If no users are provided then the reactions will be public (meaning
+            that anybody can use it).
         timeout
             How long it should take for this paginator to timeout.
         """
