@@ -70,6 +70,11 @@ The following descriptors are supported:
 
 * [text_input][yuyo.modals.text_input]
 
+
+!!! warning
+    If you declare `__init__` on a [Modal][yuyo.modals.Modal] subclass
+    then you must make sure to first call `super().__init__()` in it.
+
 ```py
 --8<-- "./docs_src/modals.py:40:45"
 ```
