@@ -131,12 +131,12 @@ class ReactionHandler(AbstractReactionHandler):
         Parameters
         ----------
         authors
-            An iterable of IDs of the users who can call this paginator.
+            An iterable of IDs of the users who can call this handler.
 
             If left empty then all users will be able to call this
-            paginator.
+            handler.
         timeout
-            How long it should take for this paginator to timeout.
+            How long it should take for this handler to timeout.
         """
         self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
