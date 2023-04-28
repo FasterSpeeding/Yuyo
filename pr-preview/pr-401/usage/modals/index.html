@@ -956,6 +956,11 @@ by setting field descriptors as argument defaults for the modal's callback
 <ul>
 <li><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.text_input">text_input</a></li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you declare <code>__init__</code> on a <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> subclass
+then you must make sure to first call <code>super().__init__()</code> in it.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
