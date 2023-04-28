@@ -88,6 +88,7 @@ def creating_a_modal() -> None:
         __slots__ = ("state",)
 
         def __init__(self, state: str) -> None:
+            super().__init__()
             self.state = state
 
         async def callback(self, ctx: modals.Context, field: str = modals.text_input("field")) -> None:
