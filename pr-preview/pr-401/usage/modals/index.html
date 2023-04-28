@@ -978,11 +978,16 @@ the add (class) method.</p>
 <p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.as_modal_template">as_modal_template</a> provides a short hand for
 creating a <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> subclass from a callback.</p>
 <h5 id="instances">Instances<a class="headerlink" href="#instances" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">with_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="o">...</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">modal</span> <span class="o">=</span> <span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="n">modal</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">modals</span><span class="o">.</span><span class="n">modal</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;other_field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -993,7 +998,9 @@ ways to create instances of modals from a callback.</p>
 <p>These only support the signature field descriptors and modal dataclasses when
 <code>parse_signature=True</code> is explicitly passed.</p>
 <h5 id="options-dataclass">Options Dataclass<a class="headerlink" href="#options-dataclass" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code>    <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModalOptions</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">ModalOptions</span><span class="p">):</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">other_field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span>
         <span class="s2">&quot;other label&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextInputStyle</span><span class="o">.</span><span class="n">PARAGRAPH</span>
     <span class="p">)</span>
 
@@ -1011,7 +1018,10 @@ mixed inheritance) but does not support slotting nor custom <code>__init__</code
 <h3 id="handling-modal-interactions">Handling Modal Interactions<a class="headerlink" href="#handling-modal-interactions" title="Permanent link">#</a></h3>
 <p>There's two main ways to handle modal interactions with Yuyo:</p>
 <h5 id="stateful">Stateful<a class="headerlink" href="#stateful" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
 
@@ -1032,7 +1042,8 @@ the parent interaction's custom ID as the modal's custom ID (as shown above).</p
 <p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.ModalClient.register_modal">ModalClient.register_modal</a> defaults
 <code>timeout</code> to a 2 minute one use timeout.</p>
 <h5 id="stateless">Stateless<a class="headerlink" href="#stateless" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># parse_signature defaults to False for as_modal and modal (unlike as_modal_template).</span>
+<span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">session_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">id_metadata</span><span class="p">)</span>
 
@@ -1061,7 +1072,8 @@ represents any developer added metadata for the modal.</p>
 <p>If should be noted that Custom IDs can never be longer than 100 characters in
 total length.</p>
 <h3 id="responding-to-modals">Responding to Modals<a class="headerlink" href="#responding-to-modals" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span>
         <span class="s2">&quot;Message content&quot;</span><span class="p">,</span>
         <span class="n">attachments</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="s2">&quot;https://img3.gelbooru.com/images/81/f2/81f26993b71525683a3267b16ecd0ea9.jpg&quot;</span><span class="p">)],</span>
@@ -1077,7 +1089,8 @@ passed.</p>
 <p>You cannot create another modal prompt in response to a modal interaction.</p>
 </div>
 <h5 id="ephemeral-responses">Ephemeral responses<a class="headerlink" href="#ephemeral-responses" title="Permanent link">#</a></h5>
-<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal</span><span class="p">(</span><span class="n">parse_signature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">modal</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_initial_response</span><span class="p">(</span><span class="s2">&quot;Initiating Mower&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">create_followup</span><span class="p">(</span><span class="s2">&quot;Meowing finished&quot;</span><span class="p">,</span> <span class="n">ephemeral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
