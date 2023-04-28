@@ -109,7 +109,7 @@ to the bot.
 !!! warning
     If you declare `__init__` on an
     [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass
-    then you must make sure to first call `super().__init__` in it.
+    then you must make sure to first call `super().__init__()` in it.
 
 ```py
 --8<-- "./docs_src/components.py:67:78"
