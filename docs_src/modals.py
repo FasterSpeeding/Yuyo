@@ -51,8 +51,6 @@ def modal_template() -> None:
     async def modal_template(ctx: modals.Context, field: str, other_field: str = modals.text_input("label")) -> None:
         await ctx.respond("hi")
 
-    modal_template.add_static_text_input("other label")
-
 
 def decorated_modal() -> None:
     @modals.with_text_input("other label", parameter="other")
@@ -90,6 +88,7 @@ def creating_a_modal() -> None:
         __slots__ = ("state",)
 
         def __init__(self, state: str) -> None:
+            super().__init__()
             self.state = state
 
         async def callback(self, ctx: modals.Context, field: str = modals.text_input("field")) -> None:

@@ -106,6 +106,11 @@ specific sub-component is used by a user, with the only exception being
 link buttons which open a link for the user instead of sending an interaction
 to the bot.
 
+!!! warning
+    If you declare `__init__` on an
+    [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass
+    then you must make sure to first call `super().__init__()` in it.
+
 ```py
 --8<-- "./docs_src/components.py:67:78"
 ```
@@ -152,7 +157,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:146:161"
+--8<-- "./docs_src/components.py:146:162"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -168,7 +173,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:165:181"
+--8<-- "./docs_src/components.py:166:182"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -188,7 +193,7 @@ longer than 100 characters in total length.
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:185:191"
+--8<-- "./docs_src/components.py:186:192"
 ```
 
 [ComponentContext.respond][yuyo.components.BaseContext.respond] is used to
@@ -200,7 +205,7 @@ passed.
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:195:199"
+--8<-- "./docs_src/components.py:196:200"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -226,7 +231,7 @@ want a response to be an ephemeral message create then you'll have to pass
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:203:206"
+--8<-- "./docs_src/components.py:204:207"
 ```
 
 You can also use the initial response to edit the message the component being

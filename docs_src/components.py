@@ -147,6 +147,7 @@ def creating_a_component() -> None:
         __slots__ = ("state",)
 
         def __init__(self, state: int) -> None:
+            super().__init__()
             self.state = state
 
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
