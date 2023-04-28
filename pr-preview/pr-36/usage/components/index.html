@@ -1064,6 +1064,12 @@ column) to it:</p>
 specific sub-component is used by a user, with the only exception being
 link buttons which open a link for the user instead of sending an interaction
 to the bot.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you declare <code>__init__</code> on an
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a> subclass
+then you must make sure to first call <code>super().__init__()</code> in it.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="n">column_template</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">components</span><span class="o">.</span><span class="n">column_template</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_static_channel_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
@@ -1157,6 +1163,7 @@ can't be added through a decorator call is link buttons.</p>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
 
     <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
