@@ -106,6 +106,11 @@ specific sub-component is used by a user, with the only exception being
 link buttons which open a link for the user instead of sending an interaction
 to the bot.
 
+!!! warning
+    If you declare `__init__` on an
+    [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] subclass
+    then you must make sure to first call `super().__init__` in it.
+
 ```py
 --8<-- "./docs_src/components.py:67:78"
 ```
