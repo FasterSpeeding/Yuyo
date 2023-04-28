@@ -2326,7 +2326,6 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     Examples
     --------
     ```py
-    responses: dict[str, str]
     message = await ctx.respond("hi, pick an option", components=[...])
     executor = yuyo.components.WaitFor(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
     component_client.register_executor(executor, message=message, timeout=executor)
@@ -2337,7 +2336,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         await ctx.respond("timed out")
 
     else:
-        await result.respond(responses[result.interaction.custom_id])
+        await result.respond("...")
     ```
     """
 
@@ -2355,7 +2354,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         Parameters
         ----------
         authors
-            The authors of the entries.
+            Users who are allowed to use the components this represents.
 
             If [None][] is passed here then the paginator will be public (meaning that
             anybody can use it).
@@ -5256,9 +5255,9 @@ class ComponentPaginator(ActionColumnExecutor):
 
             This should be an iterator of [yuyo.pagination.Page][]s.
         authors
-            The authors of the entries.
+            Users who are allowed to use the components this represents.
 
-            If None is passed here then the paginator will be public (meaning that
+            If [None][] is passed here then the paginator will be public (meaning that
             anybody can use it).
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
