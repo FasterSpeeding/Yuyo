@@ -3856,7 +3856,7 @@ decorating any callback.</p>
 
 
 <a href="#yuyo.components.ActionColumnExecutor.__init__" class="headerlink" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">id_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">authors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ephemeral_default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">id_metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
   <div class="doc doc-contents ">
@@ -3871,6 +3871,24 @@ decorating any callback.</p>
       </tr>
     </thead>
     <tbody>
+        <tr>
+          <td><code>authors</code></td>
+          <td class="doc-param-details">
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If no users are provided then the components will be public
+(meaning that anybody can use it).</p>
+            <p>
+                <span class="doc-param-annotation">
+                  <b>TYPE:</b>
+                    <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Optional" href="https://docs.python.org/3.9/library/typing.html#typing.Optional">Optional</a>[<a class="autorefs autorefs-external" title="collections.abc" href="https://docs.python.org/3.9/library/collections.abc.html#module-collections.abc">collections</a>.<a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3.9/library/collections.abc.html#collections.abc.Iterable">Iterable</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishOr">SnowflakeishOr</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.User">User</span>]]]</code>
+                </span>
+                <span class="doc-param-default">
+                  <b>DEFAULT:</b> 
+                    <code>None</code>
+                </span>
+            </p>
+          </td>
+        </tr>
         <tr>
           <td><code>ephemeral_default</code></td>
           <td class="doc-param-details">
@@ -12430,9 +12448,9 @@ pagination components.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
-<p>If None is passed here then the paginator will be public (meaning that
-anybody can use it).</p>
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If no users are provided then the components will be public
+(meaning that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -15745,9 +15763,9 @@ any user will be able to trigger it.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>An iterable of IDs of the users who can call this paginator.</p>
-<p>If left empty then all users will be able to call this
-paginator.</p>
+            <p>An iterable of IDs of the users who can call this handler.</p>
+<p>If no users are provided then the reactions will be public (meaning
+that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -15763,7 +15781,7 @@ paginator.</p>
         <tr>
           <td><code>timeout</code></td>
           <td class="doc-param-details">
-            <p>How long it should take for this paginator to timeout.</p>
+            <p>How long it should take for this handler to timeout.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -16035,8 +16053,8 @@ should paginate through.</p>
           <td><code>authors</code></td>
           <td class="doc-param-details">
             <p>An iterable of IDs of the users who can call this paginator.</p>
-<p>If left empty then all users will be able to call this
-paginator.</p>
+<p>If no users are provided then the reactions will be public (meaning
+that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -18210,8 +18228,7 @@ when <code>max_uses</code> is reached.</p>
 <p>This should also be passed for <code>timeout=</code>.</p>
 
 <p><strong>Examples:</strong></p>
-    <div class="highlight"><pre><span></span><code><span class="n">responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-<span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+    <div class="highlight"><pre><span></span><code><span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi, pick an option&quot;</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
 <span class="n">executor</span> <span class="o">=</span> <span class="n">yuyo</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">WaitFor</span><span class="p">(</span><span class="n">authors</span><span class="o">=</span><span class="p">[</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
 <span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">executor</span><span class="p">)</span>
 
@@ -18221,7 +18238,7 @@ when <code>max_uses</code> is reached.</p>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;timed out&quot;</span><span class="p">)</span>
 
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">responses</span><span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">custom_id</span><span class="p">])</span>
+    <span class="k">await</span> <span class="n">result</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -18265,9 +18282,9 @@ when <code>max_uses</code> is reached.</p>
         <tr>
           <td><code>authors</code></td>
           <td class="doc-param-details">
-            <p>The authors of the entries.</p>
-<p>If <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed here then the paginator will be public (meaning that
-anybody can use it).</p>
+            <p>Users who are allowed to use the components this represents.</p>
+<p>If no users are provided then the components will be public
+(meaning that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
