@@ -2491,11 +2491,10 @@ class _ComponentDescriptor(abc.ABC):
     __slots__ = ("_default_custom_id",)
 
     def __init__(self, default_custom_id: str, /) -> None:
-        self._custom_id: typing.Optional[_internal.MatchId]
         self._default_custom_id = default_custom_id
 
     @abc.abstractmethod
-    def to_field(self, use_path: bool, /) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
         """Convert this descriptor to a static field."""
 
 
@@ -2511,7 +2510,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
         /,
     ) -> None:
         if custom_id is None:
-            self._custom_id = None
+            self._custom_id: typing.Optional[_internal.MatchId] = None
             default_custom_id = _internal.random_custom_id()
 
         else:
@@ -2544,16 +2543,17 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
         return types.MethodType(self._callback, obj)
 
-    def _get_custom_id(self, use_path: bool, /) -> _internal.MatchId:
+    def _get_custom_id(self, cls_path: str, name: str, use_path: bool, /) -> _internal.MatchId:
         if self._custom_id is not None:
             return self._custom_id
 
         if use_path:
-            custom_id = base64.b85encode(
-                hashlib.blake2b(
-                    f"{self._callback.__module__}.{self._callback.__qualname__}".encode(), digest_size=8
-                ).digest()
-            ).decode()
+            # callback.__module and .__qualname__ will show the module/class a
+            # callback was inherited from rather than the class it was accessed
+            # on.
+            path = f"{cls_path}.{name}".encode()
+            custom_id = base64.b85encode(hashlib.blake2b(path, digest_size=8).digest()).decode()
+            assert ":" not in custom_id
 
         else:
             custom_id = self._default_custom_id
@@ -2581,8 +2581,8 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         self._label = label
         self._is_disabled = is_disabled
 
-    def to_field(self, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(use_path)
+    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
         return _StaticField(
             id_match,
             self._callback,
@@ -2661,7 +2661,7 @@ class _StaticLinkButton(_ComponentDescriptor):
         self._label = label
         self._is_disabled = is_disabled
 
-    def to_field(self, _: bool, /) -> _StaticField:
+    def to_field(self, _: str, __: str, ___: bool, /) -> _StaticField:
         return _StaticField(
             self._default_custom_id,
             None,
@@ -2726,8 +2726,8 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(use_path)
+    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
         return _StaticField(
             id_match,
             self._callback,
@@ -3027,8 +3027,8 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(use_path)
+    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
         return _StaticField(
             id_match,
             self._callback,
@@ -3145,8 +3145,8 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(use_path)
+    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
         return _StaticField(
             id_match,
             self._callback,
@@ -3498,6 +3498,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     def __init_subclass__(cls, path_ids: bool = False, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init_subclass__(*args, **kwargs)
         cls._added_static_fields = {}
+        cls._static_fields = {}
         added_static_fields: dict[str, _StaticField] = {}
         namespace: dict[str, typing.Any] = {}
 
@@ -3507,11 +3508,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 added_static_fields.update(super_cls._added_static_fields)
                 namespace.update(super_cls.__dict__)
 
-        cls._static_fields = {
-            (field := attr.to_field(path_ids)).id_match: field
-            for attr in namespace.values()
-            if isinstance(attr, _ComponentDescriptor)
-        }
+        for name, attr in namespace.items():
+            cls_path = f"{cls.__module__}.{cls.__qualname__}"
+            if isinstance(attr, _ComponentDescriptor):
+                field = attr.to_field(cls_path, name, path_ids)
+                cls._static_fields[field.id_match] = field
+
         cls._static_fields.update(added_static_fields)
 
     @property
