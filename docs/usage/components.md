@@ -81,7 +81,7 @@ There's several different ways to declare components using Yuyo:
 ### Subclassing
 
 ```py
---8<-- "./docs_src/components.py:30:53"
+--8<-- "./docs_src/components.py:32:55"
 ```
 
 When subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor],
@@ -98,7 +98,7 @@ column) to it:
 * [link_button][yuyo.components.link_button]
 
 ```py
---8<-- "./docs_src/components.py:57:62"
+--8<-- "./docs_src/components.py:59:64"
 ```
 
 Most of these descriptors decorate a callback which'll be called when that
@@ -112,7 +112,7 @@ to the bot.
     then you must make sure to first call `super().__init__()` in it.
 
 ```py
---8<-- "./docs_src/components.py:67:78"
+--8<-- "./docs_src/components.py:69:80"
 ```
 
 Alternatively, static sub-components can be added to an
@@ -120,7 +120,7 @@ Alternatively, static sub-components can be added to an
 chainable `add_static_{}` class methods.
 
 ```py
---8<-- "./docs_src/components.py:83:102"
+--8<-- "./docs_src/components.py:85:104"
 ```
 
 Or by using its `with_static_{}` decorator class methods. The only
@@ -136,7 +136,7 @@ buttons.
 ### Builder
 
 ```py
---8<-- "./docs_src/components.py:107:118"
+--8<-- "./docs_src/components.py:109:120"
 ```
 
 You can also dynamically build a
@@ -144,7 +144,7 @@ You can also dynamically build a
 it by using its chainable `add_{}` methods to add sub-components.
 
 ```py
---8<-- "./docs_src/components.py:123:142"
+--8<-- "./docs_src/components.py:125:144"
 ```
 
 Or by using its `with_{}` decorator methods. The only sub-component type which
@@ -157,7 +157,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:146:162"
+--8<-- "./docs_src/components.py:148:164"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -173,7 +173,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:166:182"
+--8<-- "./docs_src/components.py:168:184"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -193,7 +193,7 @@ longer than 100 characters in total length.
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:186:192"
+--8<-- "./docs_src/components.py:188:194"
 ```
 
 [ComponentContext.respond][yuyo.components.BaseContext.respond] is used to
@@ -205,7 +205,7 @@ passed.
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:196:200"
+--8<-- "./docs_src/components.py:198:202"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -231,7 +231,7 @@ want a response to be an ephemeral message create then you'll have to pass
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:204:207"
+--8<-- "./docs_src/components.py:206:209"
 ```
 
 You can also use the initial response to edit the message the component being
@@ -256,3 +256,42 @@ interaction.
 For more information on how to handle modals see the [Modals usage guide](../modals), where
 [ComponentContext.create_modal_response][yuyo.components.ComponentContext.create_modal_response]
 should be used to create the initial prompt.
+
+### Other Executors
+
+##### Pagination
+
+Yuyo provides a standard component paginator implementation through
+[components.ComponentPaginator][yuyo.components.ComponentPaginator].
+
+```py
+--8<-- "./docs_src/components.py:213:218"
+```
+
+This paginator takes iterators/generators of [yuyo.pagination.Page][]s and will
+only push the iterator forwards as the user interacts with the paginator. This
+allows for lazily generating responses.
+
+Because of this you must use [iter][] before passing a list of pre-built data
+to its init.
+
+```py
+--8<-- "./docs_src/components.py:226:227"
+```
+
+This also supports asynchronous iterators/generators, allowing for functionality
+like fetching data as the user scrolls through it.
+
+```py
+--8<-- "./docs_src/components.py:231:238"
+```
+
+The paginator only enables 3 buttons by default: step backwards, stop and step
+forwards. To enable the other 2 buttons or even just customise these buttons
+(i.e. set a specific custom_id or emoji/label) you should pass `triggers=[]` to
+[ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
+to disable the default triggers then use the provided builder methods as shown
+above.
+
+You can also add your own buttons to this alongside the pagination buttons using
+the methods provided by [ActionColumnExecutor][yuyo.components.ActionColumnExecutor].
