@@ -2486,25 +2486,38 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 class _ComponentDescriptor(abc.ABC):
     """Abstract class used to mark components on an action column class."""
 
-    __slots__ = ()
+    __slots__ = ("_default_custom_id",)
 
-    @property
-    @abc.abstractmethod
-    def id_match(self) -> str:
-        """Unique identifier of the component."""
+    def __init__(self, default_custom_id: str, /) -> None:
+        self._custom_id: typing.Optional[_internal.MatchId]
+        self._default_custom_id = default_custom_id
 
     @abc.abstractmethod
-    def to_field(self) -> _StaticField:
+    def to_field(self, use_path: bool, /) -> _StaticField:
         """Convert this descriptor to a static field."""
 
 
 class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
     """Base class used to represent components by decorating a callback."""
 
-    __slots__ = ("_callback",)
+    __slots__ = ("_callback", "_custom_id")
 
-    def __init__(self, callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /) -> None:
+    def __init__(
+        self,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: typing.Optional[str],
+        /,
+    ) -> None:
+        if custom_id is None:
+            self._custom_id = None
+            default_custom_id = _internal.random_custom_id()
+
+        else:
+            self._custom_id = _internal.gen_custom_id(custom_id)
+            default_custom_id = self._custom_id.id_match
+
         self._callback = callback
+        super().__init__(default_custom_id)
 
     async def __call__(self, self_: _SelfT, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
         return await self._callback(self_, *args, **kwargs)
@@ -2515,7 +2528,6 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]:
         ...
 
-    # Should really be using _T for the return type but that breaks Pyright rn.
     @typing.overload
     def __get__(
         self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
@@ -2530,11 +2542,23 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
         return types.MethodType(self._callback, obj)
 
+    def _get_custom_id(self, use_path: bool, /) -> _internal.MatchId:
+        if self._custom_id is not None:
+            return self._custom_id
+
+        if use_path:
+            custom_id = f"{self._callback.__module__}.{self._callback.__qualname__}"
+
+        else:
+            custom_id = self._default_custom_id
+
+        return _internal.MatchId(custom_id, custom_id)
+
 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_custom_id", "_id_match", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_style", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2545,24 +2569,20 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
+        super().__init__(callback, custom_id)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(use_path)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=self._style,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 emoji=self._emoji,
                 label=self._label,
                 is_disabled=self._is_disabled,
@@ -2618,7 +2638,7 @@ def as_interactive_button(
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2629,19 +2649,15 @@ class _StaticLinkButton(_ComponentDescriptor):
     ) -> None:
         # While Link buttons don't actually have custom IDs, this is currently
         # necessary to avoid duplication.
-        self._custom_id = _internal.random_custom_id()
+        super().__init__(_internal.random_custom_id())
         self._url = url
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._custom_id
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, _: bool, /) -> _StaticField:
         return _StaticField(
-            self._custom_id,
+            self._default_custom_id,
             None,
             hikari.impl.LinkButtonBuilder(
                 url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
@@ -2685,7 +2701,7 @@ def link_button(
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_custom_id", "_id_match", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_type", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -2697,25 +2713,21 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
+        super().__init__(callback, custom_id)
         self._type = hikari.ComponentType(type_)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(use_path)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.SelectMenuBuilder(
                 type=self._type,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 min_values=self._min_values,
                 max_values=self._max_values,
@@ -2988,15 +3000,7 @@ def as_user_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = (
-        "_custom_id",
-        "_id_match",
-        "_channel_types",
-        "_placeholder",
-        "_min_values",
-        "_max_values",
-        "_is_disabled",
-    )
+    __slots__ = ("_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3010,24 +3014,20 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
+        super().__init__(callback, custom_id)
         self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(use_path)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.ChannelSelectMenuBuilder(
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 min_values=self._min_values,
                 max_values=self._max_values,
@@ -3120,7 +3120,7 @@ def as_channel_menu(
 
 
 class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_id_match", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3132,25 +3132,21 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
+        super().__init__(callback, custom_id)
         self._options = list(options)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, use_path: bool, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(use_path)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             _TextSelectMenuBuilder(
                 parent=self,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 options=self._options.copy(),
                 min_values=self._min_values,
@@ -3493,6 +3489,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
                 )
 
+    def __init_subclass__(cls, path_ids: bool = False) -> None:
     def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init_subclass__(*args, **kwargs)
         cls._added_static_fields = {}
@@ -3506,7 +3503,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 namespace.update(super_cls.__dict__)
 
         cls._static_fields = {
-            attr.id_match: attr.to_field() for attr in namespace.values() if isinstance(attr, _ComponentDescriptor)
+            (field := attr.to_field(path_ids)).id_match: field
+            for attr in namespace.values()
+            if isinstance(attr, _ComponentDescriptor)
         }
         cls._static_fields.update(added_static_fields)
 

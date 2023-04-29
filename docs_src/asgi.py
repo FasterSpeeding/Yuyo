@@ -34,7 +34,7 @@ def fastapi_mount() -> None:
     app.mount("/bot", bot)
 
 
-def serverless():
+def serverless() -> None:
     bot = yuyo.AsgiBot(os.environ["TOKEN"].strip(), "Bot")
 
     # ... Setup bot
