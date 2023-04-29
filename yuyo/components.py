@@ -55,6 +55,7 @@ import asyncio
 import copy
 import datetime
 import functools
+import hashlib
 import itertools
 import logging
 import os
@@ -2547,7 +2548,11 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
             return self._custom_id
 
         if use_path:
-            custom_id = f"{self._callback.__module__}.{self._callback.__qualname__}"
+            custom_id = (
+                hashlib.blake2b(f"{self._callback.__module__}.{self._callback.__qualname__}".encode(), digest_size=8)
+                .digest()
+                .decode("latin-1")
+            )
 
         else:
             custom_id = self._default_custom_id
