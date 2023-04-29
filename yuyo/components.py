@@ -2609,10 +2609,12 @@ def as_interactive_button(
     custom_id
         The button's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     emoji
         The button's emoji.
     label
@@ -2800,10 +2802,12 @@ def as_mentionable_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -2879,10 +2883,12 @@ def as_role_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -2958,10 +2964,12 @@ def as_user_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3084,10 +3092,12 @@ def as_channel_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3214,10 +3224,12 @@ def as_text_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     options
         The text select's options.
 
@@ -3420,7 +3432,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         async def right_button(self, ctx: components.Context) -> None:
             ...
 
-        @components.as_channel_menu(channel_types=[hikari.TextableChannel])
+        @components.as_channel_menu(channel_types=[hikari.TextableChannel], custom_id="eep")
         async def text_select_menu(self, ctx: components.Context) -> None:
             ...
     ```

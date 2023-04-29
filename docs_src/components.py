@@ -166,7 +166,7 @@ def creating_a_component() -> None:
 
 def creating_a_static_component() -> None:
     class ColumnCls(components.ActionColumnExecutor):
-        @components.as_interactive_button(hikari.ButtonStyle.DANGER, custom_id="GLOBALLY_UNIQUE", emoji="👍")
+        @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
         async def on_button(self, ctx: components.Context) -> None:
             session_id = uuid.UUID(ctx.id_metadata)
 
@@ -181,7 +181,7 @@ def creating_a_static_component() -> None:
         ctx: tanjun.abc.AppCommandContext, component_client: alluka.Injected[components.Client]
     ) -> None:
         session_id = uuid.uuid4()
-        await ctx.respond(components=ColumnCls(id_metadata={"GLOBALLY_UNIQUE": str(session_id)}).rows)
+        await ctx.respond(components=ColumnCls(id_metadata={"on_button": str(session_id)}).rows)
 
 
 def create_response() -> None:

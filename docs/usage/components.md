@@ -186,9 +186,7 @@ executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
 represents any developer added metadata for that specific component.
 
-It should be noted that interactive components should be given constant custom
-IDs when using an action column statelessly and that Custom IDs can never be
-longer than 100 characters in total length.
+Custom IDs cannot be longer than 100 characters in total length.
 
 ### Responding to Components
 

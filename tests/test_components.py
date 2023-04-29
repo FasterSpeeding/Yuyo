@@ -503,6 +503,7 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.InteractiveButtonBuilder)
+        assert component.custom_id == "o+i~>X~tPH"
         assert component.style is hikari.ButtonStyle.PRIMARY
         assert component.emoji is hikari.UNDEFINED
         assert component.label is hikari.UNDEFINED
@@ -613,6 +614,7 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
+        assert component.custom_id == "g%mwOz4?MG"
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
@@ -685,6 +687,7 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
+        assert component.custom_id == "0+0h|zG?E-"
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
@@ -757,6 +760,7 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.type is hikari.ComponentType.USER_SELECT_MENU
+        assert component.custom_id == "rPb>^awjHi"
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
@@ -834,6 +838,7 @@ class TestActionColumnExecutor:
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.type is hikari.ComponentType.ROLE_SELECT_MENU
+        assert component.custom_id == "CG4g0;r3<X"
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
@@ -874,6 +879,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_channel_menu(
                 channel_types=[hikari.PrivateChannel, hikari.ChannelType.GUILD_NEWS],
+                custom_id="meed",
                 is_disabled=True,
                 placeholder="me",
                 min_values=2,
@@ -888,6 +894,7 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "meed"
         assert component.channel_types == [
             hikari.ChannelType.DM,
             hikari.ChannelType.GROUP_DM,
@@ -912,6 +919,7 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.ChannelSelectMenuBuilder)
+        assert component.custom_id == "hxh5C4S-F$"
         assert component.channel_types == []
         assert component.is_disabled is False
         assert component.placeholder is hikari.UNDEFINED
@@ -952,6 +960,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_text_menu(
+                custom_id="NiTi",
                 options=[
                     hikari.impl.SelectOptionBuilder(label="echo", value="zulu"),
                     hikari.impl.SelectOptionBuilder(
@@ -972,6 +981,7 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.custom_id == "NiTi"
         assert component.options == [
             hikari.impl.SelectOptionBuilder(label="echo", value="zulu"),
             hikari.impl.SelectOptionBuilder(label="label", value="but", description="echo", emoji="a", is_default=True),
@@ -998,6 +1008,7 @@ class TestActionColumnExecutor:
         assert len(rows[0].components) == 1
         component = rows[0].components[0]
         assert isinstance(component, hikari.api.TextSelectMenuBuilder)
+        assert component.custom_id == "r&bTN$Juxi"
         assert component.options == [
             hikari.impl.SelectOptionBuilder(
                 label="aaa", value="bbb", description="descript", emoji="em", is_default=True
