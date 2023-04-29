@@ -24,8 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The descriptors returned by the `as_` decorators in [yuyo.components][] are
-  now hidden when accessed directly on classes. Now the decorated callback will
-  be directly exposed as the class attribute.
+  now hidden when accessed directly on classes. The decorated callback will now
+  be directly exposed as the class attribute instead.
 
 ### Removed
 - `yuyo.components.with_static_interactive_button`
