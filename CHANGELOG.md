@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The descriptors returned by the `as_` decorators in [yuyo.components][] are
   now hidden when accessed directly on classes. The decorated callback will now
   be directly exposed as the class attribute instead.
+- The auto-generated default UUID custom IDs now only consist of the UUID's hex
+  (without any `-`), bringing the length down from 36 chars to 32.
 
 ### Fixed
 - [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] and

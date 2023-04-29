@@ -124,7 +124,7 @@ async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typin
 
 def random_custom_id() -> str:
     """Generate a random custom ID."""
-    return str(uuid.uuid4())
+    return uuid.uuid4().hex
 
 
 class SplitId(typing.NamedTuple):
