@@ -2510,7 +2510,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
         return await self._callback(self_, *args, **kwargs)
 
     @typing.overload
-    def __get__(self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None) -> Self:
+    def __get__(self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]:
         ...
 
     # Should really be using _T for the return type but that breaks Pyright rn.
@@ -2522,9 +2522,9 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
     def __get__(
         self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> typing.Union[Self, collections.Callable[..., typing.Any]]:
+    ) -> collections.Callable[..., typing.Any]:
         if obj is None:
-            return self
+            return self._callback
 
         return types.MethodType(self._callback, obj)
 
@@ -3433,7 +3433,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_callbacks", "_ephemeral_default", "_rows", "_timeout")
+    __slots__ = ("_callbacks", "_ephemeral_default", "_rows")
 
     _added_static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
     """Dict of match IDs to the static fields added to this class through add method calls.

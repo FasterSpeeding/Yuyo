@@ -508,6 +508,35 @@ class TestActionColumnExecutor:
         assert component.label is hikari.UNDEFINED
         assert component.is_disabled is False
 
+    @pytest.mark.asyncio()
+    async def test_with_interactive_button_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
+            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_botton(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_interactive_button_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_botton = yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)(mock_callback)
+
+        assert Column.on_botton is mock_callback
+
     def test_with_link_button_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -589,6 +618,35 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
+    @pytest.mark.asyncio()
+    async def test_with_mentionable_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_mentionable_menu
+            async def on_mentionable_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_mentionable_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_mentionable_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_mentionable_menu = yuyo.components.as_mentionable_menu(mock_callback)
+
+        assert Column.on_mentionable_menu is mock_callback
+
     def test_with_role_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -632,6 +690,35 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
+    @pytest.mark.asyncio()
+    async def test_with_role_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_role_menu
+            async def on_role_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_role_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_role_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_role_menu = yuyo.components.as_role_menu(mock_callback)
+
+        assert Column.on_role_menu is mock_callback
+
     def test_with_user_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
@@ -674,6 +761,35 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+    @pytest.mark.asyncio()
+    async def test_with_user_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_user_menu
+            async def on_user_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_user_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_user_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_user_menu = yuyo.components.as_user_menu(mock_callback)
+
+        assert Column.on_user_menu is mock_callback
 
     def test_with_select_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
@@ -722,6 +838,35 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+    @pytest.mark.asyncio()
+    async def test_with_select_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
+            async def on_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_select_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_menu = yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)(mock_callback)
+
+        assert Column.on_menu is mock_callback
 
     def test_with_channel_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
@@ -772,6 +917,35 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+    @pytest.mark.asyncio()
+    async def test_with_channel_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_channel_menu
+            async def on_channel_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_channel_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_channel_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_channel_menu = yuyo.components.as_channel_menu(mock_callback)
+
+        assert Column.on_channel_menu is mock_callback
 
     def test_with_text_menu_descriptor(self):
         class Column(yuyo.components.ActionColumnExecutor):
@@ -837,6 +1011,35 @@ class TestActionColumnExecutor:
         assert component.placeholder is hikari.UNDEFINED
         assert component.min_values == 0
         assert component.max_values == 1
+
+    @pytest.mark.asyncio()
+    async def test_with_text_menu_descriptor_called_as_a_method(self):
+        mock_callback = mock.AsyncMock()
+        mock_ctx = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            @yuyo.components.as_text_menu
+            async def on_text_menu(self, ctx: yuyo.components.ComponentContext) -> None:
+                await mock_callback (self, ctx)
+
+        column = Column()
+
+        await column.on_text_menu(mock_ctx)
+
+        mock_callback.assert_awaited_once_with(column, mock_ctx)
+
+    @pytest.mark.asyncio()
+    async def test_with_text_menu_descriptor_accessed_on_class(self):
+        mock_callback = mock.AsyncMock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            on_text_menu = yuyo.components.as_text_menu(mock_callback)
+
+        assert Column.on_text_menu is mock_callback
 
     def test_static_button_row_behaviour(self):
         class Column(yuyo.components.ActionColumnExecutor):
