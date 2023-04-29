@@ -509,7 +509,7 @@ class TestActionColumnExecutor:
         assert component.is_disabled is False
 
     @pytest.mark.asyncio()
-    async def test_with_interactive_button_descriptor_called_as_a_method(self):
+    async def test_with_interactive_button_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -527,7 +527,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_interactive_button_descriptor_accessed_on_class(self):
+    async def test_with_interactive_button_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -619,7 +619,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_mentionable_menu_descriptor_called_as_a_method(self):
+    async def test_with_mentionable_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -637,7 +637,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_mentionable_menu_descriptor_accessed_on_class(self):
+    async def test_with_mentionable_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -691,7 +691,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_role_menu_descriptor_called_as_a_method(self):
+    async def test_with_role_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -709,7 +709,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_role_menu_descriptor_accessed_on_class(self):
+    async def test_with_role_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -763,7 +763,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_user_menu_descriptor_called_as_a_method(self):
+    async def test_with_user_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -781,7 +781,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_user_menu_descriptor_accessed_on_class(self):
+    async def test_with_user_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -840,7 +840,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_select_menu_descriptor_called_as_a_method(self):
+    async def test_with_select_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -858,7 +858,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_select_menu_descriptor_accessed_on_class(self):
+    async def test_with_select_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -919,7 +919,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_channel_menu_descriptor_called_as_a_method(self):
+    async def test_with_channel_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -937,7 +937,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_channel_menu_descriptor_accessed_on_class(self):
+    async def test_with_channel_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1013,7 +1013,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio()
-    async def test_with_text_menu_descriptor_called_as_a_method(self):
+    async def test_with_text_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1031,7 +1031,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio()
-    async def test_with_text_menu_descriptor_accessed_on_class(self):
+    async def test_with_text_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
