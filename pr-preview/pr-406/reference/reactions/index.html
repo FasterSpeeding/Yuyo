@@ -1542,8 +1542,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.close" class="headerlink" title="Permanent link">#</a></h3>
@@ -1567,8 +1567,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.on_reaction_event" class="headerlink" title="Permanent link">#</a></h3>
@@ -1652,8 +1652,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-async"><code>async</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.open" class="headerlink" title="Permanent link">#</a></h3>
@@ -2448,8 +2448,8 @@ any user will be able to trigger it.</p>
           <td><code>authors</code></td>
           <td class="doc-param-details">
             <p>An iterable of IDs of the users who can call this handler.</p>
-<p>If left empty then all users will be able to call this
-handler.</p>
+<p>If no users are provided then the reactions will be public (meaning
+that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -2737,8 +2737,8 @@ should paginate through.</p>
           <td><code>authors</code></td>
           <td class="doc-param-details">
             <p>An iterable of IDs of the users who can call this paginator.</p>
-<p>If left empty then all users will be able to call this
-paginator.</p>
+<p>If no users are provided then the reactions will be public (meaning
+that anybody can use it).</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
