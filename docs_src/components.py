@@ -209,7 +209,7 @@ def updating_source() -> None:
             await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, attachments=[])
 
 
-def paginator() -> None:
+def paginator_example() -> None:
     async def command(ctx: tanjun.abc.Context, component_client: alluka.Injected[components.Client]) -> None:
         pages = [pagination.Page("Page 1"), pagination.Page("Page 2"), pagination.Page("Page 3")]
         paginator = components.Paginator(iter(pages))
@@ -222,7 +222,7 @@ async def _async_iterator() -> collections.AsyncIterator[str]:
     yield "meow"
 
 
-def async_paginate(bot: hikari.GatewayBot) -> None:
+def async_paginate_example(bot: hikari.GatewayBot) -> None:
     pages = (pagination.Page(content) async for content in _async_iterator())
     paginator = components.Paginator(pages)
 
@@ -238,9 +238,9 @@ def all_buttons(pages: collections.Iterator[pagination.Page]) -> None:
     )
 
 
-def wait_for() -> None:
+def wait_for_example() -> None:
     ...
 
 
-def stream() -> None:
+def stream_example() -> None:
     ...
