@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ActionColumnExecutor.with_static_text_menu][yuyo.components.ActionColumnExecutor.with_static_text_menu].
 - [yuyo.components.column_template][] shorthand function for creating a column subclass.
 
+### Changed
+- The descriptors returned by the `as_` decorators in [yuyo.components][] are
+  now hidden when accessed directly on classes. Now the decorated callback will
+  be directly exposed as the class attribute.
+
 ### Removed
 - `yuyo.components.with_static_interactive_button`
 - `yuyo.components.with_static_link_button`
