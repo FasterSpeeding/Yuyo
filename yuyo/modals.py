@@ -978,7 +978,8 @@ class Modal(AbstractModal):
                 for id_match, component in self._static_builders
             ]
 
-    def __init_subclass__(cls, parse_signature: bool = True) -> None:
+    def __init_subclass__(cls, parse_signature: bool = True, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init_subclass__(*args, **kwargs)
         cls._static_tracked_fields = []
         cls._static_builders = []
 
@@ -1384,8 +1385,7 @@ def as_modal(
     return decorator
 
 
-# Putting typing.Generic after Modal here breaks Python's generic handling.
-class _GenericModal(typing.Generic[_P], Modal, parse_signature=False):
+class _GenericModal(Modal, typing.Generic[_P], parse_signature=False):
     __slots__ = ()
 
     async def callback(self, *arg: _P.args, **kwargs: _P.kwargs) -> None:
