@@ -2488,13 +2488,10 @@ def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel
 class _ComponentDescriptor(abc.ABC):
     """Abstract class used to mark components on an action column class."""
 
-    __slots__ = ("_default_custom_id",)
-
-    def __init__(self, default_custom_id: str, /) -> None:
-        self._default_custom_id = default_custom_id
+    __slots__ = ()
 
     @abc.abstractmethod
-    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
         """Convert this descriptor to a static field."""
 
 
@@ -2511,14 +2508,11 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     ) -> None:
         if custom_id is None:
             self._custom_id: typing.Optional[_internal.MatchId] = None
-            default_custom_id = _internal.random_custom_id()
 
         else:
             self._custom_id = _internal.gen_custom_id(custom_id)
-            default_custom_id = self._custom_id.id_match
 
         self._callback = callback
-        super().__init__(default_custom_id)
 
     async def __call__(self, self_: _SelfT, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
         return await self._callback(self_, *args, **kwargs)
@@ -2543,21 +2537,16 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
         return types.MethodType(self._callback, obj)
 
-    def _get_custom_id(self, cls_path: str, name: str, use_path: bool, /) -> _internal.MatchId:
+    def _get_custom_id(self, cls_path: str, name: str, /) -> _internal.MatchId:
         if self._custom_id is not None:
             return self._custom_id
 
-        if use_path:
-            # callback.__module and .__qualname__ will show the module/class a
-            # callback was inherited from rather than the class it was accessed
-            # on.
-            path = f"{cls_path}.{name}".encode()
-            custom_id = base64.b85encode(hashlib.blake2b(path, digest_size=8).digest()).decode()
-            assert ":" not in custom_id
-
-        else:
-            custom_id = self._default_custom_id
-
+        # callback.__module__ and .__qualname__ will show the module and
+        # class a callback was inherited from rather than the class it was
+        # accessed on.
+        path = f"{cls_path}.{name}".encode()
+        custom_id = base64.b85encode(hashlib.blake2b(path, digest_size=8).digest()).decode()
+        assert ":" not in custom_id
         return _internal.MatchId(custom_id, custom_id)
 
 
@@ -2581,8 +2570,8 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         self._label = label
         self._is_disabled = is_disabled
 
-    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
             id_match,
             self._callback,
@@ -2644,7 +2633,7 @@ def as_interactive_button(
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2655,15 +2644,15 @@ class _StaticLinkButton(_ComponentDescriptor):
     ) -> None:
         # While Link buttons don't actually have custom IDs, this is currently
         # necessary to avoid duplication.
-        super().__init__(_internal.random_custom_id())
+        self._custom_id = _internal.random_custom_id()
         self._url = url
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    def to_field(self, _: str, __: str, ___: bool, /) -> _StaticField:
+    def to_field(self, _: str, __: str, /) -> _StaticField:
         return _StaticField(
-            self._default_custom_id,
+            self._custom_id,
             None,
             hikari.impl.LinkButtonBuilder(
                 url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
@@ -2726,8 +2715,8 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
             id_match,
             self._callback,
@@ -3027,8 +3016,8 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
             id_match,
             self._callback,
@@ -3145,8 +3134,8 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    def to_field(self, cls_path: str, name: str, use_path: bool, /) -> _StaticField:
-        id_match, custom_id = self._get_custom_id(cls_path, name, use_path)
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
             id_match,
             self._callback,
@@ -3495,7 +3484,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
                 )
 
-    def __init_subclass__(cls, path_ids: bool = False, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init_subclass__(*args, **kwargs)
         cls._added_static_fields = {}
         cls._static_fields = {}
@@ -3511,7 +3500,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         for name, attr in namespace.items():
             cls_path = f"{cls.__module__}.{cls.__qualname__}"
             if isinstance(attr, _ComponentDescriptor):
-                field = attr.to_field(cls_path, name, path_ids)
+                field = attr.to_field(cls_path, name)
                 cls._static_fields[field.id_match] = field
 
         cls._static_fields.update(added_static_fields)
