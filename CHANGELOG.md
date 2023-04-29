@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now hidden when accessed directly on classes. The decorated callback will now
   be directly exposed as the class attribute instead.
 
+### Fixed
+- [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] and
+  [Modal][yuyo.modals.Modal] both now properly relay
+  `__init_subclass__` keyword arguments when being used in mixed inheritance.
+
 ### Removed
 - `yuyo.components.with_static_interactive_button`
 - `yuyo.components.with_static_link_button`

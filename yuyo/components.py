@@ -3493,7 +3493,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                     types.MethodType(field.callback, self) if field.self_bound else field.callback
                 )
 
-    def __init_subclass__(cls) -> None:
+    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:
+        super().__init_subclass__(*args, **kwargs)
         cls._added_static_fields = {}
         added_static_fields: dict[str, _StaticField] = {}
         namespace: dict[str, typing.Any] = {}
