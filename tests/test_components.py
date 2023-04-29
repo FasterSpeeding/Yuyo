@@ -518,7 +518,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
             async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -628,7 +628,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_mentionable_menu
             async def on_mentionable_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -700,7 +700,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_role_menu
             async def on_role_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -772,7 +772,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_user_menu
             async def on_user_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -849,7 +849,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_select_menu(hikari.ComponentType.USER_SELECT_MENU)
             async def on_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -928,7 +928,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_channel_menu
             async def on_channel_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
@@ -1022,7 +1022,7 @@ class TestActionColumnExecutor:
 
             @yuyo.components.as_text_menu
             async def on_text_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                await mock_callback (self, ctx)
+                await mock_callback(self, ctx)
 
         column = Column()
 
