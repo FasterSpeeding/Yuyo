@@ -729,6 +729,26 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#other-executors" class="md-nav__link">
+    Other Executors
+  </a>
+  
+    <nav class="md-nav" aria-label="Other Executors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagination" class="md-nav__link">
+    Pagination
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -926,6 +946,26 @@
           <li class="md-nav__item">
   <a href="#modal-responses" class="md-nav__link">
     Modal responses
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-executors" class="md-nav__link">
+    Other Executors
+  </a>
+  
+    <nav class="md-nav" aria-label="Other Executors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagination" class="md-nav__link">
+    Pagination
   </a>
   
 </li>
@@ -1274,6 +1314,44 @@ interaction.</p>
 <p>For more information on how to handle modals see the <a href="../modals">Modals usage guide</a>, where
 <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentContext.create_modal_response">ComponentContext.create_modal_response</a>
 should be used to create the initial prompt.</p>
+<h3 id="other-executors">Other Executors<a class="headerlink" href="#other-executors" title="Permanent link">#</a></h3>
+<h5 id="pagination">Pagination<a class="headerlink" href="#pagination" title="Permanent link">#</a></h5>
+<p>Yuyo provides a standard component paginator implementation through
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentPaginator">components.ComponentPaginator</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">tanjun</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">component_client</span><span class="p">:</span> <span class="n">alluka</span><span class="o">.</span><span class="n">Injected</span><span class="p">[</span><span class="n">components</span><span class="o">.</span><span class="n">Client</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">[</span><span class="n">pagination</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span><span class="s2">&quot;Page 1&quot;</span><span class="p">),</span> <span class="n">pagination</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span><span class="s2">&quot;Page 2&quot;</span><span class="p">),</span> <span class="n">pagination</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span><span class="s2">&quot;Page 3&quot;</span><span class="p">)]</span>
+    <span class="n">paginator</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">Paginator</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pages</span><span class="p">))</span>
+
+    <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">paginator</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">ensure_result</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">component_client</span><span class="o">.</span><span class="n">register_executor</span><span class="p">(</span><span class="n">paginator</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+</code></pre></div>
+<p>This paginator takes iterators/generators of <a class="autorefs autorefs-internal" href="../../reference/pagination/#yuyo.pagination.Page">yuyo.pagination.Page</a>s and will
+only push the iterator forwards as the user interacts with the paginator. This
+allows for lazily generating responses.</p>
+<p>Because of this you must use <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#iter">iter</a> before passing a list of pre-built data
+to its init.</p>
+<div class="highlight"><pre><span></span><code><span class="n">pages</span> <span class="o">=</span> <span class="p">(</span><span class="n">pagination</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">async</span> <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">_async_iterator</span><span class="p">())</span>
+<span class="n">paginator</span> <span class="o">=</span> <span class="n">components</span><span class="o">.</span><span class="n">Paginator</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+</code></pre></div>
+<p>This also supports asynchronous iterators/generators, allowing for functionality
+like fetching data as the user scrolls through it.</p>
+<div class="highlight"><pre><span></span><code><span class="n">paginator</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">components</span><span class="o">.</span><span class="n">Paginator</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="p">[])</span>
+    <span class="o">.</span><span class="n">add_first_button</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_previous_button</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_stop_button</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_next_button</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_last_button</span><span class="p">()</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The paginator only enables 3 buttons by default: step backwards, stop and step
+forwards. To enable the other 2 buttons or even just customise these buttons
+(i.e. set a specific custom_id or emoji/label) you should pass <code>triggers=[]</code> to
+<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ComponentPaginator.__init__">ComponentPaginator.__init__</a>
+to disable the default triggers then use the provided builder methods as shown
+above.</p>
+<p>You can also add your own buttons to this alongside the pagination buttons using
+the methods provided by <a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.ActionColumnExecutor">ActionColumnExecutor</a>.</p>
 
 
 
