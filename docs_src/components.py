@@ -222,7 +222,7 @@ async def _async_iterator() -> collections.AsyncIterator[str]:
     yield "meow"
 
 
-def async_paginate_example(bot: hikari.GatewayBot) -> None:
+def async_paginator_example(bot: hikari.GatewayBot) -> None:
     pages = (pagination.Page(content) async for content in _async_iterator())
     paginator = components.Paginator(pages)
 
