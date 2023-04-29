@@ -2356,8 +2356,8 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         authors
             Users who are allowed to use the components this represents.
 
-            If [None][] is passed here then the paginator will be public (meaning that
-            anybody can use it).
+            If no users are provided then the components will be public
+            (meaning that anybody can use it).
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -3435,7 +3435,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     ```
     """
 
-    __slots__ = ("_callbacks", "_ephemeral_default", "_rows")
+    __slots__ = ("_authors", "_callbacks", "_ephemeral_default", "_rows")
 
     _added_static_fields: typing.ClassVar[dict[str, _StaticField]] = {}
     """Dict of match IDs to the static fields added to this class through add method calls.
@@ -3450,12 +3450,21 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     """
 
     def __init__(
-        self, *, ephemeral_default: bool = False, id_metadata: typing.Optional[collections.Mapping[str, str]] = None
+        self,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        ephemeral_default: bool = False,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
     ) -> None:
         """Initialise an action column executor.
 
         Parameters
         ----------
+        authors
+            Users who are allowed to use the components this represents.
+
+            If no users are provided then the components will be public
+            (meaning that anybody can use it).
         ephemeral_default
             Whether or not the responses made on contexts spawned from this executor
             should default to ephemeral (meaning only the author can see them) unless
@@ -3463,6 +3472,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         id_metadata
             Mapping of metadata to append to the custom_ids in this column.
         """
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._callbacks: dict[str, CallbackSig] = {}
         self._ephemeral_default = ephemeral_default
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
@@ -3512,6 +3522,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     async def execute(self, ctx: ComponentContext, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
+
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response("You are not allowed to use this component", ephemeral=True)
+            return
+
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
 
@@ -5233,7 +5248,7 @@ class ComponentPaginator(ActionColumnExecutor):
         pagination components.
     """
 
-    __slots__ = ("_authors", "_lock", "_paginator")
+    __slots__ = ("_lock", "_paginator")
 
     def __init__(
         self,
@@ -5259,8 +5274,8 @@ class ComponentPaginator(ActionColumnExecutor):
         authors
             Users who are allowed to use the components this represents.
 
-            If [None][] is passed here then the paginator will be public (meaning that
-            anybody can use it).
+            If no users are provided then the components will be public
+            (meaning that anybody can use it).
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -5277,9 +5292,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ):  # pyright: ignore [ reportUnnecessaryIsInstance ]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        super().__init__(ephemeral_default=ephemeral_default)
+        super().__init__(authors=authors, ephemeral_default=ephemeral_default)
 
-        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._lock = asyncio.Lock()
         self._paginator = pagination.Paginator(iterator)
 
