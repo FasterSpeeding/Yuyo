@@ -52,6 +52,7 @@ __all__: list[str] = [
 
 import abc
 import asyncio
+import base64
 import copy
 import datetime
 import functools
@@ -2548,11 +2549,11 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
             return self._custom_id
 
         if use_path:
-            custom_id = (
-                hashlib.blake2b(f"{self._callback.__module__}.{self._callback.__qualname__}".encode(), digest_size=8)
-                .digest()
-                .decode("latin-1")
-            )
+            custom_id = base64.b85encode(
+                hashlib.blake2b(
+                    f"{self._callback.__module__}.{self._callback.__qualname__}".encode(), digest_size=8
+                ).digest()
+            ).decode()
 
         else:
             custom_id = self._default_custom_id
