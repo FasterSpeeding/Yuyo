@@ -2730,7 +2730,7 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
                 max_values=self._max_values,
                 is_disabled=self._is_disabled,
             ),
-            callback_name=name,
+            name=name,
             self_bound=True,
         )
 
@@ -3038,7 +3038,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
                 is_disabled=self._is_disabled,
                 channel_types=self._channel_types,
             ),
-            callback_name=name,
+            name=name,
             self_bound=True,
         )
 
@@ -3160,7 +3160,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
                 max_values=self._max_values,
                 is_disabled=self._is_disabled,
             ),
-            callback_name=name,
+            name=name,
             self_bound=True,
         )
 
@@ -3316,7 +3316,7 @@ def with_option(
 
 
 class _StaticField:
-    __slots__ = ("builder", "callback", "callback_name", "id_match", "self_bound")
+    __slots__ = ("builder", "callback", "id_match", "is_self_bound", "name")
 
     def __init__(
         self,
@@ -3325,14 +3325,14 @@ class _StaticField:
         builder: hikari.api.ComponentBuilder,
         /,
         *,
-        callback_name: str = "",
+        name: str = "",
         self_bound: bool = False,
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
-        self.callback_name: str = callback_name
         self.id_match: str = id_match
-        self.self_bound: bool = self_bound
+        self.is_self_bound: bool = self_bound
+        self.name: str = name
 
 
 @typing.runtime_checkable
@@ -3490,7 +3490,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
 
         for field in self._static_fields.values():
-            if id_metadata and (metadata := (id_metadata.get(field.id_match) or id_metadata.get(field.callback_name))):
+            if id_metadata and (metadata := (id_metadata.get(field.id_match) or id_metadata.get(field.name))):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
                 builder.set_custom_id(f"{field.id_match}:{metadata}")
@@ -3502,7 +3502,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
             if field.callback:
                 self._callbacks[field.id_match] = (
-                    types.MethodType(field.callback, self) if field.self_bound else field.callback
+                    types.MethodType(field.callback, self) if field.is_self_bound else field.callback
                 )
 
     def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:
