@@ -158,7 +158,7 @@ modal to the client on startup with `timeout=None` and sending the same modal's
 rows per-execution.
 
 Custom IDs have some special handling which allows you to track some metadata
-for specific modal executions. Custom IDs are split into two parts as
+for specific modal executions. They are split into two parts as
 `"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
 executor for a modal call and the "metadata"
 ([ModalContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
