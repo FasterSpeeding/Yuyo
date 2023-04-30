@@ -179,7 +179,7 @@ Alternatively, components can be reused by registering the component to the clie
 on startup with `timeout=None` and sending the same component's rows per-exevution.
 
 Custom IDs have some special handling which allows you to track some metadata
-for a specific message's components. Custom IDs are split into two parts as
+for a specific message's components. They are split into two parts as
 `"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
 executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
@@ -190,7 +190,9 @@ components in an action column while initiating it by passing a dict of
 match IDs/descriptor callback names to the metadata for each specified
 component.
 
-Custom IDs cannot be longer than 100 characters in total length.
+Custom IDs cannot be longer than 100 characters in total length and the
+match parts of the custom IDs in an executor have to be globally unique
+when registering it globally (i.e. without passing `message=`).
 
 !!! note
     For stateless components like this to work properly the match part of
