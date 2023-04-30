@@ -132,7 +132,6 @@ buttons.
     for creating an [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
     subclass and all of these class methods also work on a normal class.
 
-
 ### Builder
 
 ```py
@@ -194,8 +193,8 @@ component.
 Custom IDs cannot be longer than 100 characters in total length.
 
 !!! note
-    For stateless components like this to work properly the custom IDs need to
-    stay the same between bot restarts.
+    For stateless components like this to work properly the match part of
+    custom IDs need to stay the same between bot restarts.
 
     The `as_` descriptors achieve this by generating a constant default ID from
     the path for the component's callback (which includes the callback's name
