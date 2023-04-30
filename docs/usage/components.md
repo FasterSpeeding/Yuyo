@@ -180,10 +180,11 @@ on startup with `timeout=None` and sending the same component's rows per-exevuti
 
 Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. They are split into two parts as
-`"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
-executor for a message's components and the "metadata"
+`"{match}:{metadata}"`, where the "match" part is what Yuyo will use to find
+the executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
-represents any developer added metadata for that specific component.
+represents any developer added metadata for that specific instance of the
+component.
 
 The `id_metadata` init argument lets you set the metadata for the static
 components in an action column while initiating it by passing a dict of
