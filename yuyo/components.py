@@ -3478,7 +3478,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             should default to ephemeral (meaning only the author can see them) unless
             `flags` is specified on the response method.
         id_metadata
-            Mapping of metadata to append to the custom_ids in this column.
+            Mapping of metadata to append to the custom IDs in this column.
+
+            The keys in this can either be the match part of component custom
+            IDs or the names of the component's callback when it was added
+            using one of the `as_` class descriptors.
         """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._callbacks: dict[str, CallbackSig] = {}

@@ -186,7 +186,28 @@ executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
 represents any developer added metadata for that specific component.
 
+The `id_metadata` init argument lets you set the metadata for the static
+components in an action column while initiating it by passing a dict of
+match IDs/descriptor callback names to the metadata for each specified
+component.
+
 Custom IDs cannot be longer than 100 characters in total length.
+
+!!! note
+    For stateless components like this to work properly the custom IDs need to
+    stay the same between bot restarts.
+
+    The `as_` descriptors achive this by generating a constant default ID from
+    the path for the component's callback (which includes the callback's name
+    the class' qualname, and the module's qualname). This does, however, mean
+    that any changes to the function's name or the name of the class/modules
+    it's in will change this generated custom ID leading to it no-longer match
+    any previously declared message components.
+
+    However, the `add_` and `with_` (class)methods generate a random UUID
+    whenever called and will have to be manually supplied a constant custom ID
+    through the optional `custom_id` argument. The `as_` descriptors also have
+    a `custom_id` argument which overrides the default path generated ID.
 
 ### Responding to Components
 

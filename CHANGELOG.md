@@ -23,14 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [yuyo.components.column_template][] shorthand function for creating a column subclass.
 
 ### Changed
-- The descriptors returned by the `as_` decorators in [yuyo.components][] are
-  now hidden when accessed directly on classes. The decorated callback will now
-  be directly exposed as the class attribute instead.
 - Modal component custom IDs are now defaulted to a constant ID that's generated
   from the function's path (which includes the relevant module name and class
   qualnames) when added using the `as_` descriptors in [yuyo.components][].
+- The `id_metadata` field in 
+  [components.ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__]
+  now also supports using a component callback's name in the class' namespace
+  as the key (specifically when it was added using one of the `as_`
+  descriptors).
 - The auto-generated default UUID custom IDs now only consist of the UUID's hex
   (without any `-`), bringing the length down from 36 chars to 32.
+- The descriptors returned by the `as_` decorators in [yuyo.components][] are
+  now hidden when accessed directly on classes. The decorated callback will now
+  be directly exposed as the class attribute instead.
 
 ### Fixed
 - [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] and
