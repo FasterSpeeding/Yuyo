@@ -1246,7 +1246,7 @@ resets every use).</p>
 <p>Alternatively, components can be reused by registering the component to the client
 on startup with <code>timeout=None</code> and sending the same component's rows per-exevution.</p>
 <p>Custom IDs have some special handling which allows you to track some metadata
-for a specific message's components. Custom IDs are split into two parts as
+for a specific message's components. They are split into two parts as
 <code>"{match}:{metadata}"</code> where the "match" part is what Yuyo will use to find the
 executor for a message's components and the "metadata"
 (<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ComponentContext.id_metadata</a>) part
@@ -1255,7 +1255,9 @@ represents any developer added metadata for that specific component.</p>
 components in an action column while initiating it by passing a dict of
 match IDs/descriptor callback names to the metadata for each specified
 component.</p>
-<p>Custom IDs cannot be longer than 100 characters in total length.</p>
+<p>Custom IDs cannot be longer than 100 characters in total length and the
+match parts of the custom IDs in an executor have to be globally unique
+when registering it globally (i.e. without passing <code>message=</code>).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For stateless components like this to work properly the match part of
