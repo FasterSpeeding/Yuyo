@@ -373,7 +373,7 @@ class TestComponentExecutor:
 class TestActionColumnExecutor:
     def test_init_id_metadata_handling(self):
         class Column(yuyo.ActionColumnExecutor):
-            __slots__  = ()
+            __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, custom_id="Custme")
             async def meowers(self, ctx: yuyo.components.Context) -> None:
@@ -387,17 +387,14 @@ class TestActionColumnExecutor:
             async def role_me(self, ctx: yuyo.components.Context) -> None:
                 ...
 
-
-        column = Column(id_metadata={
-            "role_me": "meowers", "Custme": "nyann"
-        })
+        column = Column(id_metadata={"role_me": "meowers", "Custme": "nyann"})
 
         assert len(column.rows) == 3
 
         assert len(column.rows[0].components) == 1
         component = column.rows[0].components[0]
         assert isinstance(component, hikari.api.InteractiveButtonBuilder)
-        assert component.custom_id =="Custme:nyann"
+        assert component.custom_id == "Custme:nyann"
 
         assert len(column.rows[1].components) == 1
         component = column.rows[1].components[0]
@@ -407,8 +404,7 @@ class TestActionColumnExecutor:
         assert len(column.rows[2].components) == 1
         component = column.rows[2].components[0]
         assert isinstance(component, hikari.api.SelectMenuBuilder)
-        assert component.custom_id =="$qY^N`e%|!:meowers"
-
+        assert component.custom_id == "$qY^N`e%|!:meowers"
 
     def test_add_select_menu(self):
         mock_callback = mock.Mock()
