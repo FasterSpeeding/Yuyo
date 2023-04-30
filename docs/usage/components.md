@@ -204,7 +204,7 @@ Custom IDs cannot be longer than 100 characters in total length.
     it's in will change this generated custom ID leading to it no-longer match
     any previously declared message components.
 
-    However, the `add_` and `with_` (class)methods generate a random UUID
+    However, the `add_` and `with_` (class)methods generate a random default
     whenever called and will have to be manually supplied a constant custom ID
     through the optional `custom_id` argument. The `as_` descriptors also have
     a `custom_id` argument which overrides the default path generated ID.
