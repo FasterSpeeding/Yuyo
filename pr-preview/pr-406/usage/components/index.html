@@ -1251,7 +1251,26 @@ for a specific message's components. Custom IDs are split into two parts as
 executor for a message's components and the "metadata"
 (<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ComponentContext.id_metadata</a>) part
 represents any developer added metadata for that specific component.</p>
+<p>The <code>id_metadata</code> init argument lets you set the metadata for the static
+components in an action column while initiating it by passing a dict of
+match IDs/descriptor callback names to the metadata for each specified
+component.</p>
 <p>Custom IDs cannot be longer than 100 characters in total length.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For stateless components like this to work properly the custom IDs need to
+stay the same between bot restarts.</p>
+<p>The <code>as_</code> descriptors achive this by generating a constant default ID from
+the path for the component's callback (which includes the callback's name
+the class' qualname, and the module's qualname). This does, however, mean
+that any changes to the function's name or the name of the class/modules
+it's in will change this generated custom ID leading to it no-longer match
+any previously declared message components.</p>
+<p>However, the <code>add_</code> and <code>with_</code> (class)methods generate a random UUID
+whenever called and will have to be manually supplied a constant custom ID
+through the optional <code>custom_id</code> argument. The <code>as_</code> descriptors also have
+a <code>custom_id</code> argument which overrides the default path generated ID.</p>
+</div>
 <h3 id="responding-to-components">Responding to Components<a class="headerlink" href="#responding-to-components" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ColumnCls</span><span class="p">(</span><span class="n">components</span><span class="o">.</span><span class="n">ActionColumnExecutor</span><span class="p">):</span>
     <span class="nd">@components</span><span class="o">.</span><span class="n">as_interactive_button</span><span class="p">(</span><span class="n">hikari</span><span class="o">.</span><span class="n">ButtonStyle</span><span class="o">.</span><span class="n">DANGER</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="s2">&quot;👍&quot;</span><span class="p">)</span>
