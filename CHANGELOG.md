@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [yuyo.components.column_template][] shorthand function for creating a column subclass.
 
 ### Changed
-- Modal component custom IDs are now defaulted to a constant ID that's generated
+- Message component custom IDs are now defaulted to a constant ID that's generated
   from the function's path (which includes the relevant module name and class
   qualnames) when added using the `as_` descriptors in [yuyo.components][].
 - The `id_metadata` field in
