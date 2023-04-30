@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Message component custom IDs are now defaulted to a constant ID that's generated
-  from the function's path (which includes the relevant module name and class
+  from the function's path (which includes the relevant module and class
   qualnames) when added using the `as_` descriptors in [yuyo.components][].
 - The `id_metadata` field in
   [components.ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__]
