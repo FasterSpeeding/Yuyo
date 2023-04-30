@@ -197,7 +197,7 @@ Custom IDs cannot be longer than 100 characters in total length.
     For stateless components like this to work properly the custom IDs need to
     stay the same between bot restarts.
 
-    The `as_` descriptors achive this by generating a constant default ID from
+    The `as_` descriptors achieve this by generating a constant default ID from
     the path for the component's callback (which includes the callback's name
     the class' qualname, and the module's qualname). This does, however, mean
     that any changes to the function's name or the name of the class/modules
