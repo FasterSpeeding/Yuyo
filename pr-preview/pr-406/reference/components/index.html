@@ -2608,8 +2608,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.AbstractComponentExecutor.execute" class="headerlink" title="Permanent link">#</a></h3>
@@ -2767,7 +2767,7 @@ decorating any callback.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">right_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span><span class="p">(</span><span class="n">channel_types</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextableChannel</span><span class="p">])</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span><span class="p">(</span><span class="n">channel_types</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextableChannel</span><span class="p">],</span> <span class="n">custom_id</span><span class="o">=</span><span class="s2">&quot;eep&quot;</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">text_select_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </code></pre></div>
@@ -7344,8 +7344,8 @@ and <code>components</code> are passed or both <code>embed</code> and <code>embe
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.create_initial_response" class="headerlink" title="Permanent link">#</a></h3>
@@ -7744,8 +7744,8 @@ longer than <code>max_rate_limit</code> when making a request.</p>
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-async"><code>async</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.components.BaseContext.defer" class="headerlink" title="Permanent link">#</a></h3>
@@ -12543,9 +12543,11 @@ should default to ephemeral (meaning only the author can see them) unless
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12678,9 +12680,11 @@ displayed label.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The button's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12783,9 +12787,11 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -12904,9 +12910,11 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -13135,9 +13143,11 @@ allowing metadata to be stored after a <code>":"</code>.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -13274,9 +13284,11 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>custom_id</code></td>
           <td class="doc-param-details">
             <p>The select menu's custom ID.</p>
-<p>Defaults to a UUID and cannot be longer than 100 characters.</p>
+<p>Defaults to a constant ID that's generated from the path to the
+decorated callback (which includes the class and module qualnames).</p>
 <p>Only <code>custom_id.split(":", 1)[0]</code> will be used to match against
-interactions. Anything after <code>":"</code> is metadata.</p>
+interactions. Anything after <code>":"</code> is metadata and the custom ID
+cannot be longer than 100 characters in total.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>

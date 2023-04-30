@@ -3805,7 +3805,7 @@ decorating any callback.</p>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">right_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 
-    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span><span class="p">(</span><span class="n">channel_types</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextableChannel</span><span class="p">])</span>
+    <span class="nd">@components</span><span class="o">.</span><span class="n">as_channel_menu</span><span class="p">(</span><span class="n">channel_types</span><span class="o">=</span><span class="p">[</span><span class="n">hikari</span><span class="o">.</span><span class="n">TextableChannel</span><span class="p">],</span> <span class="n">custom_id</span><span class="o">=</span><span class="s2">&quot;eep&quot;</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">text_select_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">components</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </code></pre></div>
