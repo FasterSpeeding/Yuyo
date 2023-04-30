@@ -1070,10 +1070,10 @@ modal to the client on startup with <code>timeout=None</code> and sending the sa
 rows per-execution.</p>
 <p>Custom IDs have some special handling which allows you to track some metadata
 for specific modal executions. They are split into two parts as
-<code>"{match}:{metadata}"</code> where the "match" part is what Yuyo will use to find the
-executor for a modal call and the "metadata"
+<code>"{match}:{metadata}"</code>, where the "match" part is what Yuyo will use to find
+the executor for a modal call and the "metadata"
 (<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ModalContext.id_metadata</a>) part
-represents any developer added metadata for the modal.</p>
+represents any developer added metadata for that instance of the modal.</p>
 <p>If should be noted that Custom IDs can never be longer than 100 characters in
 total length.</p>
 <h3 id="responding-to-modals">Responding to Modals<a class="headerlink" href="#responding-to-modals" title="Permanent link">#</a></h3>
