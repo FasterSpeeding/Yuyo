@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     [ComponentExecutor.\_\_init\_\_][yuyo.components.ComponentExecutor.__init__],
     [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__],
     and [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__].
-    * `custom_id` keyword argument from
+    * `prefix_match` keyword argument from
     [Modal.add_static_text_input][yuyo.modals.Modal.add_static_text_input],
     [Modal.add_text_input][yuyo.modals.Modal.add_text_input],
     [modals.with_static_text_input][yuyo.modals.with_static_text_input],
