@@ -1012,14 +1012,14 @@ class Modal(AbstractModal):
         if parameter:
             fields: list[_TrackedField] = []
 
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
                 descriptor.add_static(name, cls)
                 fields.append(descriptor.to_tracked_field(name))
 
             cls._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
                 descriptor.add_static(name, cls)
 
         return cls
@@ -1028,14 +1028,14 @@ class Modal(AbstractModal):
         if parameter:
             fields: list[_TrackedField] = []
 
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
                 descriptor.add(name, self)
                 fields.append(descriptor.to_tracked_field(name))
 
             self._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore [ reportPrivateUsage ]
+            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
                 descriptor.add(name, self)
 
         return self
@@ -1834,7 +1834,7 @@ class _ModalOptionsMeta(type):
 
         for sub_cls in bases:
             if issubclass(sub_cls, ModalOptions):
-                fields.update(sub_cls._modal_fields)  # pyright: ignore [ reportPrivateUsage ]
+                fields.update(sub_cls._modal_fields)  # pyright: ignore[reportPrivateUsage]
 
         for key, value in namespace.copy().items():
             if isinstance(value, _ComponentDescriptor):
@@ -1842,7 +1842,7 @@ class _ModalOptionsMeta(type):
                 del namespace[key]
 
         namespace["_modal_fields"] = types.MappingProxyType(fields)
-        namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore [ reportUntypedNamedTuple ]
+        namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore[reportUntypedNamedTuple]
         return super().__new__(cls, name, (namedtuple, *bases), namespace)
 
 
