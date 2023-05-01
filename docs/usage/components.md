@@ -196,7 +196,7 @@ match parts of the custom IDs in an executor have to be globally unique
 when registering it globally (i.e. without passing `message=`).
 
 !!! note
-    For stateless components like this to work properly the match part of
+    For stateless components (like shown above) to work properly the match part of
     custom IDs needs to stay the same between bot restarts.
 
     The `as_` descriptors achieve this by generating a constant default ID from
