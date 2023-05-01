@@ -139,5 +139,5 @@ This takes the bot's ID as its first argument and has several optional parameter
 - `disable_guild_select`: Whether to stop the user from selecting another guild when
   `guild` has also been passed.
 
-[links.make_bot_invite][yuyo.links.make_bot_invite] can also be used to make
-more general Oauth2 authorize links.
+[links.make_oauth_link][yuyo.links.make_oauth_link] can also be used to
+make more general Oauth2 authorize links.
