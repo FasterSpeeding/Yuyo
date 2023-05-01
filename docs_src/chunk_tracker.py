@@ -10,8 +10,8 @@
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 
 # pyright: reportUnusedFunction=none
-import collections.abc  # pyright: ignore [ reportUnusedImport ]
-import datetime  # pyright: ignore [ reportUnusedImport ]
+import collections.abc  # pyright: ignore[reportUnusedImport]
+import datetime  # pyright: ignore[reportUnusedImport]
 
 import hikari
 
