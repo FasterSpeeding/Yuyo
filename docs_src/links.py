@@ -113,3 +113,9 @@ async def webhook_link(app: hikari.RESTAware):
 def make_webhook_link() -> None:
     raw_link = links.make_webhook_link(123321, "hfdssdasd")
     raw_link  # value: "https://discord.com/api/webhooks/123321/hfdssdasd"
+
+
+def make_bot_invite_link() -> None:
+    permissions = hikari.Permissions.BAN_MEMBERS | hikari.Permissions.MANAGE_CHANNELS
+    raw_link = links.make_bot_invite(463183358445355009, permissions=permissions)
+    raw_link  # value: https://discord.com/api/oauth2/authorize?client_id=463183358445355009&scope=bot&permissions=20

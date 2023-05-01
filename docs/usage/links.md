@@ -122,3 +122,22 @@ therefore has all the webhook execute methods you'll find on interaction and web
 
 [links.make_webhook_link][yuyo.links.make_webhook_link] lets you make a webhook
 link string.
+
+
+### Bot invite links
+
+```py
+--8<-- "./docs_src/links.py:119:121"
+```
+
+[links.make_bot_invite_link][yuyo.links.make_bot_invite_link] lets you make a bot invite link.
+
+This takes the bot's ID as its first argument and has several optional parameters:
+
+- `permissions`: Specifies the permissions to request.
+- `guild`: ID of a specific guild to pre-select for the user.
+- `disable_guild_select`: Whether to stop the user from selecting another guild when
+  `guild` has also been passed.
+
+[links.make_bot_invite][yuyo.links.make_bot_invite] can also be used to make
+more general Oauth2 authorize links.
