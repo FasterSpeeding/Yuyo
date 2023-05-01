@@ -124,10 +124,17 @@ async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typin
 
 def random_custom_id() -> str:
     """Generate a random custom ID."""
-    return str(uuid.uuid4())
+    return uuid.uuid4().hex
 
 
-def split_custom_id(custom_id: str) -> tuple[str, str]:
+class SplitId(typing.NamedTuple):
+    """Represents a split custom ID."""
+
+    id_match: str
+    id_metadata: str
+
+
+def split_custom_id(custom_id: str) -> SplitId:
     """Split a custom ID into its match and metadata parts.
 
     Returns
@@ -143,10 +150,17 @@ def split_custom_id(custom_id: str) -> tuple[str, str]:
     except IndexError:
         id_metadata = ""
 
-    return parts[0], id_metadata
+    return SplitId(id_match=parts[0], id_metadata=id_metadata)
 
 
-def gen_custom_id(custom_id: typing.Optional[str]) -> tuple[str, str]:
+class MatchId(typing.NamedTuple):
+    """Represents a generated match ID and the relevant full custom ID."""
+
+    id_match: str
+    custom_id: str
+
+
+def gen_custom_id(custom_id: typing.Optional[str]) -> MatchId:
     """Generate a custom ID from user input.
 
     Returns
@@ -156,6 +170,6 @@ def gen_custom_id(custom_id: typing.Optional[str]) -> tuple[str, str]:
     """
     if custom_id is None:
         custom_id = random_custom_id()
-        return custom_id, custom_id
+        return MatchId(custom_id, custom_id)
 
-    return split_custom_id(custom_id)[0], custom_id
+    return MatchId(id_match=split_custom_id(custom_id).id_match, custom_id=custom_id)

@@ -132,7 +132,6 @@ buttons.
     for creating an [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
     subclass and all of these class methods also work on a normal class.
 
-
 ### Builder
 
 ```py
@@ -180,15 +179,37 @@ Alternatively, components can be reused by registering the component to the clie
 on startup with `timeout=None` and sending the same component's rows per-exevution.
 
 Custom IDs have some special handling which allows you to track some metadata
-for a specific message's components. Custom IDs are split into two parts as
-`"{match}:{metadata}"` where the "match" part is what Yuyo will use to find the
-executor for a message's components and the "metadata"
+for a specific message's components. They are split into two parts as
+`"{match}:{metadata}"`, where the "match" part is what Yuyo will use to find
+the executor for a message's components and the "metadata"
 ([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
-represents any developer added metadata for that specific component.
+represents any developer added metadata for that specific instance of the
+component.
 
-It should be noted that interactive components should be given constant custom
-IDs when using an action column statelessly and that Custom IDs can never be
-longer than 100 characters in total length.
+The `id_metadata` init argument lets you set the metadata for the static
+components in an action column while initiating it by passing a dict of
+match IDs/descriptor callback names to the metadata for each specified
+component.
+
+Custom IDs cannot be longer than 100 characters in total length and the
+match parts of the custom IDs in an executor have to be globally unique
+when registering it globally (i.e. without passing `message=`).
+
+!!! note
+    For stateless components like described/above to work properly the match
+    part of custom IDs needs to stay the same between bot restarts.
+
+    The `as_` descriptors achieve this by generating a constant default ID from
+    the path for the component's callback (which consists of the callback's
+    name and the qualname of the class and the relevant modules). This does,
+    however, mean that any changes to the function's name or the name of the
+    class/modules it's in will change this generated custom ID leading to it
+    no-longer match any previously declared message components.
+
+    However, the `add_` and `with_` (class)methods generate a random default
+    whenever called and will have to be manually supplied a constant custom ID
+    through the optional `custom_id` argument. The `as_` descriptors also have
+    a `custom_id` argument which overrides the default path generated ID.
 
 ### Responding to Components
 

@@ -52,9 +52,11 @@ __all__: list[str] = [
 
 import abc
 import asyncio
+import base64
 import copy
 import datetime
 import functools
+import hashlib
 import itertools
 import logging
 import os
@@ -2488,22 +2490,28 @@ class _ComponentDescriptor(abc.ABC):
 
     __slots__ = ()
 
-    @property
     @abc.abstractmethod
-    def id_match(self) -> str:
-        """Unique identifier of the component."""
-
-    @abc.abstractmethod
-    def to_field(self) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
         """Convert this descriptor to a static field."""
 
 
 class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, _P]):
     """Base class used to represent components by decorating a callback."""
 
-    __slots__ = ("_callback",)
+    __slots__ = ("_callback", "_custom_id")
 
-    def __init__(self, callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /) -> None:
+    def __init__(
+        self,
+        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: typing.Optional[str],
+        /,
+    ) -> None:
+        if custom_id is None:
+            self._custom_id: typing.Optional[_internal.MatchId] = None
+
+        else:
+            self._custom_id = _internal.gen_custom_id(custom_id)
+
         self._callback = callback
 
     async def __call__(self, self_: _SelfT, /, *args: _P.args, **kwargs: _P.kwargs) -> None:
@@ -2515,7 +2523,6 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]:
         ...
 
-    # Should really be using _T for the return type but that breaks Pyright rn.
     @typing.overload
     def __get__(
         self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
@@ -2530,11 +2537,23 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
         return types.MethodType(self._callback, obj)
 
+    def _get_custom_id(self, cls_path: str, name: str, /) -> _internal.MatchId:
+        if self._custom_id is not None:
+            return self._custom_id
+
+        # callback.__module__ and .__qualname__ will show the module and
+        # class a callback was inherited from rather than the class it was
+        # accessed on.
+        path = f"{cls_path}.{name}".encode()
+        custom_id = base64.b85encode(hashlib.blake2b(path, digest_size=8).digest()).decode()
+        assert ":" not in custom_id
+        return _internal.MatchId(custom_id, custom_id)
+
 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_custom_id", "_id_match", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_style", "_emoji", "_label", "_is_disabled")
 
     def __init__(
         self,
@@ -2545,24 +2564,20 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
+        super().__init__(callback, custom_id)
         self._style: hikari.InteractiveButtonTypesT = style
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._emoji = emoji
         self._label = label
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.InteractiveButtonBuilder(
                 style=self._style,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 emoji=self._emoji,
                 label=self._label,
                 is_disabled=self._is_disabled,
@@ -2594,10 +2609,12 @@ def as_interactive_button(
     custom_id
         The button's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     emoji
         The button's emoji.
     label
@@ -2635,11 +2652,7 @@ class _StaticLinkButton(_ComponentDescriptor):
         self._label = label
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._custom_id
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, _: str, __: str, /) -> _StaticField:
         return _StaticField(
             self._custom_id,
             None,
@@ -2685,7 +2698,7 @@ def link_button(
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_custom_id", "_id_match", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_type", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -2697,30 +2710,27 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
+        super().__init__(callback, custom_id)
         self._type = hikari.ComponentType(type_)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.SelectMenuBuilder(
                 type=self._type,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 min_values=self._min_values,
                 max_values=self._max_values,
                 is_disabled=self._is_disabled,
             ),
+            name=name,
             self_bound=True,
         )
 
@@ -2793,10 +2803,12 @@ def as_mentionable_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -2872,10 +2884,12 @@ def as_role_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -2951,10 +2965,12 @@ def as_user_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -2988,15 +3004,7 @@ def as_user_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = (
-        "_custom_id",
-        "_id_match",
-        "_channel_types",
-        "_placeholder",
-        "_min_values",
-        "_max_values",
-        "_is_disabled",
-    )
+    __slots__ = ("_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3010,30 +3018,27 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
+        super().__init__(callback, custom_id)
         self._channel_types = _parse_channel_types(*channel_types) if channel_types else []
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             hikari.impl.ChannelSelectMenuBuilder(
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 min_values=self._min_values,
                 max_values=self._max_values,
                 is_disabled=self._is_disabled,
                 channel_types=self._channel_types,
             ),
+            name=name,
             self_bound=True,
         )
 
@@ -3089,10 +3094,12 @@ def as_channel_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -3120,7 +3127,7 @@ def as_channel_menu(
 
 
 class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_custom_id", "_id_match", "_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
 
     def __init__(
         self,
@@ -3132,31 +3139,28 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
         max_values: int = 1,
         is_disabled: bool = False,
     ) -> None:
-        super().__init__(callback)
-        self._id_match, self._custom_id = _internal.gen_custom_id(custom_id)
+        super().__init__(callback, custom_id)
         self._options = list(options)
         self._placeholder = placeholder
         self._min_values = min_values
         self._max_values = max_values
         self._is_disabled = is_disabled
 
-    @property
-    def id_match(self) -> str:
-        return self._id_match
-
-    def to_field(self) -> _StaticField:
+    def to_field(self, cls_path: str, name: str, /) -> _StaticField:
+        id_match, custom_id = self._get_custom_id(cls_path, name)
         return _StaticField(
-            self._id_match,
+            id_match,
             self._callback,
             _TextSelectMenuBuilder(
                 parent=self,
-                custom_id=self._custom_id,
+                custom_id=custom_id,
                 placeholder=self._placeholder,
                 options=self._options.copy(),
                 min_values=self._min_values,
                 max_values=self._max_values,
                 is_disabled=self._is_disabled,
             ),
+            name=name,
             self_bound=True,
         )
 
@@ -3223,10 +3227,12 @@ def as_text_menu(
     custom_id
         The select menu's custom ID.
 
-        Defaults to a UUID and cannot be longer than 100 characters.
+        Defaults to a constant ID that's generated from the path to the
+        decorated callback (which includes the class and module qualnames).
 
         Only `custom_id.split(":", 1)[0]` will be used to match against
-        interactions. Anything after `":"` is metadata.
+        interactions. Anything after `":"` is metadata and the custom ID
+        cannot be longer than 100 characters in total.
     options
         The text select's options.
 
@@ -3310,7 +3316,7 @@ def with_option(
 
 
 class _StaticField:
-    __slots__ = ("builder", "callback", "id_match", "self_bound")
+    __slots__ = ("builder", "callback", "id_match", "is_self_bound", "name")
 
     def __init__(
         self,
@@ -3319,12 +3325,14 @@ class _StaticField:
         builder: hikari.api.ComponentBuilder,
         /,
         *,
+        name: str = "",
         self_bound: bool = False,
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
         self.callback: typing.Optional[CallbackSig] = callback
         self.id_match: str = id_match
-        self.self_bound: bool = self_bound
+        self.is_self_bound: bool = self_bound
+        self.name: str = name
 
 
 @typing.runtime_checkable
@@ -3429,7 +3437,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         async def right_button(self, ctx: components.Context) -> None:
             ...
 
-        @components.as_channel_menu(channel_types=[hikari.TextableChannel])
+        @components.as_channel_menu(channel_types=[hikari.TextableChannel], custom_id="eep")
         async def text_select_menu(self, ctx: components.Context) -> None:
             ...
     ```
@@ -3470,7 +3478,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             should default to ephemeral (meaning only the author can see them) unless
             `flags` is specified on the response method.
         id_metadata
-            Mapping of metadata to append to the custom_ids in this column.
+            Mapping of metadata to append to the custom IDs in this column.
+
+            The keys in this can either be the match part of component custom
+            IDs or the names of the component's callback when it was added
+            using one of the `as_` class descriptors.
         """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._callbacks: dict[str, CallbackSig] = {}
@@ -3478,7 +3490,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self._rows: list[hikari.api.MessageActionRowBuilder] = []
 
         for field in self._static_fields.values():
-            if id_metadata and (metadata := id_metadata.get(field.id_match)):
+            if id_metadata and (metadata := (id_metadata.get(field.id_match) or id_metadata.get(field.name))):
                 builder = copy.copy(field.builder)
                 assert isinstance(builder, _CustomIdProto)
                 builder.set_custom_id(f"{field.id_match}:{metadata}")
@@ -3490,12 +3502,13 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
             if field.callback:
                 self._callbacks[field.id_match] = (
-                    types.MethodType(field.callback, self) if field.self_bound else field.callback
+                    types.MethodType(field.callback, self) if field.is_self_bound else field.callback
                 )
 
     def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init_subclass__(*args, **kwargs)
         cls._added_static_fields = {}
+        cls._static_fields = {}
         added_static_fields: dict[str, _StaticField] = {}
         namespace: dict[str, typing.Any] = {}
 
@@ -3505,9 +3518,12 @@ class ActionColumnExecutor(AbstractComponentExecutor):
                 added_static_fields.update(super_cls._added_static_fields)
                 namespace.update(super_cls.__dict__)
 
-        cls._static_fields = {
-            attr.id_match: attr.to_field() for attr in namespace.values() if isinstance(attr, _ComponentDescriptor)
-        }
+        for name, attr in namespace.items():
+            cls_path = f"{cls.__module__}.{cls.__qualname__}"
+            if isinstance(attr, _ComponentDescriptor):
+                field = attr.to_field(cls_path, name)
+                cls._static_fields[field.id_match] = field
+
         cls._static_fields.update(added_static_fields)
 
     @property
