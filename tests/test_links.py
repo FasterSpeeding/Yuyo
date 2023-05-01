@@ -819,3 +819,71 @@ class TestWebhookLink:
 
         assert result is mock_app.rest.fetch_webhook.return_value
         mock_app.rest.fetch_webhook.assert_awaited_once_with(654345, token="I'm the one to blame")  # noqa: S106
+
+
+def test_make_oauth_link():
+    link = yuyo.links.make_oauth_link(652312, [hikari.OAuth2Scope.EMAIL, hikari.OAuth2Scope.IDENTIFY])
+
+    assert link == "https://discord.com/api/oauth2/authorize?client_id=652312&scope=email+identify"
+
+
+def test_make_oauth_link_with_optional_cnfig():
+    link = yuyo.links.make_oauth_link(
+        675345123,
+        [hikari.OAuth2Scope.CONNECTIONS],
+        disable_guild_select=True,
+        guild=123543123,
+        permissions=5431,
+        prompt="consent",
+        redirect_uri="https://example.com/yeet-my-girl",
+        response_type="code",
+        state="Washington DC",
+    )
+
+    assert link == (
+        "https://discord.com/api/oauth2/authorize?client_id=675345123&scope=connections&disable_guild_select=true&"
+        "guild_id=123543123&permissions=5431&prompt=consent&redirect_uri=https%3A%2F%2Fexample.com%2Fyeet-my-girl&"
+        "response_type=code&state=Washington+DC"
+    )
+
+
+def test_make_oauth_link_with_unique_objects():
+    application = hikari.PartialApplication(id=hikari.Snowflake(876234123), name="", description="", icon_hash="")
+    guild = hikari.PartialGuild(app=mock.AsyncMock(), id=hikari.Snowflake(453123312), icon_hash="", name="")
+    link = yuyo.links.make_oauth_link(
+        application, [hikari.OAuth2Scope.RPC, hikari.OAuth2Scope.APPLICATIONS_BUILDS_UPLOAD], guild=guild
+    )
+
+    assert (
+        link
+        == "https://discord.com/api/oauth2/authorize?client_id=876234123&scope=rpc+applications.builds.upload&guild_id=453123312"
+    )
+
+
+def test_make_bot_invite():
+    link = yuyo.links.make_bot_invite(54123)
+
+    assert link == "https://discord.com/api/oauth2/authorize?client_id=54123&scope=bot&permissions=0"
+
+
+def test_make_bot_invite_with_optional_config():
+    link = yuyo.links.make_bot_invite(4532234, disable_guild_select=True, guild=654123, permissions=234)
+
+    assert link == (
+        "https://discord.com/api/oauth2/authorize?client_id=4532234&"
+        "scope=bot&disable_guild_select=true&guild_id=654123&permissions=234"
+    )
+
+
+def test_make_bot_invite_when_permissions_is_none():
+    link = yuyo.links.make_bot_invite(65123123, permissions=None)
+
+    assert link == "https://discord.com/api/oauth2/authorize?client_id=65123123&scope=bot"
+
+
+def test_make_bot_invite_with_unique_objects():
+    application = hikari.PartialApplication(id=hikari.Snowflake(7683452), name="", description="", icon_hash="")
+    guild = hikari.PartialGuild(app=mock.AsyncMock(), id=hikari.Snowflake(562341), icon_hash="", name="")
+    link = yuyo.links.make_bot_invite(application, guild=guild)
+
+    assert link == "https://discord.com/api/oauth2/authorize?client_id=7683452&scope=bot&guild_id=562341&permissions=0"
