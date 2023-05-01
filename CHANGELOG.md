@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `authors` option to
   [components.ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
+- Functions for generating Discord Oauth2 authorize links and bot invite links
+  to [yuyo.links][].
 - [ActionColumnExecutor.with_interactive_button][yuyo.components.ActionColumnExecutor.with_interactive_button].
 - [ActionColumnExecutor.with_static_interactive_button][yuyo.components.ActionColumnExecutor.with_static_interactive_button].
 - [ActionColumnExecutor.with_mentionable_menu][yuyo.components.ActionColumnExecutor.with_mentionable_menu].

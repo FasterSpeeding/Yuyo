@@ -37,9 +37,11 @@ __all__: list[str] = [
     "MessageLink",
     "TemplateLink",
     "WebhookLink",
+    "make_bot_invite",
     "make_channel_link",
     "make_invite_link",
     "make_message_link",
+    "make_oauth_link",
     "make_template_link",
     "make_webhook_link",
 ]
@@ -48,6 +50,7 @@ import abc
 import dataclasses
 import re
 import typing
+import urllib.parse
 
 import hikari
 import hikari.urls
@@ -660,3 +663,130 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
         webhook = await self._app.rest.fetch_webhook(self._webhook_id, token=self._token)
         assert isinstance(webhook, hikari.IncomingWebhook)
         return webhook
+
+
+def make_oauth_link(
+    client: hikari.SnowflakeishOr[hikari.PartialApplication],
+    scopes: collections.Sequence[typing.Union[hikari.OAuth2Scope, str]],
+    /,
+    *,
+    disable_guild_select: typing.Optional[bool] = None,
+    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
+    permissions: typing.Union[hikari.Permissions, int, None] = None,
+    prompt: typing.Optional[str] = None,
+    redirect_uri: typing.Optional[str] = None,
+    response_type: typing.Optional[str] = None,
+    state: typing.Optional[str] = None,
+) -> str:
+    """Create an Oauth2 authorize link.
+
+    For more information on how Discord's Oauth2 system works see
+    <https://discord.com/developers/docs/topics/oauth2>.
+
+    !!! warning
+        `response_type` and `redirect_uri` are usually required.
+
+    Parameters
+    ----------
+    client
+        Object or ID of the application this Oauth2 application is for.
+    scopes
+        The Oauth2 scopes being requested.
+    disable_guild_select
+        Whether users should be prevented from changing the pre-selected guild.
+
+        This only works properly when `guild` is also passed.
+    guild
+        Object or ID of a guild to pre-select for the user.
+
+        This is only relevant when the `"bot"` scope is being requested.
+    permissions
+        The permissions the bot is requesting.
+
+        This is only relevant when the `"bot"` scope is being requested.
+    prompt
+
+    redirect_uri
+        URI the user should be redirected to with the authorised access
+        information.
+    response_type
+        The type of Oauth2 flow being initiated.
+
+        This will likely either be `"code"` (Authorization Code Grant) or
+        `"token"` (Implicit Grant).
+    state
+        A request-unique state generated for security purposes.
+
+        For more information see
+        <https://discord.com/developers/docs/topics/oauth2#state-and-security>.
+
+    Returns
+    -------
+    str
+        The created Oauth2 authorize link.
+    """
+    query_params: dict[str, typing.Union[str, int]] = {"client_id": int(client), "scope": " ".join(scopes)}
+
+    if disable_guild_select is not None:
+        query_params["disable_guild_select"] = str(disable_guild_select).lower()
+
+    if guild is not None:
+        query_params["guild_id"] = int(guild)
+
+    if permissions is not None:
+        query_params["permissions"] = int(permissions)
+
+    if prompt is not None:
+        query_params["prompt"] = prompt
+
+    if redirect_uri is not None:
+        query_params["redirect_uri"] = redirect_uri
+
+    if response_type is not None:
+        query_params["response_type"] = response_type
+
+    if state is not None:
+        query_params["state"] = state
+
+    return f"{hikari.urls.BASE_URL}/api/oauth2/authorize?{urllib.parse.urlencode(query_params)}"
+
+
+def make_bot_invite(
+    client: hikari.SnowflakeishOr[hikari.PartialApplication],
+    /,
+    *,
+    disable_guild_select: typing.Optional[bool] = None,
+    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
+    permissions: typing.Union[hikari.Permissions, int, None] = hikari.Permissions.NONE,
+) -> str:
+    """Create a Bot invite url.
+
+    Parameters
+    ----------
+    client
+        Object or ID of the application to make an invite link for.
+    disable_guild_select
+        Whether users should be prevented from changing the pre-selected guild.
+
+        This only works properly when `guild` is also passed.
+    guild
+        Object or ID of a guild to pre-select for the user.
+    permissions
+        The permissions the bot is requesting.
+
+        Defaults to requesting a role with no permissions.
+
+        Passing [None][] here will lead to no role being created for thebot.
+
+    Returns
+    -------
+    str
+        The created bot invite.
+    """
+    return make_oauth_link(
+        client,
+        [hikari.OAuth2Scope.BOT],
+        disable_guild_select=disable_guild_select,
+        guild=guild,
+        permissions=permissions,
+    )
