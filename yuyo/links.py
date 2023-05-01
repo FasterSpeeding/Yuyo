@@ -705,7 +705,10 @@ def make_oauth_link(
 
         This is only relevant when the `"bot"` scope is being requested.
     prompt
+        How to handles existing authorization.
 
+        For more information see
+        <https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-authorization-url-example>.
     redirect_uri
         URI the user should be redirected to with the authorised access
         information.
