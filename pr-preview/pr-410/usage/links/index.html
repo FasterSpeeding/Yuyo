@@ -675,6 +675,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#bot-invite-links" class="md-nav__link">
+    Bot invite links
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -796,6 +803,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bot-invite-links" class="md-nav__link">
+    Bot invite links
+  </a>
   
 </li>
       
@@ -932,6 +946,21 @@ therefore has all the webhook execute methods you'll find on interaction and web
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_webhook_link">links.make_webhook_link</a> lets you make a webhook
 link string.</p>
+<h3 id="bot-invite-links">Bot invite links<a class="headerlink" href="#bot-invite-links" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">permissions</span> <span class="o">=</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Permissions</span><span class="o">.</span><span class="n">BAN_MEMBERS</span> <span class="o">|</span> <span class="n">hikari</span><span class="o">.</span><span class="n">Permissions</span><span class="o">.</span><span class="n">MANAGE_CHANNELS</span>
+<span class="n">raw_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">make_bot_invite</span><span class="p">(</span><span class="mi">463183358445355009</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="n">permissions</span><span class="p">)</span>
+<span class="n">raw_link</span>  <span class="c1"># value: https://discord.com/api/oauth2/authorize?client_id=463183358445355009&amp;scope=bot&amp;permissions=20</span>
+</code></pre></div>
+<p>[links.make_bot_invite_link][yuyo.links.make_bot_invite_link] lets you make a bot invite link.</p>
+<p>This takes the bot's ID as its first argument and has several optional parameters:</p>
+<ul>
+<li><code>permissions</code>: Specifies the permissions to request.</li>
+<li><code>guild</code>: ID of a specific guild to pre-select for the user.</li>
+<li><code>disable_guild_select</code>: Whether to stop the user from selecting another guild when
+  <code>guild</code> has also been passed.</li>
+</ul>
+<p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.make_bot_invite">links.make_bot_invite</a> can also be used to make
+more general Oauth2 authorize links.</p>
 
 
 
