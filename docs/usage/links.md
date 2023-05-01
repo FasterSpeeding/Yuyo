@@ -130,7 +130,7 @@ link string.
 --8<-- "./docs_src/links.py:119:121"
 ```
 
-[links.make_bot_invite_link][yuyo.links.make_bot_invite_link] lets you make a bot invite link.
+[links.make_bot_invite][yuyo.links.make_bot_invite] lets you make a bot invite link.
 
 This takes the bot's ID as its first argument and has several optional parameters:
 
