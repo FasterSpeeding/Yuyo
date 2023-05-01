@@ -779,7 +779,7 @@ def make_bot_invite(
 
         Defaults to requesting a role with no permissions.
 
-        Passing [None][] here will lead to no role being created for thebot.
+        Passing [None][] here will lead to no role being created for the bot.
 
     Returns
     -------
