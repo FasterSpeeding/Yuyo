@@ -1261,8 +1261,8 @@ match parts of the custom IDs in an executor have to be globally unique
 when registering it globally (i.e. without passing <code>message=</code>).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For stateless components (like shown above) to work properly the match part of
-custom IDs needs to stay the same between bot restarts.</p>
+<p>For stateless components like described/above to work properly the match
+part of custom IDs needs to stay the same between bot restarts.</p>
 <p>The <code>as_</code> descriptors achieve this by generating a constant default ID from
 the path for the component's callback (which consists of the callback's
 name and the qualname of the class and the relevant modules). This does,
