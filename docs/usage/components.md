@@ -176,7 +176,7 @@ resets every use).
 ```
 
 Alternatively, components can be reused by registering the component to the client
-on startup with `timeout=None` and sending the same component's rows per-exevution.
+on startup with `timeout=None` and sending the same component's rows per-execution.
 
 Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. They are split into two parts as
