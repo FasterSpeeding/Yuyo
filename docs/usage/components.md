@@ -41,7 +41,7 @@ client can be accessed through Alluka style dependency injection.
 
 Message buttons have several different styles, as shown above. Most of these
 are interactive, meaning that an interaction will be sent to the bot when a
-user clicks on it. The only non-interactive style being link buttons, which
+user clicks on it. The only non-interactive style is link buttons which
 simply open the set link in a browser for the user who clicked on it.
 
 A row can have up to 5 buttons in it.
