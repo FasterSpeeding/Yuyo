@@ -52,7 +52,7 @@ A row can have up to 5 buttons in it.
 
 Select menus let users select between 0 to 25 options (dependent on how the bot
 configured it). These selections are communicated to the bot once the user has
-finished selecting options via and interaction and there's several different
+finished selecting options via an interaction and there's several different
 resources they can be selecting:
 
 * Text menus: lets the bot pre-define up to 25 text options
