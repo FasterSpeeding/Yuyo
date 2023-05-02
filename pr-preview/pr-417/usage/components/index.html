@@ -1244,7 +1244,7 @@ resets every use).</p>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="n">components</span><span class="o">=</span><span class="n">ColumnCls</span><span class="p">(</span><span class="n">id_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;on_button&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">session_id</span><span class="p">)})</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
 </code></pre></div>
 <p>Alternatively, components can be reused by registering the component to the client
-on startup with <code>timeout=None</code> and sending the same component's rows per-exevution.</p>
+on startup with <code>timeout=None</code> and sending the same component's rows per-execution.</p>
 <p>Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. They are split into two parts as
 <code>"{match}:{metadata}"</code>, where the "match" part is what Yuyo will use to find
