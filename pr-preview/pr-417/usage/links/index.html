@@ -861,10 +861,10 @@ Yuyo (which all support the parsing methods listed above):</p>
 <span class="n">link</span><span class="o">.</span><span class="n">is_dm_link</span>  <span class="c1"># value: False</span>
 <span class="n">link</span><span class="o">.</span><span class="n">guild_id</span>  <span class="c1"># value: 453123</span>
 <span class="n">link</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># value: 67765564</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># hikari.PartialChannel</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># hikari.GuildChannel | None</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># hikari.RESTGuild | None</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># hikari.GatewayGuild | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># type: hikari.PartialChannel</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># type: hikari.GuildChannel | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># type: hikari.RESTGuild | None</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># type: hikari.GatewayGuild | None</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/channels/453123/67765564&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.ChannelLink">ChannelLink</a> handles parsing channel links.</p>
@@ -900,10 +900,10 @@ link string.</p>
 <span class="n">link</span><span class="o">.</span><span class="n">message_id</span>  <span class="c1"># value: 56445234124</span>
 <span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_message</span><span class="p">()</span>  <span class="c1"># type: hikari.Message</span>
 <span class="n">link</span><span class="o">.</span><span class="n">get_message</span><span class="p">()</span>  <span class="c1"># type: hikari.Message | None</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># hikari.PartialChannel</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># hikari.GuildChannel | None</span>
-<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># hikari.RESTGuild | None</span>
-<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># hikari.GatewayGuild | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_channel</span><span class="p">()</span>  <span class="c1"># type: hikari.PartialChannel</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_channel</span><span class="p">()</span>  <span class="c1"># type: hikari.GuildChannel | None</span>
+<span class="k">await</span> <span class="n">link</span><span class="o">.</span><span class="n">fetch_guild</span><span class="p">()</span>  <span class="c1"># type: hikari.RESTGuild | None</span>
+<span class="n">link</span><span class="o">.</span><span class="n">get_guild</span><span class="p">()</span>  <span class="c1"># type: hikari.GatewayGuild | None</span>
 <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>  <span class="c1"># value: &quot;https://discord.com/channels/54123123321123/2134432234342/56445234124&quot;</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/links/#yuyo.links.MessageLink">MessageLink</a> handles parsing message links.</p>
