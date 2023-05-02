@@ -1,4 +1,4 @@
-# mkdocs.yml
+# mkdocs.ymle
 site_name: "Hikari-Yuyo docs"
 theme:
   name: material
