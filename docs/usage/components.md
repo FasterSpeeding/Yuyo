@@ -201,7 +201,7 @@ when registering it globally (i.e. without passing `message=`).
 
     The `as_` descriptors achieve this by generating a constant default ID from
     the path for the component's callback (which consists of the callback's
-    name and the qualname of the class and the relevant modules). This does,
+    name and the qualnames of the class and the relevant modules). This does,
     however, mean that any changes to the function's name or the name of the
     class/modules it's in will change this generated custom ID leading to it
     no-longer match any previously declared message components.
