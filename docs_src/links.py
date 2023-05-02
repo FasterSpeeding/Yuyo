@@ -36,10 +36,10 @@ async def channel_link(app: hikari.RESTAware):
     link.is_dm_link  # value: False
     link.guild_id  # value: 453123
     link.channel_id  # value: 67765564
-    await link.fetch_channel()  # hikari.PartialChannel
-    link.get_channel()  # hikari.GuildChannel | None
-    await link.fetch_guild()  # hikari.RESTGuild | None
-    link.get_guild()  # hikari.GatewayGuild | None
+    await link.fetch_channel()  # type: hikari.PartialChannel
+    link.get_channel()  # type: hikari.GuildChannel | None
+    await link.fetch_guild()  # type: hikari.RESTGuild | None
+    link.get_guild()  # type: hikari.GatewayGuild | None
     str(link)  # value: "https://discord.com/channels/453123/67765564"
 
 
@@ -73,10 +73,10 @@ async def message_link(app: hikari.RESTAware):
     link.message_id  # value: 56445234124
     await link.fetch_message()  # type: hikari.Message
     link.get_message()  # type: hikari.Message | None
-    await link.fetch_channel()  # hikari.PartialChannel
-    link.get_channel()  # hikari.GuildChannel | None
-    await link.fetch_guild()  # hikari.RESTGuild | None
-    link.get_guild()  # hikari.GatewayGuild | None
+    await link.fetch_channel()  # type: hikari.PartialChannel
+    link.get_channel()  # type: hikari.GuildChannel | None
+    await link.fetch_guild()  # type: hikari.RESTGuild | None
+    link.get_guild()  # type: hikari.GatewayGuild | None
     str(link)  # value: "https://discord.com/channels/54123123321123/2134432234342/56445234124"
 
 

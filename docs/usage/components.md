@@ -41,7 +41,7 @@ client can be accessed through Alluka style dependency injection.
 
 Message buttons have several different styles, as shown above. Most of these
 are interactive, meaning that an interaction will be sent to the bot when a
-user clicks on it. The only non-interactive style being link buttons, which
+user clicks on it. The only non-interactive style is link buttons which
 simply open the set link in a browser for the user who clicked on it.
 
 A row can have up to 5 buttons in it.
@@ -52,7 +52,7 @@ A row can have up to 5 buttons in it.
 
 Select menus let users select between 0 to 25 options (dependent on how the bot
 configured it). These selections are communicated to the bot once the user has
-finished selecting options via and interaction and there's several different
+finished selecting options via an interaction and there's several different
 resources they can be selecting:
 
 * Text menus: lets the bot pre-define up to 25 text options
@@ -176,7 +176,7 @@ resets every use).
 ```
 
 Alternatively, components can be reused by registering the component to the client
-on startup with `timeout=None` and sending the same component's rows per-exevution.
+on startup with `timeout=None` and sending the same component's rows per-execution.
 
 Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. They are split into two parts as
@@ -201,7 +201,7 @@ when registering it globally (i.e. without passing `message=`).
 
     The `as_` descriptors achieve this by generating a constant default ID from
     the path for the component's callback (which consists of the callback's
-    name and the qualname of the class and the relevant modules). This does,
+    name and the qualnames of the class and the relevant modules). This does,
     however, mean that any changes to the function's name or the name of the
     class/modules it's in will change this generated custom ID leading to it
     no-longer match any previously declared message components.
