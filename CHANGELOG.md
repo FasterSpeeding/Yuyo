@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]
+  now raises a `ValueError` if any of the custom IDs or the message ID is
+  already registered to better match `register_modal`.
+- [ComponentClient.deregister_executor][yuyo.components.ComponentClient.deregister_executor]
+  now raises a `KeyError` if the component isn't registered to better match the
+  other deregister methods.
+
 ### Removed
 - Erroneous `prefix_match` parameter from [yuyo.modals.with_text_input][] which
   should've been removed in `v1.14.0`
