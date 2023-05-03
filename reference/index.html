@@ -10559,6 +10559,27 @@ from if applicable.</p>
     </tbody>
   </table>
 
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#KeyError">KeyError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the executor isn't registered.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
   </div>
 
 </div>
@@ -10618,6 +10639,27 @@ from if applicable.</p>
           </td>
           <td class="doc-returns-details">
             <p>The component client to allow chaining.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#KeyError">KeyError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If the message is not registered.</p>
           </td>
         </tr>
     </tbody>
@@ -11212,6 +11254,29 @@ globally for its custom IDs.</p>
           </td>
           <td class="doc-returns-details">
             <p>The component client to allow chaining.</p>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr>
+        <th><b>RAISES</b></th>
+        <th><b>DESCRIPTION</b></th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+            <span class="doc-raises-annotation">
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
+            </span>
+          </td>
+          <td class="doc-raises-details">
+            <p>If <code>message</code> is already registered when it's passed.</p>
+<p>If any of the executor's custom IDs are already registered when
+<code>message</code> wasn't passed.</p>
           </td>
         </tr>
     </tbody>
@@ -14464,7 +14529,7 @@ allowing metadata to be stored after a <code>":"</code>.</p>
             </span>
           </td>
           <td class="doc-raises-details">
-            <p>If the custom_id is already registered.</p>
+            <p>If <code>custom_id</code> is already registered.</p>
 <p>If <code>":"</code> is in the custom ID.</p>
           </td>
         </tr>
