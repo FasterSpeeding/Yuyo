@@ -1541,7 +1541,6 @@ def with_text_input(
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    prefix_match: typing.Optional[bool] = None,
     parameter: typing.Optional[str] = None,
 ) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
