@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Removed
+- Erroneous `prefix_match` parameter from [yuyo.modals.with_text_input][] which
+  should've been removed in `v1.14.0`
+
 ## [1.14.0] - 2023-05-03
 ### Added
 - `authors` option to
