@@ -13,7 +13,7 @@
 import os
 
 import agraffe  # type: ignore  # TODO: add py.typed to agraffe
-import fastapi  # type: ignore
+import fastapi
 import tanjun
 
 import yuyo
