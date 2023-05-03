@@ -2168,7 +2168,7 @@ class ComponentClient:
         KeyError
             If the message is not registered.
         """
-        self._message_executors.pop(hikari.Snowflake(message))
+        del self._message_executors[hikari.Snowflake(message)]
         return self
 
 
