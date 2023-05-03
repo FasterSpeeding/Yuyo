@@ -39,4 +39,4 @@ def serverless() -> None:
 
     # ... Setup bot
 
-    entry_point = agraffe.Agraffe(bot)
+    entry_point = agraffe.entry_point(bot)
