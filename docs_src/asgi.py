@@ -13,7 +13,7 @@
 import os
 
 import agraffe  # type: ignore  # TODO: add py.typed to agraffe
-import fastapi  # type: ignore
+import fastapi
 import tanjun
 
 import yuyo
@@ -31,7 +31,7 @@ def fastapi_mount() -> None:
 
     app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
 
-    app.mount("/bot", bot)
+    app.mount("/bot", bot)  # type: ignore
 
 
 def serverless() -> None:
@@ -39,4 +39,4 @@ def serverless() -> None:
 
     # ... Setup bot
 
-    entry_point = agraffe.Agraffe(bot)
+    entry_point = agraffe.Agraffe.entry_point(bot)  # type: ignore

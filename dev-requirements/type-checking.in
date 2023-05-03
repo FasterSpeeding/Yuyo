@@ -3,4 +3,4 @@
 -r ../piped/python/base-requirements/type-checking.in
 -r ./constraints.in
 agraffe>=0.7
-# fastapi>=0.95
+fastapi>=0.95
