@@ -31,7 +31,7 @@ def fastapi_mount() -> None:
 
     app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
 
-    app.mount("/bot", bot)
+    app.mount("/bot", bot)  # type: ignore
 
 
 def serverless() -> None:
@@ -39,4 +39,4 @@ def serverless() -> None:
 
     # ... Setup bot
 
-    entry_point = agraffe.Agraffe.entry_point(bot)
+    entry_point = agraffe.Agraffe.entry_point(bot)  # type: ignore
