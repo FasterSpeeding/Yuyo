@@ -743,7 +743,7 @@ to mount this bot on a specific route within an existing FastAPI server:</p>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">fastapi</span><span class="o">.</span><span class="n">FastAPI</span><span class="p">(</span><span class="n">on_startup</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">start</span><span class="p">],</span> <span class="n">on_shutdown</span><span class="o">=</span><span class="p">[</span><span class="n">bot</span><span class="o">.</span><span class="n">close</span><span class="p">])</span>
 
-<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/bot&quot;</span><span class="p">,</span> <span class="n">bot</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 </code></pre></div>
 <p>The extra steps this example goes through to let FastAPI startup and shutdown
 the <a class="autorefs autorefs-internal" href="../../reference/asgi/#yuyo.asgi.AsgiBot">AsgiBot</a> are only necessary when mounting as a FastAPI
@@ -753,7 +753,7 @@ sub-application.</p>
 
 <span class="c1"># ... Setup bot</span>
 
-<span class="n">entry_point</span> <span class="o">=</span> <span class="n">agraffe</span><span class="o">.</span><span class="n">Agraffe</span><span class="o">.</span><span class="n">entry_point</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+<span class="n">entry_point</span> <span class="o">=</span> <span class="n">agraffe</span><span class="o">.</span><span class="n">Agraffe</span><span class="o">.</span><span class="n">entry_point</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 </code></pre></div>
 <p>Thanks to the flexibility of the ASGI standard, this can also be used with
 serverless frameworks people have implemented ASGI adapters for. The above
