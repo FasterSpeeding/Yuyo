@@ -956,6 +956,11 @@ by setting field descriptors as argument defaults for the modal's callback
 <ul>
 <li><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.text_input">text_input</a></li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you declare <code>__init__</code> on a <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> subclass
+then you must make sure to first call <code>super().__init__()</code> in it.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nd">@modals</span><span class="o">.</span><span class="n">with_static_text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Modal</span><span class="p">(</span><span class="n">modals</span><span class="o">.</span><span class="n">Modal</span><span class="p">):</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -974,8 +979,6 @@ the add (class) method.</p>
 <span class="nd">@modals</span><span class="o">.</span><span class="n">as_modal_template</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">modal_template</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">respond</span><span class="p">(</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
-
-<span class="n">modal_template</span><span class="o">.</span><span class="n">add_static_text_input</span><span class="p">(</span><span class="s2">&quot;other label&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p><a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.as_modal_template">as_modal_template</a> provides a short hand for
 creating a <a class="autorefs autorefs-internal" href="../../reference/modals/#yuyo.modals.Modal">Modal</a> subclass from a callback.</p>
@@ -1024,6 +1027,7 @@ mixed inheritance) but does not support slotting nor custom <code>__init__</code
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">modals</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">modals</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1065,11 +1069,11 @@ the parent interaction's custom ID as the modal's custom ID (as shown above).</p
 modal to the client on startup with <code>timeout=None</code> and sending the same modal's
 rows per-execution.</p>
 <p>Custom IDs have some special handling which allows you to track some metadata
-for specific modal executions. Custom IDs are split into two parts as
-<code>"{match}:{metadata}"</code> where the "match" part is what Yuyo will use to find the
-executor for a modal call and the "metadata"
+for specific modal executions. They are split into two parts as
+<code>"{match}:{metadata}"</code>, where the "match" part is what Yuyo will use to find
+the executor for a modal call and the "metadata"
 (<a class="autorefs autorefs-internal" href="../../reference/components/#yuyo.components.BaseContext.id_metadata">ModalContext.id_metadata</a>) part
-represents any developer added metadata for the modal.</p>
+represents any developer added metadata for that instance of the modal.</p>
 <p>If should be noted that Custom IDs can never be longer than 100 characters in
 total length.</p>
 <h3 id="responding-to-modals">Responding to Modals<a class="headerlink" href="#responding-to-modals" title="Permanent link">#</a></h3>
