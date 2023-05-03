@@ -101,6 +101,9 @@ aiosignal==1.3.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
 alluka==0.1.3 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:5bc3f13b74b4706a99f1eaee0dd64f709aac1a67a88999b86f2eca6a2adf1c8a \
     --hash=sha256:c2d67315764f72d7789256676fa81fda093c10fbe4137e66ff4f9dab631f408e
+anyio==3.6.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:25ea0d673ae30af41a0c442f81cf3b38c7e79fdc7b60335a4c14e05eb0947421 \
+    --hash=sha256:fbbe32bd270d2a2ef3ed1c5d45041250284e31fc0a4df4a5a6071842051a51e3
 argcomplete==3.0.8 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:b9ca96448e14fa459d7450a4ab5a22bbf9cee4ba7adddf03e65c398b5daeea28 \
     --hash=sha256:e36fd646839933cbec7941c662ecb65338248667358dd3d968405a4506a60d9b
@@ -321,6 +324,9 @@ exceptiongroup==1.1.1 ; python_full_version >= "3.9.0" and python_version < "3.1
 execnet==1.9.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5 \
     --hash=sha256:a295f7cc774947aac58dde7fdc85f4aa00c42adf5d8f5468fc630c1acf30a142
+fastapi==0.95.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:9569f0a381f8a457ec479d90fa01005cfddaae07546eb1f3fa035bc4797ae7d5 \
+    --hash=sha256:a870d443e5405982e1667dfe372663abf10754f246866056336d7f01c21dab07
 filelock==3.12.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:ad98852315c2ab702aeb628412cbf7e95b7ce8c3bf9565670b4eaecf1db370a9 \
     --hash=sha256:fc03ae43288c013d2ea83c8597001b1129db351aad9c57fe2409327916b8e718
@@ -675,6 +681,12 @@ setuptools==67.7.2 ; python_full_version >= "3.9.0" and python_version < "3.12" 
 six==1.16.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
+sniffio==1.3.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101 \
+    --hash=sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384
+starlette==0.26.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:41da799057ea8620e4667a3e69a5b1923ebd32b1819c8fa75634bbe8d8bea9bd \
+    --hash=sha256:e87fce5d7cbdde34b76f0ac69013fd9d190d581d80681493016666e6f96c6d5e
 termcolor==2.3.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:3afb05607b89aed0ffe25202399ee0867ad4d3cb4180d98aaf8eefa6a5f7d475 \
     --hash=sha256:b5b08f68937f138fe92f6c089b99f1e2da0ae56c52b78bf7075fd95420fd9a5a
