@@ -680,7 +680,7 @@ class ModalClient:
         Raises
         ------
         ValueError
-            If the custom_id is already registered.
+            If `custom_id` is already registered.
 
             If `":"` is in the custom ID.
         """

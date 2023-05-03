@@ -2067,6 +2067,14 @@ class ComponentClient:
         -------
         Self
             The component client to allow chaining.
+
+        Raises
+        ------
+        ValueError
+            If `message` is already registered when it's passed.
+
+            If any of the executor's custom IDs are already registered when
+            `message` wasn't passed.
         """
         if timeout is _internal.NO_DEFAULT:
             timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=-1)
@@ -2077,9 +2085,17 @@ class ComponentClient:
         entry = (timeout, executor)
 
         if message:
-            self._message_executors[hikari.Snowflake(message)] = entry
+            message = hikari.Snowflake(message)
+
+            if message in self._message_executors:
+                raise ValueError("Message already registered")
+
+            self._message_executors[message] = entry
 
         else:
+            if already_registered := self._executors.keys() & executor.custom_ids:
+                raise ValueError("The following custom IDs are already registered:", ", ".join(already_registered))
+
             for custom_id in executor.custom_ids:
                 self._executors[custom_id] = entry
 
@@ -2117,10 +2133,20 @@ class ComponentClient:
         -------
         Self
             The component client to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If the executor isn't registered.
         """
+        registered = False
         for custom_id in executor.custom_ids:
             if (entry := self._executors.get(custom_id)) and entry[1] == executor:
+                registered = True
                 del self._executors[custom_id]
+
+        if not registered:
+            raise KeyError("Executor isn't registered")
 
         return self
 
@@ -2136,8 +2162,13 @@ class ComponentClient:
         -------
         Self
             The component client to allow chaining.
+
+        Raises
+        ------
+        KeyError
+            If the message is not registered.
         """
-        self._message_executors.pop(hikari.Snowflake(message))
+        del self._message_executors[hikari.Snowflake(message)]
         return self
 
 
