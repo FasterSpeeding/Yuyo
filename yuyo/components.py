@@ -7,7 +7,7 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-# * Redistributions of source code must retain the above copyright notice, this
+# * Redistributions of source code must retain the above copyright notfice, this
 #   list of conditions and the following disclaimer.
 #
 # * Redistributions in binary form must reproduce the above copyright notice,
@@ -1576,7 +1576,8 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         defer_type
             The type of deferral this should be.
 
-            This may any of the following
+            This may any of the following:
+
             * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
                 to indicate that the following up call to
                 [yuyo.components.BaseContext.edit_initial_response][]
