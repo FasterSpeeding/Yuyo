@@ -5375,7 +5375,7 @@ class ComponentPaginator(ActionColumnExecutor):
         r"""Add the jump to first entry button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5420,7 +5420,7 @@ class ComponentPaginator(ActionColumnExecutor):
         r"""Add the previous entry button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5469,7 +5469,7 @@ class ComponentPaginator(ActionColumnExecutor):
         r"""Add the stop button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5518,7 +5518,7 @@ class ComponentPaginator(ActionColumnExecutor):
         r"""Add the next entry button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5569,7 +5569,7 @@ class ComponentPaginator(ActionColumnExecutor):
         r"""Add the jump to last entry button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.components.ComponentPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ComponentPaginator.\_\_init\_\_][yuyo.components.ComponentPaginator.__init__]
         before calling this.
 
         !!! note

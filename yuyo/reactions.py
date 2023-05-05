@@ -357,7 +357,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the jump to first entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -385,7 +385,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the previous entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -413,7 +413,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the stop reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -441,7 +441,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the next entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -472,7 +472,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the jump to last entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
