@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- The fields for a [ModalOptions][yuyo.modals.ModalOptions] are now correctly
+  tracked when added to a [Modal][yuyo.modals.Modal] instance and are
+  no-longer erroneously tracked as static fields for `type(modal)`.
+
 ## [1.14.1] - 2023-05-03
 ### Changed
 - [ComponentClient.register_executor][yuyo.components.ComponentClient.register_executor]

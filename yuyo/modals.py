@@ -1032,7 +1032,7 @@ class Modal(AbstractModal):
                 descriptor.add(name, self)
                 fields.append(descriptor.to_tracked_field(name))
 
-            self._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
+            self._tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
             for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
