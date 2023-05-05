@@ -8462,17 +8462,15 @@ deferral is ephemeral.</p>
         <b>defer_type</b>
             (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.DeferredResponseTypesT">DeferredResponseTypesT</span></code>)
         – <p>The type of deferral this should be.</p>
-<p>This may any of the following:</p>
-<ul>
-<li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE">ResponseType.DEFERRED_MESSAGE_CREATE</a>
+<p>This may any of the following
+* <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE">ResponseType.DEFERRED_MESSAGE_CREATE</a>
 to indicate that the following up call to
 <a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.edit_initial_response">yuyo.components.BaseContext.edit_initial_response</a>
 or <a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.respond">yuyo.components.BaseContext.respond</a> should create
-a new message.</li>
-<li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE">ResponseType.DEFERRED_MESSAGE_UPDATE</a>
+a new message.
+* <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE">ResponseType.DEFERRED_MESSAGE_UPDATE</a>
 to indicate that the following call to the aforementioned
-methods should update the existing message.</li>
-</ul>
+methods should update the existing message.</p>
       </li>
       <li class="field-body">
         <b>ephemeral</b>
