@@ -624,7 +624,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, the message flags this response should have.
 
             As of writing the only message flag which can be set here is
-            [hikari.MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
+            [MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
         tts
             If provided, whether the message will be read out by a screen
             reader using Discord's TTS (text-to-speech) system.
@@ -1395,7 +1395,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             If provided, the message flags this response should have.
 
             As of writing the only message flag which can be set here is
-            [hikari.MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
+            [MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
         tts
             If provided, whether the message will be read out by a screen
             reader using Discord's TTS (text-to-speech) system.
