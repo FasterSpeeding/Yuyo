@@ -430,10 +430,10 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Raises
         ------
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the current interaction is not found or it hasn't had an initial
             response yet.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This can be raised if the file is too large; if the embed exceeds
             the defined limits; if the message content is specified only and
             empty or greater than `2000` characters; if neither content, file
@@ -658,20 +658,20 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; invalid image URLs in embeds.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the interaction is not found or if the interaction's initial
             response has already been created.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
 
@@ -680,7 +680,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Raises
         ------
-        LookupError, hikari.NotFoundError
+        LookupError, hikari.errors.NotFoundError
             The last context has no initial response.
         """
         await self._interaction.delete_initial_response()
@@ -693,7 +693,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Raises
         ------
-        LookupError, hikari.NotFoundError
+        LookupError, hikari.errors.NotFoundError
             The last context has no responses.
         """
         if self._last_response_id is None:
@@ -799,23 +799,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no attachments or embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; too many attachments; attachments that are too large;
             invalid image URLs in embeds; too many components.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.ForbiddenError
+        hikari.errors.ForbiddenError
             If you are missing the `SEND_MESSAGES` in the channel or the
             person you are trying to message has the DM's disabled.
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the channel is not found.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
@@ -930,23 +930,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no attachments or embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; too many attachments; attachments that are too large;
             invalid image URLs in embeds; too many components.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.ForbiddenError
+        hikari.errors.ForbiddenError
             If you are missing the `SEND_MESSAGES` in the channel or the
             person you are trying to message has the DM's disabled.
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the channel is not found.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         if self._last_response_id:
@@ -996,7 +996,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Raises
         ------
-        LookupError, hikari.NotFoundError
+        LookupError, hikari.errors.NotFoundError
             The response was not found.
         """
         return await self._interaction.fetch_initial_response()
@@ -1011,7 +1011,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Raises
         ------
-        LookupError, hikari.NotFoundError
+        LookupError, hikari.errors.NotFoundError
             The response was not found.
         """
         if self._last_response_id is not None:
@@ -1168,23 +1168,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no attachments or embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; too many attachments; attachments that are too large;
             invalid image URLs in embeds; too many components.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.ForbiddenError
+        hikari.errors.ForbiddenError
             If you are missing the `SEND_MESSAGES` in the channel or the
             person you are trying to message has the DM's disabled.
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the channel is not found.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         async with self._response_lock:
@@ -1429,20 +1429,20 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; invalid image URLs in embeds.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the interaction is not found or if the interaction's initial
             response has already been created.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         if ephemeral:
@@ -1499,17 +1499,17 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         ------
         ValueError
             If both `component` and `components` are specified or if none are specified.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             When the requests' data is outside Discord's accept ranges/validation.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the interaction is not found or if the interaction's initial
             response has already been created or deferred.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         async with self._response_lock:

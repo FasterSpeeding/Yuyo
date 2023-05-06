@@ -236,20 +236,20 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; invalid image URLs in embeds.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the interaction is not found or if the interaction's initial
             response has already been created.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         if ephemeral:
