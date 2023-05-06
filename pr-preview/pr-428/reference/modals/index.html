@@ -3115,9 +3115,10 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Calling this on a context which already has an initial response
-will result in this raising a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.errors.NotFoundError</a>.
-This includes if the REST interaction server has already responded
-to the request and deferrals.</p>
+will result in this raising a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.NotFoundError</a>. This includes
+if the REST interaction server has already responded to the request
+and deferrals.</p>
 </div>
 
   <table>
@@ -3131,17 +3132,13 @@ to the request and deferrals.</p>
         <tr>
           <td><code>content</code></td>
           <td class="doc-param-details">
-            <p>The content to edit the last response with.</p>
-<p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.files.Resource</a>, then the
-content is instead treated as an attachment if no <code>attachment</code> and
-no <code>attachments</code> kwargs are provided.</p>
+            <p>If provided, the message content to respond with.</p>
+<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.Embed</a> and no <code>embed</code> nor
+<code>embeds</code> kwarg is provided, then this will instead be treated as an
+embed. This allows for simpler syntax when sending an embed alone.</p>
+<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.Resource</a>,
+then the content is instead treated as an attachment if no
+<code>attachment</code> and no <code>attachments</code> kwargs are provided.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3186,28 +3183,6 @@ passed flags.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>content</code></td>
-          <td class="doc-param-details">
-            <p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<code>str</code>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>hikari.UNDEFINED</code>
                 </span>
             </p>
           </td>
@@ -3316,7 +3291,7 @@ in this message.</p>
           <td class="doc-param-details">
             <p>If provided, the message flags this response should have.</p>
 <p>As of writing the only message flag which can be set here is
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.messages.MessageFlag.EPHEMERAL</a>.</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.MessageFlag.EPHEMERAL</a>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -3366,11 +3341,11 @@ mentions.</p>
         <tr>
           <td><code>user_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all user mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all user mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.users.PartialUser</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.PartialUser</a>
 derivatives to enforce mentioning specific users.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -3387,11 +3362,11 @@ derivatives to enforce mentioning specific users.</p>
         <tr>
           <td><code>role_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all role mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all role mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-[hikari.snowflakes.Snowflake], or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
             <p>
                 <span class="doc-param-annotation">

@@ -7627,7 +7627,7 @@ interactions. Anything after <code>":"</code> is metadata.</p>
           <td><code>options</code></td>
           <td class="doc-param-details">
             <p>The text select's options.</p>
-<p>These can also be added using <a class="autorefs autorefs-internal" href="components/#yuyo.components.with_option">yuyo.components.with_option</a>.</p>
+<p>These can also be added using <a class="autorefs autorefs-internal" href="components/#yuyo.components.with_option">components.with_option</a>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -8582,8 +8582,8 @@ this can be undefined.</p>
 is passed for <code>token</code>, can be <code>"Bot"</code> or <code>"Bearer"</code> and will be
 defaulted to <code>"Bot"</code> in this situation.</p>
 <p>This should be left as <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> when either
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/rest/#hikari.api.rest.TokenStrategy">hikari.api.rest.TokenStrategy</a> or <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed for
-<code>token</code>.</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/rest/#hikari.api.rest.TokenStrategy">hikari.api.TokenStrategy</a> or
+<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a> is passed for <code>token</code>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -9206,7 +9206,8 @@ If the client is ASGI managed.</p>
 <p>This class acts as an asynchronous iterator and can be iterated over to
 provide implicit backoff where for every iteration other than the first
 this will either back off for the time passed to
-<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.set_next_backoff">yuyo.backoff.Backoff.set_next_backoff</a> if applicable or a time calculated exponentially.</p>
+<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.set_next_backoff">Backoff.set_next_backoff</a> if
+applicable or a time calculated exponentially.</p>
 <p>Each iteration yields the current retry count (starting at 0).</p>
 
 <p><strong>Examples:</strong></p>
@@ -9232,8 +9233,9 @@ the following</p>
         <span class="c1"># Alternatively `Backoff.finish()` can be called to break out of the loop.</span>
         <span class="k">break</span>
 </code></pre></div>
-<p>Alternatively you may want to explicitly call <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a>, a
-alternative of the previous example which uses <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a>
+<p>Alternatively you may want to explicitly call
+<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">Backoff.backoff</a>, a alternative of the
+previous example which uses <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">Backoff.backoff</a>
 may look like the following</p>
 <div class="highlight"><pre><span></span><code><span class="n">backoff</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
 <span class="n">resource</span> <span class="o">=</span> <span class="kc">None</span>
@@ -9285,7 +9287,8 @@ may look like the following</p>
   
       <p>Whether "max_retries" has been reached.</p>
 <p>This can be used to workout whether the loop was explicitly broken out
-of using <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.finish">yuyo.backoff.Backoff.finish</a>/<code>break</code> or if it hit "max_retries".</p>
+of using <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.finish">Backoff.finish</a>/<code>break</code> or if it
+hit "max_retries".</p>
   </div>
 
 </div>
@@ -9532,7 +9535,7 @@ been marked as finished or has reached the max retries.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Specify a backoff time for the next iteration or <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a> call.</p>
+      <p>Specify a backoff time for the next iteration or <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff.backoff">Backoff.backoff</a> call.</p>
 <p>If this is called then the exponent won't be increased for this iteration.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -9914,7 +9917,8 @@ ensures a request will be tracked as this only tracks chunk requests with a set 
   <div class="doc doc-contents ">
   
       <p>Initialise a chunk tracker.</p>
-<p>For a shorthand for initialising this from a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#hikari.traits.GatewayBotAware">hikari.traits.GatewayBotAware</a>
+<p>For a shorthand for initialising this from a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#hikari.traits.GatewayBotAware">hikari.GatewayBotAware</a>
 see <a class="autorefs autorefs-internal" href="chunk_tracker/#yuyo.chunk_tracker.ChunkTracker.from_gateway_bot">ChunkTracker.from_gateway_bot</a>.</p>
 
   <table>
@@ -10214,8 +10218,8 @@ request the full list of members without <code>GUILD_PRESENCES</code>.</p>
   
       <p>Configure whether this should request member chunks in response to GUILD_CREATE.</p>
 <p>This may be useful for filling 3rd party caches but may conflict with
-the <code>auto_chunk_members</code> config of <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.impl.gateway_bot.GatewayBot</a>
-if it's enabled.</p>
+the <code>auto_chunk_members</code> config of
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.impl.GatewayBot</a> if it's enabled.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This will be ignored if <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/intents/#hikari.intents.Intents.GUILD_MEMBERS">Intents.GUILD_MEMBERS</a>
@@ -11491,9 +11495,10 @@ has the full member objects.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Calling this on a context which already has an initial response
-will result in this raising a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.errors.NotFoundError</a>.
-This includes if the REST interaction server has already responded
-to the request and deferrals.</p>
+will result in this raising a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.NotFoundError</a>. This includes
+if the REST interaction server has already responded to the request
+and deferrals.</p>
 </div>
 
   <table>
@@ -11507,17 +11512,13 @@ to the request and deferrals.</p>
         <tr>
           <td><code>content</code></td>
           <td class="doc-param-details">
-            <p>The content to edit the last response with.</p>
-<p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.files.Resource</a>, then the
-content is instead treated as an attachment if no <code>attachment</code> and
-no <code>attachments</code> kwargs are provided.</p>
+            <p>If provided, the message content to respond with.</p>
+<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.Embed</a> and no <code>embed</code> nor
+<code>embeds</code> kwarg is provided, then this will instead be treated as an
+embed. This allows for simpler syntax when sending an embed alone.</p>
+<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.Resource</a>,
+then the content is instead treated as an attachment if no
+<code>attachment</code> and no <code>attachments</code> kwargs are provided.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -11578,28 +11579,6 @@ passed flags.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>content</code></td>
-          <td class="doc-param-details">
-            <p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<code>str</code>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>hikari.UNDEFINED</code>
                 </span>
             </p>
           </td>
@@ -11708,7 +11687,7 @@ in this message.</p>
           <td class="doc-param-details">
             <p>If provided, the message flags this response should have.</p>
 <p>As of writing the only message flag which can be set here is
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.messages.MessageFlag.EPHEMERAL</a>.</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.MessageFlag.EPHEMERAL</a>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -11758,11 +11737,11 @@ mentions.</p>
         <tr>
           <td><code>user_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all user mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all user mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.users.PartialUser</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.PartialUser</a>
 derivatives to enforce mentioning specific users.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -11779,11 +11758,11 @@ derivatives to enforce mentioning specific users.</p>
         <tr>
           <td><code>role_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all role mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all role mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-[hikari.snowflakes.Snowflake], or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -12096,9 +12075,9 @@ deferral is ephemeral.</p>
 <ul>
 <li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE">ResponseType.DEFERRED_MESSAGE_CREATE</a>
 to indicate that the following up call to
-<a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.edit_initial_response">yuyo.components.BaseContext.edit_initial_response</a>
-or <a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.respond">yuyo.components.BaseContext.respond</a> should create
-a new message.</li>
+<a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.edit_initial_response">BaseContext.edit_initial_response</a>
+or <a class="autorefs autorefs-internal" href="components/#yuyo.components.BaseContext.respond">BaseContext.respond</a>
+should create a new message.</li>
 <li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/interactions/base_interactions/#hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE">ResponseType.DEFERRED_MESSAGE_UPDATE</a>
 to indicate that the following call to the aforementioned
 methods should update the existing message.</li>
@@ -13368,12 +13347,13 @@ and will still internally store the entry and increment the position of the pagi
   <div class="doc doc-contents ">
 
   
-      <p>A context manager provided to allow for more concise error handling with <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff">yuyo.backoff.Backoff</a>.</p>
+      <p>A context manager provided to allow for more concise error handling with <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff">Backoff</a>.</p>
 
 <p><strong>Examples:</strong></p>
-    <p>The following is an example of using <a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.ErrorManager">yuyo.backoff.ErrorManager</a> alongside
-<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff">yuyo.backoff.Backoff</a> in-order to handle the exceptions which may be raised
-while trying to reply to a message.</p>
+    <p>The following is an example of using
+<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.ErrorManager">ErrorManager</a> alongside
+<a class="autorefs autorefs-internal" href="backoff/#yuyo.backoff.Backoff">Backoff</a> in-order to handle the exceptions which may
+be raised while trying to reply to a message.</p>
 <div class="highlight"><pre><span></span><code><span class="n">retry</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
 <span class="c1"># Rules can either be passed to `ErrorManager`&#39;s initiate as variable arguments</span>
 <span class="c1"># or one at a time to `ErrorManager.with_rule` through possibly chained-calls.</span>
@@ -14650,9 +14630,10 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Calling this on a context which already has an initial response
-will result in this raising a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.errors.NotFoundError</a>.
-This includes if the REST interaction server has already responded
-to the request and deferrals.</p>
+will result in this raising a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.NotFoundError</a>. This includes
+if the REST interaction server has already responded to the request
+and deferrals.</p>
 </div>
 
   <table>
@@ -14666,17 +14647,13 @@ to the request and deferrals.</p>
         <tr>
           <td><code>content</code></td>
           <td class="doc-param-details">
-            <p>The content to edit the last response with.</p>
-<p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.files.Resource</a>, then the
-content is instead treated as an attachment if no <code>attachment</code> and
-no <code>attachments</code> kwargs are provided.</p>
+            <p>If provided, the message content to respond with.</p>
+<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.Embed</a> and no <code>embed</code> nor
+<code>embeds</code> kwarg is provided, then this will instead be treated as an
+embed. This allows for simpler syntax when sending an embed alone.</p>
+<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.Resource</a>,
+then the content is instead treated as an attachment if no
+<code>attachment</code> and no <code>attachments</code> kwargs are provided.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -14721,28 +14698,6 @@ passed flags.</p>
                 <span class="doc-param-default">
                   <b>DEFAULT:</b> 
                     <code>False</code>
-                </span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td><code>content</code></td>
-          <td class="doc-param-details">
-            <p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<code>str</code>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>]</code>
-                </span>
-                <span class="doc-param-default">
-                  <b>DEFAULT:</b> 
-                    <code>hikari.UNDEFINED</code>
                 </span>
             </p>
           </td>
@@ -14851,7 +14806,7 @@ in this message.</p>
           <td class="doc-param-details">
             <p>If provided, the message flags this response should have.</p>
 <p>As of writing the only message flag which can be set here is
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.messages.MessageFlag.EPHEMERAL</a>.</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.MessageFlag.EPHEMERAL</a>.</p>
             <p>
                 <span class="doc-param-annotation">
                   <b>TYPE:</b>
@@ -14901,11 +14856,11 @@ mentions.</p>
         <tr>
           <td><code>user_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all user mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all user mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.users.PartialUser</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.PartialUser</a>
 derivatives to enforce mentioning specific users.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -14922,11 +14877,11 @@ derivatives to enforce mentioning specific users.</p>
         <tr>
           <td><code>role_mentions</code></td>
           <td class="doc-param-details">
-            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all role mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all role mentions will be ignored
-if appearing in the message body.</p>
+            <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-[hikari.snowflakes.Snowflake], or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
             <p>
                 <span class="doc-param-annotation">
@@ -15536,7 +15491,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Get a reference to a handler registered in this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">AbstractReactionHandler.close</a>.</p>
 </div>
 
   <table>
@@ -15628,7 +15583,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Remove a handler from this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.close">AbstractReactionHandler.close</a>.</p>
 </div>
 
   <table>
@@ -15696,7 +15651,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Add a reaction handler to this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.open">yuyo.reactions.AbstractReactionHandler.open</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="reactions/#yuyo.reactions.AbstractReactionHandler.open">AbstractReactionHandler.open</a>.</p>
 </div>
 
   <table>
