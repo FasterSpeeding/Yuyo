@@ -89,9 +89,9 @@ class Backoff:
     ```
 
     Alternatively you may want to explicitly call
-    [Backoff.backoff][yuyo.backoff.Backoff.backoff], a alternative of the
-    previous example which uses [Backoff.backoff][yuyo.backoff.Backoff.backoff]
-    may look like the following
+    [Backoff.backoff][yuyo.backoff.Backoff.backoff]. An alternative
+    implementation of the previous example which uses
+    [Backoff.backoff][yuyo.backoff.Backoff.backoff] may look like the following:
 
     ```py
     backoff = Backoff()
