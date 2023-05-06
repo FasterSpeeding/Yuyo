@@ -336,12 +336,12 @@ class Page:
 
     @classmethod
     def from_entry(cls, entry: EntryT, /) -> Page:
-        """Create a Page from a [yuyo.pagination.EntryT][].
+        """Create a Page from a [EntryT][yuyo.pagination.EntryT].
 
         Parameters
         ----------
         entry
-            The [yuyo.pagination.EntryT][] to make a page from.
+            The [EntryT][yuyo.pagination.EntryT] to make a page from.
 
         Returns
         -------

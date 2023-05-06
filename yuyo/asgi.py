@@ -551,8 +551,8 @@ class AsgiBot(hikari.RESTBotAware):
             defaulted to `"Bot"` in this situation.
 
             This should be left as [None][] when either
-            [hikari.api.rest.TokenStrategy][] or [None][] is passed for
-            `token`.
+            [hikari.api.TokenStrategy][hikari.api.rest.TokenStrategy] or
+            [None][] is passed for `token`.
         asgi_managed
             Whether this bot's internal components should be automatically
             started and stopped based on the Asgi lifespan events.

@@ -162,7 +162,7 @@ def _as_strategy(strategy: type[_LoadableStrategyT], /) -> type[_LoadableStrateg
 
 @_as_strategy
 class CacheStrategy(_LoadableStrategy):
-    """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
+    """Cache based implementation of [AbstractCountStrategy][yuyo.list_status.AbstractCountStrategy].
 
     This tracks per-shard guild counts.
 
@@ -213,7 +213,7 @@ class CacheStrategy(_LoadableStrategy):
 
 
 class SakeStrategy(AbstractCountStrategy):
-    """Async cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
+    """Async cache based implementation of [AbstractCountStrategy][yuyo.list_status.AbstractCountStrategy].
 
     This relies on [Sake][sake] and tracks the global guild count.
     """
@@ -257,7 +257,7 @@ class SakeStrategy(AbstractCountStrategy):
 
 @_as_strategy
 class EventStrategy(_LoadableStrategy):
-    """Cache based implementation of [yuyo.list_status.AbstractCountStrategy][].
+    """Cache based implementation of [AbstractCountStrategy][yuyo.list_status.AbstractCountStrategy].
 
     This tracks per-guild counts.
 
@@ -272,8 +272,8 @@ class EventStrategy(_LoadableStrategy):
 
         !!! note
             You usually won't need to initialise this yourself as
-            [yuyo.list_status.ServiceManager][] will automatically pick this
-            strategy if the bot config matches it.
+            [ServiceManager][yuyo.list_status.ServiceManager] will
+            automatically pick this strategy if the bot config matches it.
 
         Parameters
         ----------

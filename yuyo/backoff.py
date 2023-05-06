@@ -56,7 +56,8 @@ class Backoff:
     This class acts as an asynchronous iterator and can be iterated over to
     provide implicit backoff where for every iteration other than the first
     this will either back off for the time passed to
-    [yuyo.backoff.Backoff.set_next_backoff][] if applicable or a time calculated exponentially.
+    [Backoff.set_next_backoff][yuyo.backoff.Backoff.set_next_backoff] if
+    applicable or a time calculated exponentially.
 
     Each iteration yields the current retry count (starting at 0).
 
@@ -87,8 +88,9 @@ class Backoff:
             break
     ```
 
-    Alternatively you may want to explicitly call [yuyo.backoff.Backoff.backoff][], a
-    alternative of the previous example which uses [yuyo.backoff.Backoff.backoff][]
+    Alternatively you may want to explicitly call
+    [Backoff.backoff][yuyo.backoff.Backoff.backoff], a alternative of the
+    previous example which uses [Backoff.backoff][yuyo.backoff.Backoff.backoff]
     may look like the following
 
     ```py
@@ -182,7 +184,8 @@ class Backoff:
         """Whether "max_retries" has been reached.
 
         This can be used to workout whether the loop was explicitly broken out
-        of using [yuyo.backoff.Backoff.finish][]/`break` or if it hit "max_retries".
+        of using [Backoff.finish][yuyo.backoff.Backoff.finish]/`break` or if it
+        hit "max_retries".
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
@@ -226,7 +229,7 @@ class Backoff:
         self._started = False
 
     def set_next_backoff(self, backoff_: typing.Union[float, int, None], /) -> None:
-        """Specify a backoff time for the next iteration or [yuyo.backoff.Backoff.backoff][] call.
+        """Specify a backoff time for the next iteration or [Backoff.backoff][yuyo.backoff.Backoff.backoff] call.
 
         If this is called then the exponent won't be increased for this iteration.
 
@@ -246,13 +249,14 @@ class Backoff:
 
 
 class ErrorManager:
-    """A context manager provided to allow for more concise error handling with [yuyo.backoff.Backoff][].
+    """A context manager provided to allow for more concise error handling with [Backoff][yuyo.backoff.Backoff].
 
     Examples
     --------
-    The following is an example of using [yuyo.backoff.ErrorManager][] alongside
-    [yuyo.backoff.Backoff][] in-order to handle the exceptions which may be raised
-    while trying to reply to a message.
+    The following is an example of using
+    [ErrorManager][yuyo.backoff.ErrorManager] alongside
+    [Backoff][yuyo.backoff.Backoff] in-order to handle the exceptions which may
+    be raised while trying to reply to a message.
 
     ```py
     retry = Backoff()

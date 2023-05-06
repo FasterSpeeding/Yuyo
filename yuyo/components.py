@@ -187,7 +187,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         """When this application command context expires.
 
         After this time is reached, the message/response methods on this
-        context will always raise [hikari.errors.NotFoundError][].
+        context will always raise
+        [hikari.NotFoundError][hikari.errors.NotFoundError].
         """
         return self._interaction.created_at + _INTERACTION_LIFETIME
 
@@ -195,7 +196,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     def has_been_deferred(self) -> bool:
         """Whether this context's initial response has been deferred.
 
-        This will be true if [yuyo.components.BaseContext.defer][] has been called.
+        This will be true if [BaseContext.defer][yuyo.components.BaseContext.defer]
+        has been called.
         """
         return self._has_been_deferred
 
@@ -207,9 +209,10 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         deferred within 3 seconds from it being received otherwise it'll be
         marked as failed.
 
-        This will be true if either [yuyo.components.BaseContext.respond][],
-        [yuyo.components.BaseContext.create_initial_response][] or
-        [yuyo.components.BaseContext.edit_initial_response][]
+        This will be true if either
+        [BaseContext.respond][yuyo.components.BaseContext.respond],
+        [BaseContext.create_initial_response][yuyo.components.BaseContext.create_initial_response]
+        or [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
         (after a deferral) has been called.
         """
         return self._has_responded
@@ -354,23 +357,21 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         !!! warning
             Calling this on a context which hasn't had an initial response yet
-            will lead to a [hikari.errors.NotFoundError][] being raised.
+            will lead to a [hikari.NotFoundError][hikari.errors.NotFoundError]
+            being raised.
 
         Parameters
         ----------
         content
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If provided, the message content to send.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` kwarg is
-            provided, then this will instead update the embed. This allows for
-            simpler syntax when sending an embed alone.
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
 
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -403,14 +404,16 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
         tts
             If provided, whether the message will be sent as a TTS message.
@@ -575,27 +578,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         !!! warning
             Calling this on a context which already has an initial response
-            will result in this raising a [hikari.errors.NotFoundError][].
-            This includes if the REST interaction server has already responded
-            to the request and deferrals.
+            will result in this raising a
+            [hikari.NotFoundError][hikari.errors.NotFoundError]. This includes
+            if the REST interaction server has already responded to the request
+            and deferrals.
 
         Parameters
         ----------
         content
-            The content to edit the last response with.
+            If provided, the message content to respond with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -606,15 +605,6 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             Passing [True][] here is a shorthand for including `1 << 64` in the
             passed flags.
-        content
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            `str`.
-
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -634,7 +624,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, the message flags this response should have.
 
             As of writing the only message flag which can be set here is
-            [hikari.messages.MessageFlag.EPHEMERAL][].
+            [hikari.MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
         tts
             If provided, whether the message will be read out by a screen
             reader using Discord's TTS (text-to-speech) system.
@@ -642,20 +632,20 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, whether the message should parse @everyone/@here
             mentions.
         user_mentions
-            If provided, and [True][], all user mentions will be detected.
-            If provided, and [False][], all user mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
-            If provided, and [True][], all role mentions will be detected.
-            If provided, and [False][], all role mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Raises
@@ -742,20 +732,15 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         Parameters
         ----------
         content
-            The content to edit the initial response with.
+            If provided, the message content to edit the initial response with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead update the embed.
+            This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -784,14 +769,18 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         user_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
+
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
+
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Returns
@@ -874,20 +863,15 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         Parameters
         ----------
         content
-            The content to edit the last response with.
+            If provided, the content to edit the last response with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead update the embed.
+            This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -918,14 +902,16 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Returns
@@ -1107,25 +1093,21 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         Parameters
         ----------
         content
-            The content to respond with.
+            If provided, the message content to respond with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         ensure_result
             Ensure that this call will always return a message object.
 
-            If [True][] then this will always return [hikari.messages.Message][],
-            otherwise this will return `hikari.Message | None`.
+            If [True][] then this will always return
+            [hikari.Message][hikari.messages.Message], otherwise this will
+            return `hikari.Message | None`.
 
             It's worth noting that, under certain scenarios within the slash
             command flow, this may lead to an extre request being made.
@@ -1157,14 +1139,16 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
             If provided, and [True][], all mentions will be parsed.
             If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Returns
@@ -1363,27 +1347,23 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
         !!! warning
             Calling this on a context which already has an initial response
-            will result in this raising a [hikari.errors.NotFoundError][].
-            This includes if the REST interaction server has already responded
-            to the request and deferrals.
+            will result in this raising a
+            [hikari.NotFoundError][hikari.errors.NotFoundError]. This includes
+            if the REST interaction server has already responded to the request
+            and deferrals.
 
         Parameters
         ----------
         content
-            The content to edit the last response with.
+            If provided, the message content to respond with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         response_type
             The type of message response to give.
         delete_after
@@ -1396,15 +1376,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
             Passing [True][] here is a shorthand for including `1 << 64` in the
             passed flags.
-        content
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            `str`.
-
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -1424,7 +1395,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             If provided, the message flags this response should have.
 
             As of writing the only message flag which can be set here is
-            [hikari.messages.MessageFlag.EPHEMERAL][].
+            [hikari.MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
         tts
             If provided, whether the message will be read out by a screen
             reader using Discord's TTS (text-to-speech) system.
@@ -1432,20 +1403,20 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
             If provided, whether the message should parse @everyone/@here
             mentions.
         user_mentions
-            If provided, and [True][], all user mentions will be detected.
-            If provided, and [False][], all user mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
-            If provided, and [True][], all role mentions will be detected.
-            If provided, and [False][], all role mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Raises
@@ -1580,9 +1551,9 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
             * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
                 to indicate that the following up call to
-                [yuyo.components.BaseContext.edit_initial_response][]
-                or [yuyo.components.BaseContext.respond][] should create
-                a new message.
+                [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+                or [BaseContext.respond][yuyo.components.BaseContext.respond]
+                should create a new message.
             * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
                 to indicate that the following call to the aforementioned
                 methods should update the existing message.
@@ -2463,7 +2434,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
 
 WaitFor = WaitForExecutor
-"""Alias of [yuyo.components.WaitForExecutor][]."""
+"""Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
 
 
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
@@ -3268,7 +3239,7 @@ def as_text_menu(
     options
         The text select's options.
 
-        These can also be added by using [yuyo.components.with_option][].
+        These can also be added by using [components.with_option][yuyo.components.with_option].
     placeholder
         Placeholder text to show when no entries have been selected.
     min_values
@@ -5018,7 +4989,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         options
             The text select's options.
 
-            These can also be added using [yuyo.components.with_option][].
+            These can also be added using [components.with_option][yuyo.components.with_option].
         placeholder
             Placeholder text to show when no entries have been selected.
         min_values

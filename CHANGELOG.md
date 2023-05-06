@@ -612,7 +612,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped the minimum Hikari version to `2.0.0.dev112`.
 - [yuyo.asgi.AsgiAdapter][]'s startup and shutdown callbacks now take 1 argument,
   must return [None][] and must be asynchronous to match the methods added to
-  [hikari.traits.RESTBotAware][] in
+  [hikari.RESTBotAware][hikari.traits.RESTBotAware] in
   <https://github.com/hikari-py/hikari/releases/tag/2.0.0.dev112>.
 
   This argument will be of type [yuyo.asgi.AsgiAdapter][] when these methods are
