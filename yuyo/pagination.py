@@ -336,12 +336,12 @@ class Page:
 
     @classmethod
     def from_entry(cls, entry: EntryT, /) -> Page:
-        """Create a Page from a [yuyo.pagination.EntryT][].
+        """Create a Page from a [EntryT][yuyo.pagination.EntryT].
 
         Parameters
         ----------
         entry
-            The [yuyo.pagination.EntryT][] to make a page from.
+            The [EntryT][yuyo.pagination.EntryT] to make a page from.
 
         Returns
         -------
@@ -415,7 +415,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The next page in this paginator, or [None][] if this is already on
             the last page.
         """
@@ -444,7 +444,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The previous page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -461,7 +461,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The first page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -480,7 +480,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The last page in this paginator, or [None][] if this is already on
             the last page.
         """

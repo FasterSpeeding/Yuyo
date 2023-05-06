@@ -72,7 +72,7 @@ class HandlerClosed(Exception):
 
 
 class AbstractReactionHandler(abc.ABC):
-    """The interface for a reaction handler used with [yuyo.reactions.ReactionClient][]."""
+    """The interface for a reaction handler used with [ReactionClient][yuyo.reactions.ReactionClient]."""
 
     __slots__ = ()
 
@@ -357,7 +357,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the jump to first entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -385,7 +385,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the previous entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -413,7 +413,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the stop reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -441,7 +441,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the next entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -472,7 +472,7 @@ class ReactionPaginator(ReactionHandler):
         r"""Add the jump to last entry reaction button to this paginator.
 
         You should pass `triggers=[]` to
-        [yuyo.reactions.ReactionPaginator.__init__][ComponentPaginator.\_\_init\_\_]
+        [ReactionPaginator.\_\_init\_\_][yuyo.reactions.ReactionPaginator.__init__]
         before calling this.
 
         !!! note
@@ -777,7 +777,7 @@ class ReactionClient:
         Raises
         ------
         ValueError
-            If [tanjun.abc.Client.events][] is [None][].
+            If `tanjun_client.events` is [None][].
         """
         import tanjun
 
@@ -835,7 +835,7 @@ class ReactionClient:
         """Add a reaction handler to this reaction client.
 
         !!! note
-            This does not call [yuyo.reactions.AbstractReactionHandler.open][].
+            This does not call [AbstractReactionHandler.open][yuyo.reactions.AbstractReactionHandler.open].
 
         Parameters
         ----------
@@ -853,7 +853,7 @@ class ReactionClient:
         """Get a reference to a handler registered in this reaction client.
 
         !!! note
-            This does not call [yuyo.reactions.AbstractReactionHandler.close][].
+            This does not call [AbstractReactionHandler.close][yuyo.reactions.AbstractReactionHandler.close].
 
         Parameters
         ----------
@@ -873,7 +873,7 @@ class ReactionClient:
         """Remove a handler from this reaction client.
 
         !!! note
-            This does not call [yuyo.reactions.AbstractReactionHandler.close][].
+            This does not call [AbstractReactionHandler.close][yuyo.reactions.AbstractReactionHandler.close].
 
         Parameters
         ----------

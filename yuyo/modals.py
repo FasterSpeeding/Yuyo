@@ -156,27 +156,23 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
         !!! warning
             Calling this on a context which already has an initial response
-            will result in this raising a [hikari.errors.NotFoundError][].
-            This includes if the REST interaction server has already responded
-            to the request and deferrals.
+            will result in this raising a
+            [hikari.NotFoundError][hikari.errors.NotFoundError]. This includes
+            if the REST interaction server has already responded to the request
+            and deferrals.
 
         Parameters
         ----------
         content
-            The content to edit the last response with.
+            If provided, the message content to respond with.
 
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            [str][].
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
 
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.files.Resource][], then the
-            content is instead treated as an attachment if no `attachment` and
-            no `attachments` kwargs are provided.
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
@@ -187,15 +183,6 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
             Passing [True][] here is a shorthand for including `1 << 64` in the
             passed flags.
-        content
-            If provided, the message contents. If
-            [hikari.undefined.UNDEFINED][], then nothing will be sent
-            in the content. Any other value here will be cast to a
-            `str`.
-
-            If this is a [hikari.embeds.Embed][] and no `embed` nor `embeds` kwarg
-            is provided, then this will instead update the embed. This allows
-            for simpler syntax when sending an embed alone.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -215,7 +202,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
             If provided, the message flags this response should have.
 
             As of writing the only message flag which can be set here is
-            [hikari.messages.MessageFlag.EPHEMERAL][].
+            [hikari.MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
         tts
             If provided, whether the message will be read out by a screen
             reader using Discord's TTS (text-to-speech) system.
@@ -223,20 +210,20 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
             If provided, whether the message should parse @everyone/@here
             mentions.
         user_mentions
-            If provided, and [True][], all user mentions will be detected.
-            If provided, and [False][], all user mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake][], or [hikari.users.PartialUser][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser]
             derivatives to enforce mentioning specific users.
         role_mentions
-            If provided, and [True][], all role mentions will be detected.
-            If provided, and [False][], all role mentions will be ignored
-            if appearing in the message body.
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
 
             Alternatively this may be a collection of
-            [hikari.snowflakes.Snowflake], or [hikari.guilds.PartialRole][]
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole]
             derivatives to enforce mentioning specific roles.
 
         Raises
@@ -249,20 +236,20 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.BadRequestError
+        hikari.errors.BadRequestError
             This may be raised in several discrete situations, such as messages
             being empty with no embeds; messages with more than
             2000 characters in them, embeds that exceed one of the many embed
             limits; invalid image URLs in embeds.
-        hikari.UnauthorizedError
+        hikari.errors.UnauthorizedError
             If you are unauthorized to make the request (invalid/missing token).
-        hikari.NotFoundError
+        hikari.errors.NotFoundError
             If the interaction is not found or if the interaction's initial
             response has already been created.
-        hikari.RateLimitTooLongError
+        hikari.errors.RateLimitTooLongError
             Raised in the event that a rate limit occurs that is
             longer than `max_rate_limit` when making a request.
-        hikari.InternalServerError
+        hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
         if ephemeral:
@@ -629,7 +616,7 @@ class ModalClient:
 
         Returns
         -------
-        hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
+        hikari.api.special_endpoints.InteractionMessageBuilder | hikari.api.special_endpoints.InteractionDeferredBuilder
             The REST response.
         """
         id_match, id_metadata = _internal.split_custom_id(interaction.custom_id)
@@ -1106,8 +1093,8 @@ class Modal(AbstractModal):
         Raises
         ------
         RuntimeError
-            When called directly on [modals.Modal][yuyo.modals.Modal]
-            (rather than on a subclass).
+            When called directly on [Modal][yuyo.modals.Modal] (rather than on
+            a subclass).
         """
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")
