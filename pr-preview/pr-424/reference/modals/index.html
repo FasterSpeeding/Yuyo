@@ -1716,8 +1716,8 @@ and the default is a string that's &lt;=4000 characters in length.</p>
       <li class="field-body">
             <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#RuntimeError">RuntimeError</a></code>
           –
-        <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">modals.Modal</a>
-(rather than on a subclass).</p>
+        <p>When called directly on <a class="autorefs autorefs-internal" href="#yuyo.modals.Modal">Modal</a> (rather than on
+a subclass).</p>
       </li>
   </ul>
 
@@ -2269,7 +2269,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
   <p>Returns:</p>
   <ul>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.InteractionMessageBuilder">InteractionMessageBuilder</span> | <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.InteractionDeferredBuilder">InteractionDeferredBuilder</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.InteractionMessageBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.InteractionMessageBuilder">InteractionMessageBuilder</a> | <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.InteractionDeferredBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.InteractionDeferredBuilder">InteractionDeferredBuilder</a></code>
         – <p>The REST response.</p>
       </li>
   </ul>
@@ -2467,9 +2467,10 @@ allowing metadata to be stored after a <code>":"</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Calling this on a context which already has an initial response
-will result in this raising a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.errors.NotFoundError</a>.
-This includes if the REST interaction server has already responded
-to the request and deferrals.</p>
+will result in this raising a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">hikari.NotFoundError</a>. This includes
+if the REST interaction server has already responded to the request
+and deferrals.</p>
 </div>
 
   <p>Parameters:</p>
@@ -2477,17 +2478,13 @@ to the request and deferrals.</p>
       <li class="field-body">
         <b>content</b>
             (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>]</code>)
-        – <p>The content to edit the last response with.</p>
-<p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/stdtypes.html#str">str</a>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
-<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.files.Resource</a>, then the
-content is instead treated as an attachment if no <code>attachment</code> and
-no <code>attachments</code> kwargs are provided.</p>
+        – <p>If provided, the message content to respond with.</p>
+<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.Embed</a> and no <code>embed</code> nor
+<code>embeds</code> kwarg is provided, then this will instead be treated as an
+embed. This allows for simpler syntax when sending an embed alone.</p>
+<p>Likewise, if this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/files/#hikari.files.Resource">hikari.Resource</a>,
+then the content is instead treated as an attachment if no
+<code>attachment</code> and no <code>attachments</code> kwargs are provided.</p>
       </li>
       <li class="field-body">
         <b>delete_after</b>
@@ -2502,17 +2499,6 @@ command being received.</p>
         – <p>Whether the deferred response should be ephemeral.</p>
 <p>Passing <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a> here is a shorthand for including <code>1 &lt;&lt; 64</code> in the
 passed flags.</p>
-      </li>
-      <li class="field-body">
-        <b>content</b>
-            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedOr">UndefinedOr</span>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3.9/library/typing.html#typing.Any">Any</a>]</code>)
-        – <p>If provided, the message contents. If
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/undefined/#hikari.undefined.UNDEFINED">hikari.undefined.UNDEFINED</a>, then nothing will be sent
-in the content. Any other value here will be cast to a
-<code>str</code>.</p>
-<p>If this is a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/embeds/#hikari.embeds.Embed">hikari.embeds.Embed</a> and no <code>embed</code> nor <code>embeds</code> kwarg
-is provided, then this will instead update the embed. This allows
-for simpler syntax when sending an embed alone.</p>
       </li>
       <li class="field-body">
         <b>attachment</b>
@@ -2552,7 +2538,7 @@ in this message.</p>
             (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#int">int</a>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.MessageFlag">MessageFlag</span>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedType">UndefinedType</span>]</code>)
         – <p>If provided, the message flags this response should have.</p>
 <p>As of writing the only message flag which can be set here is
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.messages.MessageFlag.EPHEMERAL</a>.</p>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/messages/#hikari.messages.MessageFlag.EPHEMERAL">hikari.MessageFlag.EPHEMERAL</a>.</p>
       </li>
       <li class="field-body">
         <b>tts</b>
@@ -2569,21 +2555,21 @@ mentions.</p>
       <li class="field-body">
         <b>user_mentions</b>
             (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishSequence">SnowflakeishSequence</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.PartialUser">PartialUser</span>], <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedType">UndefinedType</span>]</code>)
-        – <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all user mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all user mentions will be ignored
-if appearing in the message body.</p>
+        – <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.snowflakes.Snowflake</a>, or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.users.PartialUser</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/users/#hikari.users.PartialUser">hikari.PartialUser</a>
 derivatives to enforce mentioning specific users.</p>
       </li>
       <li class="field-body">
         <b>role_mentions</b>
             (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/typing.html#module-typing">typing</a>.<a class="autorefs autorefs-external" title="typing.Union" href="https://docs.python.org/3.9/library/typing.html#typing.Union">Union</a>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SnowflakeishSequence">SnowflakeishSequence</span>[<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.PartialRole">PartialRole</span>], <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/functions.html#bool">bool</a>, <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UndefinedType">UndefinedType</span>]</code>)
-        – <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all role mentions will be detected.
-If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, all role mentions will be ignored
-if appearing in the message body.</p>
+        – <p>If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#True">True</a>, all mentions will be parsed.
+If provided, and <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#False">False</a>, no mentions will be parsed.</p>
 <p>Alternatively this may be a collection of
-[hikari.snowflakes.Snowflake], or <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.guilds.PartialRole</a>
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/snowflakes/#hikari.snowflakes.Snowflake">hikari.Snowflake</a>, or
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/guilds/#hikari.guilds.PartialRole">hikari.PartialRole</a>
 derivatives to enforce mentioning specific roles.</p>
       </li>
   </ul>
@@ -2600,7 +2586,7 @@ derivatives to enforce mentioning specific roles.</p>
 and <code>components</code> are passed or both <code>embed</code> and <code>embeds</code> are passed.</p>
       </li>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.BadRequestError">BadRequestError</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.errors" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#module-hikari.errors">errors</a>.<a class="autorefs autorefs-external" title="hikari.errors.BadRequestError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.BadRequestError">BadRequestError</a></code>
           –
         <p>This may be raised in several discrete situations, such as messages
 being empty with no embeds; messages with more than
@@ -2608,24 +2594,24 @@ being empty with no embeds; messages with more than
 limits; invalid image URLs in embeds.</p>
       </li>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.UnauthorizedError">UnauthorizedError</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.errors" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#module-hikari.errors">errors</a>.<a class="autorefs autorefs-external" title="hikari.errors.UnauthorizedError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.UnauthorizedError">UnauthorizedError</a></code>
           –
         <p>If you are unauthorized to make the request (invalid/missing token).</p>
       </li>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.NotFoundError">NotFoundError</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.errors" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#module-hikari.errors">errors</a>.<a class="autorefs autorefs-external" title="hikari.errors.NotFoundError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.NotFoundError">NotFoundError</a></code>
           –
         <p>If the interaction is not found or if the interaction's initial
 response has already been created.</p>
       </li>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.RateLimitTooLongError">RateLimitTooLongError</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.errors" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#module-hikari.errors">errors</a>.<a class="autorefs autorefs-external" title="hikari.errors.RateLimitTooLongError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.RateLimitTooLongError">RateLimitTooLongError</a></code>
           –
         <p>Raised in the event that a rate limit occurs that is
 longer than <code>max_rate_limit</code> when making a request.</p>
       </li>
       <li class="field-body">
-            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.InternalServerError">InternalServerError</span></code>
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.errors" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#module-hikari.errors">errors</a>.<a class="autorefs autorefs-external" title="hikari.errors.InternalServerError" href="https://docs.hikari-py.dev/en/latest/reference/hikari/errors/#hikari.errors.InternalServerError">InternalServerError</a></code>
           –
         <p>If an internal error occurs on Discord while handling the request.</p>
       </li>

@@ -1311,7 +1311,8 @@ ensures a request will be tracked as this only tracks chunk requests with a set 
   <div class="doc doc-contents ">
   
       <p>Initialise a chunk tracker.</p>
-<p>For a shorthand for initialising this from a <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#hikari.traits.GatewayBotAware">hikari.traits.GatewayBotAware</a>
+<p>For a shorthand for initialising this from a
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/traits/#hikari.traits.GatewayBotAware">hikari.GatewayBotAware</a>
 see <a class="autorefs autorefs-internal" href="#yuyo.chunk_tracker.ChunkTracker.from_gateway_bot">ChunkTracker.from_gateway_bot</a>.</p>
 
   <p>Parameters:</p>
@@ -1472,8 +1473,8 @@ request the full list of members without <code>GUILD_PRESENCES</code>.</p>
   
       <p>Configure whether this should request member chunks in response to GUILD_CREATE.</p>
 <p>This may be useful for filling 3rd party caches but may conflict with
-the <code>auto_chunk_members</code> config of <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.impl.gateway_bot.GatewayBot</a>
-if it's enabled.</p>
+the <code>auto_chunk_members</code> config of
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/impl/gateway_bot/#hikari.impl.gateway_bot.GatewayBot">hikari.impl.GatewayBot</a> if it's enabled.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This will be ignored if <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/intents/#hikari.intents.Intents.GUILD_MEMBERS">Intents.GUILD_MEMBERS</a>

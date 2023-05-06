@@ -937,7 +937,8 @@
 <p>This class acts as an asynchronous iterator and can be iterated over to
 provide implicit backoff where for every iteration other than the first
 this will either back off for the time passed to
-<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.set_next_backoff">yuyo.backoff.Backoff.set_next_backoff</a> if applicable or a time calculated exponentially.</p>
+<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.set_next_backoff">Backoff.set_next_backoff</a> if
+applicable or a time calculated exponentially.</p>
 <p>Each iteration yields the current retry count (starting at 0).</p>
 
 <p><strong>Examples:</strong></p>
@@ -963,9 +964,10 @@ the following</p>
         <span class="c1"># Alternatively `Backoff.finish()` can be called to break out of the loop.</span>
         <span class="k">break</span>
 </code></pre></div>
-<p>Alternatively you may want to explicitly call <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a>, a
-alternative of the previous example which uses <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a>
-may look like the following</p>
+<p>Alternatively you may want to explicitly call
+<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">Backoff.backoff</a>. An alternative
+implementation of the previous example which uses
+<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">Backoff.backoff</a> may look like the following:</p>
 <div class="highlight"><pre><span></span><code><span class="n">backoff</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
 <span class="n">resource</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">while</span> <span class="ow">not</span> <span class="n">resource</span><span class="p">:</span>
@@ -1016,7 +1018,8 @@ may look like the following</p>
   
       <p>Whether "max_retries" has been reached.</p>
 <p>This can be used to workout whether the loop was explicitly broken out
-of using <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.finish">yuyo.backoff.Backoff.finish</a>/<code>break</code> or if it hit "max_retries".</p>
+of using <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.finish">Backoff.finish</a>/<code>break</code> or if it
+hit "max_retries".</p>
   </div>
 
 </div>
@@ -1176,7 +1179,7 @@ been marked as finished or has reached the max retries.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Specify a backoff time for the next iteration or <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">yuyo.backoff.Backoff.backoff</a> call.</p>
+      <p>Specify a backoff time for the next iteration or <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff.backoff">Backoff.backoff</a> call.</p>
 <p>If this is called then the exponent won't be increased for this iteration.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1220,12 +1223,13 @@ previously set next backoff.</p>
   <div class="doc doc-contents ">
 
   
-      <p>A context manager provided to allow for more concise error handling with <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff">yuyo.backoff.Backoff</a>.</p>
+      <p>A context manager provided to allow for more concise error handling with <a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff">Backoff</a>.</p>
 
 <p><strong>Examples:</strong></p>
-    <p>The following is an example of using <a class="autorefs autorefs-internal" href="#yuyo.backoff.ErrorManager">yuyo.backoff.ErrorManager</a> alongside
-<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff">yuyo.backoff.Backoff</a> in-order to handle the exceptions which may be raised
-while trying to reply to a message.</p>
+    <p>The following is an example of using
+<a class="autorefs autorefs-internal" href="#yuyo.backoff.ErrorManager">ErrorManager</a> alongside
+<a class="autorefs autorefs-internal" href="#yuyo.backoff.Backoff">Backoff</a> in-order to handle the exceptions which may
+be raised while trying to reply to a message.</p>
 <div class="highlight"><pre><span></span><code><span class="n">retry</span> <span class="o">=</span> <span class="n">Backoff</span><span class="p">()</span>
 <span class="c1"># Rules can either be passed to `ErrorManager`&#39;s initiate as variable arguments</span>
 <span class="c1"># or one at a time to `ErrorManager.with_rule` through possibly chained-calls.</span>

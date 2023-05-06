@@ -1493,7 +1493,7 @@
         Bases: <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/abc.html#module-abc">abc</a>.<a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3.9/library/abc.html#abc.ABC">ABC</a></code></p>
 
   
-      <p>The interface for a reaction handler used with <a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionClient">yuyo.reactions.ReactionClient</a>.</p>
+      <p>The interface for a reaction handler used with <a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionClient">ReactionClient</a>.</p>
 
 
 
@@ -1516,8 +1516,8 @@
 
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#yuyo.reactions.AbstractReactionHandler.has_expired" class="headerlink" title="Permanent link">#</a></h3>
@@ -1932,7 +1932,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <li class="field-body">
             <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#ValueError">ValueError</a></code>
           –
-        <p>If <a class="autorefs autorefs-external" href="https://tanjun.cursed.solutions/reference/abc/#tanjun.abc.Client.events">tanjun.abc.Client.events</a> is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
+        <p>If <code>tanjun_client.events</code> is <a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/constants.html#None">None</a>.</p>
       </li>
   </ul>
 
@@ -1957,7 +1957,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Get a reference to a handler registered in this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">AbstractReactionHandler.close</a>.</p>
 </div>
 
   <p>Parameters:</p>
@@ -2022,7 +2022,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Remove a handler from this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">yuyo.reactions.AbstractReactionHandler.close</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.close">AbstractReactionHandler.close</a>.</p>
 </div>
 
   <p>Parameters:</p>
@@ -2063,7 +2063,7 @@ closed based on the Tanjun client's lifetime client callback.</p>
       <p>Add a reaction handler to this reaction client.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.open">yuyo.reactions.AbstractReactionHandler.open</a>.</p>
+<p>This does not call <a class="autorefs autorefs-internal" href="#yuyo.reactions.AbstractReactionHandler.open">AbstractReactionHandler.open</a>.</p>
 </div>
 
   <p>Parameters:</p>
@@ -2424,7 +2424,7 @@ that anybody can use it).</p>
   
       <p>Add the jump to first entry reaction button to this paginator.</p>
 <p>You should pass <code>triggers=[]</code> to
-[yuyo.reactions.ReactionPaginator.<strong>init</strong>][ComponentPaginator.__init__]
+<a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
 before calling this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2475,7 +2475,7 @@ called with <code>add_reactions=True</code>.</p>
   
       <p>Add the jump to last entry reaction button to this paginator.</p>
 <p>You should pass <code>triggers=[]</code> to
-[yuyo.reactions.ReactionPaginator.<strong>init</strong>][ComponentPaginator.__init__]
+<a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
 before calling this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2526,7 +2526,7 @@ called with <code>add_reactions=True</code>.</p>
   
       <p>Add the next entry reaction button to this paginator.</p>
 <p>You should pass <code>triggers=[]</code> to
-[yuyo.reactions.ReactionPaginator.<strong>init</strong>][ComponentPaginator.__init__]
+<a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
 before calling this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2577,7 +2577,7 @@ called with <code>add_reactions=True</code>.</p>
   
       <p>Add the previous entry reaction button to this paginator.</p>
 <p>You should pass <code>triggers=[]</code> to
-[yuyo.reactions.ReactionPaginator.<strong>init</strong>][ComponentPaginator.__init__]
+<a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
 before calling this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2628,7 +2628,7 @@ called with <code>add_reactions=True</code>.</p>
   
       <p>Add the stop reaction button to this paginator.</p>
 <p>You should pass <code>triggers=[]</code> to
-[yuyo.reactions.ReactionPaginator.<strong>init</strong>][ComponentPaginator.__init__]
+<a class="autorefs autorefs-internal" href="#yuyo.reactions.ReactionPaginator.__init__">ReactionPaginator.__init__</a>
 before calling this.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
