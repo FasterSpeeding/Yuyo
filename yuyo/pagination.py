@@ -415,7 +415,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The next page in this paginator, or [None][] if this is already on
             the last page.
         """
@@ -444,7 +444,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The previous page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -461,7 +461,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The first page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -480,7 +480,7 @@ class Paginator:
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        Page | None
             The last page in this paginator, or [None][] if this is already on
             the last page.
         """

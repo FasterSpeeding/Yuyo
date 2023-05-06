@@ -616,7 +616,7 @@ class ModalClient:
 
         Returns
         -------
-        hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
+        hikari.api.special_endpoints.InteractionMessageBuilder | hikari.api.special_endpoints.InteractionDeferredBuilder
             The REST response.
         """
         id_match, id_metadata = _internal.split_custom_id(interaction.custom_id)

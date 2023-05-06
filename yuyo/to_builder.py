@@ -57,7 +57,7 @@ def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
 
     Returns
     -------
-    hikari.api.CommandBuilder
+    hikari.api.special_endpoints.CommandBuilder
         The command builder.
 
         This will always be a subclass.
@@ -112,7 +112,7 @@ def to_slash_cmd_builder(cmd: hikari.SlashCommand, /) -> hikari.api.SlashCommand
 
     Returns
     -------
-    hikari.api.SlashCommandBuilder
+    hikari.api.special_endpoints.SlashCommandBuilder
         The slash command builder.
     """
     return hikari.impl.SlashCommandBuilder(
@@ -138,7 +138,7 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
 
     Returns
     -------
-    hikari.api.ContextMenuCommandBuilder
+    hikari.api.special_endpoints.ContextMenuCommandBuilder
         The context menu command builder.
 
     Raises
@@ -178,7 +178,7 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
     Returns
     -------
-    hikari.api.MessageActionRowBuilder
+    hikari.api.special_endpoints.MessageActionRowBuilder
         The message action row builder.
 
     Raises
@@ -213,7 +213,7 @@ def to_button_builder(
 
     Returns
     -------
-    hikari.api.LinkButtonBuilder | hikari.api.InteractiveButtonBuilder
+    hikari.api.special_endpoints.LinkButtonBuilder | hikari.api.special_endpoints.InteractiveButtonBuilder
         The buttion builder.
     """
     emoji = button.emoji if button.emoji is not None else hikari.UNDEFINED
@@ -240,7 +240,7 @@ def to_channel_select_menu_builder(
 
     Returns
     -------
-    hikari.api.ChannelSelectMenuBuilder
+    hikari.api.special_endpoints.ChannelSelectMenuBuilder
         The select menu builder.
     """
     return hikari.impl.ChannelSelectMenuBuilder(
@@ -265,7 +265,7 @@ def to_text_select_menu_builder(
 
     Returns
     -------
-    hikari.api.TextSelectMenuBuilder
+    hikari.api.special_endpoints.TextSelectMenuBuilder
         The select menu builder.
     """
     options = [
@@ -305,7 +305,7 @@ def to_select_menu_builder(select_menu: hikari.SelectMenuComponent, /) -> hikari
 
     Returns
     -------
-    hikari.api.SelectMenuBuilder
+    hikari.api.special_endpoints.SelectMenuBuilder
         The select menu builder.
     """
     if cast := _SELECT_MENU_BUILDERS.get(select_menu.type):

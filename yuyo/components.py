@@ -425,7 +425,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Returns
         -------
-        hikari.Message
+        hikari.messages.Message
             The created message object.
 
         Raises
@@ -785,7 +785,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Returns
         -------
-        hikari.Message
+        hikari.messages.Message
             The message that has been edited.
 
         Raises
@@ -916,7 +916,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Returns
         -------
-        hikari.Message
+        hikari.messages.Message
             The message that has been edited.
 
         Raises
@@ -1153,7 +1153,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
         Returns
         -------
-        hikari.Message | None
+        hikari.messages.Message | None
             The message that has been created if it was immedieatly available or
             `ensure_result` was set to [True][], else [None][].
 
@@ -2085,7 +2085,7 @@ class ComponentClient:
 
         Returns
         -------
-        yuyo.components.AbstractComponentExecutor | None
+        AbstractComponentExecutor | None
             The executor set for the message or [None][] if none is set.
         """
         if entry := self._message_executors.get(hikari.Snowflake(message)):
