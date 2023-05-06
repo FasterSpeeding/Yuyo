@@ -1093,8 +1093,8 @@ class Modal(AbstractModal):
         Raises
         ------
         RuntimeError
-            When called directly on [modals.Modal][yuyo.modals.Modal]
-            (rather than on a subclass).
+            When called directly on [Modal][yuyo.modals.Modal] (rather than on
+            a subclass).
         """
         if cls is Modal:
             raise RuntimeError("Can only add static fields to subclasses")

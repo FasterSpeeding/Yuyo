@@ -3685,7 +3685,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
@@ -3740,7 +3740,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
 
@@ -3819,7 +3819,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
@@ -4060,7 +4060,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return cls.add_static_select_menu(
@@ -4127,7 +4127,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return _decorate(
@@ -4292,7 +4292,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return cls.add_static_select_menu(
@@ -4359,7 +4359,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return _decorate(
@@ -4524,7 +4524,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return cls.add_static_select_menu(
@@ -4591,7 +4591,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return _decorate(
@@ -4777,7 +4777,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
@@ -4862,7 +4862,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return _decorate(
@@ -5069,7 +5069,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
@@ -5153,7 +5153,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         Raises
         ------
         RuntimeError
-            When called directly on [components.ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
+            When called directly on [ActionColumnExecutor][yuyo.components.ActionColumnExecutor]
             (rather than on a subclass).
         """
         return _consume(
