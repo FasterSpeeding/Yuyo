@@ -140,15 +140,6 @@ def to_context_menu_builder(cmd: hikari.ContextMenuCommand, /) -> hikari.api.Con
     -------
     hikari.api.special_endpoints.ContextMenuCommandBuilder
         The context menu command builder.
-
-    Raises
-    ------
-    NotImplementedError
-        If an unsupported context menu type is passed.
-
-        Currently [hikari.CommandType.MESSAGE][hikari.commands.CommandType.MESSAGE]
-        and [hikari.CommandType.USER][hikari.commands.CommandType.USER] are
-        supported.
     """
     return hikari.impl.ContextMenuCommandBuilder(
         name=cmd.name,
