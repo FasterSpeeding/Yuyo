@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.14.2] - 2023-05-07
 ### Fixed
 - The fields for a [ModalOptions][yuyo.modals.ModalOptions] are now correctly
   tracked when added to a [Modal][yuyo.modals.Modal] instance and are
@@ -747,7 +748,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.2...HEAD
+[1.14.2]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.1...v1.14.2
 [1.14.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.0...v1.14.1
 [1.14.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.13.0a1...v1.14.0
 [1.13.0a1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.12.0a1...v1.13.0a1
