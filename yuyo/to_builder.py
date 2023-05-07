@@ -42,9 +42,11 @@ __all__: list[str] = [
 
 import copy
 import typing
-from collections import abc as collections
 
 import hikari
+
+if typing.TYPE_CHECKING:
+    from collections import abc as collections
 
 
 def to_cmd_builder(cmd: hikari.PartialCommand, /) -> hikari.api.CommandBuilder:
