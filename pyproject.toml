@@ -98,7 +98,7 @@ ignore = [
     "IFS001",  # "use a oneliner here".
     "N818",    # Exceptions should have an "Error" suffix in their name
     "SIM105",  # Use contextlib.suppress
-    "TC003",   # Avoid specifying long messages outside the exception class (this hits way too many std exceptions rn)
+    "TRY003",  # Avoid specifying long messages outside the exception class (this hits way too many std exceptions rn)
     "T101",    # TO-DO comment detection (T102 is FIX-ME and T103 is XXX).
     "W503",    # line break before binary operator.
     "W504",    # line break before binary operator (again, I guess).
@@ -107,10 +107,10 @@ ignore = [
     "E231",    # missing whitespace after ','
 ]
 per-file-ignores = [
-    "docs_src/*.py: D100, D101, D103, E800, FA100, FA101, F841, INP001, N806, TC002",
+    "docs_src/*.py: D100, D101, D103, E800, FA100, FA101, F841, INP001, N806, TC002, TC003",
     "examples/*.py: D103, FA101",
     "noxfile.py: D100, FA101, F401, F403, INP001",
-    "tests/*.py: CCE002, CFQ001, D100, D101, D103, D104, FA100, FA101",
+    "tests/*.py: CCE002, CFQ001, D100, D101, D103, D104, FA100, FA101, TC003",
     "yuyo/py.typed: D100",
 ]
 
