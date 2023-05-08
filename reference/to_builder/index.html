@@ -15,7 +15,7 @@
         <link rel="next" href="../../usage/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.9">
     
     
       
@@ -23,10 +23,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
       
       
   
@@ -102,7 +102,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="indigo">
   
     
     
@@ -156,25 +156,31 @@
       </div>
     </div>
     
-      <form class="md-header__option" data-md-component="palette">
-        
+      
+        <form class="md-header__option" data-md-component="palette">
           
-          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="cyan" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+            
+              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+              </label>
+            
           
-            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
-            </label>
+            
+            
+            
+            <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+            
+              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+              </label>
+            
           
-        
-          
-          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
-          
-            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
-            </label>
-          
-        
-      </form>
+        </form>
+      
     
     
     
@@ -869,49 +875,22 @@
   
       <p>Convert a button component to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>button</code></td>
-          <td class="doc-param-details">
-            <p>The button component to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ButtonComponent">ButtonComponent</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>button</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ButtonComponent">ButtonComponent</span></code>)
+        – <p>The button component to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.LinkButtonBuilder">LinkButtonBuilder</span> | <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.InteractiveButtonBuilder">InteractiveButtonBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The buttion builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.LinkButtonBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.LinkButtonBuilder">LinkButtonBuilder</a> | <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.InteractiveButtonBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.InteractiveButtonBuilder">InteractiveButtonBuilder</a></code>
+        – <p>The buttion builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -933,49 +912,22 @@
   
       <p>Convert a channel select menu component to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>select_menu</code></td>
-          <td class="doc-param-details">
-            <p>The select menu to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ChannelSelectMenuComponent">ChannelSelectMenuComponent</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>select_menu</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ChannelSelectMenuComponent">ChannelSelectMenuComponent</span></code>)
+        – <p>The select menu to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.ChannelSelectMenuBuilder">ChannelSelectMenuBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The select menu builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.ChannelSelectMenuBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.ChannelSelectMenuBuilder">ChannelSelectMenuBuilder</a></code>
+        – <p>The select menu builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -997,73 +949,35 @@
   
       <p>Convert a partial command to a command builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>cmd</code></td>
-          <td class="doc-param-details">
-            <p>The command to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.PartialCommand">PartialCommand</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>cmd</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.PartialCommand">PartialCommand</span></code>)
+        – <p>The command to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.CommandBuilder">CommandBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The command builder.</p>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.CommandBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.CommandBuilder">CommandBuilder</a></code>
+        – <p>The command builder.</p>
 <p>This will always be a subclass.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>If an unsupported command type is passed.</p>
-<p>Currently <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.SlashCommand">hikari.commands.SlashCommand</a> and
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.ContextMenuCommand">hikari.commands.ContextMenuCommand</a> are supported.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Raises:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
+          –
+        <p>If an unsupported command type is passed.</p>
+<p>Currently <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.SlashCommand">hikari.SlashCommand</a> and
+<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.ContextMenuCommand">hikari.ContextMenuCommand</a> are
+supported.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -1085,72 +999,22 @@
   
       <p>Convert a context menu command to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>cmd</code></td>
-          <td class="doc-param-details">
-            <p>The context menu command to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ContextMenuCommand">ContextMenuCommand</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>cmd</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.ContextMenuCommand">ContextMenuCommand</span></code>)
+        – <p>The context menu command to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.ContextMenuCommandBuilder">ContextMenuCommandBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The context menu command builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>If an unsupported context menu type is passed.</p>
-<p>Currently <a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.CommandType.MESSAGE">hikari.commands.CommandType.MESSAGE</a> and
-<a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/commands/#hikari.commands.CommandType.USER">hikari.commands.CommandType.USER</a> are supported.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.ContextMenuCommandBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.ContextMenuCommandBuilder">ContextMenuCommandBuilder</a></code>
+        – <p>The context menu command builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -1172,66 +1036,29 @@
   
       <p>Convert a message action row component to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>action_row</code></td>
-          <td class="doc-param-details">
-            <p>The message action row to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.MessageActionRowComponent">MessageActionRowComponent</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>action_row</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.MessageActionRowComponent">MessageActionRowComponent</span></code>)
+        – <p>The message action row to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.MessageActionRowBuilder">MessageActionRowBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The message action row builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.MessageActionRowBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.MessageActionRowBuilder">MessageActionRowBuilder</a></code>
+        – <p>The message action row builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RAISES</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-            <span class="doc-raises-annotation">
-                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
-            </span>
-          </td>
-          <td class="doc-raises-details">
-            <p>If the action row contains an unsupported component type.</p>
+  <p>Raises:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.python.org/3.9/library/exceptions.html#NotImplementedError">NotImplementedError</a></code>
+          –
+        <p>If the action row contains an unsupported component type.</p>
 <p>The following are currently supported:</p>
 <ul>
 <li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType.ACTION_ROW">ACTION_ROW</a></li>
@@ -1242,10 +1069,8 @@
 <li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType.MENTIONABLE_SELECT_MENU">MENTIONABLE_SELECT_MENU</a></li>
 <li><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/components/#hikari.components.ComponentType.CHANNEL_SELECT_MENU">CHANNEL_SELECT_MENU</a></li>
 </ul>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+      </li>
+  </ul>
 
   </div>
 
@@ -1267,49 +1092,22 @@
   
       <p>Convert a select menu component to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>select_menu</code></td>
-          <td class="doc-param-details">
-            <p>The select menu to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SelectMenuComponent">SelectMenuComponent</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>select_menu</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SelectMenuComponent">SelectMenuComponent</span></code>)
+        – <p>The select menu to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.SelectMenuBuilder">SelectMenuBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The select menu builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.SelectMenuBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.SelectMenuBuilder">SelectMenuBuilder</a></code>
+        – <p>The select menu builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -1331,49 +1129,22 @@
   
       <p>Convert a slash command to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>cmd</code></td>
-          <td class="doc-param-details">
-            <p>The command to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SlashCommand">SlashCommand</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>cmd</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.SlashCommand">SlashCommand</span></code>)
+        – <p>The command to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.SlashCommandBuilder">SlashCommandBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The slash command builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.SlashCommandBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.SlashCommandBuilder">SlashCommandBuilder</a></code>
+        – <p>The slash command builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -1395,49 +1166,22 @@
   
       <p>Convert a text select menu component to a builder.</p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>PARAMETER</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>select_menu</code></td>
-          <td class="doc-param-details">
-            <p>The select menu to convert to a builder.</p>
-            <p>
-                <span class="doc-param-annotation">
-                  <b>TYPE:</b>
-                    <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.TextSelectMenuComponent">TextSelectMenuComponent</span></code>
-                </span>
-            </p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Parameters:</p>
+  <ul>
+      <li class="field-body">
+        <b>select_menu</b>
+            (<code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<span title="hikari.TextSelectMenuComponent">TextSelectMenuComponent</span></code>)
+        – <p>The select menu to convert to a builder.</p>
+      </li>
+  </ul>
 
-  <table>
-    <thead>
-      <tr>
-        <th><b>RETURNS</b></th>
-        <th><b>DESCRIPTION</b></th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-              <span class="doc-returns-annotation">
-                  <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<span title="hikari.api.TextSelectMenuBuilder">TextSelectMenuBuilder</span></code>
-              </span>
-          </td>
-          <td class="doc-returns-details">
-            <p>The select menu builder.</p>
-          </td>
-        </tr>
-    </tbody>
-  </table>
+  <p>Returns:</p>
+  <ul>
+      <li class="field-body">
+            <code><a class="autorefs autorefs-external" href="https://docs.hikari-py.dev/en/latest/reference/hikari/#module-hikari">hikari</a>.<a class="autorefs autorefs-external" title="hikari.api" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/#module-hikari.api">api</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#module-hikari.api.special_endpoints">special_endpoints</a>.<a class="autorefs autorefs-external" title="hikari.api.special_endpoints.TextSelectMenuBuilder" href="https://docs.hikari-py.dev/en/latest/reference/hikari/api/special_endpoints/#hikari.api.special_endpoints.TextSelectMenuBuilder">TextSelectMenuBuilder</a></code>
+        – <p>The select menu builder.</p>
+      </li>
+  </ul>
 
   </div>
 
@@ -1490,7 +1234,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
       
     
   </body>
