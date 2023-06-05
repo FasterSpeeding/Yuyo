@@ -12,7 +12,7 @@
 # pyright: reportUnusedExpression=none
 # pyright: reportUnusedFunction=none
 # pyright: reportUnusedVariable=none
-import collections.abc  # pyright: ignore[reportUnusedImport]
+import collections.abc  # pyright: ignore[reportUnusedImport]  # noqa: F401
 
 import hikari
 import sake
