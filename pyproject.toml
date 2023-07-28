@@ -38,7 +38,7 @@ tanjun = ["hikari-tanjun>=2.11.0, <3"]
 Homepage = "https://github.com/FasterSpeeding/Yuyo"
 Repository = "https://github.com/FasterSpeeding/Yuyo"
 Documentation = "https://yuyo.cursed.solutions/"
-Changelog = "https://github.com/FasterSpeeding/Yuyo/blob/master/CHANGELOG.md"
+Changelog = "https://yuyo.cursed.solutions/changelog"
 
 [tool.flit.module]
 name = "yuyo"
