@@ -191,8 +191,8 @@ class ReactionHandler(AbstractReactionHandler):
             This should be a function that accepts a single parameter,
             which is the event that triggered this reaction.
         """
-        if isinstance(emoji_identifier, hikari.CustomEmoji):
-            emoji_identifier = emoji_identifier.id
+        if not isinstance(emoji_identifier, str):
+            emoji_identifier = int(emoji_identifier)
 
         self._callbacks[emoji_identifier] = callback
         return self
@@ -210,8 +210,8 @@ class ReactionHandler(AbstractReactionHandler):
             This should be a snowfake if this is for a custom emoji or a string
             if this is for a unicode emoji.
         """
-        if isinstance(emoji_identifier, hikari.CustomEmoji):
-            emoji_identifier = emoji_identifier.id
+        if not isinstance(emoji_identifier, str):
+            emoji_identifier = int(emoji_identifier)
 
         del self._callbacks[emoji_identifier]
 
