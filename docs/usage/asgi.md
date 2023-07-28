@@ -1,7 +1,7 @@
 # Asgi
 
 The [AsgiBot][yuyo.asgi.AsgiBot] is a [RESTBot][hikari.traits.RESTBotAware]
-implementation which acts as an ASGI application which will handle the
+implementation which acts as an ASGI application to handle the
 interaction requests received from Discord for slash commands, context menus,
 message components and modals as part of an ASGI server.
 
