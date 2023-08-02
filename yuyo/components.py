@@ -2331,7 +2331,8 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     Examples
     --------
     ```py
-    message = await ctx.respond("hi, pick an option", components=[...])
+    message = await ctx.respond("hi, pick an option", components=[...], ensure_result=True)
+
     executor = yuyo.components.WaitFor(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
     component_client.register_executor(executor, message=message, timeout=executor)
 
@@ -2339,7 +2340,6 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         result = await executor.wait_for()
     except asyncio.TimeoutError:
         await ctx.respond("timed out")
-
     else:
         await result.respond("...")
     ```
