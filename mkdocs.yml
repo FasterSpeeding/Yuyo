@@ -1,5 +1,6 @@
 # mkdocs.yml
 site_name: "Hikari-Yuyo docs"
+repo_url: https://github.com/FasterSpeeding/Yuyo
 theme:
   name: material
   icon:
