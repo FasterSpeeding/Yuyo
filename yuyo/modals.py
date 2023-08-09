@@ -76,6 +76,9 @@ if typing.TYPE_CHECKING:
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
 
+    class _GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+        ...
+
 
 _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 
@@ -126,6 +129,36 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         return self._client
 
     @property
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        """Hikari cache instance this context's client was initialised with."""
+        return self._client.cache
+
+    @property
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this context's client was initialised with."""
+        return self._client.events
+
+    @property
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this context's client was initialised with."""
+        return self._client.rest
+
+    @property
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this context's client."""
+        return self._client.server
+
+    @property
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this context's client was initialised with."""
+        return self._client.shards
+
+    @property
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this context's client was initialised with."""
+        return self._client.voice
+
+    @property
     def component_ids(self) -> collections.abc.Mapping[str, str]:
         """Mapping of match ID parts to metadata ID parts for the modal's components."""
         return self._component_ids
@@ -138,15 +171,30 @@ Context = ModalContext
 class ModalClient:
     """Client used to handle modals within a REST or gateway flow."""
 
-    __slots__ = ("_alluka", "_modals", "_event_manager", "_gc_task", "_server", "_tasks")
+    __slots__ = (
+        "_alluka",
+        "_cache",
+        "_event_manager",
+        "_gc_task",
+        "_modals",
+        "_rest",
+        "_server",
+        "_shards",
+        "_tasks",
+        "_voice",
+    )
 
     def __init__(
         self,
         *,
         alluka: typing.Optional[alluka_.abc.Client] = None,
+        cache: typing.Optional[hikari.api.Cache] = None,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         event_managed: typing.Optional[bool] = None,
+        rest: typing.Optional[hikari.api.RESTClient] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
+        shards: typing.Optional[hikari.ShardAware] = None,
+        voice: typing.Optional[hikari.api.VoiceComponent] = None,
     ) -> None:
         """Initialise a modal client.
 
@@ -187,11 +235,15 @@ class ModalClient:
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
-        self._modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
+        self._cache = cache
         self._event_manager = event_manager
         self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
+        self._rest = rest
         self._server = server
+        self._shards = shards
         self._tasks: list[asyncio.Task[typing.Any]] = []
+        self._voice = voice
 
         if event_managed or event_managed is None and event_manager:
             if not event_manager:
@@ -216,14 +268,39 @@ class ModalClient:
         """The Alluka client being used for callback dependency injection."""
         return self._alluka
 
+    @property
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        """Hikari cache instance this client was initialised with."""
+        return self._cache
+
+    @property
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this client was initialised with."""
+        return self._event_manager
+
+    @property
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this client was initialised with."""
+        return self._rest
+
+    @property
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this client."""
+        return self._server
+
+    @property
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this client was initialised with."""
+        return self._shards
+
+    @property
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this client was initialised with."""
+        return self._voice
+
     @classmethod
     def from_gateway_bot(
-        cls,
-        bot: hikari.EventManagerAware,
-        /,
-        *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        event_managed: bool = True,
+        cls, bot: _GatewayBotAware, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
     ) -> Self:
         """Build a modal client from a Gateway Bot.
 
@@ -247,7 +324,19 @@ class ModalClient:
         ModalClient
             The initialised modal client.
         """
-        return cls(alluka=alluka, event_manager=bot.event_manager, event_managed=event_managed)
+        cache = None
+        if isinstance(bot, hikari.CacheAware):
+            cache = bot.cache
+
+        return cls(
+            alluka=alluka,
+            cache=cache,
+            event_manager=bot.event_manager,
+            event_managed=event_managed,
+            rest=bot.rest,
+            shards=bot,
+            voice=bot.voice,  # TODO: make voice optional here
+        )
 
     @classmethod
     def from_rest_bot(
@@ -280,7 +369,7 @@ class ModalClient:
         ModalClient
             The initialised modal client.
         """
-        client = cls(alluka=alluka, server=bot.interaction_server)
+        client = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
 
         if bot_managed:
             bot.add_startup_callback(client._on_starting)

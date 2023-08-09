@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support customising the `response_type` when deferring and creating the initial
   response to a modal call.
+- `.cache`, `.events`, `.rest`, `.server`, `.shards` and `.voice` attributes to
+  [yuyo.ComponentClient][yuyo.components.ComponentClient],
+  [yuyo.ComponentContext][yuyo.components.ComponentContext],
+  [yuyo.ModalClient][yuyo.modals.ModalClient], and
+  [yuyo.ModalContext][yuyo.modals.ModalCOntext] which represent parts of the linked
+  Hikari bot in a similar style To tanjun.
+
 
 ## [1.14.2] - 2023-05-08
 ### Fixed
