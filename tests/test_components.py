@@ -268,10 +268,10 @@ class TestComponentClient:
         assert client.voice is mock_voice
 
     def test_from_gateway_bot(self):
-        class GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+        class GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
             ...
 
-        mock_bot = mock.Mock(GatewayBotAware)
+        mock_bot = mock.Mock(GatewayBotProto)
         mock_init = mock.Mock(return_value=None)
 
         class StubClient(yuyo.ComponentClient):
