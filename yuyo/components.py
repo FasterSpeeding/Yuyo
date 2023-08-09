@@ -3207,10 +3207,6 @@ class _CustomIdProto(typing.Protocol):
         return True
 
 
-class ActionColumn:
-    ...
-
-
 class ActionColumnExecutor(AbstractComponentExecutor):
     """Executor which handles columns of action rows.
 
