@@ -83,7 +83,7 @@ if typing.TYPE_CHECKING:
         "_TextMenuT", "_TextMenuDescriptor[typing.Any, typing.Any]", "_WrappedTextMenuBuilder[...]"
     )
 
-    class _GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+    class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
         """Trait of a cacheless gateway bot."""
 
 
@@ -1699,7 +1699,7 @@ class ComponentClient:
 
     @classmethod
     def from_gateway_bot(
-        cls, bot: _GatewayBotAware, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
     ) -> Self:
         """Build a component client from a Gateway Bot.
 
