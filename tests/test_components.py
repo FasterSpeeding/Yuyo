@@ -35,8 +35,8 @@
 
 import datetime
 import inspect
-from unittest import mock
 import typing
+from unittest import mock
 
 import alluka
 import freezegun
@@ -110,7 +110,6 @@ class TestComponentContext:
         context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
 
         assert context.client is mock_client
-
 
     def test_events_property(self):
         mock_client = mock.Mock()
@@ -288,7 +287,7 @@ class TestComponentClient:
             event_managed=True,
             rest=mock_bot.rest,
             shards=mock_bot,
-            voice=mock_bot.voice
+            voice=mock_bot.voice,
         )
 
     def test_from_gateway_bot_with_optional_kwargs(self):
@@ -309,7 +308,7 @@ class TestComponentClient:
             event_managed=False,
             rest=mock_bot.rest,
             shards=mock_bot,
-            voice=mock_bot.voice
+            voice=mock_bot.voice,
         )
 
     def test_from_rest_bot(self):
