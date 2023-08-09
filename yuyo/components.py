@@ -176,6 +176,9 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._response_lock = asyncio.Lock()
 
     @property
+    def author(self) -> hikari.User:
+        """Author of this interaction."""
+        return self._interaction.user
     @abc.abstractmethod
     def cache(self) -> typing.Optional[hikari.api.Cache]:
         """Hikari cache instance this context's client was initialised with."""
@@ -211,9 +214,13 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         return self._id_match
 
     @property
-    def id_metadata(self) -> str:
-        """Metadata from the interaction's custom ID."""
-        return self._id_metadata
+    def channel_id(self) -> hikari.Snowflake:
+        """ID of the channel this interaction was triggered in."""
+        return self._interaction.channel_id
+
+    @property
+    def created_at(self) -> datetime.datetime:
+        return self._interaction.created_at
 
     @property
     def expires_at(self) -> datetime.datetime:
@@ -224,6 +231,10 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         [hikari.NotFoundError][hikari.errors.NotFoundError].
         """
         return self._interaction.created_at + _INTERACTION_LIFETIME
+
+    @property
+    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
+        return self._interaction.guild_id
 
     @property
     def has_been_deferred(self) -> bool:
@@ -251,9 +262,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         return self._has_responded
 
     @property
+    def id_match(self) -> str:
+        """Section of the ID used to identify the relevant executor."""
+        return self._id_match
+
+    @property
+    def id_metadata(self) -> str:
+        """Metadata from the interaction's custom ID."""
+        return self._id_metadata
+
+    @property
     def interaction(self) -> _PartialInteractionT:
         """Object of the interaction this context is for."""
         return self._interaction
+
+    @property
+    def member(self) -> typing.Optional[hikari.InteractionMember]:
+        return self._interaction.member
 
     def set_ephemeral_default(self, state: bool, /) -> Self:
         """Set the ephemeral default state for this context.
