@@ -77,7 +77,7 @@ if typing.TYPE_CHECKING:
     _SelfishSig = __SelfishSig[_T, ...]
 
     class _GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
-        ...
+        """Trait of a cacheless gateway bot."""
 
 
 _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]

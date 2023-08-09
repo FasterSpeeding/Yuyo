@@ -84,7 +84,7 @@ if typing.TYPE_CHECKING:
     )
 
     class _GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
-        ...
+        """Trait of a cacheless gateway bot."""
 
 
 _P = typing_extensions.ParamSpec("_P")
@@ -1402,14 +1402,14 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.members
 
     @property
-    def client(self) -> ComponentClient:
-        """The component client this context is bound to."""
-        return self._client
-
-    @property
     def cache(self) -> typing.Optional[hikari.api.Cache]:
         """Hikari cache instance this context's client was initialised with."""
         return self._client.cache
+
+    @property
+    def client(self) -> ComponentClient:
+        """The component client this context is bound to."""
+        return self._client
 
     @property
     def events(self) -> typing.Optional[hikari.api.EventManager]:

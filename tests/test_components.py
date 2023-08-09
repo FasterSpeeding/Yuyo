@@ -36,6 +36,7 @@
 import datetime
 import inspect
 from unittest import mock
+import typing
 
 import alluka
 import freezegun
@@ -98,6 +99,49 @@ class TestBaseContext:
 
 
 class TestComponentContext:
+    def test_cache_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.cache is mock_client.cache
+
+    def test_client_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.client is mock_client
+
+
+    def test_events_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.events is mock_client.events
+
+    def test_rest_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.rest is mock_client.rest
+
+    def test_server_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.server is mock_client.server
+
+    def test_shards_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.shards is mock_client.shards
+
+    def test_voice_property(self):
+        mock_client = mock.Mock()
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+
+        assert context.voice is mock_client.voice
+
     def test_selected_channels_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
@@ -148,12 +192,6 @@ class TestComponentContext:
 
         assert context.selected_members == {}
 
-    def test_client_property(self):
-        mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
-
-        assert context.client is mock_client
-
 
 class TestComponentClient:
     def test___init___when_event_managed(self):
@@ -188,8 +226,53 @@ class TestComponentClient:
         assert client.alluka is mock_alluka
         mock_alluka.set_type_dependency.assert_not_called()
 
+    def test_cache_property(self):
+        mock_cache = mock.Mock()
+
+        client = yuyo.ComponentClient(cache=mock_cache)
+
+        assert client.cache is mock_cache
+
+    def test_events_property(self):
+        mock_events = mock.Mock()
+
+        client = yuyo.ComponentClient(event_manager=mock_events)
+
+        assert client.events is mock_events
+
+    def test_rest_property(self):
+        mock_rest = mock.Mock()
+
+        client = yuyo.ComponentClient(rest=mock_rest)
+
+        assert client.rest is mock_rest
+
+    def test_server_property(self):
+        mock_server = mock.Mock()
+
+        client = yuyo.ComponentClient(server=mock_server)
+
+        assert client.server is mock_server
+
+    def test_shards_property(self):
+        mock_shards = mock.Mock()
+
+        client = yuyo.ComponentClient(shards=mock_shards)
+
+        assert client.shards is mock_shards
+
+    def test_voice_property(self):
+        mock_voice = mock.Mock()
+
+        client = yuyo.ComponentClient(voice=mock_voice)
+
+        assert client.voice is mock_voice
+
     def test_from_gateway_bot(self):
-        mock_bot = mock.Mock()
+        class GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+            ...
+
+        mock_bot = mock.Mock(GatewayBotAware)
         mock_init = mock.Mock(return_value=None)
 
         class StubClient(yuyo.ComponentClient):
@@ -198,7 +281,15 @@ class TestComponentClient:
         stub_client = StubClient.from_gateway_bot(mock_bot)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(alluka=None, event_manager=mock_bot.event_manager, event_managed=True)
+        mock_init.assert_called_once_with(
+            alluka=None,
+            cache=None,
+            event_manager=mock_bot.event_manager,
+            event_managed=True,
+            rest=mock_bot.rest,
+            shards=mock_bot,
+            voice=mock_bot.voice
+        )
 
     def test_from_gateway_bot_with_optional_kwargs(self):
         mock_alluka = mock.Mock()
@@ -211,7 +302,15 @@ class TestComponentClient:
         stub_client = StubClient.from_gateway_bot(mock_bot, alluka=mock_alluka, event_managed=False)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(alluka=mock_alluka, event_manager=mock_bot.event_manager, event_managed=False)
+        mock_init.assert_called_once_with(
+            alluka=mock_alluka,
+            cache=mock_bot.cache,
+            event_manager=mock_bot.event_manager,
+            event_managed=False,
+            rest=mock_bot.rest,
+            shards=mock_bot,
+            voice=mock_bot.voice
+        )
 
     def test_from_rest_bot(self):
         mock_bot = mock.Mock()
@@ -223,7 +322,7 @@ class TestComponentClient:
         stub_client = StubClient.from_rest_bot(mock_bot)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(alluka=None, server=mock_bot.interaction_server)
+        mock_init.assert_called_once_with(alluka=None, rest=mock_bot.rest, server=mock_bot.interaction_server)
         mock_bot.add_shutdown_callback.assert_not_called()
         mock_bot.add_startup_callback.assert_not_called()
 
@@ -238,7 +337,7 @@ class TestComponentClient:
         stub_client = StubClient.from_rest_bot(mock_bot, alluka=mock_alluka, bot_managed=True)
 
         assert isinstance(stub_client, StubClient)
-        mock_init.assert_called_once_with(alluka=mock_alluka, server=mock_bot.interaction_server)
+        mock_init.assert_called_once_with(alluka=mock_alluka, rest=mock_bot.rest, server=mock_bot.interaction_server)
         mock_bot.add_shutdown_callback.assert_called_once_with(stub_client._on_stopping)
         mock_bot.add_startup_callback.assert_called_once_with(stub_client._on_starting)
 
