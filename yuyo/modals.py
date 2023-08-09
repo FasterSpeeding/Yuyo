@@ -76,7 +76,7 @@ if typing.TYPE_CHECKING:
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
 
-    class _GatewayBotAware(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+    class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
         """Trait of a cacheless gateway bot."""
 
 
@@ -300,7 +300,7 @@ class ModalClient:
 
     @classmethod
     def from_gateway_bot(
-        cls, bot: _GatewayBotAware, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
     ) -> Self:
         """Build a modal client from a Gateway Bot.
 
