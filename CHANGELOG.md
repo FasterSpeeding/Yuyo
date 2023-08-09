@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [yuyo.ComponentClient][yuyo.components.ComponentClient],
   [yuyo.ComponentContext][yuyo.components.ComponentContext],
   [yuyo.ModalClient][yuyo.modals.ModalClient], and
-  [yuyo.ModalContext][yuyo.modals.ModalCOntext] which represent parts of the linked
+  [yuyo.ModalContext][yuyo.modals.ModalContext] which represent parts of the linked
   Hikari bot in a similar style To tanjun.
 
 
