@@ -301,7 +301,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
             self._has_been_deferred = True
             if self._response_future:
-                self._response_future.set_result(self._interaction.build_deferred_response(defer_type).set_flags(flags))
+                # TODO: ModalInteraction.build_deferred_response needs to support defer_type
+                self._response_future.set_result(hikari.impl.InteractionDeferredBuilder(defer_type, flags=flags))
 
             else:
                 await self._interaction.create_initial_response(defer_type, flags=flags)
