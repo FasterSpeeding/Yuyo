@@ -179,39 +179,11 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     def author(self) -> hikari.User:
         """Author of this interaction."""
         return self._interaction.user
+
+    @property
     @abc.abstractmethod
     def cache(self) -> typing.Optional[hikari.api.Cache]:
         """Hikari cache instance this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
-        """Object of the event manager this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
-        """Object of the Hikari REST client this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
-        """Object of the Hikari interaction server provided for this context's client."""
-
-    @property
-    @abc.abstractmethod
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
-        """Object of the Hikari shard manager this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
-        """Object of the Hikari voice component this context's client was initialised with."""
-
-    @property
-    def id_match(self) -> str:
-        """Section of the ID used to identify the relevant executor."""
-        return self._id_match
 
     @property
     def channel_id(self) -> hikari.Snowflake:
@@ -231,6 +203,11 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         [hikari.NotFoundError][hikari.errors.NotFoundError].
         """
         return self._interaction.created_at + _INTERACTION_LIFETIME
+
+    @property
+    @abc.abstractmethod
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this context's client was initialised with."""
 
     @property
     def guild_id(self) -> typing.Optional[hikari.Snowflake]:
@@ -279,6 +256,26 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     @property
     def member(self) -> typing.Optional[hikari.InteractionMember]:
         return self._interaction.member
+
+    @property
+    @abc.abstractmethod
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this context's client."""
+
+    @property
+    @abc.abstractmethod
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this context's client was initialised with."""
 
     def set_ephemeral_default(self, state: bool, /) -> Self:
         """Set the ephemeral default state for this context.
