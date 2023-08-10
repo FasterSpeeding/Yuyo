@@ -59,6 +59,13 @@ class TestBaseContext:
 
         assert context.author is mock_interaction.user
 
+    @property
+    def test_channel_id(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.channel_id is mock_interaction.channel_id
+
     def test_created_at_property(self):
         mock_interaction = mock.Mock()
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
@@ -120,6 +127,33 @@ class TestBaseContext:
         context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.member is mock_interaction.member
+
+    def test_shard_property(self):
+        mock_shard = mock.Mock()
+        mock_client = mock.Mock(shards=mock.MagicMock(spec=hikari.ShardAware, shard_count=5, shards={2: mock_shard}))
+        context = yuyo.components.Context(
+            mock_client, mock.Mock(guild_id=hikari.Snowflake(123321123312)), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.shard is mock_shard
+
+    def test_shard_property_when_dm(self):
+        mock_shard = mock.Mock()
+        mock_client = mock.Mock(shards=mock.Mock(shards={0: mock_shard}))
+        context = yuyo.components.Context(
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.shard is mock_shard
+
+    def test_shard_property_when_no_shards(self):
+        mock_client = mock.Mock(shards=None)
+        context = yuyo.components.Context(
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+        context._client = mock.Mock(shards=None)
+
+        assert context.shard is None
 
 
 class TestComponentContext:
