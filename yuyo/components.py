@@ -59,6 +59,7 @@ import functools
 import hashlib
 import itertools
 import logging
+from hikari import snowflakes
 import os
 import types
 import typing
@@ -271,6 +272,25 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
     @abc.abstractmethod
     def shards(self) -> typing.Optional[hikari.ShardAware]:
         """Object of the Hikari shard manager this context's client was initialised with."""
+
+    @property
+    def shard(self) -> typing.Optional[hikari.api.GatewayShard]:
+        """Shard that triggered the interaction.
+
+        !!! note
+            This will be [None][] if [BaseContext.shards][yuyo.components.BaseContext.shards]
+            is also [None][].
+        """
+        if not self.shards:
+            return None
+
+        if self.guild_id is not None:
+            shard_id = snowflakes.calculate_shard_id(self.shards, self.guild_id)
+
+        else:
+            shard_id = 0
+
+        return self.shards.shards[shard_id]
 
     @property
     @abc.abstractmethod
