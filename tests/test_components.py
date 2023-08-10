@@ -55,13 +55,13 @@ except ModuleNotFoundError:
 class TestBaseContext:
     def test_author_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.author is mock_interaction.user
 
     def test_created_at_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.created_at is mock_interaction.created_at
 
@@ -90,7 +90,7 @@ class TestBaseContext:
 
     def test_guild_id_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.guild_id is mock_interaction.guild_id
 
@@ -114,9 +114,10 @@ class TestBaseContext:
         )
 
         assert context.interaction is mock_interaction
+
     def test_member_property(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.member is mock_interaction.member
 

@@ -59,7 +59,6 @@ import functools
 import hashlib
 import itertools
 import logging
-from hikari import snowflakes
 import os
 import types
 import typing
@@ -68,6 +67,7 @@ from collections import abc as collections
 import alluka as alluka_
 import hikari
 import typing_extensions
+from hikari import snowflakes
 
 from . import _internal
 from . import pagination
