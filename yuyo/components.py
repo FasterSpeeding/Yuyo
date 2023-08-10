@@ -67,6 +67,7 @@ from collections import abc as collections
 import alluka as alluka_
 import hikari
 import typing_extensions
+from hikari import snowflakes
 
 from . import _internal
 from . import pagination
@@ -176,44 +177,23 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._response_lock = asyncio.Lock()
 
     @property
+    def author(self) -> hikari.User:
+        """Author of this interaction."""
+        return self._interaction.user
+
+    @property
     @abc.abstractmethod
     def cache(self) -> typing.Optional[hikari.api.Cache]:
         """Hikari cache instance this context's client was initialised with."""
 
     @property
-    @abc.abstractmethod
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
-        """Object of the event manager this context's client was initialised with."""
+    def channel_id(self) -> hikari.Snowflake:
+        """ID of the channel this interaction was triggered in."""
+        return self._interaction.channel_id
 
     @property
-    @abc.abstractmethod
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
-        """Object of the Hikari REST client this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
-        """Object of the Hikari interaction server provided for this context's client."""
-
-    @property
-    @abc.abstractmethod
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
-        """Object of the Hikari shard manager this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
-        """Object of the Hikari voice component this context's client was initialised with."""
-
-    @property
-    def id_match(self) -> str:
-        """Section of the ID used to identify the relevant executor."""
-        return self._id_match
-
-    @property
-    def id_metadata(self) -> str:
-        """Metadata from the interaction's custom ID."""
-        return self._id_metadata
+    def created_at(self) -> datetime.datetime:
+        return self._interaction.created_at
 
     @property
     def expires_at(self) -> datetime.datetime:
@@ -224,6 +204,15 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         [hikari.NotFoundError][hikari.errors.NotFoundError].
         """
         return self._interaction.created_at + _INTERACTION_LIFETIME
+
+    @property
+    @abc.abstractmethod
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this context's client was initialised with."""
+
+    @property
+    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
+        return self._interaction.guild_id
 
     @property
     def has_been_deferred(self) -> bool:
@@ -251,9 +240,62 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         return self._has_responded
 
     @property
+    def id_match(self) -> str:
+        """Section of the ID used to identify the relevant executor."""
+        return self._id_match
+
+    @property
+    def id_metadata(self) -> str:
+        """Metadata from the interaction's custom ID."""
+        return self._id_metadata
+
+    @property
     def interaction(self) -> _PartialInteractionT:
         """Object of the interaction this context is for."""
         return self._interaction
+
+    @property
+    def member(self) -> typing.Optional[hikari.InteractionMember]:
+        return self._interaction.member
+
+    @property
+    @abc.abstractmethod
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this context's client."""
+
+    @property
+    @abc.abstractmethod
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this context's client was initialised with."""
+
+    @property
+    def shard(self) -> typing.Optional[hikari.api.GatewayShard]:
+        """Shard that triggered the interaction.
+
+        !!! note
+            This will be [None][] if [BaseContext.shards][yuyo.components.BaseContext.shards]
+            is also [None][].
+        """
+        if not self.shards:
+            return None
+
+        if self.guild_id is not None:
+            shard_id = snowflakes.calculate_shard_id(self.shards, self.guild_id)
+
+        else:
+            shard_id = 0
+
+        return self.shards.shards[shard_id]
+
+    @property
+    @abc.abstractmethod
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this context's client was initialised with."""
 
     def set_ephemeral_default(self, state: bool, /) -> Self:
         """Set the ephemeral default state for this context.

@@ -53,17 +53,24 @@ except ModuleNotFoundError:
 
 
 class TestBaseContext:
-    def test_id_match_property(self):
-        context = yuyo.components.Context(
-            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
-        )
+    def test_author_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.id_match == "yeyeye meow meow"
+        assert context.author is mock_interaction.user
 
-    def test_id_metadata_property(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda v: None)
+    @property
+    def test_channel_id(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
-        assert context.id_metadata == "very meta girl"
+        assert context.channel_id is mock_interaction.channel_id
+
+    def test_created_at_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.created_at is mock_interaction.created_at
 
     @pytest.mark.parametrize(
         ("now", "expires_at"),
@@ -88,6 +95,24 @@ class TestBaseContext:
 
             assert context.expires_at == expires_at
 
+    def test_guild_id_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.guild_id is mock_interaction.guild_id
+
+    def test_id_match_property(self):
+        context = yuyo.components.Context(
+            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.id_match == "yeyeye meow meow"
+
+    def test_id_metadata_property(self):
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda v: None)
+
+        assert context.id_metadata == "very meta girl"
+
     def test_interaction_property(self):
         mock_interaction = mock.Mock()
 
@@ -96,6 +121,43 @@ class TestBaseContext:
         )
 
         assert context.interaction is mock_interaction
+
+    def test_member_property(self):
+        mock_interaction = mock.Mock()
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+
+        assert context.member is mock_interaction.member
+
+    def test_shard_property(self):
+        mock_shard = mock.Mock()
+        mock_client = mock.Mock(shards=mock.MagicMock(spec=hikari.ShardAware, shard_count=5, shards={2: mock_shard}))
+        context = yuyo.components.Context(
+            mock_client,
+            mock.Mock(guild_id=hikari.Snowflake(123321123312)),
+            "yeyeye meow meow",
+            "",
+            register_task=lambda v: None,
+        )
+
+        assert context.shard is mock_shard
+
+    def test_shard_property_when_dm(self):
+        mock_shard = mock.Mock()
+        mock_client = mock.Mock(shards=mock.Mock(shards={0: mock_shard}))
+        context = yuyo.components.Context(
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+
+        assert context.shard is mock_shard
+
+    def test_shard_property_when_no_shards(self):
+        mock_client = mock.Mock(shards=None)
+        context = yuyo.components.Context(
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+        )
+        context._client = mock.Mock(shards=None)
+
+        assert context.shard is None
 
 
 class TestComponentContext:
