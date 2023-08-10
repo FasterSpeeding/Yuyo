@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [yuyo.ModalClient][yuyo.modals.ModalClient], and
   [yuyo.ModalContext][yuyo.modals.ModalContext] which represent parts of the linked
   Hikari bot in a similar style to tanjun.
-- Add the following utility attributes to [yuyo.ComponentContext][yuyo.components.ComponentContext]
+- The following utility attributes to [yuyo.ComponentContext][yuyo.components.ComponentContext]
   and [yuyo.ModalContext][yuyo.modals.ModalContext] which mostly relay attributes from the inner
   interaction: `.author`, `.channel_id`, `.created_at`, `.guild_id`, `.member`, `.shard`.
 
