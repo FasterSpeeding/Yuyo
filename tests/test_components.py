@@ -62,7 +62,7 @@ class TestBaseContext:
     @property
     def test_channel_id(self):
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context( mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
 
         assert context.channel_id is mock_interaction.channel_id
 
@@ -132,7 +132,11 @@ class TestBaseContext:
         mock_shard = mock.Mock()
         mock_client = mock.Mock(shards=mock.MagicMock(spec=hikari.ShardAware, shard_count=5, shards={2: mock_shard}))
         context = yuyo.components.Context(
-            mock_client, mock.Mock(guild_id=hikari.Snowflake(123321123312)), "yeyeye meow meow", "", register_task=lambda v: None
+            mock_client,
+            mock.Mock(guild_id=hikari.Snowflake(123321123312)),
+            "yeyeye meow meow",
+            "",
+            register_task=lambda v: None,
         )
 
         assert context.shard is mock_shard
