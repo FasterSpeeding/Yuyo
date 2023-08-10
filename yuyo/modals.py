@@ -149,6 +149,25 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         return self._client.server
 
     @property
+    def shard(self) -> typing.Optional[hikari.api.GatewayShard]:
+        """Shard that triggered the context.
+
+        !!! note
+            This will be [None][] if [BaseContext.shards][yuyo.components.BaseContext.shards]
+            is also [None][].
+        """
+        if not self.shards:
+            return None
+
+        if self.guild_id is not None:
+            shard_id = snowflakes.calculate_shard_id(self.shards, self.guild_id)
+
+        else:
+            shard_id = 0
+
+        return self.shards.shards[shard_id]
+
+    @property
     def shards(self) -> typing.Optional[hikari.ShardAware]:
         """Object of the Hikari shard manager this context's client was initialised with."""
         return self._client.shards
