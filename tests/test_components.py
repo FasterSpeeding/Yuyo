@@ -422,7 +422,7 @@ class TestComponentClient:
             rest=mock_bot.rest,
             server=mock_bot.server,
             shards=mock_bot.shards,
-            voice=mock_bot.voice
+            voice=mock_bot.voice,
         )
         mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_has_calls(
