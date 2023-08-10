@@ -410,9 +410,9 @@ frozenlist==1.4.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
 hikari-sake==1.0.7 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:7f163acc889869df0a423e7804a7a5686ccc028ec33afdee4b8fdaf305a1c286 \
     --hash=sha256:9a941706192c2d769601c5f2665c26233960c552807e8f12411640f0b0a61316
-hikari-tanjun==2.16.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:66ca826c6ad3740765a640aa76339b6eed82a044d71ce0c53c05f93ae1b5a40c \
-    --hash=sha256:f7f8e6c2ef48c6743ae9bbaaa4bfe34c3b556fbb5b1267c4b842e307b966380e
+hikari-tanjun==2.16.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:2dccb6bb6fd7ecbe008ebf7420f70fa9d70dfe284ba35566dd1602ae5405b6b1 \
+    --hash=sha256:b7d91e167fe2cbdd001a58d1a83fef1976ab74c96813ef4d09251092ab006407
 hikari==2.0.0.dev120 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:08201e37d1c1733868d1928a086a4bec79504d0729105bf2fb0a0c3bcd731aa1 \
     --hash=sha256:13122a12f5c83f10049ec66e13554e1d91350cb4faee7b7ad0efcac4a731202b
@@ -718,9 +718,9 @@ pynacl==1.5.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:a36d4a9dda1f19ce6e03c9a784a2921a4b726b02e1c736600ca9c22029474394 \
     --hash=sha256:a422368fc821589c228f4c49438a368831cb5bbc0eab5ebe1d7fac9dded6567b \
     --hash=sha256:e46dae94e34b085175f8abb3b0aaa7da40767865ac82c928eeb9e57e1ea8a543
-pyright==1.1.320 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:94223e3b82d0b4c99c5125bab4d628ec749ce0b5b2ae0471fd4921dd4eff460d \
-    --hash=sha256:cdf739f7827374575cefb134311457d08c189793c3da3097c023debec9acaedb
+pyright==1.1.321 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:bc8ca2001b9f19b1cf75eb5ace71d833f9266b3981a5d88dac3b9bbcff8d9281 \
+    --hash=sha256:f62d54fac611138a407bb302103700eeb37a147ce1a6e915148be9ca5961572a
 pytest-asyncio==0.21.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:40a7eae6dded22c7b604986855ea48400ab15b069ae38116e8c01238e9eeb64d \
     --hash=sha256:8666c1c8ac02631d7c51ba282e0c69a8a452b211ffedf2599099845da5c5c37b
