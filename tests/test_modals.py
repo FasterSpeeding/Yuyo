@@ -50,11 +50,47 @@ except ModuleNotFoundError:
 
 
 class TestModalContext:
+    def test_cache_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.cache is mock_client.cache
+
     def test_client_property(self):
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.client is mock_client
+
+    def test_events_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.events is mock_client.events
+
+    def test_rest_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.rest is mock_client.rest
+
+    def test_server_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.server is mock_client.server
+
+    def test_shards_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.shards is mock_client.shards
+
+    def test_voice_property(self):
+        mock_client = mock.Mock()
+        context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
+
+        assert context.voice is mock_client.voice
 
     def test_component_ids_property(self):
         components = {"id": "meow"}
@@ -89,6 +125,48 @@ class TestModalClient:
 
         assert client.alluka is mock_alluka
         mock_alluka.set_type_dependency.assert_not_called()
+
+    def test_cache_property(self):
+        mock_cache = mock.Mock()
+
+        client = modals.ModalClient(cache=mock_cache)
+
+        assert client.cache is mock_cache
+
+    def test_events_property(self):
+        mock_events = mock.Mock()
+
+        client = modals.ModalClient(event_manager=mock_events)
+
+        assert client.events is mock_events
+
+    def test_rest_property(self):
+        mock_rest = mock.Mock()
+
+        client = modals.ModalClient(rest=mock_rest)
+
+        assert client.rest is mock_rest
+
+    def test_server_property(self):
+        mock_server = mock.Mock()
+
+        client = modals.ModalClient(server=mock_server)
+
+        assert client.server is mock_server
+
+    def test_shards_property(self):
+        mock_shards = mock.Mock()
+
+        client = modals.ModalClient(shards=mock_shards)
+
+        assert client.shards is mock_shards
+
+    def test_voice_property(self):
+        mock_voice = mock.Mock()
+
+        client = modals.ModalClient(voice=mock_voice)
+
+        assert client.voice is mock_voice
 
     @pytest.mark.skip(reason="TODO")
     def test_from_gateway_bot(self):

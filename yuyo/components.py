@@ -83,6 +83,9 @@ if typing.TYPE_CHECKING:
         "_TextMenuT", "_TextMenuDescriptor[typing.Any, typing.Any]", "_WrappedTextMenuBuilder[...]"
     )
 
+    class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
+        """Trait of a cacheless gateway bot."""
+
 
 _P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
@@ -173,6 +176,36 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._response_lock = asyncio.Lock()
 
     @property
+    @abc.abstractmethod
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        """Hikari cache instance this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this context's client."""
+
+    @property
+    @abc.abstractmethod
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this context's client was initialised with."""
+
+    @property
+    @abc.abstractmethod
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this context's client was initialised with."""
+
+    @property
     def id_match(self) -> str:
         """Section of the ID used to identify the relevant executor."""
         return self._id_match
@@ -184,7 +217,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
     @property
     def expires_at(self) -> datetime.datetime:
-        """When this application command context expires.
+        """When this context expires.
 
         After this time is reached, the message/response methods on this
         context will always raise
@@ -1369,9 +1402,39 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.members
 
     @property
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        """Hikari cache instance this context's client was initialised with."""
+        return self._client.cache
+
+    @property
     def client(self) -> ComponentClient:
         """The component client this context is bound to."""
         return self._client
+
+    @property
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this context's client was initialised with."""
+        return self._client.events
+
+    @property
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this context's client was initialised with."""
+        return self._client.rest
+
+    @property
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this context's client."""
+        return self._client.server
+
+    @property
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this context's client was initialised with."""
+        return self._client.shards
+
+    @property
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this context's client was initialised with."""
+        return self._client.voice
 
     async def create_modal_response(
         self,
@@ -1500,15 +1563,31 @@ class ExecutorClosed(Exception):
 class ComponentClient:
     """Client used to handle component executors within a REST or gateway flow."""
 
-    __slots__ = ("_alluka", "_event_manager", "_executors", "_gc_task", "_message_executors", "_server", "_tasks")
+    __slots__ = (
+        "_alluka",
+        "_cache",
+        "_event_manager",
+        "_executors",
+        "_gc_task",
+        "_message_executors",
+        "_rest",
+        "_server",
+        "_shards",
+        "_tasks",
+        "_voice",
+    )
 
     def __init__(
         self,
         *,
         alluka: typing.Optional[alluka_.abc.Client] = None,
+        cache: typing.Optional[hikari.api.Cache] = None,
         event_manager: typing.Optional[hikari.api.EventManager] = None,
         event_managed: typing.Optional[bool] = None,
+        rest: typing.Optional[hikari.api.RESTClient] = None,
         server: typing.Optional[hikari.api.InteractionServer] = None,
+        shards: typing.Optional[hikari.ShardAware] = None,
+        voice: typing.Optional[hikari.api.VoiceComponent] = None,
     ) -> None:
         """Initialise a component client.
 
@@ -1550,6 +1629,7 @@ class ComponentClient:
 
         self._alluka = alluka
 
+        self._cache = cache
         self._executors: dict[str, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of custom IDs to executors."""
 
@@ -1558,8 +1638,11 @@ class ComponentClient:
         self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
 
+        self._rest = rest
         self._server = server
+        self._shards = shards
         self._tasks: list[asyncio.Task[typing.Any]] = []
+        self._voice = voice
 
         if event_managed or event_managed is None and event_manager:
             if not event_manager:
@@ -1584,14 +1667,39 @@ class ComponentClient:
         """The Alluka client being used for callback dependency injection."""
         return self._alluka
 
+    @property
+    def cache(self) -> typing.Optional[hikari.api.Cache]:
+        """Hikari cache instance this client was initialised with."""
+        return self._cache
+
+    @property
+    def events(self) -> typing.Optional[hikari.api.EventManager]:
+        """Object of the event manager this client was initialised with."""
+        return self._event_manager
+
+    @property
+    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+        """Object of the Hikari REST client this client was initialised with."""
+        return self._rest
+
+    @property
+    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+        """Object of the Hikari interaction server provided for this client."""
+        return self._server
+
+    @property
+    def shards(self) -> typing.Optional[hikari.ShardAware]:
+        """Object of the Hikari shard manager this client was initialised with."""
+        return self._shards
+
+    @property
+    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+        """Object of the Hikari voice component this client was initialised with."""
+        return self._voice
+
     @classmethod
     def from_gateway_bot(
-        cls,
-        bot: hikari.EventManagerAware,
-        /,
-        *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        event_managed: bool = True,
+        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
     ) -> Self:
         """Build a component client from a Gateway Bot.
 
@@ -1615,7 +1723,19 @@ class ComponentClient:
         ComponentClient
             The initialised component client.
         """
-        return cls(alluka=alluka, event_manager=bot.event_manager, event_managed=event_managed)
+        cache = None
+        if isinstance(bot, hikari.CacheAware):
+            cache = bot.cache
+
+        return cls(
+            alluka=alluka,
+            cache=cache,
+            event_manager=bot.event_manager,
+            event_managed=event_managed,
+            rest=bot.rest,
+            shards=bot,
+            voice=bot.voice,  # TODO: make voice optional here
+        )
 
     @classmethod
     def from_rest_bot(
@@ -1648,7 +1768,7 @@ class ComponentClient:
         ComponentClient
             The initialised component client.
         """
-        client = cls(alluka=alluka, server=bot.interaction_server)
+        client = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
 
         if bot_managed:
             bot.add_startup_callback(client._on_starting)
