@@ -416,7 +416,13 @@ class TestComponentClient:
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(
-            alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
+            alluka=mock_bot.injector,
+            cache=mock_bot.cache,
+            event_manager=mock_bot.events,
+            rest=mock_bot.rest,
+            server=mock_bot.server,
+            shards=mock_bot.shards,
+            voice=mock_bot.voice,
         )
         mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_has_calls(
@@ -440,7 +446,13 @@ class TestComponentClient:
 
         assert isinstance(stub_client, StubClient)
         mock_init.assert_called_once_with(
-            alluka=mock_bot.injector, event_manager=mock_bot.events, server=mock_bot.server
+            alluka=mock_bot.injector,
+            cache=mock_bot.cache,
+            event_manager=mock_bot.events,
+            rest=mock_bot.rest,
+            server=mock_bot.server,
+            shards=mock_bot.shards,
+            voice=mock_bot.voice,
         )
         mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_not_called()

@@ -1841,7 +1841,15 @@ class ComponentClient:
         """
         import tanjun
 
-        self = cls(alluka=tanjun_client.injector, event_manager=tanjun_client.events, server=tanjun_client.server)
+        self = cls(
+            alluka=tanjun_client.injector,
+            cache=tanjun_client.cache,
+            event_manager=tanjun_client.events,
+            rest=tanjun_client.rest,
+            server=tanjun_client.server,
+            shards=tanjun_client.shards,
+            voice=tanjun_client.voice,
+        )
         self._set_standard_deps(tanjun_client.injector)
 
         if tanjun_managed:

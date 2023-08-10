@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [ComponentClient.from_tanjun][yuyo.components.ComponentClient.from_tanjun] and
+  [ModalClient.from_tanjun][yuyo.modals.ModalClient.from_tanjun] both now correctly pass through
+  the relevant hikari bot components.
+
 ## [1.15.0] - 2023-08-10
 ### Added
 - Support customising the `response_type` when deferring and creating the initial
