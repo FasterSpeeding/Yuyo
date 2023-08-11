@@ -47,6 +47,7 @@ __all__: list[str] = [
     "DiscordBotListService",
     "ErrorManager",
     "FinishedChunkingEvent",
+    "InteractionError",
     "ModalClient",
     "ModalContext",
     "ReactionClient",
@@ -90,6 +91,7 @@ from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
+from .components import InteractionError
 from .components import WaitForExecutor
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService
