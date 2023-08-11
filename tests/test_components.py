@@ -125,11 +125,7 @@ class TestInteractionError:
         mock_attachment = mock.Mock()
         mock_component = mock.Mock()
         mock_embed = mock.Mock()
-        error = yuyo.InteractionError(
-            attachment=mock_attachment,
-            component=mock_component,
-            embed=mock_embed
-        )
+        error = yuyo.InteractionError(attachment=mock_attachment, component=mock_component, embed=mock_embed)
         mock_context = mock.AsyncMock()
 
         result = await error.send(mock_context)
@@ -146,6 +142,7 @@ class TestInteractionError:
             role_mentions=hikari.UNDEFINED,
             user_mentions=hikari.UNDEFINED,
         )
+
 
 class TestBaseContext:
     def test_author_property(self):
