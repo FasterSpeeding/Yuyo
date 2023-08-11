@@ -64,6 +64,7 @@ from . import _internal
 from . import components as components_
 from . import timeouts
 from ._internal import inspect
+from .components import InteractionError as InteractionError
 
 _P = typing_extensions.ParamSpec("_P")
 _T = typing.TypeVar("_T")
@@ -497,7 +498,12 @@ class ModalClient:
             register_task=self._add_task,
             response_future=future,
         )
-        await modal.execute(ctx)
+
+        try:
+            await modal.execute(ctx)
+
+        except InteractionError as exc:
+            await exc.send(ctx)
 
     async def on_gateway_event(self, event: hikari.InteractionCreateEvent, /) -> None:
         """Process an interaction create gateway event.

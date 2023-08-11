@@ -52,6 +52,98 @@ except ModuleNotFoundError:
     tanjun = None
 
 
+class TestInteractionError:
+    def test_init_dunder_method_when_both_attachment_and_attachments_passed(self):
+        with pytest.raises(ValueError, match="Cannot specify both attachment and attachments"):
+            yuyo.InteractionError(attachment=mock.Mock(), attachments=[mock.Mock()])
+
+    def test_init_dunder_method_when_both_component_and_components_passed(self):
+        with pytest.raises(ValueError, match="Cannot specify both component and components"):
+            yuyo.InteractionError(component=mock.Mock(), components=[mock.Mock()])
+
+    def test_init_dunder_method_when_both_embed_and_embeds_passed(self):
+        with pytest.raises(ValueError, match="Cannot specify both embed and embeds"):
+            yuyo.InteractionError(embed=mock.Mock(), embeds=[mock.Mock()])
+
+    def test_str_dunder_method(self):
+        assert str(yuyo.InteractionError("bar")) == "bar"
+
+    @pytest.mark.asyncio()
+    async def test_send(self):
+        error = yuyo.InteractionError()
+        mock_context = mock.AsyncMock()
+
+        result = await error.send(mock_context)
+
+        assert result is mock_context.respond.return_value
+        mock_context.respond.assert_awaited_once_with(
+            content=hikari.UNDEFINED,
+            attachments=hikari.UNDEFINED,
+            components=hikari.UNDEFINED,
+            delete_after=None,
+            embeds=hikari.UNDEFINED,
+            ensure_result=False,
+            mentions_everyone=hikari.UNDEFINED,
+            role_mentions=hikari.UNDEFINED,
+            user_mentions=hikari.UNDEFINED,
+        )
+
+    @pytest.mark.asyncio()
+    async def test_send_when_all_fields(self):
+        mock_attachment = mock.Mock()
+        mock_component = mock.Mock()
+        mock_embed = mock.Mock()
+        error = yuyo.InteractionError(
+            "hello",
+            attachments=[mock_attachment],
+            components=[mock_component],
+            delete_after=53,
+            embeds=[mock_embed],
+            mentions_everyone=True,
+            role_mentions=[123, 431],
+            user_mentions=[666, 555],
+        )
+        mock_context = mock.AsyncMock()
+
+        result = await error.send(mock_context, ensure_result=True)
+
+        assert result is mock_context.respond.return_value
+        mock_context.respond.assert_awaited_once_with(
+            content="hello",
+            attachments=[mock_attachment],
+            components=[mock_component],
+            delete_after=53,
+            embeds=[mock_embed],
+            ensure_result=True,
+            mentions_everyone=True,
+            role_mentions=[123, 431],
+            user_mentions=[666, 555],
+        )
+
+    @pytest.mark.asyncio()
+    async def test_send_when_singular_field_aliases(self):
+        mock_attachment = mock.Mock()
+        mock_component = mock.Mock()
+        mock_embed = mock.Mock()
+        error = yuyo.InteractionError(attachment=mock_attachment, component=mock_component, embed=mock_embed)
+        mock_context = mock.AsyncMock()
+
+        result = await error.send(mock_context)
+
+        assert result is mock_context.respond.return_value
+        mock_context.respond.assert_awaited_once_with(
+            content=hikari.UNDEFINED,
+            attachments=[mock_attachment],
+            components=[mock_component],
+            delete_after=None,
+            embeds=[mock_embed],
+            ensure_result=False,
+            mentions_everyone=hikari.UNDEFINED,
+            role_mentions=hikari.UNDEFINED,
+            user_mentions=hikari.UNDEFINED,
+        )
+
+
 class TestBaseContext:
     def test_author_property(self):
         mock_interaction = mock.Mock()

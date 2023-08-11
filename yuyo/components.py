@@ -91,7 +91,7 @@ if typing.TYPE_CHECKING:
 _P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _SelfT = typing.TypeVar("_SelfT")
-_PartialInteractionT = typing.TypeVar("_PartialInteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
+_InteractionT = typing.TypeVar("_InteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
 _ComponentResponseT = typing.Union[
@@ -134,7 +134,199 @@ def _decorate(
     return _consume(value, decorator)
 
 
-class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
+class InteractionError(Exception):
+    """Error which is sent as a response to a modal or component call."""
+
+    def __init__(
+        self,
+        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
+        *,
+        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
+        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
+        user_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
+        ] = hikari.UNDEFINED,
+        role_mentions: typing.Union[
+            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
+        ] = hikari.UNDEFINED,
+    ) -> None:
+        """Initialise an interaction error.
+
+        Parameters
+        ----------
+        content
+            If provided, the message content to respond with.
+
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
+        delete_after
+            If provided, the seconds after which the response message should be deleted.
+
+            Interaction responses can only be deleted within 15 minutes of
+            the interaction being received.
+        attachment
+            A singular attachment to respond with.
+        attachments
+            A sequence of attachments to respond with.
+        component
+            If provided, builder object of the component to include in this response.
+        components
+            If provided, a sequence of the component builder objects to include
+            in this response.
+        embed
+            An embed to respond with.
+        embeds
+            A sequence of embeds to respond with.
+        mentions_everyone
+            If provided, whether the message should parse @everyone/@here
+            mentions.
+        user_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialUser][hikari.users.PartialUser] derivatives to
+            enforce mentioning specific users.
+        role_mentions
+            If provided, and [True][], all mentions will be parsed.
+            If provided, and [False][], no mentions will be parsed.
+
+            Alternatively this may be a collection of
+            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
+            [hikari.PartialRole][hikari.guilds.PartialRole] derivatives to
+            enforce mentioning specific roles.
+
+        Raises
+        ------
+        ValueError
+            Raised for any of the following reasons:
+
+            * When both `attachment` and `attachments` are provided.
+            * When both `component` and `components` are passed.
+            * When both `embed` and `embeds` are passed.
+            * If more than 100 entries are passed for `role_mentions`.
+            * If more than 100 entries are passed for `user_mentions`.
+        """
+        if attachment and attachments:
+            raise ValueError("Cannot specify both attachment and attachments")
+
+        if component and components:
+            raise ValueError("Cannot specify both component and components")
+
+        if embed and embeds:
+            raise ValueError("Cannot specify both embed and embeds")
+
+        if isinstance(role_mentions, collections.Sequence) and len(role_mentions) > 100:
+            raise ValueError("Cannot specify more than 100 role mentions")
+
+        if isinstance(user_mentions, collections.Sequence) and len(user_mentions) > 100:
+            raise ValueError("Cannot specify more than 100 user mentions")
+
+        self._attachments = [attachment] if attachment else attachments
+        self._content = content
+        self._components = [component] if component else components
+        self._delete_after = delete_after
+        self._embeds = [embed] if embed else embeds
+        self._mentions_everyone = mentions_everyone
+        self._role_mentions = role_mentions
+        self._user_mentions = user_mentions
+
+    def __str__(self) -> str:
+        return self._content or ""
+
+    @typing.overload
+    async def send(
+        self,
+        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        /,
+        *,
+        ensure_result: typing.Literal[True],
+    ) -> hikari.Message:
+        ...
+
+    @typing.overload
+    async def send(
+        self,
+        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        /,
+        *,
+        ensure_result: bool = False,
+    ) -> typing.Optional[hikari.Message]:
+        ...
+
+    async def send(
+        self,
+        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        /,
+        *,
+        ensure_result: bool = False,
+    ) -> typing.Optional[hikari.Message]:
+        """Send this error as an interaction response.
+
+        Parameters
+        ----------
+        ctx
+            The interaction context to respond to.
+        ensure_result
+            Ensure that this call will always return a message object.
+
+            If [True][] then this will always return
+            [hikari.Message][hikari.messages.Message], otherwise this will
+            return `hikari.Message | None`.
+
+            It's worth noting that this may lead to an extra request being made
+            under certain scenarios.
+
+        Raises
+        ------
+        ValueError
+            If `delete_after` would be more than 15 minutes after the
+            interaction was received.
+        hikari.errors.BadRequestError
+            This may be raised in several discrete situations, such as messages
+            being empty with no attachments or embeds; messages with more than
+            2000 characters in them, embeds that exceed one of the many embed
+            limits; too many attachments; attachments that are too large;
+            invalid image URLs in embeds; too many components.
+        hikari.errors.UnauthorizedError
+            If you are unauthorized to make the request (invalid/missing token).
+        hikari.errors.ForbiddenError
+            If you are missing the `SEND_MESSAGES` in the channel or the
+            person you are trying to message has the DM's disabled.
+        hikari.errors.NotFoundError
+            If the channel is not found.
+        hikari.errors.RateLimitTooLongError
+            Raised in the event that a rate limit occurs that is
+            longer than `max_rate_limit` when making a request.
+        hikari.errors.InternalServerError
+            If an internal error occurs on Discord while handling the request.
+        """
+        return await ctx.respond(
+            content=self._content,
+            attachments=self._attachments,
+            components=self._components,
+            delete_after=self._delete_after,
+            embeds=self._embeds,
+            ensure_result=ensure_result,
+            mentions_everyone=self._mentions_everyone,
+            role_mentions=self._role_mentions,
+            user_mentions=self._user_mentions,
+        )
+
+
+class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
     """Base class for components contexts."""
 
     __slots__ = (
@@ -152,7 +344,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
 
     def __init__(
         self,
-        interaction: _PartialInteractionT,
+        interaction: _InteractionT,
         id_match: str,
         id_metadata: str,
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
@@ -170,7 +362,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         self._has_been_deferred = False
         self._id_match = id_match
         self._id_metadata = id_metadata
-        self._interaction: _PartialInteractionT = interaction
+        self._interaction: _InteractionT = interaction
         self._last_response_id: typing.Optional[hikari.Snowflake] = None
         self._register_task = register_task
         self._response_future = response_future
@@ -250,7 +442,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         return self._id_metadata
 
     @property
-    def interaction(self) -> _PartialInteractionT:
+    def interaction(self) -> _InteractionT:
         """Object of the interaction this context is for."""
         return self._interaction
 
@@ -427,9 +619,9 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         )
         self._last_response_id = message.id
         # This behaviour is undocumented and only kept by Discord for "backwards compatibility"
-        # but the followup endpoint can be used to create the initial response for slash
-        # commands or edit in a deferred response and (while this does lead to some
-        # unexpected behaviour around deferrals) should be accounted for.
+        # but the followup endpoint can be used to create the initial response for interactions
+        # or edit in a deferred response and (while this does lead to some unexpected behaviour
+        # around deferrals) should be accounted for.
         self._has_responded = True
 
         if delete_after is not None:
@@ -481,8 +673,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
-            Slash command responses can only be deleted within 15 minutes of the
-            command being received.
+            Interaction responses can only be deleted within 15 minutes of the
+            interaction being received.
         ephemeral
             Whether the deferred response should be ephemeral.
             Passing [True][] here is a shorthand for including `1 << 64` in the
@@ -706,8 +898,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
-            Slash command responses can only be deleted within 15 minutes of the
-            command being received.
+            Interaction responses can only be deleted within 15 minutes of the
+            interaction being received.
         ephemeral
             Whether the deferred response should be ephemeral.
 
@@ -872,8 +1064,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
-            Slash command responses can only be deleted within 15 minutes of
-            the command being received.
+            Interaction responses can only be deleted within 15 minutes of
+            the interaction being received.
         attachment
             A singular attachment to edit the initial response with.
         attachments
@@ -922,8 +1114,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
-            If `delete_after` would be more than 15 minutes after the slash
-            command was called.
+            If `delete_after` would be more than 15 minutes after the
+            interaction was received.
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
@@ -1003,8 +1195,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
-            Slash command responses can only be deleted within 15 minutes of
-            the command being received.
+            Interaction responses can only be deleted within 15 minutes of
+            the interaction being received.
         attachment
             A singular attachment to edit the last response with.
         attachments
@@ -1054,7 +1246,7 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             `role_mentions` or `user_mentions`.
 
             If `delete_after` would be more than 15 minutes after the slash
-            command was called.
+            interaction was received.
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
@@ -1237,13 +1429,13 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             [hikari.Message][hikari.messages.Message], otherwise this will
             return `hikari.Message | None`.
 
-            It's worth noting that, under certain scenarios within the slash
-            command flow, this may lead to an extre request being made.
+            It's worth noting that this may lead to an extre request being made
+            under certain scenarios.
         delete_after
             If provided, the seconds after which the response message should be deleted.
 
-            Slash command responses can only be deleted within 15 minutes of
-            the command being received.
+            Interaction responses can only be deleted within 15 minutes of
+            the interaction being received.
         attachment
             If provided, the message attachment. This can be a resource,
             or string of a path on your computer or a URL.
@@ -1291,8 +1483,8 @@ class BaseContext(abc.ABC, typing.Generic[_PartialInteractionT]):
             If more than 100 unique objects/entities are passed for
             `role_mentions` or `user_mentions`.
 
-            If `delete_after` would be more than 15 minutes after the slash
-            command was called.
+            If `delete_after` would be more than 15 minutes after the
+            interaction was received.
 
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
@@ -1944,11 +2136,15 @@ class ComponentClient:
 
         try:
             await executor.execute(ctx)
+
         except ExecutorClosed as exc:
             remove_from.pop(key, None)
             if not ctx.has_responded and exc.was_already_closed:
                 # TODO: properly handle deferrals and going over the 3 minute mark?
                 await ctx.create_initial_response("This message has timed-out.", ephemeral=True)
+
+        except InteractionError as exc:
+            await exc.send(ctx)
 
         return True
 
