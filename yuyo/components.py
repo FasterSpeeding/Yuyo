@@ -91,10 +91,9 @@ if typing.TYPE_CHECKING:
 _P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _SelfT = typing.TypeVar("_SelfT")
-_InteractionT = typing_extensions.TypeVar(
+_InteractionT = typing.TypeVar(
     "_InteractionT",
-    bound=typing.Union[hikari.ModalInteraction, hikari.ComponentInteraction],
-    default=typing.Union[hikari.ModalInteraction, hikari.ComponentInteraction],
+    hikari.ModalInteraction, hikari.ComponentInteraction,
 )
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
@@ -138,7 +137,7 @@ def _decorate(
     return _consume(value, decorator)
 
 
-class InteractionError(Exception, typing.Generic[_InteractionT]):
+class InteractionError(Exception):
     """Error which is sent as a response to a modal or component call."""
 
     def __init__(
@@ -251,17 +250,17 @@ class InteractionError(Exception, typing.Generic[_InteractionT]):
         return self._content or ""
 
     @typing.overload
-    async def send(self, ctx: BaseContext[_InteractionT], /, *, ensure_result: typing.Literal[True]) -> hikari.Message:
+    async def send(self, ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]], /, *, ensure_result: typing.Literal[True]) -> hikari.Message:
         ...
 
     @typing.overload
     async def send(
-        self, ctx: BaseContext[_InteractionT], /, *, ensure_result: bool = False
+        self, ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]], /, *, ensure_result: bool = False
     ) -> typing.Optional[hikari.Message]:
         ...
 
     async def send(
-        self, ctx: BaseContext[_InteractionT], /, *, ensure_result: bool = False
+        self, ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]], /, *, ensure_result: bool = False
     ) -> typing.Optional[hikari.Message]:
         """Send this error as an interaction response.
 
