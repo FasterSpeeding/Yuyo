@@ -681,7 +681,7 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
     --------
     ```py
     executor = yuyo.modals.WaitFor("custom_id", timeout=datetime.timedelta(seconds=30))
-    modal_client.register_modal(executor, timeout=timeout)
+    modal_client.register_modal(executor, timeout=executor)
 
     await ctx.create_modal_response("Title", "custom_id", components=[...])
 
