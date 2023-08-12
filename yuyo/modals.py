@@ -680,8 +680,8 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
     Examples
     --------
     ```py
-    executor = yuyo.modals.WaitFor("custom_id", timeout=datetime.timedelta(seconds=30))
-    modal_client.register_modal(executor, timeout=executor)
+    executor = yuyo.modals.WaitFor(timeout=datetime.timedelta(seconds=30))
+    modal_client.register_modal("custom_id", executor, timeout=executor)
 
     await ctx.create_modal_response("Title", "custom_id", components=[...])
 
@@ -694,17 +694,25 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
     ```
     """
 
-    __slots__ = ("_custom_id", "_ephemeral_default", "_future", "_has_finished", "_timeout", "_timeout_at")
+    __slots__ = ("_ephemeral_default", "_future", "_has_finished", "_timeout", "_timeout_at")
 
     def __init__(
         self,
-        custom_id: str,
-        /,
         *,
         ephemeral_default: bool = False,
         timeout: typing.Optional[datetime.timedelta] = _DEFAULT_TIMEOUT,
     ) -> None:
-        self._custom_id = custom_id
+        """Initialise a wait for executor.
+
+        Parameters
+        ----------
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        timeout
+            How long this should wait for a matching interaction until it times-out.
+        """
         self._ephemeral_default = ephemeral_default
         self._future: typing.Optional[asyncio.Future[Context]] = asyncio.get_running_loop().create_future()
         self._has_finished = False
