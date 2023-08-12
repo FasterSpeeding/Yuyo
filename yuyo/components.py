@@ -1566,7 +1566,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
     def __init__(
         self,
-        client: ComponentClient,
+        client: Client,
         interaction: hikari.ComponentInteraction,
         id_match: str,
         id_metadata: str,
@@ -1641,7 +1641,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         return self._client.cache
 
     @property
-    def client(self) -> ComponentClient:
+    def client(self) -> Client:
         """The component client this context is bound to."""
         return self._client
 
@@ -1678,7 +1678,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
         *,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-    ) -> None:
+    ) -> typing.Optional[WaitFor]:
         """Send a modal as the initial response for this context.
 
         !!! warning
@@ -2051,7 +2051,7 @@ class ComponentClient:
         return self
 
     def _set_standard_deps(self, alluka: alluka_.abc.Client) -> None:
-        alluka.set_type_dependency(ComponentClient, self)
+        alluka.set_type_dependency(Client, self)
 
     def _remove_task(self, task: asyncio.Task[typing.Any], /) -> None:
         self._tasks.remove(task)
@@ -2123,7 +2123,7 @@ class ComponentClient:
 
             return False
 
-        ctx = ComponentContext(
+        ctx = Context(
             client=self,
             interaction=interaction,
             id_match=id_match,
@@ -2379,7 +2379,7 @@ class AbstractComponentExecutor(abc.ABC):
         """Collection of the custom IDs this executor is listening for."""
 
     @abc.abstractmethod
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         """Execute this component.
 
         Parameters
@@ -2430,7 +2430,7 @@ class SingleExecutor(AbstractComponentExecutor):
     def custom_ids(self) -> collections.Collection[str]:
         return [self._custom_id]
 
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         ctx.set_ephemeral_default(self._ephemeral_default)
         await ctx.client.alluka.call_with_async_di(self._callback, ctx)
 
@@ -2484,7 +2484,7 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
         # <<inherited docstring from AbstractComponentExecutor>>.
         return self._id_to_callback
 
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         callback = self._id_to_callback[ctx.id_match]
@@ -2593,7 +2593,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
         self._ephemeral_default = ephemeral_default
         self._finished = False
-        self._future: typing.Optional[asyncio.Future[ComponentContext]] = None
+        self._future: typing.Optional[asyncio.Future[Context]] = None
         self._timeout = timeout
         self._timeout_at: typing.Optional[datetime.datetime] = None
 
@@ -2609,12 +2609,12 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     def increment_uses(self) -> bool:
         return True
 
-    async def wait_for(self) -> ComponentContext:
+    async def wait_for(self) -> Context:
         """Wait for the next matching interaction.
 
         Returns
         -------
-        ComponentContext
+        Context
             The next matching interaction.
 
         Raises
@@ -2627,23 +2627,29 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         if self._future:
             raise RuntimeError("This executor is already being waited for")
 
-        self._timeout_at = _now() + self._timeout if self._timeout else None
+        if self._timeout:
+            self._timeout_at = _now() + self._timeout
+            timeout = self._timeout.total_seconds()
+
+        else:
+            timeout = None
+
         self._future = asyncio.get_running_loop().create_future()
         try:
-            return await asyncio.wait_for(self._future, self._timeout.total_seconds() if self._timeout else None)
+            return await asyncio.wait_for(self._future, timeout)
 
         finally:
             self._finished = True
 
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
+        if self._finished:
+            raise ExecutorClosed
+
         ctx.set_ephemeral_default(self._ephemeral_default)
         if not self._future:
             await ctx.create_initial_response("The bot isn't ready for that yet", ephemeral=True)
             return
-
-        if self._finished:
-            raise ExecutorClosed
 
         if self._authors and ctx.interaction.user.id not in self._authors:
             await ctx.create_initial_response("You are not allowed to use this component", ephemeral=True)
@@ -3759,7 +3765,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         """The rows in this column."""
         return self._rows.copy()
 
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
 
@@ -5797,7 +5803,7 @@ class ComponentPaginator(ActionColumnExecutor):
             style, self._on_last, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
         )
 
-    async def execute(self, ctx: ComponentContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractComponentExecutor>>.
         ctx.set_ephemeral_default(self._ephemeral_default)
         if self._authors and ctx.interaction.user.id not in self._authors:
@@ -5829,27 +5835,27 @@ class ComponentPaginator(ActionColumnExecutor):
         """
         return await self._paginator.step_forward()
 
-    async def _on_first(self, ctx: ComponentContext, /) -> None:
+    async def _on_first(self, ctx: Context, /) -> None:
         if page := self._paginator.jump_to_first():
             await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
 
-    async def _on_previous(self, ctx: ComponentContext, /) -> None:
+    async def _on_previous(self, ctx: Context, /) -> None:
         if page := self._paginator.step_back():
             await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
         else:
             await _noop(ctx)
 
-    async def _on_disable(self, ctx: ComponentContext, /) -> None:
+    async def _on_disable(self, ctx: Context, /) -> None:
         self._paginator.close()
         await ctx.defer(defer_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE)
         await ctx.delete_initial_response()
         raise ExecutorClosed(already_closed=False)
 
-    async def _on_last(self, ctx: ComponentContext, /) -> None:
+    async def _on_last(self, ctx: Context, /) -> None:
         deferring = not self._paginator.has_finished_iterating
         if deferring:
             # TODO: option to not lock on last
@@ -5870,7 +5876,7 @@ class ComponentPaginator(ActionColumnExecutor):
         else:
             await _noop(ctx)
 
-    async def _on_next(self, ctx: ComponentContext, /) -> None:
+    async def _on_next(self, ctx: Context, /) -> None:
         if page := await self._paginator.step_forward():
             await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
@@ -5878,7 +5884,7 @@ class ComponentPaginator(ActionColumnExecutor):
             await _noop(ctx)
 
 
-def _noop(ctx: ComponentContext, /) -> _CoroT:
+def _noop(ctx: Context, /) -> _CoroT:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
 

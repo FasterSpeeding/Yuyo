@@ -36,6 +36,7 @@ __all__ = [
     "ModalClient",
     "ModalContext",
     "ModalOptions",
+    "WaitForModal",
     "as_modal",
     "as_modal_template",
     "modal",
@@ -91,6 +92,8 @@ class _NoDefaultEnum(enum.Enum):
     VALUE = object()
 
 
+_DEFAULT_TIMEOUT = datetime.timedelta(minutes=2)
+
 NO_DEFAULT: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
 
@@ -102,7 +105,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
 
     def __init__(
         self,
-        client: ModalClient,
+        client: Client,
         interaction: hikari.ModalInteraction,
         id_match: str,
         id_metadata: str,
@@ -125,7 +128,7 @@ class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
         self._response_future = response_future
 
     @property
-    def client(self) -> ModalClient:
+    def client(self) -> Client:
         """The modal this context is bound to."""
         return self._client
 
@@ -489,7 +492,7 @@ class ModalClient:
         if timeout.increment_uses():
             del self._modals[id_match]
 
-        ctx = ModalContext(
+        ctx = Context(
             client=self,
             interaction=interaction,
             component_ids={},
@@ -597,9 +600,7 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is _internal.NO_DEFAULT:
-            timeout = timeouts.StaticTimeout(
-                datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=2)
-            )
+            timeout = timeouts.StaticTimeout(datetime.datetime.now(tz=datetime.timezone.utc) + _DEFAULT_TIMEOUT)
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()
@@ -657,7 +658,7 @@ class AbstractModal(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    async def execute(self, ctx: ModalContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         """Execute this modal.
 
         Parameters
@@ -665,6 +666,102 @@ class AbstractModal(abc.ABC):
         ctx
             The context to execute this with.
         """
+
+
+def _now() -> datetime.datetime:
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
+class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
+    """Executor used to wait for a single modal interaction.
+
+    This should also be passed for `timeout=`.
+
+    Examples
+    --------
+    ```py
+    executor = yuyo.modals.WaitFor("custom_id", timeout=datetime.timedelta(seconds=30))
+    modal_client.register_modal(executor, timeout=timeout)
+
+    await ctx.create_modal_response("Title", "custom_id", components=[...])
+
+    try:
+        result = await executor.wait_for()
+    except asyncio.TimeoutError:
+        await ctx.respond("Timed out")
+    else:
+        await result.respond("...")
+    ```
+    """
+
+    __slots__ = ("_custom_id", "_ephemeral_default", "_future", "_has_finished", "_timeout", "_timeout_at")
+
+    def __init__(
+        self,
+        custom_id: str,
+        /,
+        *,
+        ephemeral_default: bool = False,
+        timeout: typing.Optional[datetime.timedelta] = _DEFAULT_TIMEOUT,
+    ) -> None:
+        self._custom_id = custom_id
+        self._ephemeral_default = ephemeral_default
+        self._future: typing.Optional[asyncio.Future[Context]] = asyncio.get_running_loop().create_future()
+        self._has_finished = False
+        self._timeout = timeout
+        self._timeout_at: typing.Optional[datetime.datetime] = None
+
+    @property
+    def has_expired(self) -> bool:
+        return bool(self._has_finished or self._timeout_at and _now() > self._timeout_at)
+
+    def increment_uses(self) -> bool:
+        return True
+
+    async def execute(self, ctx: Context, /) -> None:
+        if self._has_finished or not self._future:
+            raise components_.InteractionError("This modal has timed out")
+
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        self._future.set_result(ctx)
+        self._has_finished = True
+
+    async def wait_for(self) -> Context:
+        """Wait for the next matching interaction.
+
+        Returns
+        -------
+        Context
+            The next matching interaction.
+
+        Raises
+        ------
+        RuntimeError
+            If the executor is already being waited for.
+        asyncio.TimeoutError
+            If the timeout is reached.
+        """
+        if not self._future:
+            raise RuntimeError("This executor is already being waited for")
+
+        if self._timeout:
+            self._timeout_at = _now() + self._timeout
+            timeout = self._timeout.total_seconds()
+
+        else:
+            timeout = None
+
+        future = self._future
+        self._future = None
+
+        try:
+            return await asyncio.wait_for(future, timeout)
+        finally:
+            self._has_finished = True
+
+
+WaitFor = WaitForModal
+"""Alias of [WaitForModal][yuyo.modals.WaitForModal]."""
 
 
 class _TrackedField:
@@ -725,7 +822,7 @@ class Modal(AbstractModal):
 
     ```py
     async def callback(
-        ctx: modals.ModalContext, field: str, other_field: str | None
+        ctx: modals.Context, field: str, other_field: str | None
     ) -> None:
         await ctx.respond("hi")
 
@@ -753,7 +850,7 @@ class Modal(AbstractModal):
     @modals.with_text_input("Title A", parameter="field")
     @modals.as_modal(ephemeral_default=True)
     async def callback(
-        ctx: modals.ModalContext, field: str, other_field: str | None
+        ctx: modals.Context, field: str, other_field: str | None
     ) -> None:
         await ctx.respond("bye")
     ```
@@ -780,7 +877,7 @@ class Modal(AbstractModal):
             self.special_string = special_string
 
         async def callback(
-            ctx: modals.ModalContext,
+            ctx: modals.Context,
             field: str,
             other_field: str | None,
             value: str
@@ -791,7 +888,7 @@ class Modal(AbstractModal):
     Templates can be made by subclassing [Modal][yuyo.modals.Modal] and
     defining the method `callback` for handling context  menu execution
     (this must be valid for the signature signature
-    `(modals.ModalContext, ...) -> Coroutine[Any, Any, None]`).
+    `(modals.Context, ...) -> Coroutine[Any, Any, None]`).
 
     ```py
     @modals.with_static_text_input(
@@ -803,7 +900,7 @@ class Modal(AbstractModal):
     @modals.with_static_text_input("Title A", parameter="field")
     @modals.as_modal_template
     async def custom_modal(
-        ctx: modals.ModalContext,
+        ctx: modals.Context,
         field: str,
         other_field: str | None,
         value: str,
@@ -829,7 +926,7 @@ class Modal(AbstractModal):
 
     @yuyo.modals.as_modal_template
     async def callback(
-        ctx: modals.ModalContext,
+        ctx: modals.Context,
         options: ModalOptions,
         field: str = modals.text_input("label", value="yeet")
     )
@@ -1116,7 +1213,7 @@ class Modal(AbstractModal):
 
         return self
 
-    async def execute(self, ctx: ModalContext, /) -> None:
+    async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractModal>>.
         if self._actual_callback is None:
             raise RuntimeError(f"Modal {self!r} has no callback")
@@ -1695,7 +1792,7 @@ def text_input(
     ```py
     @modals.as_modal_template
     async def modal_template(
-        ctx: modals.ModalContext,
+        ctx: modals.Context,
         text_field: str = modals.text_input("label"),
         optional_field: str | None = modals.text_input("label", default=None)
     ) -> None:
@@ -1711,7 +1808,7 @@ def text_input(
 
     @modals.as_modal_template
     async def modal_template(
-        ctx: modals.ModalContext, fields: ModalOptions,
+        ctx: modals.Context, fields: ModalOptions,
     ) -> None:
         ...
     ```
@@ -1763,7 +1860,7 @@ class ModalOptions(metaclass=_ModalOptionsMeta):
 
     @modals.as_modal_template
     async def modal_template(
-        ctx: modals.ModalContext, fields: ModalOptions,
+        ctx: modals.Context, fields: ModalOptions,
     ) -> None:
         ...
     ```
