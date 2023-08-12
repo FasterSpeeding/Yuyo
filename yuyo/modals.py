@@ -697,10 +697,7 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
     __slots__ = ("_ephemeral_default", "_future", "_has_finished", "_timeout", "_timeout_at")
 
     def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta] = _DEFAULT_TIMEOUT,
+        self, *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = _DEFAULT_TIMEOUT
     ) -> None:
         """Initialise a wait for executor.
 
