@@ -711,8 +711,8 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
             How long this should wait for a matching interaction until it times-out.
         """
         self._ephemeral_default = ephemeral_default
-        self._future: typing.Optional[asyncio.Future[Context]] = asyncio.get_running_loop().create_future()
-        self._has_finished = False
+        self._future: asyncio.Future[Context] = asyncio.get_running_loop().create_future()
+        self._has_finished: typing.Optional[bool] = None
         self._timeout = timeout
         self._timeout_at: typing.Optional[datetime.datetime] = None
 
@@ -724,12 +724,11 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
         return True
 
     async def execute(self, ctx: Context, /) -> None:
-        if self._has_finished or not self._future:
+        if self._has_finished or self._future.done():
             raise components_.InteractionError("This modal has timed out")
 
         ctx.set_ephemeral_default(self._ephemeral_default)
         self._future.set_result(ctx)
-        self._has_finished = True
 
     async def wait_for(self) -> Context:
         """Wait for the next matching interaction.
@@ -746,9 +745,10 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
         asyncio.TimeoutError
             If the timeout is reached.
         """
-        if not self._future:
+        if self._has_finished is not None:
             raise RuntimeError("This executor is already being waited for")
 
+        self._has_finished = False
         if self._timeout:
             self._timeout_at = _now() + self._timeout
             timeout = self._timeout.total_seconds()
@@ -756,11 +756,8 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
         else:
             timeout = None
 
-        future = self._future
-        self._future = None
-
         try:
-            return await asyncio.wait_for(future, timeout)
+            return await asyncio.wait_for(self._future, timeout)
         finally:
             self._has_finished = True
 
