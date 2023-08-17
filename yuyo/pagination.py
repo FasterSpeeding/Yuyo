@@ -354,17 +354,17 @@ class Page:
             * When both `embed` and `embeds` are passed.
         """
         if attachment is not hikari.UNDEFINED:
-            if attachments:
+            if attachments is not hikari.UNDEFINED:
                 raise ValueError("Cannot specify both attachment and attachments")
 
             attachments = [attachment]
 
-        elif attachments is hikari.UNDEFINED and isinstance(content, (hikari.files.Resource, hikari.files.RAWISH_TYPES, os.PathLike)):
+        elif attachments is hikari.UNDEFINED and content is not hikari.UNDEFINED and not isinstance(content, (str, hikari.Embed)):
             attachments = [content]
             content = hikari.UNDEFINED
 
         if embed is not hikari.UNDEFINED:
-            if embeds:
+            if embeds is not hikari.UNDEFINED:
                 raise ValueError("Cannot specify both embed and embeds")
 
             embeds = [embed]
