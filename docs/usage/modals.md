@@ -32,7 +32,7 @@ Client state can be managed through dependency injection. This is implemented us
 [Alluka][alluka] and more information about it can be found in Alluka's
 [usage guide](https://alluka.cursed.solutions/usage/). The Alluka client
 used for modal execution can be found at
-[ComponentClient.alluka][yuyo.components.ComponentClient.alluka].
+[ModalClient.alluka][yuyo.modals.ModalClient.alluka].
 
 For the sake of simplicity, the following examples all assume the modal client
 can be accessed through Alluka style dependency injection.
@@ -160,7 +160,7 @@ Custom IDs have some special handling which allows you to track some metadata
 for specific modal executions. They are split into two parts as
 `"{match}:{metadata}"`, where the "match" part is what Yuyo will use to find
 the executor for a modal call and the "metadata"
-([ModalContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
+([ModalContext.id_metadata][yuyo.modals.ModalContext.id_metadata]) part
 represents any developer added metadata for that instance of the modal.
 
 If should be noted that Custom IDs can never be longer than 100 characters in
@@ -172,11 +172,14 @@ total length.
 --8<-- "./docs_src/modals.py:125:130"
 ```
 
-[ModalContext.respond][yuyo.components.BaseContext.respond] is used to
+[ModalContext.respond][yuyo.modals.ModalContext.respond] is used to
 respond to an interaction with a new message, this has a similar signature
 to Hikari's message respond method but will only be guaranteed to return a
 [hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
 passed.
+
+Alternatively, [yuyo.InteractionError][yuyo.components.InteractionError] can be
+raised to end the execution of a modal with a response message.
 
 !!! note
     You cannot create another modal prompt in response to a modal interaction.
@@ -192,7 +195,7 @@ author can see it) and temporary. A response can be marked as ephemeral by
 passing `ephemeral=True` to either
 [ModalContext.create_initial_response][yuyo.modals.ModalContext.create_initial_response]
 (when initially responding to the interaction) or
-[ModalContext.create_followup][yuyo.components.BaseContext.create_followup]
+[ModalContext.create_followup][yuyo.modals.ModalContext.create_followup]
 (for followup responses).
 
 ##### Deferrals
@@ -202,7 +205,27 @@ response within 3 seconds, you can defer the first response using
 [ModalContext.defer][yuyo.modals.ModalContext.defer].
 
 A deferral should then be finished by editing in the initial response using either
-[ModalContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
-or [ModalContext.respond][yuyo.components.BaseContext.respond] and if you
+[ModalContext.edit_initial_response][yuyo.modals.ModalContext.edit_initial_response]
+or [ModalContext.respond][yuyo.modals.ModalContext.respond] and if you
 want a response to be ephemeral then you'll have to pass `ephemeral=True` when
 deferring.
+
+##### Updating the source message
+
+```py
+--8<-- "./docs_src/modals.py:141:143"
+```
+
+When a modal is triggered by a button attached to a message you can also use
+the initial response to edit said message. To do this you need to pass
+`response_type=hikari.ResponseType.MESSAGE_UPDATE` while calling
+[ModalContext.create_initial_response][yuyo.modals.ModalContext.create_initial_response].
+After doing this any further calls to
+[ModalContext.delete_initial_response][yuyo.modals.ModalContext.delete_initial_response]
+and [ModalContext.edit_initial_response][yuyo.modals.ModalContext.edit_initial_response]
+will target the source message as well.
+
+You cannot change the ephemeral state of the source message.
+
+You need to pass `response_type=hikari.ResponseType.DEFERRED_MESSAGE_UPDATE`
+When deferring with the intent to update the source message.
