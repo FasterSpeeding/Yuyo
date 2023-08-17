@@ -110,7 +110,7 @@ class TestPage:
         )
 
         assert page.to_kwargs() == {
-            "content": hikari.UNDEFINED,
+            "content": "aaaa",
             "attachments": [mock_attachment_1, mock_attachment_2],
             "embeds": [mock_embed_1, mock_embed_2],
         }
