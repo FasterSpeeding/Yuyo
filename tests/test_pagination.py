@@ -108,6 +108,7 @@ class TestPage:
         page = pagination.Page("aaaa", attachments=[mock_attachment_1, mock_attachment_2], embeds=[mock_embed_1, mock_embed_2])
 
         assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
             "attachments": [mock_attachment_1, mock_attachment_2],
             "embeds": [mock_embed_1, mock_embed_2]
         }
@@ -119,6 +120,7 @@ class TestPage:
         page = pagination.Page(attachment=mock_attachment, embed=mock_embed)
 
         assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
             "attachments": [mock_attachment],
             "embeds": [mock_embed]
         }
@@ -137,7 +139,9 @@ class TestPage:
         page = pagination.Page(mock_attachment)
 
         assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
             "attachments": [mock_attachment],
+            "embeds": hikari.UNDEFINED,
         }
 
     def test_init_when_embed_passed_as_content(self):
@@ -146,6 +150,8 @@ class TestPage:
         page = pagination.Page(mock_embed)
 
         assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
+            "attachments": hikari.UNDEFINED,
             "embeds": [mock_embed],
         }
 
