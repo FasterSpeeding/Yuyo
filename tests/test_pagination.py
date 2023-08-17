@@ -100,21 +100,23 @@ async def test_aenumerate_for_empty_iterator():
 
 class TestPage:
     def test_init(self):
-        mock_attachment_1 =mock.Mock()
-        mock_attachment_2 =mock.Mock()
+        mock_attachment_1 = mock.Mock()
+        mock_attachment_2 = mock.Mock()
         mock_embed_1 = mock.Mock()
         mock_embed_2 = mock.Mock()
 
-        page = pagination.Page("aaaa", attachments=[mock_attachment_1, mock_attachment_2], embeds=[mock_embed_1, mock_embed_2])
+        page = pagination.Page(
+            "aaaa", attachments=[mock_attachment_1, mock_attachment_2], embeds=[mock_embed_1, mock_embed_2]
+        )
 
         assert page.to_kwargs() == {
             "content": hikari.UNDEFINED,
             "attachments": [mock_attachment_1, mock_attachment_2],
-            "embeds": [mock_embed_1, mock_embed_2]
+            "embeds": [mock_embed_1, mock_embed_2],
         }
 
     def test_init_with_singular_aliases(self):
-        mock_attachment =mock.Mock()
+        mock_attachment = mock.Mock()
         mock_embed = mock.Mock()
 
         page = pagination.Page(attachment=mock_attachment, embed=mock_embed)
@@ -122,7 +124,7 @@ class TestPage:
         assert page.to_kwargs() == {
             "content": hikari.UNDEFINED,
             "attachments": [mock_attachment],
-            "embeds": [mock_embed]
+            "embeds": [mock_embed],
         }
 
     def test_init_when_both_attachment_and_attachments_passed(self):

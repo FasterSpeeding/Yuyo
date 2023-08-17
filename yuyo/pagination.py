@@ -33,7 +33,6 @@ from __future__ import annotations
 
 __all__: list[str] = ["Page", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
 
-import os
 import textwrap
 import typing
 from collections import abc as collections
@@ -359,7 +358,11 @@ class Page:
 
             attachments = [attachment]
 
-        elif attachments is hikari.UNDEFINED and content is not hikari.UNDEFINED and not isinstance(content, (str, hikari.Embed)):
+        elif (
+            attachments is hikari.UNDEFINED
+            and content is not hikari.UNDEFINED
+            and not isinstance(content, (str, hikari.Embed))
+        ):
             attachments = [content]
             content = hikari.UNDEFINED
 
