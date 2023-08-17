@@ -316,7 +316,7 @@ class Page:
         self,
         content: typing.Union[str, hikari.Embed, hikari.Resourceish, hikari.UndefinedType] = hikari.UNDEFINED,
         *,
-        attachment: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         # TODO: come up with a system for passing other components per-response.
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
@@ -353,17 +353,23 @@ class Page:
             * When both `attachment` and `attachments` are provided.
             * When both `embed` and `embeds` are passed.
         """
-        if attachment and attachments:
-            raise ValueError("Cannot specify both attachment and attachments")
+        if attachment is not hikari.UNDEFINED:
+            if attachments:
+                raise ValueError("Cannot specify both attachment and attachments")
 
-        elif isinstance(content, (hikari.files.Resource, hikari.files.RAWISH_TYPES, os.PathLike)):
+            attachments = [attachment]
+
+        elif attachments is hikari.UNDEFINED and isinstance(content, (hikari.files.Resource, hikari.files.RAWISH_TYPES, os.PathLike)):
             attachments = [content]
             content = hikari.UNDEFINED
 
-        if embed and embeds:
-            raise ValueError("Cannot specify both embed and embeds")
+        if embed is not hikari.UNDEFINED:
+            if embeds:
+                raise ValueError("Cannot specify both embed and embeds")
 
-        elif isinstance(content, hikari.Embed):
+            embeds = [embed]
+
+        elif embeds is hikari.UNDEFINED and isinstance(content, hikari.Embed):
             embeds = [content]
             content = hikari.UNDEFINED
 
