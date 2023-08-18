@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to be passed as `content`.
 
 ### Fixed
-- Timed out individual requests will no-longer lead to the chunk tracker's loop crashing.
+- Timed out individual requests will no-longer lead to the chunk tracker crashing.
 
 ## [1.16.0] - 2023-08-11
 ### Added
