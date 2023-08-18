@@ -311,12 +311,46 @@ class Page:
 
     __slots__ = ("_attachments", "_content", "_embeds")
 
+    @typing.overload
     def __init__(
         self,
-        content: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        content: typing.Union[str, hikari.UndefinedType] = hikari.UNDEFINED,
         *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        content: hikari.Resourceish,
+        *,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        content: hikari.Embed,
+        *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        content: typing.Union[str, hikari.Embed, hikari.Resourceish, hikari.UndefinedType] = hikari.UNDEFINED,
+        *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         # TODO: come up with a system for passing other components per-response.
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
     ) -> None:
         """Initialise a response page.
@@ -325,13 +359,57 @@ class Page:
         ----------
         content
             The message content to send.
+
+            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
+            `embeds` kwarg is provided, then this will instead be treated as an
+            embed. This allows for simpler syntax when sending an embed alone.
+
+            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
+            then the content is instead treated as an attachment if no
+            `attachment` and no `attachments` kwargs are provided.
+        attachment
+            A singular attachment to send.
         attachments
-            Up to 10 attachments to include in the response..
+            Up to 10 attachments to include in the response.
+        embed
+            A singular embed to send.
         embeds
             Up to 10 embeds to include in the response.
+
+        Raises
+        ------
+        ValueError
+            Raised for any of the following reasons:
+
+            * When both `attachment` and `attachments` are provided.
+            * When both `embed` and `embeds` are passed.
         """
+        if attachment is not hikari.UNDEFINED:
+            if attachments is not hikari.UNDEFINED:
+                raise ValueError("Cannot specify both attachment and attachments")
+
+            attachments = [attachment]
+
+        elif (
+            attachments is hikari.UNDEFINED
+            and content is not hikari.UNDEFINED
+            and not isinstance(content, (str, hikari.Embed))
+        ):
+            attachments = [content]
+            content = hikari.UNDEFINED
+
+        if embed is not hikari.UNDEFINED:
+            if embeds is not hikari.UNDEFINED:
+                raise ValueError("Cannot specify both embed and embeds")
+
+            embeds = [embed]
+
+        elif embeds is hikari.UNDEFINED and isinstance(content, hikari.Embed):
+            embeds = [content]
+            content = hikari.UNDEFINED
+
         self._attachments = attachments
-        self._content = content
+        self._content = typing.cast("hikari.UndefinedOr[str]", content)
         self._embeds = embeds
 
     @classmethod
@@ -350,7 +428,7 @@ class Page:
         """
         if isinstance(entry, tuple):
             content, embed = entry
-            return cls(content=content, embeds=[embed] if embed else hikari.UNDEFINED)
+            return cls(content=content, embed=embed)
 
         return entry
 

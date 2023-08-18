@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Wait for implementation for modals.
 
+### Changed
+- [Page.\_\_init\_\_][yuyo.pagination.Page.__init__]'s signature now more closely
+  Hikari's message create methods: with new `attachment` and `embed` keyword
+  arguments for passing singular values while also now allowing an embed or file
+  to be passed as `content`.
+
 ### Fixed
 - Timed out individual requests will no-longer lead to the chunk tracker's loop crashing.
 

@@ -99,6 +99,64 @@ async def test_aenumerate_for_empty_iterator():
 
 
 class TestPage:
+    def test_init(self):
+        mock_attachment_1 = mock.Mock()
+        mock_attachment_2 = mock.Mock()
+        mock_embed_1 = mock.Mock()
+        mock_embed_2 = mock.Mock()
+
+        page = pagination.Page(
+            "aaaa", attachments=[mock_attachment_1, mock_attachment_2], embeds=[mock_embed_1, mock_embed_2]
+        )
+
+        assert page.to_kwargs() == {
+            "content": "aaaa",
+            "attachments": [mock_attachment_1, mock_attachment_2],
+            "embeds": [mock_embed_1, mock_embed_2],
+        }
+
+    def test_init_with_singular_aliases(self):
+        mock_attachment = mock.Mock()
+        mock_embed = mock.Mock()
+
+        page = pagination.Page(attachment=mock_attachment, embed=mock_embed)
+
+        assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
+            "attachments": [mock_attachment],
+            "embeds": [mock_embed],
+        }
+
+    def test_init_when_both_attachment_and_attachments_passed(self):
+        with pytest.raises(ValueError, match="Cannot specify both attachment and attachments"):
+            pagination.Page(attachment=mock.Mock(), attachments=[])
+
+    def test_init_when_both_embed_and_embeds_passed(self):
+        with pytest.raises(ValueError, match="Cannot specify both embed and embeds"):
+            pagination.Page(embed=mock.Mock(), embeds=[])
+
+    def test_init_when_attachment_passed_as_content(self):
+        mock_attachment = mock.Mock(hikari.File)
+
+        page = pagination.Page(mock_attachment)
+
+        assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
+            "attachments": [mock_attachment],
+            "embeds": hikari.UNDEFINED,
+        }
+
+    def test_init_when_embed_passed_as_content(self):
+        mock_embed = mock.Mock(hikari.Embed())
+
+        page = pagination.Page(mock_embed)
+
+        assert page.to_kwargs() == {
+            "content": hikari.UNDEFINED,
+            "attachments": hikari.UNDEFINED,
+            "embeds": [mock_embed],
+        }
+
     def test_from_entry(self):
         original_page = pagination.Page(content="a", attachments=[mock.Mock()], embeds=[mock.Mock()])
 
