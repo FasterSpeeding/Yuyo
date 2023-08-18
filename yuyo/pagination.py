@@ -328,8 +328,8 @@ class Page:
         self,
         content: hikari.Resourceish,
         *,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
     ) -> None:
         ...
 
@@ -338,8 +338,8 @@ class Page:
         self,
         content: hikari.Embed,
         *,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
     ) -> None:
         ...
 
