@@ -480,7 +480,7 @@ class ChunkTracker:
             await asyncio.sleep(1)
             date = _now()
 
-            for nonce, request_info in self._requests.items():
+            for nonce, request_info in self._requests.copy().items():
                 if date - request_info.last_received_at < self._timeout:
                     continue
 

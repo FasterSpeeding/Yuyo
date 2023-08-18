@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Wait for implementation for modals.
 
+### Fixed
+- Timed out individual requests will no-longer lead to the chunk tracker's loop crashing.
+
 ## [1.16.0] - 2023-08-11
 ### Added
 - [yuyo.InteractionError][yuyo.components.InteractionError] error type which can be used to end
