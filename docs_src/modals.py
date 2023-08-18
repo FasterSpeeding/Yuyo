@@ -135,3 +135,9 @@ def ephemeral_response() -> None:
     async def modal(ctx: modals.Context) -> None:
         await ctx.create_initial_response("Initiating Mower", ephemeral=True)
         await ctx.create_followup("Meowing finished", ephemeral=True)
+
+
+def updating_source() -> None:
+    @modals.as_modal()
+    async def modal(ctx: modals.Context) -> None:
+        await ctx.create_initial_response("content", response_type=hikari.ResponseType.MESSAGE_UPDATE, attachments=[])
