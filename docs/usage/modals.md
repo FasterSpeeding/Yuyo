@@ -216,8 +216,8 @@ deferring.
 --8<-- "./docs_src/modals.py:141:143"
 ```
 
-When a modal is triggered by a button attached to a message you can also use
-the initial response to edit said message. To do this you need to pass
+When a modal is triggered by a button which is attached to a message you can also
+use the initial response to edit said message. To do this you need to pass
 `response_type=hikari.ResponseType.MESSAGE_UPDATE` while calling
 [ModalContext.create_initial_response][yuyo.modals.ModalContext.create_initial_response].
 After doing this any further calls to
