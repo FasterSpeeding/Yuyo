@@ -311,6 +311,38 @@ class Page:
 
     __slots__ = ("_attachments", "_content", "_embeds")
 
+    @typing.overload
+    def __init__(
+        self,
+        content: typing.Union[str, hikari.UndefinedType] = hikari.UNDEFINED,
+        *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        content: hikari.Resourceish,
+        *,
+        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
+        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        content: hikari.Embed,
+        *,
+        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
+        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
+    ) -> None:
+        ...
+
     def __init__(
         self,
         content: typing.Union[str, hikari.Embed, hikari.Resourceish, hikari.UndefinedType] = hikari.UNDEFINED,
@@ -377,7 +409,7 @@ class Page:
             content = hikari.UNDEFINED
 
         self._attachments = attachments
-        self._content = content
+        self._content = typing.cast("hikari.UndefinedOr[str]", content)
         self._embeds = embeds
 
     @classmethod
