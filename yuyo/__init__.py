@@ -65,7 +65,7 @@ __all__: list[str] = [
     "backoff",
     "chunk_tracker",
     "components",
-    "links",
+    "links", "Page", 
     "modals",
     "paginate_string",
     "pagination",
@@ -99,6 +99,7 @@ from .list_status import ServiceManager
 from .list_status import TopGGService
 from .modals import ModalClient
 from .modals import ModalContext
+from .pagination import Page
 from .pagination import aenumerate
 from .pagination import async_paginate_string
 from .pagination import paginate_string
