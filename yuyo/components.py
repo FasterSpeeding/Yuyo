@@ -3549,8 +3549,8 @@ class _BuilderDescriptor(_ComponentDescriptor):
 
     def __init__(self, builder: hikari.api.ComponentBuilder, /) -> None:
         self._builder = builder
-        # While Link buttons don't actually have custom IDs, this is currently
-        # necessary to avoid duplication.
+        # While these builders don't neccessarily have custom IDs, one is
+        # currently generated to avoid duplication.
         self._custom_id = _internal.random_custom_id()
 
     def to_field(self, cls_path: str, name: str) -> _StaticField:
@@ -3811,6 +3811,44 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
+
+    def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
+        """Add a raw component builder to this action column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column.
+        """
+        _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON)
+        return self
+
+    @classmethod
+    def add_static_builder(cls, builder: hikari.api.ComponentBuilder, /) -> type[Self]:
+        """Add a raw component builder to all subclasses and instances of this column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column class.
+        """
+        # While these builders don't neccessarily have custom IDs, one is
+        # currently generated to avoid duplication.
+        custom_id = _internal.random_custom_id()
+        field = _StaticField(
+            custom_id,
+            None,
+            builder,
+        )
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
+        return cls
 
     def add_interactive_button(
         self,
