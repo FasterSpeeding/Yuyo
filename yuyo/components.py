@@ -3841,11 +3841,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         # While these builders don't neccessarily have custom IDs, one is
         # currently generated to avoid duplication.
         custom_id = _internal.random_custom_id()
-        field = _StaticField(
-            custom_id,
-            None,
-            builder,
-        )
+        field = _StaticField(custom_id, None, builder)
         cls._added_static_fields[custom_id] = field
         cls._static_fields[custom_id] = field
         return cls
