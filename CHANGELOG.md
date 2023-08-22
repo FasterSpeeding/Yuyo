@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Properly track method names for callbacks registered using
   [as_interactive_button][yuyo.components.as_interactive_button].
-  This allows the custom ID metadata to be overridden  by passing
+  This allows the custom ID metadata to be overridden by passing
   `{"function_name": "METADATA"}` to
   [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
 
