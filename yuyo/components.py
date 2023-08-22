@@ -3823,7 +3823,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         builder
             The component builder to add to the column.
         """
-        _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON)
+        _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON).add_component(builder)
         return self
 
     @classmethod
