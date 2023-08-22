@@ -3549,7 +3549,7 @@ class _BuilderDescriptor(_ComponentDescriptor):
 
     def __init__(self, builder: hikari.api.ComponentBuilder, /) -> None:
         self._builder = builder
-        # While these builders don't neccessarily have custom IDs, one is
+        # While these builders don't necessarily have custom IDs, one is
         # currently generated to avoid duplication.
         self._custom_id = _internal.random_custom_id()
 
@@ -3838,7 +3838,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         builder
             The component builder to add to the column class.
         """
-        # While these builders don't neccessarily have custom IDs, one is
+        # While these builders don't necessarily have custom IDs, one is
         # currently generated to avoid duplication.
         custom_id = _internal.random_custom_id()
         field = _StaticField(custom_id, None, builder)
