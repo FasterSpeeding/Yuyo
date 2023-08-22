@@ -44,6 +44,7 @@ __all__: list[str] = [
     "as_role_menu",
     "as_select_menu",
     "as_text_menu",
+    "builder",
     "as_user_menu",
     "column_template",
     "link_button",
@@ -2888,7 +2889,6 @@ class _StaticLinkButton(_ComponentDescriptor):
             hikari.impl.LinkButtonBuilder(
                 url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
             ),
-            self_bound=True,
         )
 
 
@@ -3542,6 +3542,42 @@ def with_option(
     return lambda text_select: text_select.add_option(
         label, value, description=description, emoji=emoji, is_default=is_default
     )
+
+
+class _BuilderDescriptor(_ComponentDescriptor):
+    __slots__ = ("_builder", "_custom_id")
+
+    def __init__(self, builder: hikari.api.ComponentBuilder, /) -> None:
+        self._builder = builder
+        # While Link buttons don't actually have custom IDs, this is currently
+        # necessary to avoid duplication.
+        self._custom_id = _internal.random_custom_id()
+
+    def to_field(self, cls_path: str, name: str) -> _StaticField:
+        return _StaticField(self._custom_id, None, self._builder)
+
+
+def builder(builder: hikari.api.ComponentBuilder, /) -> _BuilderDescriptor:
+    """Add a raw component builder to a column through a descriptor.
+
+    This is mostly for adding components where the custom ID is already
+    registered as a separate constant executor.
+
+    Parameters
+    ----------
+    builder
+        The component builder to add to the column.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        link_button = components.builder(hikari.impl.InteractiveButtonBuilder(
+            style=hikari.ButtonStyle.PRIMARY, custom_id="CUSTOM_ID", label="yeet"
+        ))
+    ```
+    """
+    return _BuilderDescriptor(builder)
 
 
 class _StaticField:

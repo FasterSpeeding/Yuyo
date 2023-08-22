@@ -1351,6 +1351,17 @@ class TestActionColumnExecutor:
 
         assert Column.on_text_menu is mock_callback
 
+    def test_with_builder_descriptor(self):
+        mock_builder = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            field = yuyo.components.builder(mock_builder)
+
+        assert Column().rows[0].components[0] is mock_builder
+
+
     def test_static_button_row_behaviour(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
