@@ -670,6 +670,24 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.custom_id == "$qY^N`e%|!:meowers"
 
+    def test_add_builder(self):
+        mock_builder = mock.Mock()
+
+        executor = yuyo.components.ActionColumnExecutor().add_builder(mock_builder)
+
+        assert executor.rows[0].components[0] is mock_builder
+
+    def test_add_static_builder(self):
+        mock_builder = mock.Mock()
+
+        column_template = yuyo.components.column_template().add_static_builder(mock_builder)
+
+        class SubClass(column_template):
+            __slots__ = ()
+
+        assert column_template().rows[0].components[0] is mock_builder
+        assert SubClass().rows[0].components[0] is mock_builder
+
     def test_add_select_menu(self):
         mock_callback = mock.Mock()
 
@@ -1350,6 +1368,16 @@ class TestActionColumnExecutor:
             on_text_menu = yuyo.components.as_text_menu(mock_callback)
 
         assert Column.on_text_menu is mock_callback
+
+    def test_with_builder_descriptor(self):
+        mock_builder = mock.Mock()
+
+        class Column(yuyo.components.ActionColumnExecutor):
+            __slots__ = ()
+
+            field = yuyo.components.builder(mock_builder)
+
+        assert Column().rows[0].components[0] is mock_builder
 
     def test_static_button_row_behaviour(self):
         class Column(yuyo.components.ActionColumnExecutor):

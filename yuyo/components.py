@@ -45,6 +45,7 @@ __all__: list[str] = [
     "as_select_menu",
     "as_text_menu",
     "as_user_menu",
+    "builder",
     "column_template",
     "link_button",
     "with_option",
@@ -2889,7 +2890,6 @@ class _StaticLinkButton(_ComponentDescriptor):
             hikari.impl.LinkButtonBuilder(
                 url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
             ),
-            self_bound=True,
         )
 
 
@@ -3545,6 +3545,42 @@ def with_option(
     )
 
 
+class _BuilderDescriptor(_ComponentDescriptor):
+    __slots__ = ("_builder", "_custom_id")
+
+    def __init__(self, builder: hikari.api.ComponentBuilder, /) -> None:
+        self._builder = builder
+        # While these builders don't necessarily have custom IDs, one is
+        # currently generated to avoid duplication.
+        self._custom_id = _internal.random_custom_id()
+
+    def to_field(self, cls_path: str, name: str) -> _StaticField:
+        return _StaticField(self._custom_id, None, self._builder)
+
+
+def builder(builder: hikari.api.ComponentBuilder, /) -> _BuilderDescriptor:
+    """Add a raw component builder to a column through a descriptor.
+
+    This is mostly for adding components where the custom ID is already
+    registered as a separate constant executor.
+
+    Parameters
+    ----------
+    builder
+        The component builder to add to the column.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        link_button = components.builder(hikari.impl.InteractiveButtonBuilder(
+            style=hikari.ButtonStyle.PRIMARY, custom_id="CUSTOM_ID", label="yeet"
+        ))
+    ```
+    """
+    return _BuilderDescriptor(builder)
+
+
 class _StaticField:
     __slots__ = ("builder", "callback", "id_match", "is_self_bound", "name")
 
@@ -3776,6 +3812,40 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
+
+    def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
+        """Add a raw component builder to this action column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column.
+        """
+        _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON).add_component(builder)
+        return self
+
+    @classmethod
+    def add_static_builder(cls, builder: hikari.api.ComponentBuilder, /) -> type[Self]:
+        """Add a raw component builder to all subclasses and instances of this column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column class.
+        """
+        # While these builders don't necessarily have custom IDs, one is
+        # currently generated to avoid duplication.
+        custom_id = _internal.random_custom_id()
+        field = _StaticField(custom_id, None, builder)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
+        return cls
 
     def add_interactive_button(
         self,
