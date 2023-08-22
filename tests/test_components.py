@@ -675,7 +675,7 @@ class TestActionColumnExecutor:
 
         executor = yuyo.components.ActionColumnExecutor().add_builder(mock_builder)
 
-        assert executor.rows[0] is mock_builder
+        assert executor.rows[0].components[0] is mock_builder
 
     def test_add_static_builder(self):
         mock_builder = mock.Mock()
