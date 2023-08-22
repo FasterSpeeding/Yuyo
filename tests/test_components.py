@@ -1361,7 +1361,6 @@ class TestActionColumnExecutor:
 
         assert Column().rows[0].components[0] is mock_builder
 
-
     def test_static_button_row_behaviour(self):
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
