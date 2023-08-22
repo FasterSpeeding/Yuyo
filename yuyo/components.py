@@ -2811,6 +2811,7 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
                 label=self._label,
                 is_disabled=self._is_disabled,
             ),
+            name=name,
             self_bound=True,
         )
 
