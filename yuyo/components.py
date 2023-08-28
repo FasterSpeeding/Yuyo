@@ -514,18 +514,33 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
         return delete_after
 
-    def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag], /) -> int:
-        if flags is not hikari.UNDEFINED:
-            assert isinstance(flags, int)
-            return flags
+    def _get_flags(
+        self,
+        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        /,
+        *,
+        ephemeral: typing.Optional[bool] = None,
+        is_create: bool = True,
+    ) -> typing.Union[int, hikari.MessageFlag]:
+        if flags is hikari.UNDEFINED:
+            if ephemeral is True or (ephemeral is None and is_create and self._ephemeral_default):
+                return hikari.MessageFlag.EPHEMERAL
 
-        return hikari.MessageFlag.EPHEMERAL if self._ephemeral_default else hikari.MessageFlag.NONE
+            return hikari.MessageFlag.NONE
+
+        if ephemeral is True:
+            return flags | hikari.MessageFlag.EPHEMERAL
+
+        if ephemeral is False:
+            return flags & ~hikari.MessageFlag.EPHEMERAL
+
+        return flags
 
     async def defer(
         self,
         *,
         defer_type: hikari.DeferredResponseTypesT = hikari.ResponseType.DEFERRED_MESSAGE_CREATE,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = False,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
         """Defer the initial response for this context.
@@ -557,11 +572,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         flags
             The flags to use for the initial response.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
-        else:
-            flags = self._get_flags(flags)
+        flags = self._get_flags(
+            flags, ephemeral=ephemeral, is_create=defer_type == hikari.ResponseType.DEFERRED_MESSAGE_CREATE
+        )
 
         async with self._response_lock:
             if self._has_been_deferred:
@@ -587,6 +600,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -612,7 +626,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             components=components,
             embed=embed,
             embeds=embeds,
-            flags=self._get_flags(flags),
+            flags=self._get_flags(flags, ephemeral=ephemeral),
             tts=tts,
             mentions_everyone=mentions_everyone,
             user_mentions=user_mentions,
@@ -635,7 +649,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -748,13 +762,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
         async with self._response_lock:
             return await self._create_followup(
                 content=content,
                 delete_after=delete_after,
+                ephemeral=ephemeral,
                 attachment=attachment,
                 attachments=attachments,
                 component=component,
@@ -782,6 +794,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -798,7 +811,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
-        flags = self._get_flags(flags)
+        flags = self._get_flags(
+            flags, ephemeral=ephemeral, is_create=response_type == hikari.ResponseType.MESSAGE_CREATE
+        )
         delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
         if self._has_responded:
             raise RuntimeError("Initial response has already been created")
@@ -856,7 +871,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         *,
         response_type: hikari.MessageResponseTypesT = hikari.ResponseType.MESSAGE_CREATE,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -975,13 +990,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
         async with self._response_lock:
             await self._create_initial_response(
                 response_type,
                 delete_after=delete_after,
+                ephemeral=ephemeral,
                 content=content,
                 attachment=attachment,
                 attachments=attachments,
