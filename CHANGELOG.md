@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - [ComponentClient.get_executor][yuyo.components.ComponentClient.get_executor]
-  for getting the executor registered globally for a specific custom ID.
+  method for getting the executor registered globally for a specific custom ID.
 
 ### Changed
 - The ephemeral default is now ignored for message update create initial
