@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   override the client-level ephemeral default.
 - The component paginator will no-longer error out with a "Initial response has
   already been created" error when the jump to last page button tries to push
-  the internal generator forwards only to findout it's depleted.
+  the internal generator forwards only to find out it's depleted.
 
 ## [1.18.0] - 2023-08-23
 ### Added
