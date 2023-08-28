@@ -5957,7 +5957,10 @@ class ComponentPaginator(ActionColumnExecutor):
             else:
                 await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
-        else:
+        elif deferring:  # Just edit back in the old components without changing the content
+            await ctx.edit_initial_response(components=self.rows)
+
+        else:  # Avoid changing the content as there are no-more pages.
             await _noop(ctx)
 
     async def _on_next(self, ctx: Context, /) -> None:

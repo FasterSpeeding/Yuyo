@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [create_initial_response][yuyo.components.BaseContext.create_initial_response] or
   [create_followup][yuyo.components.BaseContext.create_followup] will now correctly
   override the client-level ephemeral default.
+- The component paginator will no-longer error out with a "Initial response has
+  already been created" error when the jump to last page button tries to push
+  the internal generator forwards only to findout it's depleted.
 
 ## [1.18.0] - 2023-08-23
 ### Added
