@@ -540,7 +540,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         *,
         defer_type: hikari.DeferredResponseTypesT = hikari.ResponseType.DEFERRED_MESSAGE_CREATE,
-        ephemeral: typing.Optional[bool] = False,
+        ephemeral: typing.Optional[bool] = None,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
         """Defer the initial response for this context.
