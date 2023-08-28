@@ -2307,10 +2307,33 @@ class ComponentClient:
 
         return self
 
+    def get_executor(self, custom_id: str, /) -> typing.Optional[AbstractComponentExecutor]:
+        """Get the component executor registered for a custom ID.
+
+        !!! note
+            For message scoped executors use
+            [get_executor_for_message.][yuyo.components.ComponentClient.get_executor_for_message]
+            as they will not be returned here.
+
+        Parameters
+        ----------
+        custom_id
+            The custom ID to get the executor for.
+
+        Returns
+        -------
+        AbstractComponentExecutor | None
+            The executor set for the custom ID or [None][] if none is set.
+        """
+        if entry := self._executors.get(custom_id):
+            return entry[1]
+
+        return None  # MyPy
+
     def get_executor_for_message(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractComponentExecutor]:
-        """Get the component executor set for a message.
+        """Get the component executor registered for a message.
 
         Parameters
         ----------
