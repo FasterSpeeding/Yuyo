@@ -822,7 +822,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
 [Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.0...HEAD
-[1.18.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.18.0...v1.19.0
+[1.19.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.18.0...v1.19.0
 [1.18.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.17.0...v1.18.0
 [1.17.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.15.0...v1.16.0
