@@ -506,9 +506,9 @@ pytest-timeout==2.1.0 ; python_full_version >= "3.9.0" and python_version < "3.1
 pytest-xdist==3.3.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:d5ee0520eb1b7bcca50a60a518ab7a7707992812c578198f8b44fdfac78e8c93 \
     --hash=sha256:ff9daa7793569e6a68544850fd3927cd257cc03a7ef76c95e86915355e82b5f2
-pytest==7.4.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:78bf16451a2eb8c7a2ea98e32dc119fd2aa758f1d5d66dbf0a59d69a3969df32 \
-    --hash=sha256:b4bf8c45bd59934ed84001ad51e11b4ee40d40a1229d2c79f9c592b0a3f6bd8a
+pytest==7.4.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:2f2301e797521b23e4d2585a0a3d7b5e50fdddaaf7e7d6773ea26ddb17c213ab \
+    --hash=sha256:460c9a59b14e27c602eb5ece2e47bec99dc5fc5f6513cf924a7d03a578991b1f
 python-dateutil==2.8.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
