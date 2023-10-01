@@ -423,9 +423,9 @@ pynacl==1.5.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
 redis==4.6.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:585dc516b9eb042a619ef0a39c3d7d55fe81bdb4df09a52c9cdde0d07bf1aa7d \
     --hash=sha256:e2b03db868160ee4591de3cb90d40ebb50a90dd302138775937f6a42b7ed183c
-typing-extensions==4.7.1 ; python_full_version >= "3.9.0" and python_version < "3.12" \
-    --hash=sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36 \
-    --hash=sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2
+typing-extensions==4.8.0 ; python_full_version >= "3.9.0" and python_version < "3.12" \
+    --hash=sha256:8f92fc8806f9a6b641eaa5318da32b44d401efaac0f6678c9bc448ba3605faa0 \
+    --hash=sha256:df8e4339e9cb77357558cbdbceca33c303714cf861d1eef15e1070055ae8b7ef
 yarl==1.9.2 ; python_full_version >= "3.9.0" and python_version < "3.12" \
     --hash=sha256:04ab9d4b9f587c06d801c2abfe9317b77cdf996c65a90d5e84ecc45010823571 \
     --hash=sha256:066c163aec9d3d073dc9ffe5dd3ad05069bcb03fcaab8d221290ba99f9f69ee3 \
