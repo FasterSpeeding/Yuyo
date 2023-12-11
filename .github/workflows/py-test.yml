@@ -70,7 +70,7 @@ jobs:
           python -m nox -s test-coverage
 
       - name: Upload coverage
-        uses: paambaati/codeclimate-action@4cace242c6e0a2dd554bbb3cc12c58047d8af3e5
+        uses: paambaati/codeclimate-action@a1831d7162ea1fbc612ffe5fb3b90278b7999d59
         env:
           CC_TEST_REPORTER_ID: ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933
         with:
