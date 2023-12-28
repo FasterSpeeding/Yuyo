@@ -159,7 +159,7 @@ class ReactionHandler(AbstractReactionHandler):
             any user will be able to trigger it.
         """
         # Pyright bug
-        return frozenset(self._authors)  # pyright: ignore[reportGeneralTypeIssues]
+        return frozenset(self._authors)
 
     @property
     def has_expired(self) -> bool:

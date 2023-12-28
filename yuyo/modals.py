@@ -1294,9 +1294,10 @@ class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
         self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self._actual_callback: collections.Callable[_P, _CoroT[None]] = callback
+        self._actual_callback = callback
 
     def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
+        assert self._actual_callback is not None
         return self._actual_callback(*args, **kwargs)
 
 
