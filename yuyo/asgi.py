@@ -364,7 +364,10 @@ class AsgiAdapter:
             return
 
         try:
-            response = await self.server.on_interaction(body, signature, timestamp)
+            # TODO: update hikari's typing to support bytearray.
+            response = await self.server.on_interaction(
+                body, signature, timestamp  # pyright: ignore[reportGeneralTypeIssues]
+            )
         except Exception:
             await _error_response(send, b"Internal Server Error", status_code=500)
             raise
