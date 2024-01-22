@@ -161,7 +161,10 @@ cffi==1.16.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:ee07e47c12890ef248766a6e55bd38ebfb2bb8edd4142d56db91b21ea68b7627 \
     --hash=sha256:fa3a0128b152627161ce47201262d3140edb5a5c3da88d73a1b790a959126956 \
     --hash=sha256:fcc8eb6d5902bb1cf6dc4f187ee3ea80a1eba0a89aba40a5cb20a5087d961357
-colorama==0.4.6 ; python_full_version >= "3.9.0" and python_version < "3.13" and sys_platform == "win32" \
+click==8.1.7 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28 \
+    --hash=sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de
+colorama==0.4.6 ; python_full_version >= "3.9.0" and python_version < "3.13" and (sys_platform == "win32" or platform_system == "Windows") \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
 colorlog==6.8.2 ; python_full_version >= "3.9.0" and python_version < "3.13" \
@@ -653,9 +656,12 @@ pytest-xdist==3.5.0 ; python_full_version >= "3.9.0" and python_version < "3.13"
 pytest==7.4.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:78bf16451a2eb8c7a2ea98e32dc119fd2aa758f1d5d66dbf0a59d69a3969df32 \
     --hash=sha256:b4bf8c45bd59934ed84001ad51e11b4ee40d40a1229d2c79f9c592b0a3f6bd8a
-python-dateutil==2.9.0.post0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
-    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+python-dateutil==2.8.2 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
+    --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
+python-dotenv==1.0.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:a8df96034aae6d2d50a4ebe8216326c61c3eb64836776504fcca410e5937a3ba \
+    --hash=sha256:f5971a9226b701070a4bf2c38c89e5a3f0d64de8debda981d1db98583009122a
 redis==4.6.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:585dc516b9eb042a619ef0a39c3d7d55fe81bdb4df09a52c9cdde0d07bf1aa7d \
     --hash=sha256:e2b03db868160ee4591de3cb90d40ebb50a90dd302138775937f6a42b7ed183c

@@ -3,5 +3,8 @@ hikari>=2.0.0.dev118, <3
 typing_extensions>=4.5
 asgiref~=3.0
 hikari[server]
+click>=8, <9
+pydantic>=2, <3
+python-dotenv>=1, <2
 hikari-sake>=1.0.4a1, <2
 hikari-tanjun>=2.11.0, <3
