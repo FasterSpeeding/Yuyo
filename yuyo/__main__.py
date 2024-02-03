@@ -39,7 +39,6 @@ import enum
 import json
 import logging
 import pathlib
-import sys
 import typing
 import unicodedata
 
@@ -49,6 +48,7 @@ import hikari
 import pydantic
 import pydantic.functional_validators
 import pydantic_core
+import toml
 
 from yuyo import to_builder
 
@@ -58,35 +58,48 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 
-if sys.version_info >= (3, 11):
-    import tomllib
-
-    def _parse_toml(data: typing.BinaryIO) -> typing.Any:
-        return tomllib.load(data)
-
-else:
-    import tomli
-
-    def _parse_toml(data: typing.BinaryIO) -> typing.Any:
-        return tomli.load(data)
-
-
 _EnumT = typing.TypeVar("_EnumT", bound=enum.Enum)
-_CONFIG_PARSERS: dict[str, collections.Callable[[typing.BinaryIO], typing.Any]] = {
+_CONFIG_PARSERS = {
     "json": json.load,
-    "toml": _parse_toml,
+    "toml": toml.load,
     # TODO: yaml?
 }
+_CONFIG_DUMPERS = {
+    "json": json.dump,
+    "toml": toml.dump,
+    # TODO: yaml?
+}
+_DEFUALT_SCHEMA_PATH = pathlib.Path("bot_schema.toml")
 
 
-def _parse_config(path: pathlib.Path) -> typing.Any:
+def _parse_config(path: pathlib.Path, /) -> typing.Any:
     file_type = path.name.rsplit(".", 1)[-1]
     try:
-        return _CONFIG_PARSERS[file_type]
+        load = _CONFIG_PARSERS[file_type]
 
     except KeyError:
         logging.exception(f"Unknown file type {file_type}")
         exit(1)
+
+    with path.open("r") as file:
+        return load(file)
+
+
+def _dump_config(path: pathlib.Path, data: typing.Any, /) -> None:
+    file_type = path.name.rsplit(".", 1)[-1]
+    try:
+        dump = _CONFIG_DUMPERS[file_type]
+
+    except KeyError:
+        logging.exception(f"Unknown file type {file_type}")
+        exit(1)
+
+    with path.open("w+") as file:
+        dump(data, file)
+
+
+def _to_int(value: int, /) -> int:
+    return int(value)
 
 
 @click.group(name="tanjun")
@@ -111,7 +124,7 @@ class _MaybeLocalised:
     localisations: collections.Mapping[str, str]
 
     @classmethod
-    def parse(cls, field_name: str, raw_value: typing.Union[str, collections.Mapping[_Locale, str]], /) -> Self:
+    def parse(cls, field_name: str, raw_value: _MaybeLocalisedType, /) -> Self:
         if isinstance(raw_value, str):
             return cls(field_name=field_name, value=raw_value, localisations={})
 
@@ -119,6 +132,16 @@ class _MaybeLocalised:
             value = raw_value.get("default") or next(iter(raw_value))
             localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
             return cls(field_name=field_name, value=value, localisations=localisations)
+
+    def unparse(self) -> _MaybeLocalisedType:
+        if self.localisations:
+            value = typing.cast("dict[_Locale, str]", dict(self.localisations))
+            value["default"] = self.value
+
+        else:
+            value = self.value
+
+        return value
 
     def _values(self) -> collections.Iterable[str]:
         yield self.value
@@ -168,6 +191,7 @@ class _SnowflakeSchema:
     def __get_pydantic_core_schema__(
         cls, _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
     ) -> pydantic_core.CoreSchema:
+        # TODO: allow strings using pydantic_core.CoreSchema.union_schema()
         from_schema = pydantic_core.core_schema.chain_schema(
             [
                 pydantic_core.core_schema.int_schema(),
@@ -179,6 +203,7 @@ class _SnowflakeSchema:
             python_schema=pydantic_core.core_schema.union_schema(
                 [pydantic_core.core_schema.is_instance_schema(hikari.Snowflake), from_schema]
             ),
+            serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(int),
         )
 
 
@@ -199,9 +224,11 @@ class _EnumSchema:
 
         if issubclass(source_type, int):
             origin_schema = pydantic_core.core_schema.int_schema()
+            ser_type = int
 
         elif issubclass(source_type, str):
             origin_schema = pydantic_core.core_schema.str_schema()
+            ser_type = str
 
         else:
             raise NotImplementedError("Only string and int schemas are supported")
@@ -214,6 +241,7 @@ class _EnumSchema:
             python_schema=pydantic_core.core_schema.union_schema(
                 [pydantic_core.core_schema.is_instance_schema(source_type), from_schema]
             ),
+            serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(ser_type),
         )
 
 
@@ -223,13 +251,12 @@ _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 
 class _RenameModel(pydantic.BaseModel):
-    commands: dict[typing.Union[str, _Snowflake], typing.Union[str, dict[_Locale, str]]]
+    commands: dict[typing.Union[str, _Snowflake], _MaybeLocalisedType]
     token: str
 
 
 async def _rename_coro(
-    token: str,
-    renames: collections.Mapping[typing.Union[str, _Snowflake], typing.Union[str, collections.Mapping[_Locale, str]]],
+    token: str, renames: collections.Mapping[typing.Union[str, _Snowflake], _MaybeLocalisedType]
 ) -> None:
     app = hikari.RESTApp()
     new_commands: list[hikari.api.CommandBuilder] = []
@@ -243,7 +270,7 @@ async def _rename_coro(
     # TODO: support guild specific commands.
     await app.start()
 
-    async with app.acquire(token) as rest:
+    async with app.acquire(token, token_type=hikari.TokenType.BOT) as rest:
         application = await rest.fetch_application()
         commands = await rest.fetch_application_commands(application)
 
@@ -272,6 +299,8 @@ async def _rename_coro(
 
         await rest.set_application_commands(application, new_commands)
 
+    await app.close()
+
 
 def _cast_rename_flag(value: str) -> tuple[typing.Union[hikari.Snowflake, str], str]:
     try:
@@ -291,7 +320,7 @@ def _cast_rename_flag(value: str) -> tuple[typing.Union[hikari.Snowflake, str], 
     return key, value
 
 
-_DEFAULT_RENAME_FILE = pathlib.Path("./command_rename.schema")
+_DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
 
 
 @click.option("--command", "-c", envvar="COMMAND_RENAME", show_envvar=True, multiple=True, type=_cast_rename_flag)
@@ -306,11 +335,11 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_rename.schema")
     required=False,
 )
 @_cli.command(name="rename")
-def _rename(
+def _rename(  # pyright: ignore[reportUnusedFunction]
     token: typing.Optional[str],
     file: typing.Optional[pathlib.Path],
     command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
-) -> None:  # pyright: ignore[reportUnusedFunction]
+) -> None:
     """"""
     if file is not None or _DEFAULT_RENAME_FILE.exists():
         file = file or _DEFAULT_RENAME_FILE
@@ -341,9 +370,17 @@ class _CommandChoiceModel(pydantic.BaseModel):
     name: _MaybeLocalisedType
     value: typing.Union[str, int, float]
 
+    @classmethod
+    def from_choice(cls, choice: hikari.CommandChoice, /) -> Self:
+        name = _MaybeLocalised("name", choice.name, choice.name_localizations)
+        return cls(name=name.unparse(), value=choice.value)
+
     def to_choice(self) -> hikari.CommandChoice:
-        # TODO: regex
-        name = _MaybeLocalised.parse("name", self.name).assert_length(1, 32)
+        name = (
+            _MaybeLocalised.parse("name", self.name)
+            .assert_length(1, 32)
+            .assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
+        )
         return hikari.CommandChoice(name=name.value, name_localizations=name.localisations, value=self.value)
 
 
@@ -356,25 +393,58 @@ class _CommandOptionModel(pydantic.BaseModel):
     name: _MaybeLocalisedType
     description: _MaybeLocalisedType
     is_required: bool = False
-    choices: list[_CommandChoiceModel] = pydantic.Field(default_factory=list)
-    options: list[_CommandOptionModel] = pydantic.Field(default_factory=list)
-    channel_types: list[_ChannelType] = pydantic.Field(default_factory=list)
+    choices: typing.Optional[list[_CommandChoiceModel]] = pydantic.Field(default_factory=list)
+    options: typing.Optional[list[_CommandOptionModel]] = pydantic.Field(default_factory=list)
+    channel_types: typing.Optional[list[_ChannelType]] = pydantic.Field(default_factory=list)
     autocomplete: bool = False
     min_value: typing.Union[int, float, None] = None
     max_value: typing.Union[int, float, None] = None
     min_length: typing.Optional[int] = None
     max_length: typing.Optional[int] = None
 
+    @classmethod
+    def from_option(cls, opt: hikari.CommandOption, /) -> Self:
+        choices = None
+        if opt.choices is not None:
+            choices = [_CommandChoiceModel.from_choice(choice) for choice in opt.choices]
+
+        options = None
+        if opt.options is not None:
+            options = [_CommandOptionModel.from_option(opt) for opt in opt.options]
+
+        channel_types = None
+        if opt.channel_types is not None:
+            channel_types = [hikari.ChannelType(ct) for ct in opt.channel_types]
+
+        name = _MaybeLocalised("name", opt.name, opt.name_localizations)
+        description = _MaybeLocalised("description", opt.description, opt.description_localizations)
+        return cls(
+            type=hikari.OptionType(opt.type),
+            name=name.unparse(),
+            description=description.unparse(),
+            choices=choices,
+            options=options,
+            channel_types=channel_types,
+            autocomplete=opt.autocomplete,
+            min_value=opt.min_value,
+            max_value=opt.max_value,
+            min_length=opt.min_length,
+            max_length=opt.max_length,
+        )
+
     def to_option(self) -> hikari.CommandOption:
-        # TODO: regex
-        name = _MaybeLocalised.parse("name", self.name).assert_length(1, 32)
+        name = (
+            _MaybeLocalised.parse("name", self.name)
+            .assert_length(1, 32)
+            .assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
+        )
         description = _MaybeLocalised.parse("description", self.description).assert_length(1, 100)
         return hikari.CommandOption(
             type=self.type,
             name=name.value,
             description=description.value,
-            choices=[choice.to_choice() for choice in self.choices],
-            options=[opt.to_option() for opt in self.options],
+            choices=None if self.choices is None else [choice.to_choice() for choice in self.choices],
+            options=None if self.options is None else [opt.to_option() for opt in self.options],
             channel_types=self.channel_types,
             autocomplete=self.autocomplete,
             min_value=self.min_value,
@@ -425,7 +495,9 @@ def _validate_slash_name(name: str, /) -> bool:
 
 
 class _DeclareSlashCmdModel(_CommandModel):
-    type: typing.Literal[hikari.CommandType.SLASH] = hikari.CommandType.SLASH
+    type: typing.Annotated[
+        typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)
+    ] = hikari.CommandType.SLASH
     name: _MaybeLocalisedType
     description: _MaybeLocalisedType
     id: typing.Optional[_Snowflake] = None
@@ -433,6 +505,26 @@ class _DeclareSlashCmdModel(_CommandModel):
     is_dm_enabled: bool = True
     is_nsfw: bool = False
     options: list[_CommandOptionModel] = pydantic.Field(default_factory=list)
+
+    @classmethod
+    def from_builder(cls, builder: hikari.api.SlashCommandBuilder, /) -> Self:
+        name = _MaybeLocalised("name", builder.name, builder.name_localizations)
+        description = _MaybeLocalised("description", builder.description, builder.description_localizations)
+
+        default_member_permissions = None
+        if builder.default_member_permissions is not hikari.UNDEFINED:
+            default_member_permissions = builder.default_member_permissions
+
+        return cls(
+            type=hikari.CommandType.SLASH,
+            name=name.unparse(),
+            description=description.unparse(),
+            id=None if builder.id is hikari.UNDEFINED else builder.id,
+            default_member_permissions=default_member_permissions,
+            is_dm_enabled=True if builder.is_dm_enabled is hikari.UNDEFINED else builder.is_dm_enabled,
+            is_nsfw=False if builder.is_nsfw is hikari.UNDEFINED else builder.is_nsfw,
+            options=[],
+        )
 
     def to_builder(self) -> hikari.api.SlashCommandBuilder:
         default_member_permissions = hikari.UNDEFINED
@@ -459,12 +551,31 @@ class _DeclareSlashCmdModel(_CommandModel):
 
 
 class _DeclareMenuCmdModel(_CommandModel):
-    type: typing.Union[typing.Literal[hikari.CommandType.MESSAGE], typing.Literal[hikari.CommandType.USER]]
+    type: typing.Annotated[
+        typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
+    ]
     name: _MaybeLocalisedType
     id: typing.Optional[_Snowflake] = None
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
+
+    @classmethod
+    def from_builder(cls, builder: hikari.api.ContextMenuCommandBuilder, /) -> Self:
+        name = _MaybeLocalised("name", builder.name, builder.name_localizations)
+
+        default_member_permissions = None
+        if builder.default_member_permissions is not hikari.UNDEFINED:
+            default_member_permissions = builder.default_member_permissions
+
+        return cls(
+            type=typing.cast("typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER]", builder.type),
+            name=name.unparse(),
+            id=None if builder.id is hikari.UNDEFINED else builder.id,
+            default_member_permissions=default_member_permissions,
+            is_dm_enabled=True if builder.is_dm_enabled is hikari.UNDEFINED else builder.is_dm_enabled,
+            is_nsfw=False if builder.is_nsfw is hikari.UNDEFINED else builder.is_nsfw,
+        )
 
     def to_builder(self) -> hikari.api.ContextMenuCommandBuilder:
         default_member_permissions = hikari.UNDEFINED
@@ -483,8 +594,11 @@ class _DeclareMenuCmdModel(_CommandModel):
         )
 
 
+_CommandModelIsh = typing.Union[_DeclareSlashCmdModel, _DeclareMenuCmdModel]
+
+
 class _DeclareModel(pydantic.BaseModel):
-    commands: list[typing.Union[_DeclareSlashCmdModel, _DeclareMenuCmdModel]]
+    commands: list[_CommandModelIsh]
     token: str
 
 
@@ -492,18 +606,19 @@ async def _declare_coro(schema: _DeclareModel) -> None:
     app = hikari.RESTApp()
     await app.start()
 
-    async with app.acquire(schema.token) as rest:
+    async with app.acquire(schema.token, token_type=hikari.TokenType.BOT) as rest:
         application = await rest.fetch_application()
         await rest.set_application_commands(application.id, [cmd.to_builder() for cmd in schema.commands])
+
+    await app.close()
 
 
 @click.option(
     "--schema",
     "-s",
-    default="bot.schema",
+    default=_DEFUALT_SCHEMA_PATH,
     envvar="BOT_SCHEMA_FILE",
     show_envvar=True,
-    hidden=True,
     help="",
     type=click.Path(exists=True, path_type=pathlib.Path),
 )
@@ -514,6 +629,65 @@ def _declare(schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunct
     asyncio.run(_declare_coro(commands))
 
 
+async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
+    commands: list[_CommandModelIsh] = []
+    app = hikari.impl.RESTApp()
+    # TODO: allow doing this all in one async with statement.
+    # TODO: support using bearer tokens.
+    # TODO: support guild specific commands.
+    await app.start()
+
+    async with app.acquire(token, token_type=hikari.TokenType.BOT) as rest:
+        application = await rest.fetch_application()
+        raw_commands = await rest.fetch_application_commands(application)
+
+    await app.close()
+
+    for command in raw_commands:
+        if isinstance(command, hikari.SlashCommand):
+            builder = to_builder.to_slash_cmd_builder(command)
+            commands.append(_DeclareSlashCmdModel.from_builder(builder))
+
+        elif isinstance(command, hikari.ContextMenuCommand):
+            builder = to_builder.to_context_menu_builder(command)
+            commands.append(_DeclareMenuCmdModel.from_builder(builder))
+
+        else:
+            raise NotImplementedError(f"Unsupported command type {command.type}")
+
+    return commands
+
+
+@_cli.group("fetch")
+# TODO: don't do this
+def _fetch_group() -> None:
+    ...
+
+
+@_fetch_group.command(name="schema")
+@click.option(
+    "--schema",
+    "-s",
+    default=_DEFUALT_SCHEMA_PATH,
+    envvar="BOT_SCHEMA_FILE",
+    show_envvar=True,
+    help="",
+    type=click.Path(path_type=pathlib.Path),
+)
+# TODO: try reading from old schema file.
+@click.option(
+    "--token",
+    envvar="DISCORD_TOKEN",
+    show_envvar=True,
+    help="Discord token for the bot to rename the commands for.",
+    required=True,
+)
+def _fetch_schema(schema: pathlib.Path, token: str) -> None:  # pyright: ignore[reportUnusedFunction]
+    commands = asyncio.run(_fetch_coro(token))
+    data = _DeclareModel(commands=commands, token=token).model_dump()
+    _dump_config(schema, data)
+
+
 def main() -> None:
     """Entrypoint for Yuyo's commandline tools."""
     _cli()
@@ -521,3 +695,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# TODO: hidden=True???
