@@ -682,10 +682,23 @@ def _fetch_group() -> None:
     help="Discord token for the bot to rename the commands for.",
     required=True,
 )
-def _fetch_schema(schema: pathlib.Path, token: str) -> None:  # pyright: ignore[reportUnusedFunction]
+@click.option(
+    "--exclude-id",
+    "--ei",
+    is_flag=True,
+    default=False,
+    help="Whether to exclude command IDs from the output",
+    required=True,
+)
+def _fetch_schema(schema: pathlib.Path, token: str, exclude_id: bool) -> None:  # pyright: ignore[reportUnusedFunction]
     commands = asyncio.run(_fetch_coro(token))
-    data = _DeclareModel(commands=commands, token=token).model_dump()
-    _dump_config(schema, data)
+    data = _DeclareModel(commands=commands, token=token)
+
+    if exclude_id:
+        for command in data.commands:
+            command.id = None
+
+    _dump_config(schema, data.model_dump())
 
 
 def main() -> None:
