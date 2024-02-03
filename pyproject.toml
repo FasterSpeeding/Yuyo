@@ -32,7 +32,7 @@ dynamic = ["description"]
 
 [project.optional-dependencies]
 asgi = ["asgiref~=3.0", "hikari[server]"]
-cli = ["click>=8, <9", "pydantic>=2, <3", "python-dotenv>=1, <2"]
+cli = ["click>=8, <9", "pydantic>=2, <3", "python-dotenv>=1, <2", "toml>=0.10, <1"]
 sake = ["hikari-sake>=1.0.4a1, <2"]
 tanjun = ["hikari-tanjun>=2.11.0, <3"]
 
