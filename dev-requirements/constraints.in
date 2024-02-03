@@ -6,5 +6,6 @@ hikari[server]
 click>=8, <9
 pydantic>=2, <3
 python-dotenv>=1, <2
+toml>=0.10, <1
 hikari-sake>=1.0.4a1, <2
 hikari-tanjun>=2.11.0, <3

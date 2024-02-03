@@ -448,9 +448,12 @@ python-dotenv==1.0.1 ; python_full_version >= "3.9.0" and python_version < "3.13
 redis==4.6.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:585dc516b9eb042a619ef0a39c3d7d55fe81bdb4df09a52c9cdde0d07bf1aa7d \
     --hash=sha256:e2b03db868160ee4591de3cb90d40ebb50a90dd302138775937f6a42b7ed183c
-typing-extensions==4.10.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475 \
-    --hash=sha256:b0abd7c89e8fb96f98db18d86106ff1d90ab692004eb746cf6eda2682f91b3cb
+toml==0.10.2 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
+    --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
+typing-extensions==4.9.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:23478f88c37f27d76ac8aee6c905017a143b0b1b886c3c9f66bc2fd94f9f5783 \
+    --hash=sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd
 yarl==1.9.4 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:008d3e808d03ef28542372d01057fd09168419cdc8f848efe2804f894ae03e51 \
     --hash=sha256:03caa9507d3d3c83bca08650678e25364e1843b484f19986a527630ca376ecce \
