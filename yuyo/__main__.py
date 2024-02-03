@@ -224,13 +224,12 @@ _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 class _RenameModel(pydantic.BaseModel):
     commands: dict[typing.Union[str, _Snowflake], typing.Union[str, dict[_Locale, str]]]
+    token: str
 
 
 async def _rename_coro(
     token: str,
-    renames: collections.Mapping[
-        typing.Union[str, hikari.Snowflake], typing.Union[str, collections.Mapping[_Locale, str]]
-    ],
+    renames: collections.Mapping[typing.Union[str, _Snowflake], typing.Union[str, collections.Mapping[_Locale, str]]],
 ) -> None:
     app = hikari.RESTApp()
     new_commands: list[hikari.api.CommandBuilder] = []
@@ -274,24 +273,63 @@ async def _rename_coro(
         await rest.set_application_commands(application, new_commands)
 
 
-@click.option("--file", "-f", type=click.Path(exists=True, path_type=pathlib.Path))
+def _cast_rename_flag(value: str) -> tuple[typing.Union[hikari.Snowflake, str], str]:
+    try:
+        key, value = value.split("=", 1)
+
+    except ValueError:
+        try:
+            key, value = value.split(":", 1)
+
+        except ValueError:
+            raise ValueError(f"Invalid value passed for -c `{value!r}`") from None
+
+    key = key.strip()
+    if key.isdigit():
+        return hikari.Snowflake(key), value
+
+    return key, value
+
+
+_DEFAULT_RENAME_FILE = pathlib.Path("./command_rename.schema")
+
+
+@click.option("--command", "-c", envvar="COMMAND_RENAME", show_envvar=True, multiple=True, type=_cast_rename_flag)
 @click.option(
-    "--token", envvar="DISCORD_TOKEN", help="Discord token for the bot to rename the commands for.", required=True
+    "--file", "-f", envvar="COMMAND_RENAME_FILE", show_envvar=True, type=click.Path(exists=True, path_type=pathlib.Path)
+)
+@click.option(
+    "--token",
+    envvar="DISCORD_TOKEN",
+    show_envvar=True,
+    help="Discord token for the bot to rename the commands for.",
+    required=False,
 )
 @_cli.command(name="rename")
-def _rename(token: str, file: typing.Optional[pathlib.Path]) -> None:  # pyright: ignore[reportUnusedFunction]
+def _rename(
+    token: typing.Optional[str],
+    file: typing.Optional[pathlib.Path],
+    command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
+) -> None:  # pyright: ignore[reportUnusedFunction]
     """"""
-    if file is not None:
-        commands = _RenameModel.model_validate(_parse_config(file), strict=True).commands
+    if file is not None or _DEFAULT_RENAME_FILE.exists():
+        file = file or _DEFAULT_RENAME_FILE
+        parsed = _RenameModel.model_validate(_parse_config(file), strict=True)
+        commands = parsed.commands
+        commands.update(command)
+        token = parsed.token
 
     else:
-        raise NotImplementedError
+        commands = dict(command)
+
+        if token is None:
+            raise ValueError("Missing token")
 
     asyncio.run(_rename_coro(token, commands))
 
 
 class _CommandModel(pydantic.BaseModel):
-    ...
+    """Base class for all command models."""
 
     def to_builder(self) -> hikari.api.CommandBuilder:
         raise NotImplementedError
@@ -447,13 +485,14 @@ class _DeclareMenuCmdModel(_CommandModel):
 
 class _DeclareModel(pydantic.BaseModel):
     commands: list[typing.Union[_DeclareSlashCmdModel, _DeclareMenuCmdModel]]
+    token: str
 
 
-async def _declare_coro(token: str, schema: _DeclareModel) -> None:
+async def _declare_coro(schema: _DeclareModel) -> None:
     app = hikari.RESTApp()
     await app.start()
 
-    async with app.acquire(token) as rest:
+    async with app.acquire(schema.token) as rest:
         application = await rest.fetch_application()
         await rest.set_application_commands(application.id, [cmd.to_builder() for cmd in schema.commands])
 
@@ -463,17 +502,16 @@ async def _declare_coro(token: str, schema: _DeclareModel) -> None:
     "-s",
     default="bot.schema",
     envvar="BOT_SCHEMA_FILE",
+    show_envvar=True,
+    hidden=True,
     help="",
     type=click.Path(exists=True, path_type=pathlib.Path),
 )
-@click.option(
-    "--token", envvar="DISCORD_TOKEN", help="Discord token for the bot to declare the commands for.", required=True
-)
 @_cli.command(name="declare")
-def _declare(token: str, schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
+def _declare(schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
     """"""
     commands = _DeclareModel.model_validate(_parse_config(schema), strict=True)
-    asyncio.run(_declare_coro(token, commands))
+    asyncio.run(_declare_coro(commands))
 
 
 def main() -> None:
