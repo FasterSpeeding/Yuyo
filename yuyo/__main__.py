@@ -111,15 +111,14 @@ class _MaybeLocalised:
     localisations: collections.Mapping[str, str]
 
     @classmethod
-    def parse(cls, field_name: str, value: typing.Union[str, collections.Mapping[str, str]], /) -> Self:
-        if isinstance(value, str):
-            localisations: collections.Mapping[str, str] = {}
+    def parse(cls, field_name: str, raw_value: typing.Union[str, collections.Mapping[_Locale, str]], /) -> Self:
+        if isinstance(raw_value, str):
+            return cls(field_name=field_name, value=raw_value, localisations={})
 
         else:
-            localisations = value
-            value = localisations.get("default") or next(iter(localisations))
-
-        return cls(field_name=field_name, value=value, localisations=localisations)
+            value = raw_value.get("default") or next(iter(raw_value))
+            localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
+            return cls(field_name=field_name, value=value, localisations=localisations)
 
     def _values(self) -> collections.Iterable[str]:
         yield self.value
@@ -157,7 +156,33 @@ class _MaybeLocalised:
         return self
 
 
-_MaybeLocalisedType = typing.Union[str, dict[str, str]]
+def _cast_snowflake(value: int) -> hikari.Snowflake:
+    if hikari.Snowflake.min() <= value <= hikari.Snowflake.max():
+        return hikari.Snowflake(value)
+
+    raise ValueError(f"{value} is not a valid snowflake")
+
+
+class _SnowflakeSchema:
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
+    ) -> pydantic_core.CoreSchema:
+        from_schema = pydantic_core.core_schema.chain_schema(
+            [
+                pydantic_core.core_schema.int_schema(),
+                pydantic_core.core_schema.no_info_plain_validator_function(_cast_snowflake),
+            ]
+        )
+        return pydantic_core.core_schema.json_or_python_schema(
+            json_schema=from_schema,
+            python_schema=pydantic_core.core_schema.union_schema(
+                [pydantic_core.core_schema.is_instance_schema(hikari.Snowflake), from_schema]
+            ),
+        )
+
+
+_Snowflake = typing.Annotated[hikari.Snowflake, _SnowflakeSchema]
 
 
 class _EnumSchema:
@@ -192,16 +217,20 @@ class _EnumSchema:
         )
 
 
-_Locale = typing.Annotated[hikari.Locale, _EnumSchema]
+_LocaleSchema = typing.Annotated[hikari.Locale, _EnumSchema]
+_Locale = typing.Union[typing.Literal["default"], _LocaleSchema]
+_MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 
 class _RenameModel(pydantic.BaseModel):
-    commands: dict[typing.Union[str, int], typing.Union[str, dict[_Locale, str]]]
+    commands: dict[typing.Union[str, _Snowflake], typing.Union[str, dict[_Locale, str]]]
 
 
 async def _rename_coro(
     token: str,
-    renames: collections.Mapping[typing.Union[str, int], typing.Union[str, collections.Mapping[hikari.Locale, str]]],
+    renames: collections.Mapping[
+        typing.Union[str, hikari.Snowflake], typing.Union[str, collections.Mapping[_Locale, str]]
+    ],
 ) -> None:
     app = hikari.RESTApp()
     new_commands: list[hikari.api.CommandBuilder] = []
@@ -361,7 +390,7 @@ class _DeclareSlashCmdModel(_CommandModel):
     type: typing.Literal[hikari.CommandType.SLASH] = hikari.CommandType.SLASH
     name: _MaybeLocalisedType
     description: _MaybeLocalisedType
-    id: typing.Optional[int] = None
+    id: typing.Optional[_Snowflake] = None
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -394,7 +423,7 @@ class _DeclareSlashCmdModel(_CommandModel):
 class _DeclareMenuCmdModel(_CommandModel):
     type: typing.Union[typing.Literal[hikari.CommandType.MESSAGE], typing.Literal[hikari.CommandType.USER]]
     name: _MaybeLocalisedType
-    id: typing.Optional[int] = None
+    id: typing.Optional[_Snowflake] = None
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -426,7 +455,6 @@ async def _declare_coro(token: str, schema: _DeclareModel) -> None:
 
     async with app.acquire(token) as rest:
         application = await rest.fetch_application()
-
         await rest.set_application_commands(application.id, [cmd.to_builder() for cmd in schema.commands])
 
 
