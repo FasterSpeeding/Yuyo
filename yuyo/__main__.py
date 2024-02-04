@@ -72,7 +72,7 @@ _CONFIG_DUMPERS: dict[str, collections.Callable[[collections.Mapping[str, typing
 _DEFUALT_SCHEMA_PATH = pathlib.Path("bot_schema.toml")
 
 
-def _parse_config(path: pathlib.Path, /) -> typing.Any:
+def _parse_config(path: pathlib.Path, /) -> collections.Mapping[str, typing.Any]:
     file_type = path.name.rsplit(".", 1)[-1]
     try:
         load = _CONFIG_PARSERS[file_type]
@@ -184,8 +184,7 @@ def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHand
     )
 
 
-_LocaleSchema = typing.Annotated[hikari.Locale, _enum_schema]
-_Locale = typing.Union[typing.Literal["default"], _LocaleSchema]
+_Locale = typing.Union[typing.Literal["default"], typing.Annotated[hikari.Locale, _enum_schema]]
 _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 
