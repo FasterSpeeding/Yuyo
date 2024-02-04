@@ -117,6 +117,7 @@ _COMMAND_TYPES: dict[hikari.CommandType, _CommandTypes] = {
 _LOGGER = logging.getLogger("hikari.yuyo")
 
 
+# TODO: switch to using __get_pydantic_core_schema__ =
 @dataclasses.dataclass
 class _MaybeLocalised:
     field_name: str
@@ -186,66 +187,62 @@ def _cast_snowflake(value: int) -> hikari.Snowflake:
     raise ValueError(f"{value} is not a valid snowflake")
 
 
-class _SnowflakeSchema:
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
-    ) -> pydantic_core.CoreSchema:
-        # TODO: allow strings using pydantic_core.CoreSchema.union_schema()
-        from_schema = pydantic_core.core_schema.chain_schema(
-            [
-                pydantic_core.core_schema.int_schema(),
-                pydantic_core.core_schema.no_info_plain_validator_function(_cast_snowflake),
-            ]
-        )
-        return pydantic_core.core_schema.json_or_python_schema(
-            json_schema=from_schema,
-            python_schema=pydantic_core.core_schema.union_schema(
-                [pydantic_core.core_schema.is_instance_schema(hikari.Snowflake), from_schema]
-            ),
-            serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(int),
-        )
+@pydantic.GetPydanticSchema
+def _snowflake_schema(
+    _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
+) -> pydantic_core.CoreSchema:
+    # TODO: allow strings using pydantic_core.CoreSchema.union_schema()
+    from_schema = pydantic_core.core_schema.chain_schema(
+        [
+            pydantic_core.core_schema.int_schema(),
+            pydantic_core.core_schema.no_info_plain_validator_function(_cast_snowflake),
+        ]
+    )
+    return pydantic_core.core_schema.json_or_python_schema(
+        json_schema=from_schema,
+        python_schema=pydantic_core.core_schema.union_schema(
+            [pydantic_core.core_schema.is_instance_schema(hikari.Snowflake), from_schema]
+        ),
+        serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(int),
+    )
 
 
-_Snowflake = typing.Annotated[hikari.Snowflake, _SnowflakeSchema]
+_Snowflake = typing.Annotated[hikari.Snowflake, _snowflake_schema]
 
 
-class _EnumSchema:
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHandler
-    ) -> pydantic_core.CoreSchema:
-        def _cast_enum(value: typing.Union[str, int]) -> _EnumT:
-            result = source_type(value)
-            if isinstance(result, source_type):
-                return result
+@pydantic.GetPydanticSchema
+def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHandler) -> pydantic_core.CoreSchema:
+    def _cast_enum(value: typing.Union[str, int]) -> _EnumT:
+        result = source_type(value)
+        if isinstance(result, source_type):
+            return result
 
-            raise ValueError(f"{value!r} is not a valid {source_type.__name__}")
+        raise ValueError(f"{value!r} is not a valid {source_type.__name__}")
 
-        if issubclass(source_type, int):
-            origin_schema = pydantic_core.core_schema.int_schema()
-            ser_type = int
+    if issubclass(source_type, int):
+        origin_schema = pydantic_core.core_schema.int_schema()
+        ser_type = int
 
-        elif issubclass(source_type, str):
-            origin_schema = pydantic_core.core_schema.str_schema()
-            ser_type = str
+    elif issubclass(source_type, str):
+        origin_schema = pydantic_core.core_schema.str_schema()
+        ser_type = str
 
-        else:
-            raise NotImplementedError("Only string and int schemas are supported")
+    else:
+        raise NotImplementedError("Only string and int schemas are supported")
 
-        from_schema = pydantic_core.core_schema.chain_schema(
-            [origin_schema, pydantic_core.core_schema.no_info_plain_validator_function(_cast_enum)]
-        )
-        return pydantic_core.core_schema.json_or_python_schema(
-            json_schema=from_schema,
-            python_schema=pydantic_core.core_schema.union_schema(
-                [pydantic_core.core_schema.is_instance_schema(source_type), from_schema]
-            ),
-            serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(ser_type),
-        )
+    from_schema = pydantic_core.core_schema.chain_schema(
+        [origin_schema, pydantic_core.core_schema.no_info_plain_validator_function(_cast_enum)]
+    )
+    return pydantic_core.core_schema.json_or_python_schema(
+        json_schema=from_schema,
+        python_schema=pydantic_core.core_schema.union_schema(
+            [pydantic_core.core_schema.is_instance_schema(source_type), from_schema]
+        ),
+        serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(ser_type),
+    )
 
 
-_LocaleSchema = typing.Annotated[hikari.Locale, _EnumSchema]
+_LocaleSchema = typing.Annotated[hikari.Locale, _enum_schema]
 _Locale = typing.Union[typing.Literal["default"], _LocaleSchema]
 _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
@@ -325,7 +322,12 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
 
 @click.option("--command", "-c", envvar="COMMAND_RENAME", show_envvar=True, multiple=True, type=_cast_rename_flag)
 @click.option(
-    "--file", "-f", envvar="COMMAND_RENAME_FILE", show_envvar=True, type=click.Path(exists=True, path_type=pathlib.Path)
+    "--file",
+    "-f",
+    "schema_file",
+    envvar="COMMAND_RENAME_FILE",
+    show_envvar=True,
+    type=click.Path(exists=True, path_type=pathlib.Path),
 )
 @click.option(
     "--token",
@@ -337,13 +339,13 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
 @_cli.command(name="rename")
 def _rename(  # pyright: ignore[reportUnusedFunction]
     token: typing.Optional[str],
-    file: typing.Optional[pathlib.Path],
+    schema_file: typing.Optional[pathlib.Path],
     command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
 ) -> None:
-    """"""
-    if file is not None or _DEFAULT_RENAME_FILE.exists():
-        file = file or _DEFAULT_RENAME_FILE
-        parsed = _RenameModel.model_validate(_parse_config(file), strict=True)
+    """A."""
+    if schema_file is not None or _DEFAULT_RENAME_FILE.exists():
+        schema_file = schema_file or _DEFAULT_RENAME_FILE
+        parsed = _RenameModel.model_validate(_parse_config(schema_file), strict=True)
         commands = parsed.commands
         commands.update(command)
         token = parsed.token
@@ -384,12 +386,12 @@ class _CommandChoiceModel(pydantic.BaseModel):
         return hikari.CommandChoice(name=name.value, name_localizations=name.localisations, value=self.value)
 
 
-_OptionType = typing.Annotated[hikari.OptionType, _EnumSchema]
-_ChannelType = typing.Annotated[hikari.ChannelType, _EnumSchema]
+_OptionType = typing.Annotated[hikari.OptionType, _enum_schema]
+_ChannelType = typing.Annotated[hikari.ChannelType, _enum_schema]
 
 
 class _CommandOptionModel(pydantic.BaseModel):
-    type: _OptionType
+    type: _OptionType  # noqa: VNE003
     name: _MaybeLocalisedType
     description: _MaybeLocalisedType
     is_required: bool = False
@@ -495,12 +497,12 @@ def _validate_slash_name(name: str, /) -> bool:
 
 
 class _DeclareSlashCmdModel(_CommandModel):
-    type: typing.Annotated[
+    type: typing.Annotated[  # noqa: VNE003
         typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)
     ] = hikari.CommandType.SLASH
     name: _MaybeLocalisedType
     description: _MaybeLocalisedType
-    id: typing.Optional[_Snowflake] = None
+    id: typing.Optional[_Snowflake] = None  # noqa: VNE003
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -551,11 +553,11 @@ class _DeclareSlashCmdModel(_CommandModel):
 
 
 class _DeclareMenuCmdModel(_CommandModel):
-    type: typing.Annotated[
+    type: typing.Annotated[  # noqa: VNE003
         typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
     ]
     name: _MaybeLocalisedType
-    id: typing.Optional[_Snowflake] = None
+    id: typing.Optional[_Snowflake] = None  # noqa: VNE003
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -625,7 +627,7 @@ async def _declare_coro(schema: _DeclareModel) -> None:
 )
 @_cli.command(name="declare")
 def _declare(schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
-    """"""
+    """A."""
     commands = _DeclareModel.model_validate(_parse_config(schema), strict=True)
     asyncio.run(_declare_coro(commands))
 
