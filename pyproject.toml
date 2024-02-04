@@ -238,5 +238,11 @@ filterwarnings = [
 strict-imports = true
 require-superclass = true
 require-subclass = true
-exclude-classes = """.*(Proto|Meta)|yuyo.components:_WrappedTextMenuBuilder|yuyo.modals:ModalOptions"""
+exclude-classes = """
+.*(Proto|Meta)
+|yuyo.components:_WrappedTextMenuBuilder
+|yuyo.modals:ModalOptions
+|yuyo.__main__:.*Model
+|yuyo.__main__:_MaybeLocalised
+"""
 exclude-modules = "yuyo._internal.vendor"
