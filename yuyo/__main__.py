@@ -123,69 +123,6 @@ _COMMAND_TYPES: dict[hikari.CommandType, _CommandTypes] = {
 _LOGGER = logging.getLogger("hikari.yuyo")
 
 
-# TODO: switch to using __get_pydantic_core_schema__ =
-@dataclasses.dataclass
-class _MaybeLocalised:
-    field_name: str
-    value: str
-    localisations: collections.Mapping[str, str]
-
-    @classmethod
-    def parse(cls, field_name: str, raw_value: _MaybeLocalisedType, /) -> Self:
-        if isinstance(raw_value, str):
-            return cls(field_name=field_name, value=raw_value, localisations={})
-
-        else:
-            value = raw_value.get("default") or next(iter(raw_value))
-            localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
-            return cls(field_name=field_name, value=value, localisations=localisations)
-
-    def unparse(self) -> _MaybeLocalisedType:
-        if self.localisations:
-            value = typing.cast("dict[_Locale, str]", dict(self.localisations))
-            value["default"] = self.value
-
-        else:
-            value = self.value
-
-        return value
-
-    def _values(self) -> collections.Iterable[str]:
-        yield self.value
-        yield from self.localisations.values()
-
-    def assert_matches(
-        self, pattern: str, match: collections.Callable[[str], bool], /, *, lower_only: bool = False
-    ) -> Self:
-        for value in self._values():
-            if not match(value):
-                raise ValueError(
-                    f"Invalid {self.field_name} provided, {value!r} doesn't match the required regex `{pattern}`"
-                )
-
-            if lower_only and value.lower() != value:
-                raise ValueError(f"Invalid {self.field_name} provided, {value!r} must be lowercase")
-
-        return self
-
-    def assert_length(self, min_length: int, max_length: int, /) -> Self:
-        lengths = sorted(map(len, self._values()))
-        real_min_len = lengths[0]
-        real_max_len = lengths[-1]
-
-        if real_max_len > max_length:
-            raise ValueError(
-                f"{self.field_name.capitalize()} must be less than or equal to {max_length} characters in length"
-            )
-
-        if real_min_len < min_length:
-            raise ValueError(
-                f"{self.field_name.capitalize()} must be greater than or equal to {min_length} characters in length"
-            )
-
-        return self
-
-
 def _cast_snowflake(value: int) -> hikari.Snowflake:
     if hikari.Snowflake.min() <= value <= hikari.Snowflake.max():
         return hikari.Snowflake(value)
@@ -252,13 +189,90 @@ _Locale = typing.Union[typing.Literal["default"], _LocaleSchema]
 _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 
+@dataclasses.dataclass
+class _MaybeLocalised:
+    field_name: str
+    value: str
+    localisations: collections.Mapping[str, str]
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
+    ) -> pydantic_core.CoreSchema:
+        type_adapter = pydantic.TypeAdapter(_MaybeLocalisedType)
+        from_schema = pydantic_core.core_schema.chain_schema(
+            [type_adapter.core_schema, pydantic_core.core_schema.with_info_plain_validator_function(cls.pydantic_parse)]
+        )
+        return pydantic_core.core_schema.json_or_python_schema(
+            from_schema,
+            pydantic_core.core_schema.union_schema([pydantic_core.core_schema.is_instance_schema(cls), from_schema]),
+            serialization=pydantic_core.core_schema.plain_serializer_function_ser_schema(lambda v: v.unparse()),
+        )
+
+    @classmethod
+    def pydantic_parse(cls, raw_value: _MaybeLocalisedType, info: pydantic_core.core_schema.ValidationInfo, /) -> Self:
+        field_name = info.field_name or "<UNKNOWN>"
+        if isinstance(raw_value, str):
+            return cls(field_name=field_name, value=raw_value, localisations={})
+
+        else:
+            value = raw_value.get("default") or next(iter(raw_value))
+            localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
+            return cls(field_name=field_name, value=value, localisations=localisations)
+
+    def unparse(self) -> _MaybeLocalisedType:
+        if self.localisations:
+            value = typing.cast("dict[_Locale, str]", dict(self.localisations))
+            value["default"] = self.value
+
+        else:
+            value = self.value
+
+        return value
+
+    def _values(self) -> collections.Iterable[str]:
+        yield self.value
+        yield from self.localisations.values()
+
+    def assert_matches(
+        self, pattern: str, match: collections.Callable[[str], bool], /, *, lower_only: bool = False
+    ) -> Self:
+        for value in self._values():
+            if not match(value):
+                raise ValueError(
+                    f"Invalid {self.field_name} provided, {value!r} doesn't match the required regex `{pattern}`"
+                )
+
+            if lower_only and value.lower() != value:
+                raise ValueError(f"Invalid {self.field_name} provided, {value!r} must be lowercase")
+
+        return self
+
+    def assert_length(self, min_length: int, max_length: int, /) -> Self:
+        lengths = sorted(map(len, self._values()))
+        real_min_len = lengths[0]
+        real_max_len = lengths[-1]
+
+        if real_max_len > max_length:
+            raise ValueError(
+                f"{self.field_name.capitalize()} must be less than or equal to {max_length} characters in length"
+            )
+
+        if real_min_len < min_length:
+            raise ValueError(
+                f"{self.field_name.capitalize()} must be greater than or equal to {min_length} characters in length"
+            )
+
+        return self
+
+
 class _RenameModel(pydantic.BaseModel):
-    commands: dict[typing.Union[str, _Snowflake], _MaybeLocalisedType]
+    commands: dict[typing.Union[str, _Snowflake], _MaybeLocalised]
     token: str
 
 
 async def _rename_coro(
-    token: str, renames: collections.Mapping[typing.Union[str, _Snowflake], _MaybeLocalisedType]
+    token: str, renames: collections.Mapping[typing.Union[str, _Snowflake], _MaybeLocalised]
 ) -> None:
     app = hikari.RESTApp()
     new_commands: list[hikari.api.CommandBuilder] = []
@@ -277,15 +291,15 @@ async def _rename_coro(
         commands = await rest.fetch_application_commands(application)
 
         for command in commands:
-            new_name = (
+            names = (
                 renames.pop(command.id, None)
                 or renames.pop(f"{_COMMAND_TYPES[command.type]}:{command.name}")
                 or renames.pop(command.name, None)
             )
             builder = to_builder.to_cmd_builder(command)
 
-            if new_name:
-                names = _MaybeLocalised.parse("name", new_name).assert_length(1, 32)
+            if names:
+                names.assert_length(1, 32)
                 if command.type is hikari.CommandType.SLASH:
                     names.assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
 
@@ -348,16 +362,16 @@ def _rename(  # pyright: ignore[reportUnusedFunction]
     command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
 ) -> None:
     """Rename some of a bot's declared application commands."""
+    commands = {key: _MaybeLocalised("name", value, {}) for key, value in command}
+
     if schema_file is not None or _DEFAULT_RENAME_FILE.exists():
         schema_file = schema_file or _DEFAULT_RENAME_FILE
         parsed = _RenameModel.model_validate(_parse_config(schema_file), strict=True)
-        commands = parsed.commands
-        commands.update(command)
+        commands.update(parsed.commands)
+
         token = parsed.token
 
     else:
-        commands = dict(command)
-
         if token is None:
             raise ValueError("Missing token")
 
@@ -374,21 +388,17 @@ class _CommandModel(pydantic.BaseModel):
 class _CommandChoiceModel(pydantic.BaseModel):
     """Represents the choices set for an application command's argument."""
 
-    name: _MaybeLocalisedType
+    name: _MaybeLocalised
     value: typing.Union[str, int, float]
 
     @classmethod
     def from_choice(cls, choice: hikari.CommandChoice, /) -> Self:
         name = _MaybeLocalised("name", choice.name, choice.name_localizations)
-        return cls(name=name.unparse(), value=choice.value)
+        return cls(name=name, value=choice.value)
 
     def to_choice(self) -> hikari.CommandChoice:
-        name = (
-            _MaybeLocalised.parse("name", self.name)
-            .assert_length(1, 32)
-            .assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
-        )
-        return hikari.CommandChoice(name=name.value, name_localizations=name.localisations, value=self.value)
+        (self.name.assert_length(1, 32).assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name))
+        return hikari.CommandChoice(name=self.name.value, name_localizations=self.name.localisations, value=self.value)
 
 
 _OptionType = typing.Annotated[hikari.OptionType, _enum_schema]
@@ -397,8 +407,8 @@ _ChannelType = typing.Annotated[hikari.ChannelType, _enum_schema]
 
 class _CommandOptionModel(pydantic.BaseModel):
     type: _OptionType  # noqa: VNE003
-    name: _MaybeLocalisedType
-    description: _MaybeLocalisedType
+    name: _MaybeLocalised
+    description: _MaybeLocalised
     is_required: bool = False
     choices: typing.Optional[list[_CommandChoiceModel]] = pydantic.Field(default_factory=list)
     options: typing.Optional[list[_CommandOptionModel]] = pydantic.Field(default_factory=list)
@@ -427,8 +437,8 @@ class _CommandOptionModel(pydantic.BaseModel):
         description = _MaybeLocalised("description", opt.description, opt.description_localizations)
         return cls(
             type=hikari.OptionType(opt.type),
-            name=name.unparse(),
-            description=description.unparse(),
+            name=name,
+            description=description,
             choices=choices,
             options=options,
             channel_types=channel_types,
@@ -440,24 +450,20 @@ class _CommandOptionModel(pydantic.BaseModel):
         )
 
     def to_option(self) -> hikari.CommandOption:
-        name = (
-            _MaybeLocalised.parse("name", self.name)
-            .assert_length(1, 32)
-            .assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
-        )
-        description = _MaybeLocalised.parse("description", self.description).assert_length(1, 100)
+        (self.name.assert_length(1, 32).assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name))
+        self.description.assert_length(1, 100)
         return hikari.CommandOption(
             type=self.type,
-            name=name.value,
-            description=description.value,
+            name=self.name.value,
+            description=self.description.value,
             choices=None if self.choices is None else [choice.to_choice() for choice in self.choices],
             options=None if self.options is None else [opt.to_option() for opt in self.options],
             channel_types=self.channel_types,
             autocomplete=self.autocomplete,
             min_value=self.min_value,
             max_value=self.max_value,
-            name_localizations=name.localisations,
-            description_localizations=description.localisations,
+            name_localizations=self.name.localisations,
+            description_localizations=self.description.localisations,
             min_length=self.min_length,
             max_length=self.max_length,
         )
@@ -505,8 +511,8 @@ class _DeclareSlashCmdModel(_CommandModel):
     type: typing.Annotated[  # noqa: VNE003
         typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)
     ] = hikari.CommandType.SLASH
-    name: _MaybeLocalisedType
-    description: _MaybeLocalisedType
+    name: _MaybeLocalised
+    description: _MaybeLocalised
     id: typing.Optional[_Snowflake] = None  # noqa: VNE003
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
@@ -524,8 +530,8 @@ class _DeclareSlashCmdModel(_CommandModel):
 
         return cls(
             type=hikari.CommandType.SLASH,
-            name=name.unparse(),
-            description=description.unparse(),
+            name=name,
+            description=description,
             id=None if builder.id is hikari.UNDEFINED else builder.id,
             default_member_permissions=default_member_permissions,
             is_dm_enabled=True if builder.is_dm_enabled is hikari.UNDEFINED else builder.is_dm_enabled,
@@ -538,22 +544,18 @@ class _DeclareSlashCmdModel(_CommandModel):
         if self.default_member_permissions is not None:
             default_member_permissions = self.default_member_permissions
 
-        name = (
-            _MaybeLocalised.parse("name", self.name)
-            .assert_length(1, 32)
-            .assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name)
-        )
-        description = _MaybeLocalised.parse("description", self.description).assert_length(1, 100)
+        (self.name.assert_length(1, 32).assert_matches(_SCOMMAND_NAME_REG, _validate_slash_name))
+        self.description.assert_length(1, 100)
         return hikari.impl.SlashCommandBuilder(
-            name=name.value,
-            description=description.value,
+            name=self.name.value,
+            description=self.description.value,
             id=hikari.UNDEFINED if self.id is None else hikari.Snowflake(self.id),
             default_member_permissions=default_member_permissions,
             is_dm_enabled=self.is_dm_enabled,
             is_nsfw=self.is_nsfw,
-            name_localizations=name.localisations,
+            name_localizations=self.name.localisations,
+            description_localizations=self.description.localisations,
             options=[opt.to_option() for opt in self.options],
-            description_localizations=description.localisations,
         )
 
 
@@ -561,7 +563,7 @@ class _DeclareMenuCmdModel(_CommandModel):
     type: typing.Annotated[  # noqa: VNE003
         typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
     ]
-    name: _MaybeLocalisedType
+    name: _MaybeLocalised
     id: typing.Optional[_Snowflake] = None  # noqa: VNE003
     default_member_permissions: typing.Optional[int] = None
     is_dm_enabled: bool = True
@@ -577,7 +579,7 @@ class _DeclareMenuCmdModel(_CommandModel):
 
         return cls(
             type=typing.cast("typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER]", builder.type),
-            name=name.unparse(),
+            name=name,
             id=None if builder.id is hikari.UNDEFINED else builder.id,
             default_member_permissions=default_member_permissions,
             is_dm_enabled=True if builder.is_dm_enabled is hikari.UNDEFINED else builder.is_dm_enabled,
@@ -589,15 +591,15 @@ class _DeclareMenuCmdModel(_CommandModel):
         if self.default_member_permissions is not None:
             default_member_permissions = self.default_member_permissions
 
-        name = _MaybeLocalised.parse("name", self.name).assert_length(1, 31)
+        self.name.assert_length(1, 31)
         return hikari.impl.ContextMenuCommandBuilder(
             type=self.type,
-            name=name.value,
+            name=self.name.value,
             id=hikari.UNDEFINED if self.id is None else hikari.Snowflake(self.id),
             default_member_permissions=default_member_permissions,
             is_dm_enabled=self.is_dm_enabled,
             is_nsfw=self.is_nsfw,
-            name_localizations=name.localisations,
+            name_localizations=self.name.localisations,
         )
 
 
@@ -666,7 +668,7 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
     return commands
 
 
-@_commands_group.group("fetch")
+@_commands_group.command("fetch")
 @click.option(
     "--file",
     "-f",
