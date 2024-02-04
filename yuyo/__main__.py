@@ -662,12 +662,6 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
 
 
 @_cli.group("fetch")
-# TODO: don't do this
-def _fetch_group() -> None:
-    ...
-
-
-@_fetch_group.command(name="schema")
 @click.option(
     "--file",
     "-f",
