@@ -102,9 +102,15 @@ def _to_int(value: int, /) -> int:
     return int(value)
 
 
-@click.group(name="tanjun")
+@click.group(name="yuyo")
 def _cli() -> None:
+    """Terminal commands provided by Yuyo."""
     dotenv.load_dotenv()
+
+
+@_cli.group(name="commands")
+def _commands_group() -> None:
+    """A collection of terminal commands for managing application commands."""
 
 
 _CommandTypes = typing.Literal["message_menu", "slash", "user_menu"]
@@ -191,7 +197,6 @@ def _cast_snowflake(value: int) -> hikari.Snowflake:
 def _snowflake_schema(
     _source_type: type[typing.Any], _handler: pydantic.GetCoreSchemaHandler
 ) -> pydantic_core.CoreSchema:
-    # TODO: allow strings using pydantic_core.CoreSchema.union_schema()
     from_schema = pydantic_core.core_schema.chain_schema(
         [
             pydantic_core.core_schema.int_schema(),
@@ -336,13 +341,13 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
     help="Discord token for the bot to rename the commands for.",
     required=False,
 )
-@_cli.command(name="rename")
+@_commands_group.command(name="rename")
 def _rename(  # pyright: ignore[reportUnusedFunction]
     token: typing.Optional[str],
     schema_file: typing.Optional[pathlib.Path],
     command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
 ) -> None:
-    """A."""
+    """Rename some of a bot's declared application commands."""
     if schema_file is not None or _DEFAULT_RENAME_FILE.exists():
         schema_file = schema_file or _DEFAULT_RENAME_FILE
         parsed = _RenameModel.model_validate(_parse_config(schema_file), strict=True)
@@ -625,9 +630,9 @@ async def _declare_coro(schema: _DeclareModel) -> None:
     help="",
     type=click.Path(exists=True, path_type=pathlib.Path),
 )
-@_cli.command(name="declare")
+@_commands_group.command(name="declare")
 def _declare(schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
-    """A."""
+    """Declare a bot's application commands based on a schema."""
     commands = _DeclareModel.model_validate(_parse_config(schema), strict=True)
     asyncio.run(_declare_coro(commands))
 
@@ -661,7 +666,7 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
     return commands
 
 
-@_cli.group("fetch")
+@_commands_group.group("fetch")
 @click.option(
     "--file",
     "-f",
@@ -689,6 +694,7 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
     required=True,
 )
 def _fetch_schema(schema: pathlib.Path, token: str, exclude_id: bool) -> None:  # pyright: ignore[reportUnusedFunction]
+    """Fetch a bot's current command schema."""
     commands = asyncio.run(_fetch_coro(token))
     data = _DeclareModel(commands=commands, token=token)
 
