@@ -55,6 +55,9 @@ line-length = 120
 skip-magic-trailing-comma = true
 target-version = ["py39"]
 
+[tool.codespell]
+ignore-regex = "Nd"
+
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
 parallel = true
