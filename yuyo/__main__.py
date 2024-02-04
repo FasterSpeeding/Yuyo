@@ -64,8 +64,8 @@ _CONFIG_PARSERS = {
     "toml": toml.load,
     # TODO: yaml?
 }
-_CONFIG_DUMPERS = {
-    "json": json.dump,
+_CONFIG_DUMPERS: dict[str, collections.Callable[[collections.Mapping[str, typing.Any], typing.TextIO], typing.Any]] = {
+    "json": lambda value, file: json.dump(value, file, indent=2),
     "toml": toml.dump,
     # TODO: yaml?
 }
