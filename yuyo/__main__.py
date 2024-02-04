@@ -523,7 +523,7 @@ class _DeclareSlashCmdModel(_CommandModel):
             default_member_permissions=default_member_permissions,
             is_dm_enabled=True if builder.is_dm_enabled is hikari.UNDEFINED else builder.is_dm_enabled,
             is_nsfw=False if builder.is_nsfw is hikari.UNDEFINED else builder.is_nsfw,
-            options=[],
+            options=[_CommandOptionModel.from_option(opt) for opt in builder.options],
         )
 
     def to_builder(self) -> hikari.api.SlashCommandBuilder:
