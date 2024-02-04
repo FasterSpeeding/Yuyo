@@ -268,7 +268,6 @@ class _MaybeLocalised:
 
 class _RenameModel(pydantic.BaseModel):
     commands: dict[typing.Union[str, _Snowflake], _MaybeLocalised]
-    token: str
 
 
 async def _rename_coro(
@@ -353,11 +352,11 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
     envvar="DISCORD_TOKEN",
     show_envvar=True,
     help="Discord token for the bot to rename the commands for.",
-    required=False,
+    required=True,
 )
 @_commands_group.command(name="rename")
 def _rename(  # pyright: ignore[reportUnusedFunction]
-    token: typing.Optional[str],
+    token: str,
     schema_file: typing.Optional[pathlib.Path],
     command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
 ) -> None:
@@ -368,12 +367,6 @@ def _rename(  # pyright: ignore[reportUnusedFunction]
         schema_file = schema_file or _DEFAULT_RENAME_FILE
         parsed = _RenameModel.model_validate(_parse_config(schema_file), strict=True)
         commands.update(parsed.commands)
-
-        token = parsed.token
-
-    else:
-        if token is None:
-            raise ValueError("Missing token")
 
     asyncio.run(_rename_coro(token, commands))
 
@@ -608,14 +601,13 @@ _CommandModelIsh = typing.Union[_DeclareSlashCmdModel, _DeclareMenuCmdModel]
 
 class _DeclareModel(pydantic.BaseModel):
     commands: list[_CommandModelIsh]
-    token: str
 
 
-async def _declare_coro(schema: _DeclareModel) -> None:
+async def _declare_coro(token: str, schema: _DeclareModel) -> None:
     app = hikari.RESTApp()
     await app.start()
 
-    async with app.acquire(schema.token, token_type=hikari.TokenType.BOT) as rest:
+    async with app.acquire(token, token_type=hikari.TokenType.BOT) as rest:
         application = await rest.fetch_application()
         await rest.set_application_commands(application.id, [cmd.to_builder() for cmd in schema.commands])
 
@@ -632,11 +624,18 @@ async def _declare_coro(schema: _DeclareModel) -> None:
     help="",
     type=click.Path(exists=True, path_type=pathlib.Path),
 )
+@click.option(
+    "--token",
+    envvar="DISCORD_TOKEN",
+    show_envvar=True,
+    help="Discord token for the bot to declare the commands for.",
+    required=True,
+)
 @_commands_group.command(name="declare")
-def _declare(schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
+def _declare(token: str, schema: pathlib.Path) -> None:  # pyright: ignore[reportUnusedFunction]
     """Declare a bot's application commands based on a schema."""
     commands = _DeclareModel.model_validate(_parse_config(schema), strict=True)
-    asyncio.run(_declare_coro(commands))
+    asyncio.run(_declare_coro(token, commands))
 
 
 async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
@@ -679,12 +678,11 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
     help="",
     type=click.Path(path_type=pathlib.Path),
 )
-# TODO: try reading from old schema file.
 @click.option(
     "--token",
     envvar="DISCORD_TOKEN",
     show_envvar=True,
-    help="Discord token for the bot to rename the commands for.",
+    help="Discord token for the bot to fetch the command schema for.",
     required=True,
 )
 @click.option(
@@ -698,7 +696,7 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
 def _fetch_schema(schema: pathlib.Path, token: str, exclude_id: bool) -> None:  # pyright: ignore[reportUnusedFunction]
     """Fetch a bot's current command schema."""
     commands = asyncio.run(_fetch_coro(token))
-    data = _DeclareModel(commands=commands, token=token)
+    data = _DeclareModel(commands=commands)
 
     if exclude_id:
         for command in data.commands:
@@ -714,7 +712,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-# TODO: hidden=True???
-# TODO: remove token field from schema files.
