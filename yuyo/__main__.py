@@ -321,11 +321,7 @@ def _cast_rename_flag(value: str) -> tuple[typing.Union[hikari.Snowflake, str], 
         key, value = value.split("=", 1)
 
     except ValueError:
-        try:
-            key, value = value.split(":", 1)
-
-        except ValueError:
-            raise ValueError(f"Invalid value passed for -c `{value!r}`") from None
+        raise ValueError(f"Invalid value passed for -c `{value!r}`") from None
 
     key = key.strip()
     if key.isdigit():
