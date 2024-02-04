@@ -614,8 +614,9 @@ async def _declare_coro(schema: _DeclareModel) -> None:
 
 
 @click.option(
-    "--schema",
-    "-s",
+    "--file",
+    "-f",
+    "schema",
     default=_DEFUALT_SCHEMA_PATH,
     envvar="BOT_SCHEMA_FILE",
     show_envvar=True,
@@ -666,8 +667,9 @@ def _fetch_group() -> None:
 
 @_fetch_group.command(name="schema")
 @click.option(
-    "--schema",
-    "-s",
+    "--file",
+    "-f",
+    "schema",
     default=_DEFUALT_SCHEMA_PATH,
     envvar="BOT_SCHEMA_FILE",
     show_envvar=True,
@@ -711,3 +713,4 @@ if __name__ == "__main__":
 
 
 # TODO: hidden=True???
+# TODO: remove token field from schema files.
