@@ -75,8 +75,9 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
-    __SelfishSig = typing_extensions.Concatenate[_T, _P]
-    _SelfishSig = __SelfishSig[_T, ...]
+    _ReturnT = typing.TypeVar("_ReturnT")
+    __SelfishSig = collections.Callable[[typing_extensions.Concatenate[_T, _P]], _ReturnT]
+    _SelfishSig = __SelfishSig[_T, ..., _ReturnT]
 
     class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
         """Trait of a cacheless gateway bot."""
@@ -1003,7 +1004,7 @@ class Modal(AbstractModal):
             for name, descriptor in _parse_descriptors(cls.callback):
                 descriptor.add_static(name, cls, pass_as_kwarg=True)
 
-    callback: typing.ClassVar[collections.abc.Callable[_SelfishSig[Self], _CoroT[None]]]
+    callback: typing.ClassVar[_SelfishSig[Self, _CoroT[None]]]
 
     @property
     def rows(self) -> collections.abc.Sequence[hikari.api.ModalActionRowBuilder]:
