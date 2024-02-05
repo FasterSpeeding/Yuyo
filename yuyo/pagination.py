@@ -238,8 +238,7 @@ def paginate_string(
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> collections.AsyncIterator[str]:
-    ...
+) -> collections.AsyncIterator[str]: ...
 
 
 @typing.overload
@@ -250,8 +249,7 @@ def paginate_string(
     char_limit: int = 2000,
     line_limit: int = 25,
     wrapper: typing.Optional[str] = None,
-) -> collections.Iterator[str]:
-    ...
+) -> collections.Iterator[str]: ...
 
 
 def paginate_string(
@@ -320,8 +318,7 @@ class Page:
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -330,8 +327,7 @@ class Page:
         *,
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -340,8 +336,7 @@ class Page:
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,

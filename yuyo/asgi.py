@@ -505,8 +505,7 @@ class AsgiBot(hikari.RESTBotAware):
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -523,8 +522,7 @@ class AsgiBot(hikari.RESTBotAware):
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,

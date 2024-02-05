@@ -978,9 +978,11 @@ class Modal(AbstractModal):
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
-                        copy.copy(component).set_custom_id(f"{id_match}:{metadata}")
-                        if (metadata := id_metadata.get(id_match))
-                        else component
+                        (
+                            copy.copy(component).set_custom_id(f"{id_match}:{metadata}")
+                            if (metadata := id_metadata.get(id_match))
+                            else component
+                        )
                     ]
                 )
                 for id_match, component in self._static_builders
@@ -1342,15 +1344,13 @@ def modal(
 
 
 @typing.overload
-def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
-    ...
+def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]: ...
 
 
 @typing.overload
 def as_modal(
     *, ephemeral_default: bool = False, parse_signature: bool = False
-) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
-    ...
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]: ...
 
 
 # TODO: allow id_metadata here?
@@ -1402,15 +1402,13 @@ class _GenericModal(Modal, typing.Generic[_P], parse_signature=False):
 
 
 @typing.overload
-def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
-    ...
+def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]: ...
 
 
 @typing.overload
 def as_modal_template(
     *, ephemeral_default: bool = False, parse_signature: bool = True
-) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
-    ...
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]: ...
 
 
 def as_modal_template(
@@ -1626,16 +1624,13 @@ class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
-        ...
+    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
-    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
-        ...
+    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
-    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
-        ...
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField: ...
 
 
 class _ModalOptionsDescriptor(_ComponentDescriptor):
@@ -1724,8 +1719,7 @@ def text_input(
     default: _T,
     min_length: int = 0,
     max_length: int = 4000,
-) -> typing.Union[str, _T]:
-    ...
+) -> typing.Union[str, _T]: ...
 
 
 @typing.overload
@@ -1739,8 +1733,7 @@ def text_input(
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_length: int = 0,
     max_length: int = 4000,
-) -> str:
-    ...
+) -> str: ...
 
 
 def text_input(

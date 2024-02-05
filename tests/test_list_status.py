@@ -563,8 +563,7 @@ class TestEventStrategy:
 
 class TestServiceManager:
     @pytest.mark.skip(reason="TODO")
-    def test_init(self):
-        ...
+    def test_init(self): ...
 
     def test_from_gateway_bot(self):
         mock_counter = mock.AsyncMock()
@@ -700,20 +699,16 @@ class TestServiceManager:
         )
 
         @manager.with_service(repeat=1233122)
-        async def decorated_service_1(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_1(_: list_status.AbstractManager): ...
 
         @manager.with_service(repeat=123.321)
-        async def decorated_service_2(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_2(_: list_status.AbstractManager): ...
 
         @manager.with_service(repeat=datetime.timedelta(seconds=56543))
-        async def decorated_service_3(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_3(_: list_status.AbstractManager): ...
 
         @manager.with_service()
-        async def decorated_service_4(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_4(_: list_status.AbstractManager): ...
 
         assert manager.services == [
             decorated_service_2,
@@ -726,22 +721,18 @@ class TestServiceManager:
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
-    async def test_open(self):
-        ...
+    async def test_open(self): ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
-    async def test_close(self):
-        ...
+    async def test_close(self): ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio()
-    async def test_get_me(self):
-        ...
+    async def test_get_me(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_session(self):
-        ...
+    def test_get_session(self): ...
 
 
 @pytest.mark.asyncio()

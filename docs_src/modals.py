@@ -56,13 +56,11 @@ def decorated_modal() -> None:
     @modals.with_text_input("other label", parameter="other")
     @modals.with_text_input("label", parameter="field")
     @modals.as_modal
-    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
-        ...
+    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
 
 
 def modal_methods() -> None:
-    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
-        ...
+    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
 
     modal = (
         modals.modal(callback)
