@@ -422,8 +422,7 @@ class TestComponentClient:
         assert client.voice is mock_voice
 
     def test_from_gateway_bot(self):
-        class GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
-            ...
+        class GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol): ...
 
         mock_bot = mock.Mock(GatewayBotProto)
         mock_init = mock.Mock(return_value=None)
@@ -577,26 +576,21 @@ class TestComponentClient:
 
     @pytest.mark.skip(reason="Not implemented yet")
     @pytest.mark.asyncio()
-    async def test__gc(self):
-        ...
+    async def test__gc(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    def test_close(self):
-        ...
+    def test_close(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    def test_open(self):
-        ...
+    def test_open(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
     @pytest.mark.asyncio()
-    async def test_on_gateway_event(self):
-        ...
+    async def test_on_gateway_event(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
     @pytest.mark.asyncio()
-    async def test_on_rest_request(self):
-        ...
+    async def test_on_rest_request(self): ...
 
 
 class TestSingleExecutor:
@@ -630,8 +624,7 @@ def test_as_single_executor():
     assert result._ephemeral_default is True
 
 
-class TestComponentExecutor:
-    ...
+class TestComponentExecutor: ...
 
 
 class TestActionColumnExecutor:
@@ -640,16 +633,13 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, custom_id="Custme")
-            async def meowers(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def meowers(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_user_menu
-            async def men(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def men(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_role_menu
-            async def role_me(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def role_me(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column(id_metadata={"role_me": "meowers", "Custme": "nyann"})
 
@@ -791,8 +781,7 @@ class TestActionColumnExecutor:
             @yuyo.components.as_interactive_button(
                 hikari.ButtonStyle.DANGER, label="nyaa", emoji="eeper", is_disabled=True, custom_id="meow"
             )
-            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -811,8 +800,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
-            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_botton(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -900,8 +888,7 @@ class TestActionColumnExecutor:
             @yuyo.components.as_mentionable_menu(
                 custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -921,8 +908,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_mentionable_menu
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -973,8 +959,7 @@ class TestActionColumnExecutor:
             @yuyo.components.as_role_menu(
                 custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -994,8 +979,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_role_menu
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1046,8 +1030,7 @@ class TestActionColumnExecutor:
             @yuyo.components.as_user_menu(
                 custom_id="cust", is_disabled=True, placeholder="place me", min_values=3, max_values=12
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1067,8 +1050,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_user_menu
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1124,8 +1106,7 @@ class TestActionColumnExecutor:
                 min_values=3,
                 max_values=12,
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1145,8 +1126,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_select_menu(hikari.ComponentType.ROLE_SELECT_MENU)
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1202,8 +1182,7 @@ class TestActionColumnExecutor:
                 min_values=2,
                 max_values=5,
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1227,8 +1206,7 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_channel_menu
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1289,8 +1267,7 @@ class TestActionColumnExecutor:
                 min_values=11,
                 max_values=15,
             )
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1316,8 +1293,7 @@ class TestActionColumnExecutor:
             @yuyo.components.with_option("label", "value")
             @yuyo.components.with_option("aaa", "bbb", description="descript", emoji="em", is_default=True)
             @yuyo.components.as_text_menu
-            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None:
-                ...
+            async def on_select_menu(self, ctx: yuyo.components.ComponentContext) -> None: ...
 
         rows = Column().rows
 
@@ -1384,50 +1360,40 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="correct")
-            async def button_00(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_00(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="thai")
-            async def button_01(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_01(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="thigh")
-            async def button_02(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_02(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="meow")
-            async def button_03(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_03(self, ctx: yuyo.components.Context) -> None: ...
 
             button_04 = yuyo.components.link_button("https://example.com", label="op")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="stare")
-            async def button_05(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_05(self, ctx: yuyo.components.Context) -> None: ...
 
             button_06 = yuyo.components.link_button("https://example.com/nyaa", label="Lia")
 
             button_07 = yuyo.components.link_button("https://example.com/meow", label="Omfie")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="nyaa")
-            async def button_08(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_08(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="doctor")
-            async def button_09(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_09(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="wow")
-            async def button_10(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_10(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="he")
-            async def button_11(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_11(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="sucks")
-            async def button_12(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_12(self, ctx: yuyo.components.Context) -> None: ...
 
             button_13 = yuyo.components.link_button("https://example.com/davinci", label="de")
 
@@ -1486,27 +1452,22 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_role_menu
-            async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_0(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_channel_menu()
-            async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_1(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.with_option("e", "f")
             @yuyo.components.with_option("c", "d")
             @yuyo.components.with_option("a", "b")
             @yuyo.components.as_text_menu()
-            async def select_menu_2(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_2(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_user_menu
-            async def select_menu_3(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_3(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_mentionable_menu
-            async def select_menu_4(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_4(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column()
 
@@ -1542,36 +1503,29 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="cc")
-            async def button_0(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_0(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="be")
-            async def button_1(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_1(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="the")
-            async def button_2(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_2(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="cat")
-            async def button_3(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_3(self, ctx: yuyo.components.Context) -> None: ...
 
             button_4 = yuyo.components.link_button("https://example.com", label="girl")
 
             @yuyo.components.as_role_menu
-            async def select_menu_0(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_0(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="meow")
-            async def button_6(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button_6(self, ctx: yuyo.components.Context) -> None: ...
 
             button_7 = yuyo.components.link_button("https://example.com", label="me")
 
             @yuyo.components.as_channel_menu()
-            async def select_menu_1(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def select_menu_1(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column()
 
@@ -1614,16 +1568,13 @@ class TestActionColumnExecutor:
             link_button = yuyo.components.link_button("https://example.com/br", label="br")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="beepy")
-            async def beepy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def beepy_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="aaaa")
-            async def a_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def a_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="butt no")
-            async def button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def button(self, ctx: yuyo.components.Context) -> None: ...
 
             another_link_button = yuyo.components.link_button("https://example.com/beep", label="beep")
 
@@ -1631,36 +1582,30 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_channel_menu(custom_id="Chan")
-            async def channel_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def channel_select(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column3(Column2):
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="butt")
-            async def butt_on(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def butt_on(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="blazy")
-            async def blazy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def blazy_button(self, ctx: yuyo.components.Context) -> None: ...
 
             link_me = yuyo.components.link_button("https://example.com/meep", label="meepo")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="x")
-            async def x_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def x_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="xx butt")
-            async def xx_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def xx_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column4(Column3):
             __slots__ = ()
 
             @yuyo.components.as_user_menu(custom_id="aaaeeeeaaaa")
-            async def user_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def user_select(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column4()
 
@@ -1721,19 +1666,16 @@ class TestActionColumnExecutor:
             link_button = yuyo.components.link_button("https://example.com/br", label="br")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="disco")
-            async def a_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def a_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column2(Column1):
             __slots__ = ()
 
             @yuyo.components.as_channel_menu(custom_id="yeet")
-            async def channel_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def channel_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="usm")
-            async def b_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def b_button(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column2()
 
@@ -1765,12 +1707,10 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.DANGER, label="dag")
-            async def other_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def other_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SUCCESS, label="succ")
-            async def a_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def a_button(self, ctx: yuyo.components.Context) -> None: ...
 
             l_button = yuyo.components.link_button("https://example.com", label="basson")
 
@@ -1778,12 +1718,10 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="prim")
-            async def new_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def new_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="sec")
-            async def e_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def e_button(self, ctx: yuyo.components.Context) -> None: ...
 
             new_l = yuyo.components.link_button("https://example.com/e", label="suninthesky")
 
@@ -1822,23 +1760,19 @@ class TestActionColumnExecutor:
             @yuyo.components.with_option("b", "c")
             @yuyo.components.with_option("a", "b")
             @yuyo.components.as_text_menu(custom_id="yeet")
-            async def text_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def text_select(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_role_menu(custom_id="meat")
-            async def role_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def role_select(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column2(Column1):
             __slots__ = ()
 
             @yuyo.components.as_user_menu(custom_id="beep")
-            async def user_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def user_select(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_channel_menu(custom_id="meow")
-            async def channel_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def channel_select(self, ctx: yuyo.components.Context) -> None: ...
 
         column = Column2()
 
@@ -1873,25 +1807,20 @@ class TestActionColumnExecutor:
             link_button = yuyo.components.link_button("https://example.com/link", label="lalala")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="aae")
-            async def e_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def e_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column2(yuyo.components.ActionColumnExecutor):
             @yuyo.components.as_user_menu(custom_id="iou")
-            async def user_select(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def user_select(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="air")
-            async def a_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def a_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column3(yuyo.components.ActionColumnExecutor):
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.SECONDARY, label="show time")
-            async def f_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def f_button(self, ctx: yuyo.components.Context) -> None: ...
 
-        class MixedColumn(Column3, Column2, Column1):
-            ...
+        class MixedColumn(Column3, Column2, Column1): ...
 
         column = MixedColumn()
 
@@ -1926,16 +1855,14 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_user_menu(custom_id="aaaaa", placeholder="place", min_values=1, max_values=5)
-            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             link_button = yuyo.components.link_button("https://example.com/freaky", emoji="e", label="lab")
 
             @yuyo.components.as_interactive_button(
                 hikari.ButtonStyle.PRIMARY, custom_id="123", emoji="o", label="lab man"
             )
-            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_channel_menu(
                 custom_id="cust",
@@ -1944,15 +1871,13 @@ class TestActionColumnExecutor:
                 min_values=4,
                 max_values=7,
             )
-            async def chan_chan(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def chan_chan(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.with_option("name", "value")
             @yuyo.components.with_option("op", "boop")
             @yuyo.components.with_option("no", "way")
             @yuyo.components.as_text_menu(custom_id="custard", placeholder="hold", min_values=1, max_values=3)
-            async def tt_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def tt_menu(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column(ParentColumn):
             __slots__ = ()
@@ -1964,20 +1889,17 @@ class TestActionColumnExecutor:
                 min_values=4,
                 max_values=16,
             )
-            async def chan_chan(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def chan_chan(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(
                 hikari.ButtonStyle.SECONDARY, custom_id="981", emoji="u", label="lab woman", is_disabled=True
             )
-            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_user_menu(
                 custom_id="op", placeholder="no", min_values=5, max_values=9, is_disabled=True
             )
-            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             link_button = yuyo.components.link_button(
                 "https://example.com/beaky", emoji="usa", label="remix", is_disabled=True
@@ -2109,14 +2031,12 @@ class TestActionColumnExecutor:
             __slots__ = ()
 
             @yuyo.components.as_user_menu
-            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             link_button = yuyo.components.link_button("https://freaky")
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY)
-            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column(ParentColumn):
             __slots__ = ()
@@ -2135,12 +2055,10 @@ class TestActionColumnExecutor:
             link_button = yuyo.components.link_button("https://freaky")
 
             @yuyo.components.as_user_menu(custom_id="hey!")
-            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def on_a_select_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             @yuyo.components.as_interactive_button(hikari.ButtonStyle.PRIMARY, label="meow")
-            async def meowy_button(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def meowy_button(self, ctx: yuyo.components.Context) -> None: ...
 
         class Column(ParentColumn):
             __slots__ = ()
@@ -2148,8 +2066,7 @@ class TestActionColumnExecutor:
             on_a_select_menu = NotImplemented
 
             @yuyo.components.as_channel_menu(custom_id="custoard")
-            async def channel_menu(self, ctx: yuyo.components.Context) -> None:
-                ...
+            async def channel_menu(self, ctx: yuyo.components.Context) -> None: ...
 
             link_button = yuyo.components.link_button("https://example.com/l")
 

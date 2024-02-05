@@ -254,8 +254,7 @@ class InteractionError(Exception):
         /,
         *,
         ensure_result: typing.Literal[True],
-    ) -> hikari.Message:
-        ...
+    ) -> hikari.Message: ...
 
     @typing.overload
     async def send(
@@ -264,8 +263,7 @@ class InteractionError(Exception):
         /,
         *,
         ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]:
-        ...
+    ) -> typing.Optional[hikari.Message]: ...
 
     async def send(
         self,
@@ -1376,8 +1374,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         role_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        ...
+    ) -> hikari.Message: ...
 
     @typing.overload
     async def respond(
@@ -1399,8 +1396,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         role_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]:
-        ...
+    ) -> typing.Optional[hikari.Message]: ...
 
     async def respond(
         self,
@@ -2786,14 +2782,12 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     @typing.overload
     def __get__(
         self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]:
-        ...
+    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]: ...
 
     @typing.overload
     def __get__(
         self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[_P, _CoroT]:
-        ...
+    ) -> collections.Callable[_P, _CoroT]: ...
 
     def __get__(
         self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
@@ -3029,8 +3023,7 @@ def as_select_menu(
 @typing.overload
 def as_mentionable_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3043,8 +3036,7 @@ def as_mentionable_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_mentionable_menu(
@@ -3110,8 +3102,7 @@ def as_mentionable_menu(
 @typing.overload
 def as_role_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3124,8 +3115,7 @@ def as_role_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_role_menu(
@@ -3191,8 +3181,7 @@ def as_role_menu(
 @typing.overload
 def as_user_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3205,8 +3194,7 @@ def as_user_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_user_menu(
@@ -3312,8 +3300,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 @typing.overload
 def as_channel_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _ChannelSelect[_SelfT, _P]:
-    ...
+) -> _ChannelSelect[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3329,8 +3316,7 @@ def as_channel_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_channel_menu(
@@ -3451,8 +3437,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 @typing.overload
 def as_text_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _TextMenuDescriptor[_SelfT, _P]:
-    ...
+) -> _TextMenuDescriptor[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3466,8 +3451,7 @@ def as_text_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_text_menu(
@@ -4292,8 +4276,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_mentionable_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_mentionable_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_mentionable_menu(
@@ -4305,8 +4288,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_mentionable_menu(
         self,
@@ -4408,8 +4390,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_mentionable_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_mentionable_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4422,8 +4403,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_mentionable_menu(
@@ -4524,8 +4504,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_role_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_role_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_role_menu(
@@ -4537,8 +4516,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_role_menu(
         self,
@@ -4640,8 +4618,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_role_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_role_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4654,8 +4631,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_role_menu(
@@ -4756,8 +4732,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_user_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_user_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_user_menu(
@@ -4769,8 +4744,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_user_menu(
         self,
@@ -4872,8 +4846,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_user_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_user_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4886,8 +4859,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_user_menu(
@@ -4995,8 +4967,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @typing.overload
-    def with_channel_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_channel_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_channel_menu(
@@ -5011,8 +4982,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_channel_menu(
         self,
@@ -5135,8 +5105,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_channel_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_channel_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -5152,8 +5121,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_channel_menu(
@@ -5276,8 +5244,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return menu
 
     @typing.overload
-    def with_text_menu(self, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-        ...
+    def with_text_menu(self, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]: ...
 
     @typing.overload
     def with_text_menu(
@@ -5290,8 +5257,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]:
-        ...
+    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]: ...
 
     def with_text_menu(
         self,
@@ -5425,8 +5391,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_text_menu(cls, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-        ...
+    def with_static_text_menu(cls, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]: ...
 
     @classmethod
     @typing.overload
@@ -5440,8 +5405,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]:
-        ...
+    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]: ...
 
     @classmethod
     def with_static_text_menu(

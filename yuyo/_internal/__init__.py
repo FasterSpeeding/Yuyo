@@ -75,12 +75,10 @@ else:
         return iterable.__aiter__()
 
     @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T:
-        ...
+    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T: ...
 
     @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]:
-        ...
+    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]: ...
 
     async def anext_(
         iterator: collections.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /
