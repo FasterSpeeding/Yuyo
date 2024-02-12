@@ -424,9 +424,9 @@ pynacl==1.5.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:a36d4a9dda1f19ce6e03c9a784a2921a4b726b02e1c736600ca9c22029474394 \
     --hash=sha256:a422368fc821589c228f4c49438a368831cb5bbc0eab5ebe1d7fac9dded6567b \
     --hash=sha256:e46dae94e34b085175f8abb3b0aaa7da40767865ac82c928eeb9e57e1ea8a543
-pytest-asyncio==0.23.4 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:2143d9d9375bf372a73260e4114541485e84fca350b0b6b92674ca56ff5f7ea2 \
-    --hash=sha256:b0079dfac14b60cd1ce4691fbfb1748fe939db7d0234b5aba97197d10fbe0fef
+pytest-asyncio==0.23.5 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:3a048872a9c4ba14c3e90cc1aa20cbc2def7d01c7c8db3777ec281ba9c057675 \
+    --hash=sha256:4e7093259ba018d58ede7d5315131d21923a60f8a6e9ee266ce1589685c89eac
 pytest-cov==4.1.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:3904b13dfbfec47f003b8e77fd5b589cd11904a21ddf1ab38a64f204d6a10ef6 \
     --hash=sha256:6ba70b9e97e69fcc3fb45bfeab2d0a138fb65c4d0d6a41ef33983ad114be8c3a
