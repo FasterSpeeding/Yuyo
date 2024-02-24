@@ -126,3 +126,7 @@ dmypy.json
 .idea/
 
 gogo.patch
+
+# Yuyo specific
+bot_schema.toml
+command_renames.toml
