@@ -170,7 +170,7 @@ def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHand
         ser_type = str
 
     else:
-        raise NotImplementedError("Only string and int schemas are supported")
+        raise NotImplementedError("Only string and int enums are supported")
 
     from_schema = pydantic_core.core_schema.chain_schema(
         [origin_schema, pydantic_core.core_schema.no_info_plain_validator_function(_cast_enum)]
