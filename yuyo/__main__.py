@@ -214,7 +214,7 @@ class _MaybeLocalised:
         if isinstance(raw_value, str):
             return cls(field_name=field_name, value=raw_value, localisations={})
 
-        value = raw_value.get("default") or next(iter(raw_value))
+        value = raw_value.get("default") or next(iter(raw_value.values()))
         localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
         return cls(field_name=field_name, value=value, localisations=localisations)
 
