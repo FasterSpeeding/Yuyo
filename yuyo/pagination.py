@@ -286,7 +286,8 @@ def paginate_string(
 
 
 async def aenumerate(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
-    iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[tuple[int, _T]]:
+    iterable: collections.AsyncIterable[_T], /
+) -> collections.AsyncIterator[tuple[int, _T]]:
     """Async equivalent of [enumerate][].
 
     Parameters
