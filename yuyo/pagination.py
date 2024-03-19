@@ -89,7 +89,7 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 """The emoji used to close a menu in a component context."""
 
 
-async def async_paginate_string(
+async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
     lines: collections.AsyncIterable[str],
     /,
     *,
@@ -285,7 +285,8 @@ def paginate_string(
     return sync_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
 
-async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[tuple[int, _T]]:
+async def aenumerate(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
+    iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[tuple[int, _T]]:
     """Async equivalent of [enumerate][].
 
     Parameters
