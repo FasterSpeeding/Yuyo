@@ -289,7 +289,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_startup))
 
-            except BaseException:
+            except Exception:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
 
             else:
@@ -299,7 +299,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_shutdown))
 
-            except BaseException:
+            except Exception:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
 
             else:
