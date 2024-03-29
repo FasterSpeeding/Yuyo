@@ -49,7 +49,6 @@ from yuyo import to_builder
 try:
     import click
     import dotenv
-    import hikari
     import pydantic
     import pydantic.functional_validators
     import pydantic_core
