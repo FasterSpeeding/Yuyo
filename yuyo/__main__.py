@@ -55,8 +55,8 @@ try:
     import pydantic_core
     import toml
 
-except ImportError as exc:
-    raise RuntimeError("Missing neccessary dependencies; try reinstalling with the yuyo[cli] flag") from exc
+except ModuleNotFoundError as _exc:
+    raise RuntimeError("Missing necessary dependencies; try reinstalling with the yuyo[cli] flag") from _exc
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
