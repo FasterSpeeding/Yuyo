@@ -42,15 +42,21 @@ import pathlib
 import typing
 import unicodedata
 
-import click
-import dotenv
 import hikari
-import pydantic
-import pydantic.functional_validators
-import pydantic_core
-import toml
 
 from yuyo import to_builder
+
+try:
+    import click
+    import dotenv
+    import hikari
+    import pydantic
+    import pydantic.functional_validators
+    import pydantic_core
+    import toml
+
+except ImportError as exc:
+    raise RuntimeError("Missing neccessary dependencies; try reinstalling with the yuyo[cli] flag") from exc
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
