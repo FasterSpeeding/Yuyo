@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.20.0] - 2024-03-29
+### Added
+- `yuyo commands declare` command for declaring app commands based on a schema file.
+- `yuyo commands fetch` command for fetching the command schema file for an existing bot.
+- `yuyo commands rename` command for renaming the declared app commands.
+
 ## [1.19.1] - 2023-12-28
 ### Added
 - Support for Python 3.12.
@@ -825,7 +831,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.1...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.20.0...HEAD
+[1.20.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.1...v1.20.0
 [1.19.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.0...v1.19.1
 [1.19.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.18.0...v1.19.0
 [1.18.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.17.0...v1.18.0

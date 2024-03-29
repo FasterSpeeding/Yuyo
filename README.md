@@ -13,6 +13,8 @@ python -m pip install -U hikari-yuyo
 The following feature flags ensure feature-specific optional dependencies are also installed:
 
 * `hikari-yuyo[asgi]` ensures the dependencies required to run the Asgi RESTBot adapter.
+* `hikari-yuyo[cli]` ensures the dependencies required to use the provided CLI commands are
+  installed.
 * `hikari-yuyo[sake]` can be used to ensure the installed Sake version is compatible with
   Yuyo's functionality which uses Sake. You should still have a Sake version pinned in your
   own requirements as this just provides an accepted range for the dependency.
