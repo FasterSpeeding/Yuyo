@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.21.0] - 2024-04-21
 ### Added
 - Component [StreamExecutor][yuyo.components.StreamExecutor] for streaming over received
   component contexts.
@@ -837,7 +838,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.21.0...HEAD
+[1.21.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.20.0...v1.21.0
 [1.20.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.1...v1.20.0
 [1.19.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.0...v1.19.1
 [1.19.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.18.0...v1.19.0

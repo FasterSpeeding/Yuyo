@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "hikari-yuyo"
-version = "1.20.0"
+version = "1.21.0"
 readme = "README.md"
 requires-python = ">=3.9.0,<3.13"
 license = {file = "LICENSE"}
