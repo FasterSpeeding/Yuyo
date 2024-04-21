@@ -244,5 +244,5 @@ exclude-classes = """
 |yuyo.modals:ModalOptions
 |yuyo.__main__:.*Model
 |yuyo.__main__:_MaybeLocalised
-"""
+""" 
 exclude-modules = "yuyo._internal.vendor"
