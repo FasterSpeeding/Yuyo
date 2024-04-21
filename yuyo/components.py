@@ -2726,7 +2726,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
-        custom_ids: collection.Collections[str] = (),
+        custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
         max_backlog: int = 5,
         timeout: typing.Union[float, int, datetime.timedelta, None],
