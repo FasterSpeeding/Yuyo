@@ -2705,7 +2705,7 @@ WaitFor = WaitForExecutor
 class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     """Stream over the received component interactions.
 
-    This should also be passed for `timeout=`.
+    This should also be passed for `timeout=` and will reject contexts until it's opened.
 
     Examples
     --------
