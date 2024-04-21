@@ -151,12 +151,12 @@ class TestChunkTracker:
         assert tracker._shards is mock_bot
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_request_guild_members(self): ...
 
     @pytest.mark.skip(reason="TODO")
     def test_set_auto_chunk_members(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test(self): ...

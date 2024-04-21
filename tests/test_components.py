@@ -68,7 +68,7 @@ class TestInteractionError:
     def test_str_dunder_method(self):
         assert str(yuyo.InteractionError("bar")) == "bar"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_send(self):
         error = yuyo.InteractionError()
         mock_context = mock.AsyncMock()
@@ -88,7 +88,7 @@ class TestInteractionError:
             user_mentions=hikari.UNDEFINED,
         )
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_send_when_all_fields(self):
         mock_attachment = mock.Mock()
         mock_component = mock.Mock()
@@ -120,7 +120,7 @@ class TestInteractionError:
             user_mentions=[666, 555],
         )
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_send_when_singular_field_aliases(self):
         mock_attachment = mock.Mock()
         mock_component = mock.Mock()
@@ -548,7 +548,7 @@ class TestComponentClient:
         mock_bot.injector.set_type_dependency.assert_called_once_with(yuyo.ComponentClient, stub_client)
         mock_bot.add_client_callback.assert_not_called()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test__on_starting(self):
         mock_open = mock.Mock()
 
@@ -561,7 +561,7 @@ class TestComponentClient:
 
         mock_open.assert_called_once_with()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test__on_stopping(self):
         mock_close = mock.Mock()
 
@@ -575,7 +575,7 @@ class TestComponentClient:
         mock_close.assert_called_once_with()
 
     @pytest.mark.skip(reason="Not implemented yet")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test__gc(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
@@ -585,11 +585,11 @@ class TestComponentClient:
     def test_open(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_on_gateway_event(self): ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_on_rest_request(self): ...
 
 
@@ -599,7 +599,7 @@ class TestSingleExecutor:
 
         assert executor.custom_ids == ["dkkpoeewlk"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_execute(self):
         mock_callback = mock.AsyncMock()
         client = yuyo.components.Client()
@@ -814,7 +814,7 @@ class TestActionColumnExecutor:
         assert component.label is hikari.UNDEFINED
         assert component.is_disabled is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_interactive_button_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -832,7 +832,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_interactive_button_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -923,7 +923,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_mentionable_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -941,7 +941,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_mentionable_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -994,7 +994,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_role_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -1012,7 +1012,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_role_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -1065,7 +1065,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_user_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -1083,7 +1083,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_user_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -1141,7 +1141,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_select_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -1159,7 +1159,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_select_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -1221,7 +1221,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_channel_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -1239,7 +1239,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_channel_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
@@ -1316,7 +1316,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 0
         assert component.max_values == 1
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_text_menu_descriptor_when_called_as_a_method(self):
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
@@ -1334,7 +1334,7 @@ class TestActionColumnExecutor:
 
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_with_text_menu_descriptor_when_accessed_on_class(self):
         mock_callback = mock.AsyncMock()
 
