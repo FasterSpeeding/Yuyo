@@ -2748,7 +2748,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             should default to ephemeral (meaning only the author can see them) unless
             `flags` is specified on the response method.
         max_backlog
-            The maximum amount of interaction contexts this should cache.
+            The maximum amount of interaction contexts this should store in its backlog.
 
             Any extra interactions will be rejected while the backlog is full.
         timeout
