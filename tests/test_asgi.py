@@ -100,18 +100,18 @@ class _ChunkedFile(hikari.files.Resource[_ChunkedReader]):
 
 
 class TestAsgiAdapter:
-    @pytest.fixture()
+    @pytest.fixture
     def stub_server(self) -> hikari.api.InteractionServer:
         return mock.AsyncMock()
 
-    @pytest.fixture()
+    @pytest.fixture
     def adapter(self, stub_server: hikari.api.InteractionServer) -> yuyo.AsgiAdapter:
         return yuyo.AsgiAdapter(stub_server)
 
     def test_server_property(self, adapter: yuyo.AsgiAdapter, stub_server: hikari.api.InteractionServer) -> None:
         assert adapter.server is stub_server
 
-    @pytest.fixture()
+    @pytest.fixture
     def http_scope(self) -> asgiref.typing.HTTPScope:
         return asgiref.typing.HTTPScope(
             type="http",
