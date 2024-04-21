@@ -58,6 +58,7 @@ __all__: list[str] = [
     "ShardFinishedChunkingEvent",
     "SlidingTimeout",
     "StaticTimeout",
+    "StreamExecutor",
     "TopGGService",
     "WaitForExecutor",
     "aenumerate",
@@ -93,6 +94,7 @@ from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
 from .components import InteractionError
+from .components import StreamExecutor
 from .components import WaitForExecutor
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService

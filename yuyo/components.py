@@ -37,6 +37,7 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "StreamExecutor",
     "WaitForExecutor",
     "as_channel_menu",
     "as_interactive_button",
@@ -2598,12 +2599,13 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
 
     def __init__(
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
         timeout: typing.Optional[datetime.timedelta],
     ) -> None:
@@ -2616,6 +2618,9 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
             If no users are provided then the components will be public
             (meaning that anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -2624,6 +2629,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             How long this should wait for a matching component interaction until it times-out.
         """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[Context]] = None
@@ -2633,7 +2639,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return []
+        return self._custom_ids
 
     @property
     def has_expired(self) -> bool:
@@ -2694,6 +2700,150 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
 WaitFor = WaitForExecutor
 """Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
+
+
+class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
+    """Stream over the received component interactions.
+
+    This should also be passed for `timeout=` and will reject contexts until it's opened.
+
+    Examples
+    --------
+    ```py
+    message = await ctx.respond("hi, pick an option", components=[...])
+    stream = yuyo.components.Stream(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
+    component_client.register_executor(stream, message=message, timeout=stream)
+
+    with stream:
+        async for result in stream:
+            await result.respond("...")
+    ```
+    """
+
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_max_backlog", "_queue", "_timeout")
+
+    def __init__(
+        self,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        custom_ids: collections.Collection[str] = (),
+        ephemeral_default: bool = False,
+        max_backlog: int = 5,
+        timeout: typing.Union[float, int, datetime.timedelta, None],
+    ) -> None:
+        """Initialise a stream executor.
+
+        Parameters
+        ----------
+        authors
+            Users who are allowed to use the components this represents.
+
+            If [None][] is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        max_backlog
+            The maximum amount of interaction contexts this should cache.
+
+            Any extra interactions will be rejected while the backlog is full.
+        timeout
+            How long this should wait between iterations for a matching
+            interaction to be recveived before ending the iteration.
+
+            This alone does not close the stream.
+        """
+        if timeout is not None and isinstance(timeout, datetime.timedelta):
+            timeout = timeout.total_seconds()
+
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
+        self._ephemeral_default = ephemeral_default
+        self._finished = False
+        self._max_backlog = max_backlog
+        self._queue: typing.Optional[asyncio.Queue[ComponentContext]] = None
+        self._timeout = timeout
+
+    @property
+    def custom_ids(self) -> collections.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return self._custom_ids
+
+    @property
+    def has_expired(self) -> bool:
+        return self._finished
+
+    def __enter__(self) -> Self:
+        self.open()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: typing.Optional[type[BaseException]],
+        exc: typing.Optional[BaseException],
+        exc_traceback: typing.Optional[types.TracebackType],
+    ) -> Self:
+        self.close()
+        return self
+
+    def increment_uses(self) -> bool:
+        return self._finished
+
+    def open(self) -> None:
+        if self._queue is not None:
+            raise RuntimeError("Stream is already active")
+
+        # Assert that this is called in a running event loop
+        asyncio.get_running_loop()
+        self._finished = False
+        self._queue = asyncio.Queue(maxsize=self._max_backlog)
+
+    def close(self) -> None:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        self._finished = True
+        self._queue = None
+
+    def __aiter__(self) -> collections.AsyncIterator[ComponentContext]:
+        return self
+
+    async def __anext__(self) -> ComponentContext:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        try:
+            return await asyncio.wait_for(self._queue.get(), timeout=self._timeout)
+
+        except asyncio.TimeoutError:
+            raise StopAsyncIteration from None
+
+    async def execute(self, ctx: ComponentContext, /) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        if self._finished:
+            raise ExecutorClosed
+
+        if not self._queue:
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
+            return
+
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response("You are not allowed to use this component", ephemeral=True)
+            return
+
+        try:
+            self._queue.put_nowait(ctx)
+        except asyncio.QueueFull:
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
+
+
+Stream = StreamExecutor
+"""Alias of [StreamExecutor][yuyo.components.StreamExecutor]."""
 
 
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
