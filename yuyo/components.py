@@ -38,6 +38,7 @@ __all__: list[str] = [
     "ComponentExecutor",
     "ComponentPaginator",
     "WaitForExecutor",
+    "StreamExecutor",
     "as_channel_menu",
     "as_interactive_button",
     "as_mentionable_menu",

@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Component [StreamExecutor][yuyo.components.StreamExecutor] for streaming over received
+  component contexts.
+- Support for specifying specific component IDs for
+  [WaitForExecutor][yuyo.components.WaitForExecutor].
+
 ## [1.20.0] - 2024-03-29
 ### Added
 - `yuyo commands declare` command for declaring app commands based on a schema file.
