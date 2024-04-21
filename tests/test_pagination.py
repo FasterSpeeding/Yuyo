@@ -79,7 +79,7 @@ async def fake_awake(value: _T, /) -> _T:
     return value
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_aenumerate():
     iterator = pagination.aenumerate((await fake_awake(value) for value in ("a", "meow", "nyaa", "nom")))
 
@@ -88,7 +88,7 @@ async def test_aenumerate():
     assert result == [(0, "a"), (1, "meow"), (2, "nyaa"), (3, "nom")]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_aenumerate_for_empty_iterator():
     raw_iterator = (await fake_awake(value) for value in iter(()))
     iterator = pagination.aenumerate(raw_iterator)
@@ -231,7 +231,7 @@ class TestPaginator:
 
         assert paginator.has_finished_iterating is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_has_finished_iterating_when_has_finished(self):
         paginator = pagination.Paginator(iter([]))
 
@@ -239,7 +239,7 @@ class TestPaginator:
 
         assert paginator.has_finished_iterating is True
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_close(self):
         paginator = pagination.Paginator(iter([pagination.Page("e"), pagination.Page("x"), pagination.Page("y")]))
 
@@ -256,7 +256,7 @@ class TestPaginator:
         assert paginator.jump_to_first() is None
         assert await paginator.jump_to_last() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_forward(self):
         expected_page_1 = pagination.Page("e")
         expected_page_2 = pagination.Page("x")
@@ -265,7 +265,7 @@ class TestPaginator:
         assert await paginator.step_forward() is expected_page_1
         assert await paginator.step_forward() is expected_page_2
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_forward_when_at_last_entry(self):
         expected_page = pagination.Page("x")
         paginator = pagination.Paginator(iter([pagination.Page("e"), pagination.Page("e"), expected_page]))
@@ -276,14 +276,14 @@ class TestPaginator:
         assert await paginator.step_forward() is None
         assert await paginator.step_forward() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_forward_for_empty_iterator(self):
         paginator = pagination.Paginator(iter([]))
 
         assert await paginator.step_forward() is None
         assert await paginator.step_forward() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_back(self):
         expected_page_1 = pagination.Page("totino")
         expected_page_2 = pagination.Page("sis")
@@ -309,7 +309,7 @@ class TestPaginator:
         assert paginator.step_back() is expected_page_2
         assert paginator.step_back() is expected_page_3
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_back_when_at_first_entry(self):
         paginator = pagination.Paginator(iter([pagination.Page("nature"), pagination.Page("beep")]))
 
@@ -322,7 +322,7 @@ class TestPaginator:
 
         assert paginator.step_back() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_step_back_for_empty_iterator(self):
         paginator = pagination.Paginator(iter([]))
 
@@ -331,7 +331,7 @@ class TestPaginator:
         assert paginator.step_back() is None
         assert paginator.step_back() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_first(self):
         expected_page = pagination.Page("9/11")
         paginator = pagination.Paginator(
@@ -344,7 +344,7 @@ class TestPaginator:
 
         assert paginator.jump_to_first() is expected_page
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_first_when_at_first_entry(self):
         paginator = pagination.Paginator(iter([pagination.Page("nature"), pagination.Page("beep")]))
 
@@ -357,7 +357,7 @@ class TestPaginator:
 
         assert paginator.jump_to_first() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_first_for_empty_iterator(self):
         paginator = pagination.Paginator(iter([]))
 
@@ -366,7 +366,7 @@ class TestPaginator:
         assert paginator.jump_to_first() is None
         assert paginator.jump_to_first() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_last(self):
         expected_page_1 = pagination.Page("eee")
         expected_page_2 = pagination.Page("Charlie")
@@ -385,7 +385,7 @@ class TestPaginator:
         assert await paginator.step_forward() is expected_page_4
         assert await paginator.step_forward() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_last_when_at_last_entry(self):
         paginator = pagination.Paginator(
             iter(
@@ -400,7 +400,7 @@ class TestPaginator:
 
         assert await paginator.jump_to_last() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_last_when_at_last_entry_from_jump(self):
         paginator = pagination.Paginator(
             iter(
@@ -412,7 +412,7 @@ class TestPaginator:
 
         assert await paginator.jump_to_last() is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_last_when_iterator_depleted(self):
         expected_page = pagination.Page("low")
 
@@ -429,7 +429,7 @@ class TestPaginator:
 
         assert await paginator.jump_to_last() is expected_page
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jump_to_last_for_empty_iterator(self):
         paginator = pagination.Paginator(iter([]))
 

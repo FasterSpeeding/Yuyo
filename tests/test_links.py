@@ -135,7 +135,7 @@ class TestInviteLink:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.InviteLink.from_link(mock.AsyncMock(), string)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_invite(self):
         mock_app = mock.AsyncMock()
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
@@ -302,7 +302,7 @@ class TestMessageLink:
 
         assert str(link) == "https://discord.com/channels/@me/21334123/6565234"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_message(self):
         mock_app = mock.AsyncMock()
         link = yuyo.links.MessageLink(
@@ -481,7 +481,7 @@ class TestChannelInvite:
 
         assert str(link) == "https://discord.com/channels/@me/21334123"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_channel(self):
         mock_app = mock.AsyncMock()
         link = yuyo.links.ChannelLink(
@@ -539,7 +539,7 @@ class TestChannelInvite:
 
         assert result is None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_guild(self):
         mock_app = mock.AsyncMock()
         link = yuyo.links.ChannelLink(
@@ -551,7 +551,7 @@ class TestChannelInvite:
         assert result is mock_app.rest.fetch_guild.return_value
         mock_app.rest.fetch_guild.assert_awaited_once_with(5412123)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_guild_for_dm_link(self):
         mock_app = mock.Mock()
         link = yuyo.links.ChannelLink(_app=mock_app, _guild_id=None, _channel_id=hikari.Snowflake(64234132))
@@ -686,7 +686,7 @@ class TestTemplateLink:
 
         assert str(link) == "https://discord.new/Turn-the_grey.haze-into_sky-blue"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_template(self):
         mock_app = mock.AsyncMock()
         link = yuyo.links.TemplateLink(_app=mock_app, _code="Brisket")
@@ -807,7 +807,7 @@ class TestWebhookLink:
 
         assert str(link) == "https://discord.com/api/webhooks/123342/lielielie"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_webhook(self):
         mock_app = mock.AsyncMock()
         mock_app.rest.fetch_webhook.return_value = mock.Mock(hikari.IncomingWebhook)
