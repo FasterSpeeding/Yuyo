@@ -45,12 +45,12 @@ from yuyo import pagination
 _T = typing.TypeVar("_T")
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 async def test_async_paginate_string():
     raise NotImplementedError
 
 
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_sync_paginate_string():
     raise NotImplementedError
 
