@@ -2598,12 +2598,13 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
 
     def __init__(
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
         timeout: typing.Optional[datetime.timedelta],
     ) -> None:
@@ -2616,6 +2617,9 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
             If no users are provided then the components will be public
             (meaning that anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -2624,6 +2628,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             How long this should wait for a matching component interaction until it times-out.
         """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[Context]] = None
@@ -2633,7 +2638,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return []
+        return self._custom_ids
 
     @property
     def has_expired(self) -> bool:
@@ -2714,12 +2719,13 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_max_backlog", "_timeout")
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_max_backlog", "_queue", "_timeout")
 
     def __init__(
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        custom_ids: collection.Collection[str] = (),
         ephemeral_default: bool = False,
         max_backlog: int = 5,
         timeout: typing.Union[float, int, datetime.timedelta, None],
@@ -2733,6 +2739,9 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
             If [None][] is passed here then the paginator will be public (meaning that
             anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -2751,6 +2760,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             timeout = timeout.total_seconds()
 
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._max_backlog = max_backlog
@@ -2760,7 +2770,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return []
+        return self._custom_ids
 
     @property
     def has_expired(self) -> bool:
