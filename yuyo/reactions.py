@@ -41,6 +41,7 @@ import typing
 from collections import abc as collections
 
 import alluka as alluka_
+import alluka.local as alluka_local
 import hikari
 
 from . import _internal
@@ -706,7 +707,7 @@ class ReactionClient:
             closed based on the lifetime events dispatched by `event_managed`.
         """
         if alluka is None:
-            alluka = alluka_.Client()
+            alluka = alluka_local.get(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka

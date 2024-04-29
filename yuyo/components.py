@@ -67,6 +67,7 @@ import typing
 from collections import abc as collections
 
 import alluka as alluka_
+import alluka.local as alluka_local
 import hikari
 import typing_extensions
 from hikari import snowflakes
@@ -1869,7 +1870,7 @@ class ComponentClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         if alluka is None:
-            alluka = alluka_.Client()
+            alluka = alluka_local.get(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka

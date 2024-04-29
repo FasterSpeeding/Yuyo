@@ -37,6 +37,7 @@ import typing
 from unittest import mock
 
 import alluka
+import alluka.local
 import hikari
 import pytest
 
@@ -115,6 +116,12 @@ class TestModalClient:
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(modals.ModalClient) is client
+
+    def test_alluka_property_when_alluka_local_client(self):
+        with alluka.local.scope_client() as expected_alluka_client:
+            client = modals.ModalClient()
+
+            assert client.alluka is expected_alluka_client
 
     def test_alluka_property_when_passed_through(self):
         mock_alluka = mock.Mock()
