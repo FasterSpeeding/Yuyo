@@ -58,9 +58,9 @@ import types
 import typing
 
 import alluka as alluka_
-from alluka import local as alluka_local
 import hikari
 import typing_extensions
+from alluka import local as alluka_local
 
 from . import _internal
 from . import components as components_

@@ -41,7 +41,7 @@ import typing
 from collections import abc as collections
 
 import alluka as alluka_
-import alluka.local as alluka_local 
+import alluka.local as alluka_local
 import hikari
 
 from . import _internal
