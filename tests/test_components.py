@@ -39,6 +39,7 @@ import typing
 from unittest import mock
 
 import alluka
+import alluka.local
 import freezegun
 import hikari
 import pytest
@@ -370,6 +371,13 @@ class TestComponentClient:
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(yuyo.ComponentClient) is client
+
+    def test_alluka_when_alluka_local_client(self):
+        with alluka.local.scope_client() as expected_alluka_client:
+            client = yuyo.ComponentClient(event_manager=mock.Mock())
+
+            assert client.alluka is expected_alluka_client
+            assert client.alluka.get_type_dependency(yuyo.ComponentClient) is client
 
     def test_alluka_with_passed_through_client(self):
         mock_alluka = mock.Mock()
