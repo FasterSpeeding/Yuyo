@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ## [1.21.1] - 2024-04-29
 ### Changed
-- Bumped the minimum Alluka versiohn to `v0.2.0`.
+- Bumped the minimum Alluka version to `v0.2.0`.
 - The component, modal and reaction clients will now use the "local" Alluka client
   returned by [alluka.local.get][] if no client is passed and a local Alluka client is set.
 
