@@ -232,9 +232,9 @@ exceptiongroup==1.2.1 ; python_full_version >= "3.9.0" and python_version < "3.1
 execnet==2.1.1 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:26dee51f1b80cebd6d0ca8e74dd8745419761d3bef34163928cbebbdc4749fdc \
     --hash=sha256:5189b52c6121c24feae288166ab41b32549c7e2348652736540b9e6e7d4e72e3
-fastapi==0.110.2 ; python_full_version >= "3.9.0" and python_version < "3.13" \
-    --hash=sha256:239403f2c0a3dda07a9420f95157a7f014ddb2b770acdbc984f9bdf3ead7afdb \
-    --hash=sha256:b53d673652da3b65e8cd787ad214ec0fe303cad00d2b529b86ce7db13f17518d
+fastapi==0.110.3 ; python_full_version >= "3.9.0" and python_version < "3.13" \
+    --hash=sha256:555700b0159379e94fdbfc6bb66a0f1c43f4cf7060f25239af3d84b63a656626 \
+    --hash=sha256:fd7600612f755e4050beb74001310b5a7e1796d149c2ee363124abdfa0289d32
 filelock==3.14.0 ; python_full_version >= "3.9.0" and python_version < "3.13" \
     --hash=sha256:43339835842f110ca7ae60f1e1c160714c5a6afd15a2873419ab185334975c0f \
     --hash=sha256:6ea72da3be9b8c82afd3edcf99f2fffbb5076335a5ae4d03248bb5b6c3eae78a
