@@ -99,9 +99,7 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
 )
 """The emoji used to close a menu in a component context."""
 
-INPUT_NUMBERS_SYMBOL: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
-    "\N{INPUT SYMBOL FOR NUMBERS}"
-)
+INPUT_NUMBERS_SYMBOL: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji("\N{INPUT SYMBOL FOR NUMBERS}")
 
 
 async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
