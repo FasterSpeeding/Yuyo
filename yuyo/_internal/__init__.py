@@ -43,8 +43,11 @@ import hikari
 
 from .vendor import inspect
 
+if typing.TYPE_CHECKING:
+    _DefaultT = typing.TypeVar("_DefaultT")
+    _OtherT = typing.TypeVar("_OtherT")
+
 _T = typing.TypeVar("_T")
-_DefaultT = typing.TypeVar("_DefaultT")
 IterableT = typing.Union[collections.AsyncIterable[_T], collections.Iterable[_T]]
 IteratorT = typing.Union[collections.AsyncIterator[_T], collections.Iterator[_T]]
 
@@ -171,3 +174,26 @@ def gen_custom_id(custom_id: typing.Optional[str]) -> MatchId:
         return MatchId(custom_id, custom_id)
 
     return MatchId(id_match=split_custom_id(custom_id).id_match, custom_id=custom_id)
+
+
+def to_list(
+    singular: hikari.UndefinedOr[_T],
+    plural: hikari.UndefinedOr[collections.Sequence[_T]],
+    other: _OtherT,
+    type_: typing.Union[type[_T], tuple[type[_T], ...]],
+    name: str,
+    /,
+) -> tuple[hikari.UndefinedOr[list[_T]], hikari.UndefinedOr[_OtherT]]:
+    if singular is not hikari.UNDEFINED and plural is not hikari.UNDEFINED:
+        raise ValueError(f"Only one of {name} or {name}s may be passed")
+
+    if singular is not hikari.UNDEFINED:
+        return [singular], other
+
+    if plural is not hikari.UNDEFINED:
+        return list(plural), other
+
+    if other and isinstance(other, type_):
+        return [other], hikari.UNDEFINED
+
+    return hikari.UNDEFINED, other

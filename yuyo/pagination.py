@@ -31,8 +31,16 @@
 """Utilities used for quick pagination handling within reaction and component executors."""
 from __future__ import annotations
 
-__all__: list[str] = ["Page", "aenumerate", "async_paginate_string", "paginate_string", "sync_paginate_string"]
+__all__: list[str] = [
+    "AbstractPage",
+    "Page",
+    "aenumerate",
+    "async_paginate_string",
+    "paginate_string",
+    "sync_paginate_string",
+]
 
+import abc
 import textwrap
 import typing
 from collections import abc as collections
@@ -40,8 +48,11 @@ from collections import abc as collections
 import hikari
 
 from . import _internal
+from ._internal import localise
 
 if typing.TYPE_CHECKING:
+    from yuyo import interactions
+
     _T = typing.TypeVar("_T")
 
     class _ResponseKwargs(typing.TypedDict):
@@ -50,10 +61,10 @@ if typing.TYPE_CHECKING:
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
 
 
-EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "Page"]
+EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "AbstractPage"]
 """A type hint used to represent a paginator entry.
 
-This may be either [Page][yuyo.pagination.Page] or
+This may be either [AbstractPage][yuyo.pagination.AbstractPage] or
 `tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]]` where tuple[0]
 is the message content and tuple[1] is an embed to send.
 """
@@ -87,6 +98,10 @@ BLACK_CROSS: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
     "\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}"
 )
 """The emoji used to close a menu in a component context."""
+
+INPUT_NUMBERS_SYMBOL: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji(
+    "\N{INPUT SYMBOL FOR NUMBERS}"
+)
 
 
 async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
@@ -306,7 +321,39 @@ async def aenumerate(  # noqa: ASYNC900  # Async generator without `@asynccontex
         yield (counter, value)
 
 
-class Page:
+class AbstractPage(abc.ABC):
+    """Abstract representation of a paginated response."""
+
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def to_kwargs(self) -> _ResponseKwargs:
+        """Form create message `**kwargs` for this page.
+
+        Returns
+        -------
+        dict[str, Any]
+            The create message kwargs for this page.
+        """
+
+    @abc.abstractmethod
+    def ctx_to_kwargs(
+        self,
+        ctx: typing.Union[
+            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
+        ],
+        /,
+    ) -> _ResponseKwargs:
+        """Form create message `**kwargs` for this page based on a component or modal context.
+
+        Returns
+        -------
+        dict[str, Any]
+            The create message kwargs for this page.
+        """
+
+
+class Page(AbstractPage):
     """Represents a pagianted response."""
 
     __slots__ = ("_attachments", "_content", "_embeds")
@@ -410,7 +457,7 @@ class Page:
         self._embeds = embeds
 
     @classmethod
-    def from_entry(cls, entry: EntryT, /) -> Page:
+    def from_entry(cls, entry: EntryT, /) -> AbstractPage:
         """Create a Page from a [EntryT][yuyo.pagination.EntryT].
 
         Parameters
@@ -420,7 +467,7 @@ class Page:
 
         Returns
         -------
-        Page
+        AbstractPage
             The created page.
         """
         if isinstance(entry, tuple):
@@ -439,9 +486,47 @@ class Page:
         """
         return {"attachments": self._attachments, "content": self._content, "embeds": self._embeds}
 
+    def ctx_to_kwargs(
+        self,
+        _: typing.Union[
+            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
+        ],
+        /,
+    ) -> _ResponseKwargs:
+        """Form create message `**kwargs` for this page based on a component or modal context.
+
+        Returns
+        -------
+        dict[str, Any]
+            The create message kwargs for this page.
+        """
+        return self.to_kwargs()
+
+
+class LocalisedPage(AbstractPage):
+    """Implementation of a paginated response which returns locale specific pages.."""
+
+    __slots__ = ("_pages",)
+
+    def __init__(self, pages: collections.Mapping[typing.Union[str, hikari.Locale], AbstractPage], /) -> None:
+        self._pages = localise.MaybeLocalised[AbstractPage].parse("page", pages)
+
+    def to_kwargs(self) -> _ResponseKwargs:
+        return self._pages.value.to_kwargs()
+
+    def ctx_to_kwargs(
+        self,
+        ctx: typing.Union[
+            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
+        ],
+        /,
+    ) -> _ResponseKwargs:
+        page = self._pages.localisations.get(ctx.interaction.locale) or self._pages.value
+        return page.to_kwargs()
+
 
 class Paginator:
-    """Standard implementation of a paginator.
+    """Standard implementation of a stateful paginator.
 
     To use this with components or reactions see the following classes:
 
@@ -459,14 +544,14 @@ class Paginator:
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
-            This should be an iterator of [Page][yuyo.pagination.Page]s.
+            This should be an iterator of [AbstractPage][yuyo.pagination.AbstractPage]s.
         """
         if not isinstance(
             iterator, (collections.Iterator, collections.AsyncIterator)
         ):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
-        self._buffer: list[Page] = []
+        self._buffer: list[AbstractPage] = []
         self._index: int = -1
         self._iterator: typing.Optional[_internal.IteratorT[EntryT]] = iterator
 
@@ -485,12 +570,12 @@ class Paginator:
     def _is_behind_buffer(self) -> bool:
         return len(self._buffer) >= self._index + 2
 
-    async def step_forward(self) -> typing.Optional[Page]:
+    async def step_forward(self) -> typing.Optional[AbstractPage]:
         """Move this forward a page.
 
         Returns
         -------
-        Page | None
+        AbstractPage | None
             The next page in this paginator, or [None][] if this is already on
             the last page.
         """
@@ -514,12 +599,12 @@ class Paginator:
         self._iterator = None
         return None  # MyPy
 
-    def step_back(self) -> typing.Optional[Page]:
+    def step_back(self) -> typing.Optional[AbstractPage]:
         """Move back a page.
 
         Returns
         -------
-        Page | None
+        AbstractPage | None
             The previous page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -531,12 +616,12 @@ class Paginator:
 
         return None  # MyPy compat
 
-    def jump_to_first(self) -> typing.Optional[Page]:
+    def jump_to_first(self) -> typing.Optional[AbstractPage]:
         """Jump to the first page.
 
         Returns
         -------
-        Page | None
+        AbstractPage | None
             The first page in this paginator.
 
             This will be [None][] if this is already on the first page or if
@@ -550,12 +635,12 @@ class Paginator:
 
         return None  # MyPy compat
 
-    async def jump_to_last(self) -> typing.Optional[Page]:
+    async def jump_to_last(self) -> typing.Optional[AbstractPage]:
         """Jump to the last page.
 
         Returns
         -------
-        Page | None
+        AbstractPage | None
             The last page in this paginator, or [None][] if this is already on
             the last page.
         """
