@@ -56,6 +56,7 @@ import abc
 import asyncio
 import base64
 import copy
+import dataclasses
 import datetime
 import functools
 import hashlib
@@ -64,7 +65,6 @@ import types
 import typing
 import urllib.parse
 from collections import abc as collections
-import dataclasses
 
 import alluka
 import alluka as alluka_
@@ -4884,5 +4884,7 @@ class StaticPaginatorIndex:
 
     async def create_select_modal(self, ctx: ComponentContext, /) -> None:
         await ctx.create_modal_response(
-            self._modal_title.localise(ctx), f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}", components=self._make_modal().rows
+            self._modal_title.localise(ctx),
+            f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}",
+            components=self._make_modal().rows,
         )
