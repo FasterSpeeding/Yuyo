@@ -519,8 +519,7 @@ class LocalisedPage(AbstractPage):
         ],
         /,
     ) -> _ResponseKwargs:
-        page = self._pages.localisations.get(ctx.interaction.locale) or self._pages.value
-        return page.to_kwargs()
+        return self._pages.localise(ctx).to_kwargs()
 
 
 class Paginator:

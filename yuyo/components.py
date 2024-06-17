@@ -64,6 +64,7 @@ import types
 import typing
 import urllib.parse
 from collections import abc as collections
+import dataclasses
 
 import alluka
 import alluka as alluka_
@@ -76,6 +77,7 @@ from . import interactions
 from . import modals
 from . import pagination
 from . import timeouts
+from ._internal import localise
 
 _T = typing.TypeVar("_T")
 
@@ -4676,15 +4678,143 @@ class _StaticPaginator:
             return None
 
 
-class StaticPaginatorIndex:
-    __slots__ = ("_not_found_response", "_out_of_date_response", "_paginators")
+def static_paginator_model(
+    *, invalid_number_page: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
+) -> modals.Modal:
+    invalid_number_page = invalid_number_page or pagination.Page("Not a valid number")
+
+    @modals.as_modal()
+    async def modal(
+        ctx: modals.ModalContext,
+        /,
+        *,
+        field: str = modals.text_input(field_label, custom_id=STATIC_PAGINATION_ID, min_length=1),
+        index: alluka.Injected[StaticPaginatorIndex],
+    ) -> None:
+        try:
+            page_number = int(field)
+        except ValueError:
+            page_number = -1
+
+        if page_number < 1:
+            raise interactions.InteractionError(**invalid_number_page.ctx_to_kwargs(ctx))
+
+        await index.callback(ctx, page_number=page_number)
+
+    return modal
+
+
+def _encode_metadata(*, content_hash: typing.Optional[str] = None, paginator_id: typing.Optional[str] = None) -> str:
+    metadata: list[tuple[str, str]] = []
+
+    if content_hash is not None:
+        metadata.append((_HASH_INDEX_KEY, content_hash))
+
+    if paginator_id is not None:
+        metadata.append((_INDEX_ID_KEY, paginator_id))
+
+    return urllib.parse.urlencode(metadata)
+
+
+@dataclasses.dataclass
+class _Metadata:
+    id: str
+    content_hash: typing.Optional[str]
+    page_number: typing.Optional[int]
+
+
+def _parse_metadata(raw_metadata: str, /) -> _Metadata:
+    metadata = urllib.parse.parse_qs(raw_metadata)
+    paginator_id = metadata["id"][0]
+
+    try:
+        content_hash = metadata[_HASH_INDEX_KEY][0]
+
+    except (KeyError, IndexError):
+        content_hash = None
+
+    try:
+        page_number = metadata[_INDEX_ID_KEY][0]
+
+    except (KeyError, IndexError):
+        page_number = None
+
+    return _Metadata(content_hash=content_hash, id=paginator_id, page_number=page_number)
+
+
+class StaticPaginatorColumn(ActionColumnExecutor):
+    """Help pagination components."""
+
+    __slots__ = ()
 
     def __init__(
         self,
         *,
+        content_hash: typing.Optional[str] = None,
+        ephemeral_default: bool = False,
+        id_metadata: collections.Mapping[str, str] | None = None,
+        paginator_id: typing.Optional[str] = None,
+    ) -> None:
+        query = _encode_metadata(content_hash=content_hash, paginator_id=paginator_id)
+        if query:
+            id_metadata = dict(id_metadata or ())
+            for index in range(5):
+                id_metadata.setdefault(f"{STATIC_PAGINATION_ID}.{index}", query)
+
+        super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
+
+    @as_interactive_button(
+        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.0", emoji=pagination.LEFT_DOUBLE_TRIANGLE
+    )
+    async def jump_to_start(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx)
+
+    @as_interactive_button(
+        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.1", emoji=pagination.LEFT_TRIANGLE
+    )
+    async def previous_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx)
+
+    @as_interactive_button(
+        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.2", emoji=pagination.INPUT_NUMBERS_SYMBOL
+    )
+    async def select_number_button(
+        self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]
+    ) -> None:
+        metadata
+        await index.create_select_modal(ctx)
+
+    @as_interactive_button(
+        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.3", emoji=pagination.RIGHT_TRIANGLE
+    )
+    async def next_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx)
+
+    @as_interactive_button(
+        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.4", emoji=pagination.RIGHT_DOUBLE_TRIANGLE
+    )
+    async def jump_to_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx)
+
+
+def _noop(ctx: Context, /) -> _CoroT:
+    """Create a noop initial response to a component context."""
+    return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
+
+
+class StaticPaginatorIndex:
+    __slots__ = ("_make_modal", "_modal_title", "_not_found_response", "_out_of_date_response", "_paginators")
+
+    def __init__(
+        self,
+        *,
+        make_modal: collections.Callable[[], modals.Modal] = static_paginator_model,
+        modal_title: localise.MaybeLocalsiedType[str] = "Select page",
         not_found_response: typing.Optional[pagination.AbstractPage] = None,
         out_of_date_response: typing.Optional[pagination.AbstractPage] = None,
     ) -> None:
+        self._make_modal = make_modal
+        self._modal_title = localise.MaybeLocalised[str].parse("Modal title", modal_title)
         self._not_found_response = not_found_response or pagination.Page("Page not found")
         self._out_of_date_response = out_of_date_response or pagination.Page("This response is out of date")
         self._paginators: dict[str, _StaticPaginator] = {}
@@ -4714,8 +4844,8 @@ class StaticPaginatorIndex:
         ],
         /,
     ) -> _StaticPaginator:
-        identifier = urllib.parse.parse_qs(ctx.id_metadata)["id"][0]
-        return self._paginators[identifier]
+        metadata = _parse_metadata(ctx.id_metadata)
+        return self._paginators[metadata.id]
 
     @property
     def not_found_page(self) -> pagination.AbstractPage:
@@ -4734,17 +4864,14 @@ class StaticPaginatorIndex:
         *,
         page_number: typing.Optional[int] = None,
     ) -> None:
-        metadata = urllib.parse.parse_qs(ctx.id_metadata)
-        page_number = page_number or int(metadata[_INDEX_ID_KEY][0])
+        metadata = _parse_metadata(ctx.id_metadata)
+        page_number = page_number or metadata.page_number
 
-        try:
-            content_hash = metadata[_HASH_INDEX_KEY][0]
-
-        except (KeyError, IndexError):
-            content_hash = None
+        if page_number is None:
+            raise RuntimeError("Missing page number")
 
         paginator = self.get_paginator(ctx)
-        if paginator.content_hash and paginator.content_hash != content_hash:
+        if paginator.content_hash and paginator.content_hash != metadata.content_hash:
             await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
 
         elif page := paginator.get_page(page_number):
@@ -4755,71 +4882,7 @@ class StaticPaginatorIndex:
         else:
             await ctx.create_initial_response(ephemeral=True, **self.not_found_page.ctx_to_kwargs(ctx))
 
-
-def static_paginator_model(
-    *, error_response: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
-) -> modals.Modal:
-    error_response = error_response or pagination.Page("Not a valid number")
-
-    @modals.as_modal()
-    async def modal(
-        ctx: modals.ModalContext,
-        /,
-        *,
-        field: str = modals.text_input(field_label, custom_id=STATIC_PAGINATION_ID, min_length=1),
-        index: alluka.Injected[StaticPaginatorIndex],
-    ) -> None:
-        try:
-            page_number = int(field)
-        except ValueError:
-            page_number = -1
-
-        if page_number < 1:
-            raise interactions.InteractionError(**error_response.ctx_to_kwargs(ctx))
-
-        await index.callback(ctx, page_number=page_number)
-
-    return modal
-
-
-class StaticPaginatorColumn(ActionColumnExecutor):
-    """Help pagination components."""
-
-    __slots__ = ()
-
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.0", emoji=pagination.LEFT_DOUBLE_TRIANGLE
-    )
-    async def jump_to_start(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        await index.callback(ctx)
-
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.1", emoji=pagination.LEFT_TRIANGLE
-    )
-    async def previous_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        await index.callback(ctx)
-
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.2", emoji=pagination.RIGHT_TRIANGLE
-    )
-    async def next_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        await index.callback(ctx)
-
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.3", emoji=pagination.RIGHT_DOUBLE_TRIANGLE
-    )
-    async def jump_to_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        await index.callback(ctx)
-
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.4", emoji=pagination.INPUT_NUMBERS_SYMBOL
-    )
-    async def select_number_button(
-        self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]
-    ) -> None:
-        await index.callback(ctx)
-
-
-def _noop(ctx: Context, /) -> _CoroT:
-    """Create a noop initial response to a component context."""
-    return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
+    async def create_select_modal(self, ctx: ComponentContext, /) -> None:
+        await ctx.create_modal_response(
+            self._modal_title.localise(ctx), f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}", components=self._make_modal().rows
+        )
