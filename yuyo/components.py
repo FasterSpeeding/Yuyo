@@ -4747,7 +4747,7 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
     except (KeyError, IndexError):
         content_hash = None
 
-    try:
+    try:  # noqa: TRY101 
         page_number = int(metadata[_INDEX_ID_KEY][0])
 
     except (KeyError, IndexError):
@@ -4816,6 +4816,7 @@ def _noop(ctx: Context, /) -> _CoroT:
 
 
 class StaticPaginatorIndex:
+    """Index of all the static paginators within a bot."""
     __slots__ = ("_make_modal", "_modal_title", "_not_found_response", "_out_of_date_response", "_paginators")
 
     def __init__(
