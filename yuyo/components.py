@@ -31,8 +31,6 @@
 """Higher level client for callback based component execution."""
 from __future__ import annotations
 
-import hikari.api.special_endpoints
-
 __all__: list[str] = [
     "ActionColumnExecutor",
     "ComponentClient",
