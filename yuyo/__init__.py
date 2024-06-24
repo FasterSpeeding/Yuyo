@@ -57,6 +57,8 @@ __all__: list[str] = [
     "ServiceManager",
     "ShardFinishedChunkingEvent",
     "SlidingTimeout",
+    "StaticPaginatorColumn",
+    "StaticPaginatorIndex",
     "StaticTimeout",
     "StreamExecutor",
     "TopGGService",
@@ -95,6 +97,8 @@ from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
+from .components import StaticPaginatorColumn
+from .components import StaticPaginatorIndex
 from .components import StreamExecutor
 from .components import WaitForExecutor
 from .interactions import InteractionError
