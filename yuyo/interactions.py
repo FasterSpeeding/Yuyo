@@ -150,7 +150,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
     def has_been_deferred(self) -> bool:
         """Whether this context's initial response has been deferred.
 
-        This will be true if [BaseContext.defer][yuyo.components.BaseContext.defer]
+        This will be true if [BaseContext.defer][yuyo.interactions.BaseContext.defer]
         has been called.
         """
         return self._has_been_deferred
@@ -164,9 +164,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         marked as failed.
 
         This will be true if either
-        [BaseContext.respond][yuyo.components.BaseContext.respond],
-        [BaseContext.create_initial_response][yuyo.components.BaseContext.create_initial_response]
-        or [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+        [BaseContext.respond][yuyo.interactions.BaseContext.respond],
+        [BaseContext.create_initial_response][yuyo.interactions.BaseContext.create_initial_response]
+        or [BaseContext.edit_initial_response][yuyo.interactions.BaseContext.edit_initial_response]
         (after a deferral) has been called.
         """
         return self._has_responded
@@ -210,7 +210,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         """Shard that triggered the interaction.
 
         !!! note
-            This will be [None][] if [BaseContext.shards][yuyo.components.BaseContext.shards]
+            This will be [None][] if [BaseContext.shards][yuyo.interactions.BaseContext.shards]
             is also [None][].
         """
         if not self.shards:
@@ -297,8 +297,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
             * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
                 to indicate that the following up call to
-                [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
-                or [BaseContext.respond][yuyo.components.BaseContext.respond]
+                [BaseContext.edit_initial_response][yuyo.interactions.BaseContext.edit_initial_response]
+                or [BaseContext.respond][yuyo.interactions.BaseContext.respond]
                 should create a new message.
             * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
                 to indicate that the following call to the aforementioned

@@ -39,8 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Explicitly passing `ephemeral=False` to
-  [create_initial_response][yuyo.components.BaseContext.create_initial_response] or
-  [create_followup][yuyo.components.BaseContext.create_followup] will now correctly
+  [create_initial_response][yuyo.interactions.BaseContext.create_initial_response] or
+  [create_followup][yuyo.interactions.BaseContext.create_followup] will now correctly
   override the client-level ephemeral default.
 - The component paginator will no-longer error out with a "Initial response has
   already been created" error when the jump to last page button tries to push
@@ -739,7 +739,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iterators.
 
 ### Fixed
-- [yuyo.components.BaseContext.respond][] trying to edit in the initial response instead
+- [yuyo.interactions.BaseContext.respond][] trying to edit in the initial response instead
   of create a follow up if a deferred initial response was deleted.
 - Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.
 

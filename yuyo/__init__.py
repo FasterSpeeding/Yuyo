@@ -67,6 +67,7 @@ __all__: list[str] = [
     "backoff",
     "chunk_tracker",
     "components",
+    "interactions",
     "links",
     "modals",
     "paginate_string",
@@ -77,6 +78,7 @@ __all__: list[str] = [
     "to_builder",
 ]
 
+from . import interactions
 from . import links
 from . import timeouts
 from . import to_builder
