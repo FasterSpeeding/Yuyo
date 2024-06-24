@@ -184,6 +184,7 @@ def to_list(
     name: str,
     /,
 ) -> tuple[hikari.UndefinedOr[list[_T]], hikari.UndefinedOr[_OtherT]]:
+    """Convert Hikari create/edit message kwargs to a list."""
     if singular is not hikari.UNDEFINED and plural is not hikari.UNDEFINED:
         raise ValueError(f"Only one of {name} or {name}s may be passed")
 

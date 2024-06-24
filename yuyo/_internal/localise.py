@@ -29,15 +29,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """A collection of utility functions and classes designed to expand Hikari."""
-
 from __future__ import annotations
+
+__all__: list[str] = ["MaybeLocalised", "MaybeLocalsiedType"]
 
 import typing
 from collections import abc as collections
 
-import hikari
-
 if typing.TYPE_CHECKING:
+    import hikari
     from typing_extensions import Self
 
     from .. import interactions
@@ -48,6 +48,8 @@ MaybeLocalsiedType = typing.Union[_T, collections.Mapping[str, _T]]
 
 
 class MaybeLocalised(typing.Generic[_T]):
+    """Helper class used for handling localisation."""
+
     __slots__ = ("field_name", "value", "localisations")
 
     def __init__(self, field_name: str, value: _T, localisations: collections.Mapping[str, _T]) -> None:

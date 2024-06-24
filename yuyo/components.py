@@ -4679,9 +4679,23 @@ class _StaticPaginator:
 
 
 def static_paginator_model(
-    *, invalid_number_page: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
+    *, invalid_number_response: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
 ) -> modals.Modal:
-    invalid_number_page = invalid_number_page or pagination.Page("Not a valid number")
+    """Create a default implementation of the modal used for static paginator page jumping.
+
+    Parameters
+    ----------
+    invalid_number_response
+        The response to send when an invalid number is input.
+    field_label
+        Label to show for the number input field.
+
+    Returns
+    -------
+    models.Modal
+        The created modal.
+    """
+    invalid_number_response = invalid_number_response or pagination.Page("Not a valid number")
 
     @modals.as_modal()
     async def modal(
@@ -4697,7 +4711,7 @@ def static_paginator_model(
             page_number = -1
 
         if page_number < 1:
-            raise interactions.InteractionError(**invalid_number_page.ctx_to_kwargs(ctx))
+            raise interactions.InteractionError(**invalid_number_response.ctx_to_kwargs(ctx))
 
         await index.callback(ctx, page_number=page_number)
 
@@ -4718,7 +4732,7 @@ def _encode_metadata(*, content_hash: typing.Optional[str] = None, paginator_id:
 
 @dataclasses.dataclass
 class _Metadata:
-    id: str
+    paginator_id: str
     content_hash: typing.Optional[str]
     page_number: typing.Optional[int]
 
@@ -4734,12 +4748,12 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
         content_hash = None
 
     try:
-        page_number = metadata[_INDEX_ID_KEY][0]
+        page_number = int(metadata[_INDEX_ID_KEY][0])
 
     except (KeyError, IndexError):
         page_number = None
 
-    return _Metadata(content_hash=content_hash, id=paginator_id, page_number=page_number)
+    return _Metadata(content_hash=content_hash, paginator_id=paginator_id, page_number=page_number)
 
 
 class StaticPaginatorColumn(ActionColumnExecutor):
@@ -4781,7 +4795,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
     async def select_number_button(
         self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]
     ) -> None:
-        metadata
         await index.create_select_modal(ctx)
 
     @as_interactive_button(
@@ -4845,7 +4858,7 @@ class StaticPaginatorIndex:
         /,
     ) -> _StaticPaginator:
         metadata = _parse_metadata(ctx.id_metadata)
-        return self._paginators[metadata.id]
+        return self._paginators[metadata.paginator_id]
 
     @property
     def not_found_page(self) -> pagination.AbstractPage:
