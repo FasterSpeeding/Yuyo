@@ -4819,7 +4819,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
 
         await index.callback(ctx, page_number)
 
-    @as_interactive_button( 
+    @as_interactive_button(
         hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.2", emoji=pagination.INPUT_NUMBERS_SYMBOL
     )
     async def select_number_button(
