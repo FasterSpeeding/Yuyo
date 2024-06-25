@@ -60,8 +60,8 @@ import base64
 import copy
 import dataclasses
 import datetime
-import functools
 import enum
+import functools
 import hashlib
 import itertools
 import types
@@ -4798,13 +4798,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
             self._metadata[_PAGE_NUMBER_KEY] = str(page_number)
 
         if include_buttons:
-            (
-                self.add_first_button()
-                .add_previous_button()
-                .add_select_button()
-                .add_next_button()
-                .add_last_button()
-            )
+            (self.add_first_button().add_previous_button().add_select_button().add_next_button().add_last_button())
 
     def _get_page_number(self, ctx: ComponentContext, /) -> int:
         metadata = _parse_metadata(ctx.id_metadata)
@@ -4813,7 +4807,9 @@ class StaticComponentPaginator(ActionColumnExecutor):
 
         return metadata.page_number
 
-    def _to_custom_id(self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /) -> str:
+    def _to_custom_id(
+        self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /
+    ) -> str:
         if id_metadata:
             id_metadata = dict(id_metadata)
             id_metadata.update(self._metadata)
@@ -4873,7 +4869,12 @@ class StaticComponentPaginator(ActionColumnExecutor):
             emoji = hikari.UNDEFINED
 
         return self.add_interactive_button(
-            style, self._on_first, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+            style,
+            self._on_first,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
         )
 
     def add_previous_button(
@@ -4928,7 +4929,12 @@ class StaticComponentPaginator(ActionColumnExecutor):
             emoji = hikari.UNDEFINED
 
         return self.add_interactive_button(
-            style, self._on_previous, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+            style,
+            self._on_previous,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
         )
 
     def add_select_button(
@@ -4936,7 +4942,9 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
         custom_id: str = _StaticPaginatorID.SELECT,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.INPUT_NUMBERS_SYMBOL,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.INPUT_NUMBERS_SYMBOL,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
@@ -4983,7 +4991,12 @@ class StaticComponentPaginator(ActionColumnExecutor):
             emoji = hikari.UNDEFINED
 
         return self.add_interactive_button(
-            style, self._on_select, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+            style,
+            self._on_select,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
         )
 
     def add_next_button(
@@ -5038,7 +5051,12 @@ class StaticComponentPaginator(ActionColumnExecutor):
             emoji = hikari.UNDEFINED
 
         return self.add_interactive_button(
-            style, self._on_next, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+            style,
+            self._on_next,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
         )
 
     def add_last_button(
@@ -5095,7 +5113,12 @@ class StaticComponentPaginator(ActionColumnExecutor):
             emoji = hikari.UNDEFINED
 
         return self.add_interactive_button(
-            style, self._on_last, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+            style,
+            self._on_last,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
         )
 
     async def _on_first(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:

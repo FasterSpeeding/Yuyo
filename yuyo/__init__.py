@@ -38,8 +38,6 @@ __all__: list[str] = [
     "AsgiBot",
     "Backoff",
     "BotsGGService",
-    "LocalisedPage",
-    "LocalizedPage",
     "ChunkRequestFinishedEvent",
     "ChunkTracker",
     "ComponentClient",
@@ -50,6 +48,8 @@ __all__: list[str] = [
     "ErrorManager",
     "FinishedChunkingEvent",
     "InteractionError",
+    "LocalisedPage",
+    "LocalizedPage",
     "ModalClient",
     "ModalContext",
     "Page",
@@ -110,12 +110,12 @@ from .list_status import ServiceManager
 from .list_status import TopGGService
 from .modals import ModalClient
 from .modals import ModalContext
+from .pagination import LocalisedPage
+from .pagination import LocalizedPage
 from .pagination import Page
 from .pagination import aenumerate
 from .pagination import async_paginate_string
 from .pagination import paginate_string
-from .pagination import LocalisedPage
-from .pagination import LocalizedPage
 from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler

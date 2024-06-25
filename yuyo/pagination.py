@@ -34,9 +34,9 @@ from __future__ import annotations
 __all__: list[str] = [
     "AbstractPage",
     "LocalisedPage",
+    "LocalizedPage",
     "Page",
     "aenumerate",
-    "LocalizedPage",
     "async_paginate_string",
     "paginate_string",
     "sync_paginate_string",
@@ -522,7 +522,6 @@ class LocalisedPage(AbstractPage):
         /,
     ) -> _ResponseKwargs:
         return self._pages.localise(ctx).to_kwargs()
-
 
 
 LocalizedPage = LocalisedPage
