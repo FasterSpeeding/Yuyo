@@ -61,6 +61,7 @@ import copy
 import dataclasses
 import datetime
 import functools
+import enum
 import hashlib
 import itertools
 import types
@@ -4344,6 +4345,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
         label
@@ -4389,6 +4392,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -4438,6 +4443,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -4487,6 +4494,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -4538,6 +4547,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -4721,26 +4732,6 @@ def static_paginator_model(
     return modal
 
 
-def _encode_metadata(
-    *,
-    content_hash: typing.Optional[str] = None,
-    paginator_id: typing.Optional[str] = None,
-    page_number: typing.Optional[int] = None,
-) -> str:
-    metadata: list[tuple[str, str]] = []
-
-    if content_hash is not None:
-        metadata.append((_HASH_INDEX_KEY, content_hash))
-
-    if paginator_id is not None:
-        metadata.append((_INDEX_ID_KEY, paginator_id))
-
-    if page_number is not None:
-        metadata.append((_PAGE_NUMBER_KEY, str(page_number)))
-
-    return urllib.parse.urlencode(metadata)
-
-
 @dataclasses.dataclass
 class _Metadata:
     paginator_id: str
@@ -4767,14 +4758,22 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
     return _Metadata(content_hash=content_hash, paginator_id=paginator_id, page_number=page_number)
 
 
-_PREVIOUS_BUTTONS = {f"{STATIC_PAGINATION_ID}.0", f"{STATIC_PAGINATION_ID}.1"}
-_NEXT_BUTTONS = {f"{STATIC_PAGINATION_ID}.3", f"{STATIC_PAGINATION_ID}.4"}
+class _StaticPaginatorID(str, enum.Enum):
+    FIRST = f"{STATIC_PAGINATION_ID}.first"
+    PREVIOUS = f"{STATIC_PAGINATION_ID}.prev"
+    SELECT = f"{STATIC_PAGINATION_ID}.select"
+    NEXT = f"{STATIC_PAGINATION_ID}.next"
+    LAST = f"{STATIC_PAGINATION_ID}.last"
+
+
+_STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorID.FIRST, _StaticPaginatorID.PREVIOUS}
+_STATIC_FORWARD_BUTTONS = {_StaticPaginatorID.NEXT, _StaticPaginatorID.LAST}
 
 
 class StaticPaginatorColumn(ActionColumnExecutor):
     """Help pagination components."""
 
-    __slots__ = ()
+    __slots__ = ("_metadata",)
 
     def __init__(
         self,
@@ -4782,16 +4781,30 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         *,
         content_hash: typing.Optional[str] = None,
         ephemeral_default: bool = False,
+        include_buttons: bool = True,
         id_metadata: collections.Mapping[str, str] | None = None,
         page_number: typing.Optional[int] = None,
     ) -> None:
-        query = _encode_metadata(content_hash=content_hash, paginator_id=paginator_id, page_number=page_number)
-        if query:
-            id_metadata = dict(id_metadata or ())
-            for index in range(5):
-                id_metadata.setdefault(f"{STATIC_PAGINATION_ID}.{index}", query)
-
         super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
+        self._metadata: dict[str, str] = {}
+
+        if content_hash is not None:
+            self._metadata[_HASH_INDEX_KEY] = content_hash
+
+        if paginator_id is not None:
+            self._metadata[_INDEX_ID_KEY] = paginator_id
+
+        if page_number is not None:
+            self._metadata[_PAGE_NUMBER_KEY] = str(page_number)
+
+        if include_buttons:
+            (
+                self.add_first_button()
+                .add_previous_button()
+                .add_select_button()
+                .add_next_button()
+                .add_last_button()
+            )
 
     def _get_page_number(self, ctx: ComponentContext, /) -> int:
         metadata = _parse_metadata(ctx.id_metadata)
@@ -4800,16 +4813,340 @@ class StaticPaginatorColumn(ActionColumnExecutor):
 
         return metadata.page_number
 
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.0", emoji=pagination.LEFT_DOUBLE_TRIANGLE
-    )
-    async def jump_to_start(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+    def _to_custom_id(self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /) -> str:
+        if id_metadata:
+            id_metadata = dict(id_metadata)
+            id_metadata.update(self._metadata)
+
+        else:
+            id_metadata = self._metadata
+
+        return f"{custom_id}:{urllib.parse.urlencode(id_metadata)}"
+
+    def add_first_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorID.FIRST,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.LEFT_DOUBLE_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to first entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
+
+            !!! warning
+                If you override this you'll also have to ensure
+                an executor has been registered for it.
+
+            !!! warning
+                ID metadata should be passed as `id_metadata`.
+        emoji
+            Emoji to display on this button.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style, self._on_first, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_previous_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorID.PREVIOUS,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the previous entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
+
+            !!! warning
+                If you override this you'll also have to ensure
+                an executor has been registered for it.
+
+            !!! warning
+                ID metadata should be passed as `id_metadata`.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style, self._on_previous, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_select_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
+        custom_id: str = _StaticPaginatorID.SELECT,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.INPUT_NUMBERS_SYMBOL,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the select page button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
+
+            !!! warning
+                If you override this you'll also have to ensure
+                an executor has been registered for it.
+
+            !!! warning
+                ID metadata should be passed as `id_metadata`.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style, self._on_select, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_next_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorID.NEXT,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the next entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
+
+            !!! warning
+                If you override this you'll also have to ensure
+                an executor has been registered for it.
+
+            !!! warning
+                ID metadata should be passed as `id_metadata`.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style, self._on_next, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    def add_last_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorID.LAST,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to last entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
+
+            !!! warning
+                If you override this you'll also have to ensure
+                an executor has been registered for it.
+
+            !!! warning
+                ID metadata should be passed as `id_metadata`.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style, self._on_last, custom_id=self._to_custom_id(custom_id, id_metadata), emoji=emoji, label=label, is_disabled=is_disabled
+        )
+
+    async def _on_first(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
         await index.callback(ctx, 0)
 
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.1", emoji=pagination.LEFT_TRIANGLE
-    )
-    async def previous_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+    async def _on_previous(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
         page_number = self._get_page_number(ctx)
 
         if page_number > 0:
@@ -4817,25 +5154,14 @@ class StaticPaginatorColumn(ActionColumnExecutor):
 
         await index.callback(ctx, page_number)
 
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.2", emoji=pagination.INPUT_NUMBERS_SYMBOL
-    )
-    async def select_number_button(
-        self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]
-    ) -> None:
+    async def _on_select(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
         await index.create_select_modal(ctx)
 
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.3", emoji=pagination.RIGHT_TRIANGLE
-    )
-    async def next_button(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+    async def _on_next(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
         page_number = self._get_page_number(ctx)
         await index.callback(ctx, page_number + 1)
 
-    @as_interactive_button(
-        hikari.ButtonStyle.SECONDARY, custom_id=f"{STATIC_PAGINATION_ID}.4", emoji=pagination.RIGHT_DOUBLE_TRIANGLE
-    )
-    async def jump_to_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+    async def _on_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
         await index.callback(ctx, -1)
 
 
@@ -4951,9 +5277,9 @@ class StaticPaginatorIndex:
                     custom_id = component.custom_id.split(":", 1)[0]
                     if (
                         page_number == 0
-                        and custom_id in _PREVIOUS_BUTTONS
+                        and custom_id in _STATIC_BACKWARDS_BUTTONS
                         or page_number == last_index
-                        and custom_id in _NEXT_BUTTONS
+                        and custom_id in _STATIC_FORWARD_BUTTONS
                     ):
                         component.set_is_disabled(True)
 

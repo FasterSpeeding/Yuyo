@@ -33,8 +33,10 @@ from __future__ import annotations
 
 __all__: list[str] = [
     "AbstractPage",
+    "LocalisedPage",
     "Page",
     "aenumerate",
+    "LocalizedPage",
     "async_paginate_string",
     "paginate_string",
     "sync_paginate_string",
@@ -520,6 +522,11 @@ class LocalisedPage(AbstractPage):
         /,
     ) -> _ResponseKwargs:
         return self._pages.localise(ctx).to_kwargs()
+
+
+
+LocalizedPage = LocalisedPage
+"""Alias of [LocalisedPage][yuyo.pagination.LocalisedPage]."""
 
 
 class Paginator:

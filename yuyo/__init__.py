@@ -38,6 +38,8 @@ __all__: list[str] = [
     "AsgiBot",
     "Backoff",
     "BotsGGService",
+    "LocalisedPage",
+    "LocalizedPage",
     "ChunkRequestFinishedEvent",
     "ChunkTracker",
     "ComponentClient",
@@ -112,6 +114,8 @@ from .pagination import Page
 from .pagination import aenumerate
 from .pagination import async_paginate_string
 from .pagination import paginate_string
+from .pagination import LocalisedPage
+from .pagination import LocalizedPage
 from .pagination import sync_paginate_string
 from .reactions import ReactionClient
 from .reactions import ReactionHandler
