@@ -37,7 +37,7 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
-    "StaticPaginatorColumn",
+    "StaticComponentPaginator",
     "StaticPaginatorIndex",
     "StreamExecutor",
     "WaitForExecutor",
@@ -4770,7 +4770,7 @@ _STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorID.FIRST, _StaticPaginatorID.PREVIO
 _STATIC_FORWARD_BUTTONS = {_StaticPaginatorID.NEXT, _StaticPaginatorID.LAST}
 
 
-class StaticPaginatorColumn(ActionColumnExecutor):
+class StaticComponentPaginator(ActionColumnExecutor):
     """Help pagination components."""
 
     __slots__ = ("_metadata",)
@@ -4838,7 +4838,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         r"""Add the jump to first entry button to this paginator.
 
         You should pass `include_buttons=False` to
-        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -4851,15 +4851,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         ----------
         style
             The button's style.
-        custom_id
-            Custom ID to use for identifying button presses.
-
-            !!! warning
-                If you override this you'll also have to ensure
-                an executor has been registered for it.
-
-            !!! warning
-                ID metadata should be passed as `id_metadata`.
         emoji
             Emoji to display on this button.
         id_metadata
@@ -4898,7 +4889,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         r"""Add the previous entry button to this paginator.
 
         You should pass `include_buttons=False` to
-        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -4911,15 +4902,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         ----------
         style
             The button's style.
-        custom_id
-            Custom ID to use for identifying button presses.
-
-            !!! warning
-                If you override this you'll also have to ensure
-                an executor has been registered for it.
-
-            !!! warning
-                ID metadata should be passed as `id_metadata`.
         emoji
             Emoji to display on this button.
 
@@ -4962,7 +4944,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         r"""Add the select page button to this paginator.
 
         You should pass `include_buttons=False` to
-        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -4975,15 +4957,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         ----------
         style
             The button's style.
-        custom_id
-            Custom ID to use for identifying button presses.
-
-            !!! warning
-                If you override this you'll also have to ensure
-                an executor has been registered for it.
-
-            !!! warning
-                ID metadata should be passed as `id_metadata`.
         emoji
             Emoji to display on this button.
 
@@ -5026,7 +4999,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         r"""Add the next entry button to this paginator.
 
         You should pass `include_buttons=False` to
-        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5039,15 +5012,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         ----------
         style
             The button's style.
-        custom_id
-            Custom ID to use for identifying button presses.
-
-            !!! warning
-                If you override this you'll also have to ensure
-                an executor has been registered for it.
-
-            !!! warning
-                ID metadata should be passed as `id_metadata`.
         emoji
             Emoji to display on this button.
 
@@ -5092,7 +5056,7 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         r"""Add the jump to last entry button to this paginator.
 
         You should pass `include_buttons=False` to
-        [StaticPaginatorColumn.\_\_init\_\_][yuyo.components.StaticPaginatorColumn.__init__]
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
         before calling this.
 
         !!! note
@@ -5105,15 +5069,6 @@ class StaticPaginatorColumn(ActionColumnExecutor):
         ----------
         style
             The button's style.
-        custom_id
-            Custom ID to use for identifying button presses.
-
-            !!! warning
-                If you override this you'll also have to ensure
-                an executor has been registered for it.
-
-            !!! warning
-                ID metadata should be passed as `id_metadata`.
         emoji
             Emoji to display on this button.
 
@@ -5187,7 +5142,7 @@ class StaticPaginatorIndex:
         *,
         make_components: collections.Callable[
             [str, typing.Optional[str], int], ActionColumnExecutor
-        ] = lambda paginator_id, content_hash, page_number: StaticPaginatorColumn(
+        ] = lambda paginator_id, content_hash, page_number: StaticComponentPaginator(
             paginator_id=paginator_id, content_hash=content_hash, page_number=page_number
         ),
         make_modal: collections.Callable[[], modals.Modal] = static_paginator_model,
@@ -5210,7 +5165,7 @@ class StaticPaginatorIndex:
     def add_to_clients(self, component_client: ComponentClient, modal_client: modals.ModalClient, /) -> Self:
         component_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
         modal_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
-        component_client.register_executor(StaticPaginatorColumn(), timeout=None)
+        component_client.register_executor(StaticComponentPaginator(), timeout=None)
         modal_client.register_modal(STATIC_PAGINATION_ID, static_paginator_model(), timeout=None)
         return self
 
@@ -5296,6 +5251,10 @@ class StaticPaginatorIndex:
             f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}",
             components=self._make_modal().rows,
         )
+
+
+StaticPaginator = StaticComponentPaginator
+"""Alias of [StaticComponentPaginator][yuyo.components.StaticComponentPaginator]."""
 
 
 def _iter_components(
