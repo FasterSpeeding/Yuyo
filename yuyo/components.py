@@ -81,6 +81,7 @@ from . import modals
 from . import pagination
 from . import timeouts
 from ._internal import localise
+from .interactions import BaseContext as _BaseContext
 
 _T = typing.TypeVar("_T")
 
@@ -4770,42 +4771,65 @@ _STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorID.FIRST, _StaticPaginatorID.PREVIO
 _STATIC_FORWARD_BUTTONS = {_StaticPaginatorID.NEXT, _StaticPaginatorID.LAST}
 
 
+def _get_page_number(ctx: ComponentContext, /) -> int:
+    metadata = _parse_metadata(ctx.id_metadata)
+    if metadata.page_number is None:
+        raise RuntimeError("Missing page number in ID metadata")
+
+    return metadata.page_number
+
+
 class StaticComponentPaginator(ActionColumnExecutor):
-    """Help pagination components."""
+    """Implementation of components for paginating static data.
+
+    This enables paginated responses to be persisted between bot restarts.
+    """
 
     __slots__ = ("_metadata",)
 
     def __init__(
         self,
-        paginator_id: typing.Optional[str] = None,
+        paginator_id: str,
+        page_number: int,
+        /,
         *,
         content_hash: typing.Optional[str] = None,
         ephemeral_default: bool = False,
         include_buttons: bool = True,
         id_metadata: collections.Mapping[str, str] | None = None,
-        page_number: typing.Optional[int] = None,
     ) -> None:
+        """Initialise a static component paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator this targets.
+
+            This is ignored when this is used to execute interactions.
+        page_number
+            Index of the current page this paginator is on.
+
+            This is ignored when this is used to execute interactions.
+        content_hash
+            Hash used to validate that the received interaction's components
+            are still in-sync with the static data stored in this paginator.
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        include_buttons
+            Whether to include the default buttons.
+        id_metadata
+            Mapping of metadata to append to the custom IDs in this column.
+
+            This does not effect the standard buttons.
+        """
         super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
-        self._metadata: dict[str, str] = {}
+        self._metadata: dict[str, str] = {_INDEX_ID_KEY: paginator_id, _PAGE_NUMBER_KEY: str(page_number)}
 
         if content_hash is not None:
             self._metadata[_HASH_INDEX_KEY] = content_hash
 
-        if paginator_id is not None:
-            self._metadata[_INDEX_ID_KEY] = paginator_id
-
-        if page_number is not None:
-            self._metadata[_PAGE_NUMBER_KEY] = str(page_number)
-
         if include_buttons:
-            (self.add_first_button().add_previous_button().add_select_button().add_next_button().add_last_button())
-
-    def _get_page_number(self, ctx: ComponentContext, /) -> int:
-        metadata = _parse_metadata(ctx.id_metadata)
-        if metadata.page_number is None:
-            raise RuntimeError("Missing page number in ID metadata")
-
-        return metadata.page_number
+            self.add_first_button().add_previous_button().add_select_button().add_next_button().add_last_button()
 
     def _to_custom_id(
         self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /
@@ -4944,7 +4968,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         custom_id: str = _StaticPaginatorID.SELECT,
         emoji: typing.Union[
             hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.INPUT_NUMBERS_SYMBOL,
+        ] = pagination.SELECT_PAGE_SYMBOL,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
@@ -5125,7 +5149,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         await index.callback(ctx, 0)
 
     async def _on_previous(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        page_number = self._get_page_number(ctx)
+        page_number = _get_page_number(ctx)
 
         if page_number > 0:
             page_number -= 1
@@ -5136,7 +5160,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         await index.create_select_modal(ctx)
 
     async def _on_next(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
-        page_number = self._get_page_number(ctx)
+        page_number = _get_page_number(ctx)
         await index.callback(ctx, page_number + 1)
 
     async def _on_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
@@ -5164,15 +5188,33 @@ class StaticPaginatorIndex:
         self,
         *,
         make_components: collections.Callable[
-            [str, typing.Optional[str], int], ActionColumnExecutor
-        ] = lambda paginator_id, content_hash, page_number: StaticComponentPaginator(
-            paginator_id=paginator_id, content_hash=content_hash, page_number=page_number
+            [str, int, typing.Optional[str]], ActionColumnExecutor
+        ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
+            paginator_id, page_number, content_hash=content_hash
         ),
         make_modal: collections.Callable[[], modals.Modal] = static_paginator_model,
         modal_title: localise.MaybeLocalsiedType[str] = "Select page",
         not_found_response: typing.Optional[pagination.AbstractPage] = None,
         out_of_date_response: typing.Optional[pagination.AbstractPage] = None,
     ) -> None:
+        """Initialise a static paginator index.
+
+        Parameters
+        ----------
+        make_components
+            Callback that's used to make the default pagination
+            message components.
+        make_modal
+            Callback that's used to make a modal that handles the
+            select page button.
+        modal_title
+            Title of the modal that's sent when the select page button
+            is pressed.
+        not_found_response
+            The response to send when a paginator ID isn't found.
+        out_of_date_response
+            The response to send when the content hashes don't match.
+        """
         self._make_components = make_components
         self._make_modal = make_modal
         self._modal_title = localise.MaybeLocalised[str].parse("Modal title", modal_title)
@@ -5180,17 +5222,42 @@ class StaticPaginatorIndex:
         self._out_of_date_response = out_of_date_response or pagination.Page("This response is out of date")
         self._paginators: dict[str, _StaticPaginator] = {}
 
-    def make_components(
-        self, paginator_id: str, /, *, content_hash: typing.Optional[str] = None, page_number: int = 0
-    ) -> ActionColumnExecutor:
-        return self._make_components(paginator_id, content_hash, page_number)
+    @property
+    def not_found_response(self) -> pagination.AbstractPage:
+        return self._not_found_response
+
+    @property
+    def out_of_date_response(self) -> pagination.AbstractPage:
+        return self._out_of_date_response
 
     def add_to_clients(self, component_client: ComponentClient, modal_client: modals.ModalClient, /) -> Self:
+        """Add this index to the component and modal clients to enable operation.
+
+        Parameters
+        ----------
+        component_client
+            The component client ot add this to.
+        modal_client
+            The modal client to add this to.
+        """
         component_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
         modal_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
-        component_client.register_executor(StaticComponentPaginator(), timeout=None)
+        component_client.register_executor(StaticComponentPaginator("", 0), timeout=None)
         modal_client.register_modal(STATIC_PAGINATION_ID, static_paginator_model(), timeout=None)
         return self
+
+    def make_components(self, paginator_id: str, /, *, page_number: int = 0) -> ActionColumnExecutor:
+        """Make the base message components used to start a paginted message.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the indexed paginator these components should target.
+        page_number
+            Index of the starting page.
+        """
+        content_hash = self._paginators[paginator_id].content_hash
+        return self._make_components(paginator_id, page_number, content_hash)
 
     def set_paginator(
         self,
@@ -5213,14 +5280,6 @@ class StaticPaginatorIndex:
         metadata = _parse_metadata(ctx.id_metadata)
         return self._paginators[metadata.paginator_id]
 
-    @property
-    def not_found_response(self) -> pagination.AbstractPage:
-        return self._not_found_response
-
-    @property
-    def out_of_date_response(self) -> pagination.AbstractPage:
-        return self._out_of_date_response
-
     async def callback(
         self,
         ctx: typing.Union[
@@ -5239,9 +5298,7 @@ class StaticPaginatorIndex:
             if page_number == -1:
                 page_number = last_index
 
-            components = self.make_components(
-                metadata.paginator_id, content_hash=metadata.content_hash, page_number=page_number
-            ).rows
+            components = self.make_components(metadata.paginator_id, page_number=page_number).rows
             if page_number == last_index or page_number == 0:
                 for component in _iter_components(components):
                     if component.type is not hikari.ComponentType.BUTTON:
@@ -5284,3 +5341,7 @@ def _iter_components(
     rows: collections.Sequence[hikari.api.MessageActionRowBuilder],
 ) -> collections.Iterable[hikari.api.ComponentBuilder]:
     return itertools.chain.from_iterable(row.components for row in rows)
+
+
+BaseContext = _BaseContext
+"""Deprecated alias of [yuyo.interactions.BaseContext][]"""

@@ -214,7 +214,7 @@ class _MaybeLocalised(localise.MaybeLocalised[str]):
     @classmethod
     def pydantic_parse(cls, raw_value: _MaybeLocalisedType, info: pydantic_core.core_schema.ValidationInfo, /) -> Self:
         field_name = info.field_name or "<UNKNOWN>"
-        return cls.parse(field_name, raw_value)
+        return cls.parse(field_name, typing.cast("typing.Union[str, collections.Mapping[str, str]]", raw_value))
 
     def unparse(self) -> _MaybeLocalisedType:
         if self.localisations:
