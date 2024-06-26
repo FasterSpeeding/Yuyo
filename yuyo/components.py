@@ -5236,7 +5236,7 @@ class StaticPaginatorIndex:
         Parameters
         ----------
         component_client
-            The component client ot add this to.
+            The component client to add this to.
         modal_client
             The modal client to add this to.
         """

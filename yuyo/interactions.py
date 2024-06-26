@@ -98,6 +98,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             None,
         ] = None,
     ) -> None:
+        """Initialise a base context."""
         self._ephemeral_default = ephemeral_default
         self._has_responded = False
         self._has_been_deferred = False
