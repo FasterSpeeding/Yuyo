@@ -82,7 +82,6 @@ __all__: list[str] = [
     "to_builder",
 ]
 
-from . import interactions
 from . import links
 from . import timeouts
 from . import to_builder

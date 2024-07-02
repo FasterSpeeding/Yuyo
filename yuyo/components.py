@@ -4668,29 +4668,86 @@ _PAGE_NUMBER_KEY = "index"
 _HASH_INDEX_KEY = "hash"
 
 
-class _StaticPaginator:
-    __slots__ = ("_content_hash", "_pages")
+class StaticPaginatorData:
+    """Represents a static paginator's data."""
+
+    __slots__ = ("_content_hash", "_make_components", "_pages", "_paginator_id")
 
     def __init__(
-        self, pages: collections.Sequence[pagination.AbstractPage], /, *, content_hash: typing.Optional[str]
+        self,
+        paginator_id: str,
+        pages: collections.Sequence[pagination.AbstractPage],
+        /,
+        *,
+        content_hash: typing.Optional[str],
+        make_components: collections.Callable[
+            [str, int, typing.Optional[str]], ActionColumnExecutor
+        ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
+            paginator_id, page_number, content_hash=content_hash
+        ),
     ) -> None:
+        """Initialise a static paginator.
+
+        Parameters
+        ----------
+        pages
+            Sequence of the static paginator's pages.
+        content_hash
+            Optional hash used to verify data sync.
+        """
         self._content_hash = content_hash
+        self._make_components = make_components
         self._pages = pages
+        self._paginator_id = paginator_id
 
     @property
     def content_hash(self) -> typing.Optional[str]:
+        """Optional hash used to verify data sync."""
         return self._content_hash
 
     @property
     def pages(self) -> collections.Sequence[pagination.AbstractPage]:
+        """The paginator's pages."""
         return self._pages
 
     def get_page(self, page_number: int, /) -> typing.Optional[pagination.AbstractPage]:
+        """Get a page from the paginator.
+
+        Parameters
+        ----------
+        page_number
+            The zero-indexed page index.
+
+        Returns
+        -------
+        yuyo.pagination.AbstractPage | None
+            The found page or None if out of bounds.
+        """
         try:
             return self._pages[page_number]
 
         except IndexError:
             return None
+
+    def make_components(self, page_number: int, /) -> ActionColumnExecutor:
+        """Make the base message components used to start a paginted message.
+
+        Parameters
+        ----------
+        page_number
+            Index of the starting page.
+
+        Returns
+        -------
+        yuyo.components.ActionColumnExecutor
+            The created acion column execugtor.
+
+        Raises
+        ------
+        KeyError
+            If paginator_id isn't found.
+        """
+        return self._make_components(self._paginator_id, page_number, self._content_hash)
 
 
 def static_paginator_model(
@@ -4759,7 +4816,7 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
     return _Metadata(content_hash=content_hash, paginator_id=paginator_id, page_number=page_number)
 
 
-class _StaticPaginatorID(str, enum.Enum):
+class _StaticPaginatorId(str, enum.Enum):
     FIRST = f"{STATIC_PAGINATION_ID}.first"
     PREVIOUS = f"{STATIC_PAGINATION_ID}.prev"
     SELECT = f"{STATIC_PAGINATION_ID}.select"
@@ -4767,8 +4824,8 @@ class _StaticPaginatorID(str, enum.Enum):
     LAST = f"{STATIC_PAGINATION_ID}.last"
 
 
-_STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorID.FIRST, _StaticPaginatorID.PREVIOUS}
-_STATIC_FORWARD_BUTTONS = {_StaticPaginatorID.NEXT, _StaticPaginatorID.LAST}
+_STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorId.FIRST, _StaticPaginatorId.PREVIOUS}
+_STATIC_FORWARD_BUTTONS = {_StaticPaginatorId.NEXT, _StaticPaginatorId.LAST}
 
 
 def _get_page_number(ctx: ComponentContext, /) -> int:
@@ -4847,7 +4904,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: str = _StaticPaginatorID.FIRST,
+        custom_id: str = _StaticPaginatorId.FIRST,
         emoji: typing.Union[
             hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
         ] = pagination.LEFT_DOUBLE_TRIANGLE,
@@ -4905,7 +4962,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: str = _StaticPaginatorID.PREVIOUS,
+        custom_id: str = _StaticPaginatorId.PREVIOUS,
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -4965,7 +5022,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
-        custom_id: str = _StaticPaginatorID.SELECT,
+        custom_id: str = _StaticPaginatorId.SELECT,
         emoji: typing.Union[
             hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
         ] = pagination.SELECT_PAGE_SYMBOL,
@@ -5027,7 +5084,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: str = _StaticPaginatorID.NEXT,
+        custom_id: str = _StaticPaginatorId.NEXT,
         emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
         id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -5087,7 +5144,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: str = _StaticPaginatorID.LAST,
+        custom_id: str = _StaticPaginatorId.LAST,
         emoji: typing.Union[
             hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
         ] = pagination.RIGHT_DOUBLE_TRIANGLE,
@@ -5220,14 +5277,16 @@ class StaticPaginatorIndex:
         self._modal_title = localise.MaybeLocalised[str].parse("Modal title", modal_title)
         self._not_found_response = not_found_response or pagination.Page("Page not found")
         self._out_of_date_response = out_of_date_response or pagination.Page("This response is out of date")
-        self._paginators: dict[str, _StaticPaginator] = {}
+        self._paginators: dict[str, StaticPaginatorData] = {}
 
     @property
     def not_found_response(self) -> pagination.AbstractPage:
+        """Response that's sent by the default implementation when a paginator ID isn't found."""
         return self._not_found_response
 
     @property
     def out_of_date_response(self) -> pagination.AbstractPage:
+        """Response that's sent by the default implementation when content hashes don't match."""
         return self._out_of_date_response
 
     def add_to_clients(self, component_client: ComponentClient, modal_client: modals.ModalClient, /) -> Self:
@@ -5246,39 +5305,66 @@ class StaticPaginatorIndex:
         modal_client.register_modal(STATIC_PAGINATION_ID, static_paginator_model(), timeout=None)
         return self
 
-    def make_components(self, paginator_id: str, /, *, page_number: int = 0) -> ActionColumnExecutor:
-        """Make the base message components used to start a paginted message.
-
-        Parameters
-        ----------
-        paginator_id
-            ID of the indexed paginator these components should target.
-        page_number
-            Index of the starting page.
-        """
-        content_hash = self._paginators[paginator_id].content_hash
-        return self._make_components(paginator_id, page_number, content_hash)
-
     def set_paginator(
         self,
-        identifier: str,
+        paginator_id: str,
         pages: collections.Sequence[pagination.AbstractPage],
         /,
         *,
         content_hash: typing.Optional[str] = None,
     ) -> Self:
-        self._paginators[identifier] = _StaticPaginator(pages, content_hash=content_hash)
+        """Set the static paginator for a custom ID.
+
+        Parameters
+        ----------
+        paginator_id
+            ID that's used to identify this paginator.
+        pages
+            Sequence of the paginator's built pages.
+        content_hash
+            Content hash that's used to optionally ensure instances of the
+            of the paginator's components are compatible with the bot's stored data.
+        """
+        self._paginators[paginator_id] = StaticPaginatorData(
+            paginator_id, pages, content_hash=content_hash, make_components=self._make_components
+        )
         return self
 
-    def get_paginator(
-        self,
-        ctx: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
-        /,
-    ) -> _StaticPaginator:
-        metadata = _parse_metadata(ctx.id_metadata)
-        return self._paginators[metadata.paginator_id]
+    def get_paginator(self, paginator_id: str, /) -> StaticPaginatorData:
+        """Get a paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator to get.
+
+        Returns
+        -------
+        yuyo.components.StaticPaginatorData
+            The found static paginator.
+
+        Raises
+        ------
+        KeyError
+            If no paginator was found.
+        """
+        return self._paginators[paginator_id]
+
+    def remove_paginator(self, paginator_id: str, /) -> Self:
+        """Remove a static paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator to remove.
+
+        Raises
+        ------
+        KeyError
+            If no paginator was found.
+        """
+        del self._paginators[paginator_id]
+        return self
 
     async def callback(
         self,
@@ -5288,8 +5374,17 @@ class StaticPaginatorIndex:
         page_number: int,
         /,
     ) -> None:
+        """Execute a static paginator interaction.
+
+        Parameters
+        ----------
+        ctx
+            The context of the component or modal interaction being executed.
+        page_number
+            The paginator instance's current page.
+        """
         metadata = _parse_metadata(ctx.id_metadata)
-        paginator = self.get_paginator(ctx)
+        paginator = self.get_paginator(metadata.paginator_id)
         if paginator.content_hash and paginator.content_hash != metadata.content_hash:
             await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
 
@@ -5298,7 +5393,7 @@ class StaticPaginatorIndex:
             if page_number == -1:
                 page_number = last_index
 
-            components = self.make_components(metadata.paginator_id, page_number=page_number).rows
+            components = paginator.make_components(page_number).rows
             if page_number == last_index or page_number == 0:
                 for component in _iter_components(components):
                     if component.type is not hikari.ComponentType.BUTTON:
@@ -5326,6 +5421,13 @@ class StaticPaginatorIndex:
             await ctx.create_initial_response(ephemeral=True, **self.not_found_response.ctx_to_kwargs(ctx))
 
     async def create_select_modal(self, ctx: ComponentContext, /) -> None:
+        """Create the standard modal used to handle the select page button.
+
+        Parameters
+        ----------
+        ctx
+            The component context this modal is being made for.
+        """
         await ctx.create_modal_response(
             self._modal_title.localise(ctx),
             f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}",

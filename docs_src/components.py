@@ -18,9 +18,9 @@ from collections import abc as collections
 
 import alluka
 import hikari
-import tanjun
 
 from yuyo import components
+from yuyo import modals
 from yuyo import pagination
 
 
@@ -146,9 +146,7 @@ def creating_a_component() -> None:
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
         async def on_button(self, ctx: components.Context) -> None: ...
 
-    async def command_callback(
-        ctx: tanjun.abc.AppCommandContext, component_client: alluka.Injected[components.Client]
-    ) -> None:
+    async def callback(ctx: components.Context, component_client: alluka.Injected[components.Client]) -> None:
         column = ColumnCls(123)
         message = await ctx.respond(components=column.rows)
         component_client.register_executor(column, message=message)
@@ -167,9 +165,7 @@ def creating_a_static_component() -> None:
 
     ...
 
-    async def command_callback(
-        ctx: tanjun.abc.AppCommandContext, component_client: alluka.Injected[components.Client]
-    ) -> None:
+    async def callback(ctx: components.Context, component_client: alluka.Injected[components.Client]) -> None:
         session_id = uuid.uuid4()
         await ctx.respond(components=ColumnCls(id_metadata={"on_button": str(session_id)}).rows)
 
@@ -200,7 +196,7 @@ def updating_source() -> None:
 
 
 def paginator_example() -> None:
-    async def command(ctx: tanjun.abc.Context, component_client: alluka.Injected[components.Client]) -> None:
+    async def command(ctx: components.Context, component_client: alluka.Injected[components.Client]) -> None:
         pages = [pagination.Page("Page 1"), pagination.Page("Page 2"), pagination.Page("Page 3")]
         paginator = components.Paginator(iter(pages))
 
@@ -226,6 +222,26 @@ def all_buttons(pages: collections.Iterator[pagination.Page]) -> None:
         .add_next_button()
         .add_last_button()
     )
+
+
+def static_paginator_example(bot: hikari.GatewayBot) -> None:
+    component_client = components.Client.from_gateway_bot(bot)
+    modal_client = modals.Client.from_gateway_bot(bot)
+    PAGINATOR_ID = "PAGINATOR_1"
+
+    (
+        components.StaticPaginatorIndex()
+        .set_paginator(PAGINATOR_ID, [pagination.Page("Page 1"), pagination.Page("Page 2"), pagination.Page("Page 3")])
+        .add_to_clients(component_client, modal_client)
+    )
+
+    ...
+
+    async def callback(
+        ctx: components.Context, paginator_index: alluka.Injected[components.StaticPaginatorIndex]
+    ) -> None:
+        paginator = paginator_index.get_paginator(PAGINATOR_ID)
+        await ctx.respond(**paginator.pages[0].to_kwargs(), components=paginator.make_components(0).rows)
 
 
 def wait_for_example() -> None: ...
