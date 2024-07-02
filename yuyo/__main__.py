@@ -34,7 +34,6 @@ from __future__ import annotations
 __all__: list[str] = []
 
 import asyncio
-import dataclasses
 import enum
 import json
 import logging
@@ -45,6 +44,8 @@ import unicodedata
 import hikari
 
 from yuyo import to_builder
+
+from ._internal import localise
 
 try:
     import click
@@ -193,11 +194,8 @@ _Locale = typing.Union[typing.Literal["default"], typing.Annotated[hikari.Locale
 _MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
 
 
-@dataclasses.dataclass
-class _MaybeLocalised:
-    field_name: str
-    value: str
-    localisations: collections.Mapping[str, str]
+class _MaybeLocalised(localise.MaybeLocalised[str]):
+    __slots__ = ()
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -216,12 +214,7 @@ class _MaybeLocalised:
     @classmethod
     def pydantic_parse(cls, raw_value: _MaybeLocalisedType, info: pydantic_core.core_schema.ValidationInfo, /) -> Self:
         field_name = info.field_name or "<UNKNOWN>"
-        if isinstance(raw_value, str):
-            return cls(field_name=field_name, value=raw_value, localisations={})
-
-        value = raw_value.get("default") or next(iter(raw_value.values()))
-        localisations: dict[str, str] = {k: v for k, v in raw_value.items() if k != "default"}
-        return cls(field_name=field_name, value=value, localisations=localisations)
+        return cls.parse(field_name, typing.cast("typing.Union[str, collections.Mapping[str, str]]", raw_value))
 
     def unparse(self) -> _MaybeLocalisedType:
         if self.localisations:
@@ -240,16 +233,18 @@ class _MaybeLocalised:
     def assert_matches(
         self, pattern: str, match: collections.Callable[[str], bool], /, *, lower_only: bool = False
     ) -> Self:
-        for value in self._values():
-            if not match(value):
-                raise ValueError(
-                    f"Invalid {self.field_name} provided, {value!r} doesn't match the required regex `{pattern}`"
-                )
+        if lower_only:
 
-            if lower_only and value.lower() != value:
-                raise ValueError(f"Invalid {self.field_name} provided, {value!r} must be lowercase")
+            def is_lower(value: str, /) -> bool:
+                if value.lower() != value:
+                    raise ValueError(f"Invalid {self.field_name} provided, {value!r} must be lowercase")
 
-        return self
+                return True
+
+        else:
+            is_lower = _always_true
+
+        return super().assert_matches(pattern, lambda value: match(value) and is_lower(value))
 
     def assert_length(self, min_length: int, max_length: int, /) -> Self:
         lengths = sorted(map(len, self._values()))
@@ -267,6 +262,10 @@ class _MaybeLocalised:
             )
 
         return self
+
+
+def _always_true(*args: typing.Any, **kwargs: typing.Any) -> bool:
+    return True
 
 
 class _RenameModel(pydantic.BaseModel):

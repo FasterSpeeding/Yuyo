@@ -178,7 +178,7 @@ to Hikari's message respond method but will only be guaranteed to return a
 [hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
 passed.
 
-Alternatively, [yuyo.InteractionError][yuyo.components.InteractionError] can be
+Alternatively, [yuyo.InteractionError][yuyo.interactions.InteractionError] can be
 raised to end the execution of a modal with a response message.
 
 !!! note
