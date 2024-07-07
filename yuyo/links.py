@@ -80,7 +80,7 @@ class BaseLink(abc.ABC):
         app
             The Hikari bot or REST app this should be bound to.
         content
-            The string to searh in.
+            The string to search in.
 
         Returns
         -------
@@ -98,7 +98,7 @@ class BaseLink(abc.ABC):
         app
             The Hikari bot or REST app this should be bound to.
         content
-            The string to searh in.
+            The string to search in.
 
         Returns
         -------
