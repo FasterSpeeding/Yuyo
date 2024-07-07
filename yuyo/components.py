@@ -5396,14 +5396,9 @@ class StaticPaginatorIndex:
             components = paginator.make_components(page_number).rows
             if page_number == last_index or page_number == 0:
                 for component in _iter_components(components):
-                    if component.type is not hikari.ComponentType.BUTTON:
+                    if not isinstance(component, hikari.api.InteractiveButtonBuilder):
                         continue
 
-                    assert isinstance(component, hikari.api.ButtonBuilder)
-                    if component.style is hikari.ButtonStyle.LINK:
-                        continue
-
-                    assert isinstance(component, hikari.api.InteractiveButtonBuilder)
                     custom_id = component.custom_id.split(":", 1)[0]
                     if (
                         page_number == 0
