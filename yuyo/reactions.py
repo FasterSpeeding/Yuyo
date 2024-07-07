@@ -119,7 +119,7 @@ class AbstractReactionHandler(abc.ABC):
 class ReactionHandler(AbstractReactionHandler):
     """Standard basic implementation of a reaction handler."""
 
-    __slots__ = ("_authors", "_callbacks", "_last_triggered", "_lock", "_message", "_timeout")
+    __slots__ = ("_authors", "_callbacks", "_close_task", "_last_triggered", "_lock", "_message", "_timeout")
 
     def __init__(
         self,
@@ -141,6 +141,7 @@ class ReactionHandler(AbstractReactionHandler):
         """
         self._authors = set(map(hikari.Snowflake, authors))
         self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
+        self._close_task: typing.Optional[asyncio.Task[None]]
         self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
         self._lock = asyncio.Lock()
         self._message: typing.Optional[hikari.Message] = None
@@ -250,7 +251,7 @@ class ReactionHandler(AbstractReactionHandler):
     ) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
-            asyncio.create_task(self.close())
+            self._close_task = asyncio.create_task(self.close())
             raise
 
         if self._message is None or self._authors and event.user_id not in self._authors:
@@ -283,7 +284,7 @@ Handler = ReactionHandler
 class ReactionPaginator(ReactionHandler):
     """Standard implementation of a reaction handler for pagination."""
 
-    __slots__ = ("_paginator", "_reactions")
+    __slots__ = ("_delete_task", "_paginator", "_reactions")
 
     def __init__(
         self,
@@ -321,6 +322,7 @@ class ReactionPaginator(ReactionHandler):
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
+        self._delete_task: typing.Optional[asyncio.Task[None]] = None
         self._paginator = pagination.Paginator(iterator)
         self._reactions: list[typing.Union[hikari.CustomEmoji, str]] = []
 
@@ -511,7 +513,7 @@ class ReactionPaginator(ReactionHandler):
             self._message = None
             # We create a task here rather than awaiting this to ensure the instance is marked as ended as soon as
             # possible.
-            asyncio.create_task(message.delete())
+            self._delete_task = asyncio.create_task(message.delete())
 
         raise HandlerClosed
 
