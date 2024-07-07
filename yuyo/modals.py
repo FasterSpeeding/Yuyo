@@ -969,7 +969,7 @@ class Modal(AbstractModal):
         self._ephemeral_default = ephemeral_default
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
-        # TODO: don't duplicate fields when re-declared
+        # TODO: don't duplicate fields when redeclared
         if id_metadata is None:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(components=[component]) for _, component in self._static_builders
