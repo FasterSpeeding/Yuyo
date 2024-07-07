@@ -369,7 +369,7 @@ class AsgiAdapter:
                 body, signature, timestamp  # pyright: ignore[reportArgumentType]
             )
         except Exception:
-            await _error_response(send, b"Internal Server Error", status_code=500)
+            await _error_response(send, b"Internal Server Error", status_code=500)  # noqa: ASYNC120
             raise
 
         headers: list[tuple[bytes, bytes]] = []
