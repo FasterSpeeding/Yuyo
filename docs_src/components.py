@@ -58,8 +58,7 @@ def action_column_of_menus() -> None:
 def action_column_of_buttons() -> None:
     class Column(components.ActionColumnExecutor):
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
-        async def on_button(self, ctx: components.Context) -> None:
-            ...
+        async def on_button(self, ctx: components.Context) -> None: ...
 
         link_button = components.link_button("https://example.com", label="label")
 
@@ -85,23 +84,19 @@ def column_template_decorator_methods() -> None:
     column_template = components.column_template()
 
     @column_template.with_static_channel_menu
-    async def on_channel_menu(ctx: components.Context) -> None:
-        ...
+    async def on_channel_menu(ctx: components.Context) -> None: ...
 
     @components.with_option("opt3", "value3")
     @components.with_option("opt2", "value2")
     @components.with_option("opt1", "value1")
     @column_template.with_static_text_menu
-    async def on_text_menu(ctx: components.Context) -> None:
-        ...
+    async def on_text_menu(ctx: components.Context) -> None: ...
 
     @column_template.with_static_role_menu
-    async def on_role_menu(ctx: components.Context) -> None:
-        ...
+    async def on_role_menu(ctx: components.Context) -> None: ...
 
     @column_template.with_static_interactive_button(hikari.ButtonStyle.DANGER, label="👍")
-    async def on_button(ctx: components.Context) -> None:
-        ...
+    async def on_button(ctx: components.Context) -> None: ...
 
 
 # fmt: off
@@ -125,23 +120,19 @@ def action_column_with_methods() -> None:
     column = components.ActionColumnExecutor()
 
     @column.with_channel_menu
-    async def on_channel_menu(ctx: components.Context) -> None:
-        ...
+    async def on_channel_menu(ctx: components.Context) -> None: ...
 
     @components.with_option("opt3", "value3")
     @components.with_option("opt2", "value2")
     @components.with_option("opt1", "value1")
     @column.with_text_menu
-    async def on_text_menu(ctx: components.Context) -> None:
-        ...
+    async def on_text_menu(ctx: components.Context) -> None: ...
 
     @column.with_role_menu
-    async def on_role_menu(ctx: components.Context) -> None:
-        ...
+    async def on_role_menu(ctx: components.Context) -> None: ...
 
     @column.with_interactive_button(hikari.ButtonStyle.DANGER, label="👍")
-    async def on_button(ctx: components.Context) -> None:
-        ...
+    async def on_button(ctx: components.Context) -> None: ...
 
 
 def creating_a_component() -> None:
@@ -153,8 +144,7 @@ def creating_a_component() -> None:
             self.state = state
 
         @components.as_interactive_button(hikari.ButtonStyle.DANGER, emoji="👍")
-        async def on_button(self, ctx: components.Context) -> None:
-            ...
+        async def on_button(self, ctx: components.Context) -> None: ...
 
     async def command_callback(
         ctx: tanjun.abc.AppCommandContext, component_client: alluka.Injected[components.Client]
@@ -238,9 +228,7 @@ def all_buttons(pages: collections.Iterator[pagination.Page]) -> None:
     )
 
 
-def wait_for_example() -> None:
-    ...
+def wait_for_example() -> None: ...
 
 
-def stream_example() -> None:
-    ...
+def stream_example() -> None: ...

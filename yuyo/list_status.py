@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -358,7 +358,7 @@ class EventStrategy(_LoadableStrategy):
 
 
 def _shard_guild_ids(shards: hikari.ShardAware, guild_ids: collections.Iterable[hikari.Snowflake], /) -> dict[int, int]:
-    counts = {shard_id: 0 for shard_id in shards.shards.keys()}
+    counts = dict.fromkeys(shards.shards.keys(), 0)
 
     for guild_id in guild_ids:
         shard_id = hikari.snowflakes.calculate_shard_id(shards.shard_count, guild_id)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -75,12 +75,10 @@ else:
         return iterable.__aiter__()
 
     @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T:
-        ...
+    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T: ...
 
     @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]:
-        ...
+    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]: ...
 
     async def anext_(
         iterator: collections.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /

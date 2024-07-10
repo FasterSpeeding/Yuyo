@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "StreamExecutor",
     "WaitForExecutor",
     "as_channel_menu",
     "as_interactive_button",
@@ -45,6 +46,7 @@ __all__: list[str] = [
     "as_select_menu",
     "as_text_menu",
     "as_user_menu",
+    "builder",
     "column_template",
     "link_button",
     "with_option",
@@ -65,6 +67,7 @@ import typing
 from collections import abc as collections
 
 import alluka as alluka_
+import alluka.local as alluka_local
 import hikari
 import typing_extensions
 from hikari import snowflakes
@@ -253,8 +256,7 @@ class InteractionError(Exception):
         /,
         *,
         ensure_result: typing.Literal[True],
-    ) -> hikari.Message:
-        ...
+    ) -> hikari.Message: ...
 
     @typing.overload
     async def send(
@@ -263,8 +265,7 @@ class InteractionError(Exception):
         /,
         *,
         ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]:
-        ...
+    ) -> typing.Optional[hikari.Message]: ...
 
     async def send(
         self,
@@ -513,18 +514,33 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
         return delete_after
 
-    def _get_flags(self, flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag], /) -> int:
-        if flags is not hikari.UNDEFINED:
-            assert isinstance(flags, int)
-            return flags
+    def _get_flags(
+        self,
+        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        /,
+        *,
+        ephemeral: typing.Optional[bool] = None,
+        is_create: bool = True,
+    ) -> typing.Union[int, hikari.MessageFlag]:
+        if flags is hikari.UNDEFINED:
+            if ephemeral is True or (ephemeral is None and is_create and self._ephemeral_default):
+                return hikari.MessageFlag.EPHEMERAL
 
-        return hikari.MessageFlag.EPHEMERAL if self._ephemeral_default else hikari.MessageFlag.NONE
+            return hikari.MessageFlag.NONE
+
+        if ephemeral is True:
+            return flags | hikari.MessageFlag.EPHEMERAL
+
+        if ephemeral is False:
+            return flags & ~hikari.MessageFlag.EPHEMERAL
+
+        return flags
 
     async def defer(
         self,
         *,
         defer_type: hikari.DeferredResponseTypesT = hikari.ResponseType.DEFERRED_MESSAGE_CREATE,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = None,
         flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
     ) -> None:
         """Defer the initial response for this context.
@@ -556,11 +572,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         flags
             The flags to use for the initial response.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
-        else:
-            flags = self._get_flags(flags)
+        flags = self._get_flags(
+            flags, ephemeral=ephemeral, is_create=defer_type == hikari.ResponseType.DEFERRED_MESSAGE_CREATE
+        )
 
         async with self._response_lock:
             if self._has_been_deferred:
@@ -586,6 +600,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -611,7 +626,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             components=components,
             embed=embed,
             embeds=embeds,
-            flags=self._get_flags(flags),
+            flags=self._get_flags(flags, ephemeral=ephemeral),
             tts=tts,
             mentions_everyone=mentions_everyone,
             user_mentions=user_mentions,
@@ -634,7 +649,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -747,13 +762,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             If both `attachment` and `attachments` are passed or both `component`
             and `components` are passed or both `embed` and `embeds` are passed.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
         async with self._response_lock:
             return await self._create_followup(
                 content=content,
                 delete_after=delete_after,
+                ephemeral=ephemeral,
                 attachment=attachment,
                 attachments=attachments,
                 component=component,
@@ -781,6 +794,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -797,7 +811,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
-        flags = self._get_flags(flags)
+        flags = self._get_flags(
+            flags, ephemeral=ephemeral, is_create=response_type == hikari.ResponseType.MESSAGE_CREATE
+        )
         delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
         if self._has_responded:
             raise RuntimeError("Initial response has already been created")
@@ -855,7 +871,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         *,
         response_type: hikari.MessageResponseTypesT = hikari.ResponseType.MESSAGE_CREATE,
         delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: bool = False,
+        ephemeral: typing.Optional[bool] = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -974,13 +990,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         hikari.errors.InternalServerError
             If an internal error occurs on Discord while handling the request.
         """
-        if ephemeral:
-            flags = (flags or hikari.MessageFlag.NONE) | hikari.MessageFlag.EPHEMERAL
-
         async with self._response_lock:
             await self._create_initial_response(
                 response_type,
                 delete_after=delete_after,
+                ephemeral=ephemeral,
                 content=content,
                 attachment=attachment,
                 attachments=attachments,
@@ -1362,8 +1376,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         role_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        ...
+    ) -> hikari.Message: ...
 
     @typing.overload
     async def respond(
@@ -1385,8 +1398,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         role_mentions: typing.Union[
             hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
         ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]:
-        ...
+    ) -> typing.Optional[hikari.Message]: ...
 
     async def respond(
         self,
@@ -1858,7 +1870,7 @@ class ComponentClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         if alluka is None:
-            alluka = alluka_.Client()
+            alluka = alluka_local.get(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
@@ -2293,10 +2305,33 @@ class ComponentClient:
 
         return self
 
+    def get_executor(self, custom_id: str, /) -> typing.Optional[AbstractComponentExecutor]:
+        """Get the component executor registered for a custom ID.
+
+        !!! note
+            For message scoped executors use
+            [get_executor_for_message.][yuyo.components.ComponentClient.get_executor_for_message]
+            as they will not be returned here.
+
+        Parameters
+        ----------
+        custom_id
+            The custom ID to get the executor for.
+
+        Returns
+        -------
+        AbstractComponentExecutor | None
+            The executor set for the custom ID or [None][] if none is set.
+        """
+        if entry := self._executors.get(custom_id):
+            return entry[1]
+
+        return None  # MyPy
+
     def get_executor_for_message(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
     ) -> typing.Optional[AbstractComponentExecutor]:
-        """Get the component executor set for a message.
+        """Get the component executor registered for a message.
 
         Parameters
         ----------
@@ -2565,12 +2600,13 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     ```
     """
 
-    __slots__ = ("_authors", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_future", "_timeout", "_timeout_at")
 
     def __init__(
         self,
         *,
         authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
         timeout: typing.Optional[datetime.timedelta],
     ) -> None:
@@ -2583,6 +2619,9 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
             If no users are provided then the components will be public
             (meaning that anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
         ephemeral_default
             Whether or not the responses made on contexts spawned from this paginator
             should default to ephemeral (meaning only the author can see them) unless
@@ -2591,6 +2630,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             How long this should wait for a matching component interaction until it times-out.
         """
         self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._future: typing.Optional[asyncio.Future[Context]] = None
@@ -2600,7 +2640,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     @property
     def custom_ids(self) -> collections.Collection[str]:
         # <<inherited docstring from AbstractComponentExecutor>>.
-        return []
+        return self._custom_ids
 
     @property
     def has_expired(self) -> bool:
@@ -2661,6 +2701,150 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
 WaitFor = WaitForExecutor
 """Alias of [WaitForExecutor][yuyo.components.WaitForExecutor]."""
+
+
+class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
+    """Stream over the received component interactions.
+
+    This should also be passed for `timeout=` and will reject contexts until it's opened.
+
+    Examples
+    --------
+    ```py
+    message = await ctx.respond("hi, pick an option", components=[...])
+    stream = yuyo.components.Stream(authors=[ctx.author.id], timeout=datetime.timedelta(seconds=30))
+    component_client.register_executor(stream, message=message, timeout=stream)
+
+    with stream:
+        async for result in stream:
+            await result.respond("...")
+    ```
+    """
+
+    __slots__ = ("_authors", "_custom_ids", "_ephemeral_default", "_finished", "_max_backlog", "_queue", "_timeout")
+
+    def __init__(
+        self,
+        *,
+        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        custom_ids: collections.Collection[str] = (),
+        ephemeral_default: bool = False,
+        max_backlog: int = 5,
+        timeout: typing.Union[float, int, datetime.timedelta, None],
+    ) -> None:
+        """Initialise a stream executor.
+
+        Parameters
+        ----------
+        authors
+            Users who are allowed to use the components this represents.
+
+            If [None][] is passed here then the paginator will be public (meaning that
+            anybody can use it).
+        custom_ids
+            Collection of the custom IDs this executor should be triggered by when
+            registered globally.
+        ephemeral_default
+            Whether or not the responses made on contexts spawned from this paginator
+            should default to ephemeral (meaning only the author can see them) unless
+            `flags` is specified on the response method.
+        max_backlog
+            The maximum amount of interaction contexts this should store in its backlog.
+
+            Any extra interactions will be rejected while the backlog is full.
+        timeout
+            How long this should wait between iterations for a matching
+            interaction to be recveived before ending the iteration.
+
+            This alone does not close the stream.
+        """
+        if timeout is not None and isinstance(timeout, datetime.timedelta):
+            timeout = timeout.total_seconds()
+
+        self._authors = set(map(hikari.Snowflake, authors)) if authors else None
+        self._custom_ids = custom_ids
+        self._ephemeral_default = ephemeral_default
+        self._finished = False
+        self._max_backlog = max_backlog
+        self._queue: typing.Optional[asyncio.Queue[ComponentContext]] = None
+        self._timeout = timeout
+
+    @property
+    def custom_ids(self) -> collections.Collection[str]:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        return self._custom_ids
+
+    @property
+    def has_expired(self) -> bool:
+        return self._finished
+
+    def __enter__(self) -> Self:
+        self.open()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: typing.Optional[type[BaseException]],
+        exc: typing.Optional[BaseException],
+        exc_traceback: typing.Optional[types.TracebackType],
+    ) -> Self:
+        self.close()
+        return self
+
+    def increment_uses(self) -> bool:
+        return self._finished
+
+    def open(self) -> None:
+        if self._queue is not None:
+            raise RuntimeError("Stream is already active")
+
+        # Assert that this is called in a running event loop
+        asyncio.get_running_loop()
+        self._finished = False
+        self._queue = asyncio.Queue(maxsize=self._max_backlog)
+
+    def close(self) -> None:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        self._finished = True
+        self._queue = None
+
+    def __aiter__(self) -> collections.AsyncIterator[ComponentContext]:
+        return self
+
+    async def __anext__(self) -> ComponentContext:
+        if self._queue is None:
+            raise RuntimeError("Stream is not active")
+
+        try:
+            return await asyncio.wait_for(self._queue.get(), timeout=self._timeout)
+
+        except asyncio.TimeoutError:
+            raise StopAsyncIteration from None
+
+    async def execute(self, ctx: ComponentContext, /) -> None:
+        # <<inherited docstring from AbstractComponentExecutor>>.
+        ctx.set_ephemeral_default(self._ephemeral_default)
+        if self._finished:
+            raise ExecutorClosed
+
+        if not self._queue:
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
+            return
+
+        if self._authors and ctx.interaction.user.id not in self._authors:
+            await ctx.create_initial_response("You are not allowed to use this component", ephemeral=True)
+            return
+
+        try:
+            self._queue.put_nowait(ctx)
+        except asyncio.QueueFull:
+            await ctx.create_initial_response("This bot isn't ready for that yet", ephemeral=True)
+
+
+Stream = StreamExecutor
+"""Alias of [StreamExecutor][yuyo.components.StreamExecutor]."""
 
 
 class _TextSelectMenuBuilder(hikari.impl.TextSelectMenuBuilder[_T]):
@@ -2749,14 +2933,12 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     @typing.overload
     def __get__(
         self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]:
-        ...
+    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]: ...
 
     @typing.overload
     def __get__(
         self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[_P, _CoroT]:
-        ...
+    ) -> collections.Callable[_P, _CoroT]: ...
 
     def __get__(
         self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
@@ -2811,6 +2993,7 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
                 label=self._label,
                 is_disabled=self._is_disabled,
             ),
+            name=name,
             self_bound=True,
         )
 
@@ -2888,7 +3071,6 @@ class _StaticLinkButton(_ComponentDescriptor):
             hikari.impl.LinkButtonBuilder(
                 url=self._url, emoji=self._emoji, label=self._label, is_disabled=self._is_disabled
             ),
-            self_bound=True,
         )
 
 
@@ -2992,8 +3174,7 @@ def as_select_menu(
 @typing.overload
 def as_mentionable_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3006,8 +3187,7 @@ def as_mentionable_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_mentionable_menu(
@@ -3073,8 +3253,7 @@ def as_mentionable_menu(
 @typing.overload
 def as_role_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3087,8 +3266,7 @@ def as_role_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_role_menu(
@@ -3154,8 +3332,7 @@ def as_role_menu(
 @typing.overload
 def as_user_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _SelectMenu[_SelfT, _P]:
-    ...
+) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3168,8 +3345,7 @@ def as_user_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_user_menu(
@@ -3275,8 +3451,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 @typing.overload
 def as_channel_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _ChannelSelect[_SelfT, _P]:
-    ...
+) -> _ChannelSelect[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3292,8 +3467,7 @@ def as_channel_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_channel_menu(
@@ -3414,8 +3588,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 @typing.overload
 def as_text_menu(
     callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
-) -> _TextMenuDescriptor[_SelfT, _P]:
-    ...
+) -> _TextMenuDescriptor[_SelfT, _P]: ...
 
 
 @typing.overload
@@ -3429,8 +3602,7 @@ def as_text_menu(
     is_disabled: bool = False,
 ) -> collections.Callable[
     [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
-]:
-    ...
+]: ...
 
 
 def as_text_menu(
@@ -3542,6 +3714,42 @@ def with_option(
     return lambda text_select: text_select.add_option(
         label, value, description=description, emoji=emoji, is_default=is_default
     )
+
+
+class _BuilderDescriptor(_ComponentDescriptor):
+    __slots__ = ("_builder", "_custom_id")
+
+    def __init__(self, builder: hikari.api.ComponentBuilder, /) -> None:
+        self._builder = builder
+        # While these builders don't necessarily have custom IDs, one is
+        # currently generated to avoid duplication.
+        self._custom_id = _internal.random_custom_id()
+
+    def to_field(self, cls_path: str, name: str) -> _StaticField:
+        return _StaticField(self._custom_id, None, self._builder)
+
+
+def builder(builder: hikari.api.ComponentBuilder, /) -> _BuilderDescriptor:
+    """Add a raw component builder to a column through a descriptor.
+
+    This is mostly for adding components where the custom ID is already
+    registered as a separate constant executor.
+
+    Parameters
+    ----------
+    builder
+        The component builder to add to the column.
+
+    Examples
+    --------
+    ```py
+    class CustomColumn(components.ActionColumnExecutor):
+        link_button = components.builder(hikari.impl.InteractiveButtonBuilder(
+            style=hikari.ButtonStyle.PRIMARY, custom_id="CUSTOM_ID", label="yeet"
+        ))
+    ```
+    """
+    return _BuilderDescriptor(builder)
 
 
 class _StaticField:
@@ -3775,6 +3983,40 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         callback = self._callbacks[ctx.id_match]
         await ctx.client.alluka.call_with_async_di(callback, ctx)
+
+    def add_builder(self, builder: hikari.api.ComponentBuilder, /) -> Self:
+        """Add a raw component builder to this action column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column.
+        """
+        _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON).add_component(builder)
+        return self
+
+    @classmethod
+    def add_static_builder(cls, builder: hikari.api.ComponentBuilder, /) -> type[Self]:
+        """Add a raw component builder to all subclasses and instances of this column.
+
+        This is mostly for adding components where the custom ID is already
+        registered as a separate constant executor.
+
+        Parameters
+        ----------
+        builder
+            The component builder to add to the column class.
+        """
+        # While these builders don't necessarily have custom IDs, one is
+        # currently generated to avoid duplication.
+        custom_id = _internal.random_custom_id()
+        field = _StaticField(custom_id, None, builder)
+        cls._added_static_fields[custom_id] = field
+        cls._static_fields[custom_id] = field
+        return cls
 
     def add_interactive_button(
         self,
@@ -4185,8 +4427,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_mentionable_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_mentionable_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_mentionable_menu(
@@ -4198,8 +4439,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_mentionable_menu(
         self,
@@ -4301,8 +4541,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_mentionable_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_mentionable_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4315,8 +4554,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_mentionable_menu(
@@ -4417,8 +4655,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_role_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_role_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_role_menu(
@@ -4430,8 +4667,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_role_menu(
         self,
@@ -4533,8 +4769,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_role_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_role_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4547,8 +4782,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_role_menu(
@@ -4649,8 +4883,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         )
 
     @typing.overload
-    def with_user_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_user_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_user_menu(
@@ -4662,8 +4895,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_user_menu(
         self,
@@ -4765,8 +4997,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_user_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_user_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -4779,8 +5010,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_user_menu(
@@ -4888,8 +5118,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return self
 
     @typing.overload
-    def with_channel_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_channel_menu(self, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @typing.overload
     def with_channel_menu(
@@ -4904,8 +5133,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     def with_channel_menu(
         self,
@@ -5028,8 +5256,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_channel_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT:
-        ...
+    def with_static_channel_menu(cls, callback: _CallbackSigT, /) -> _CallbackSigT: ...
 
     @classmethod
     @typing.overload
@@ -5045,8 +5272,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
-        ...
+    ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]: ...
 
     @classmethod
     def with_static_channel_menu(
@@ -5169,8 +5395,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         return menu
 
     @typing.overload
-    def with_text_menu(self, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-        ...
+    def with_text_menu(self, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]: ...
 
     @typing.overload
     def with_text_menu(
@@ -5183,8 +5408,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]:
-        ...
+    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]: ...
 
     def with_text_menu(
         self,
@@ -5318,8 +5542,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     @classmethod
     @typing.overload
-    def with_static_text_menu(cls, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]:
-        ...
+    def with_static_text_menu(cls, callback: collections.Callable[_P, _CoroT], /) -> _WrappedTextMenuBuilder[_P]: ...
 
     @classmethod
     @typing.overload
@@ -5333,8 +5556,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]:
-        ...
+    ) -> collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]: ...
 
     @classmethod
     def with_static_text_menu(
@@ -5873,7 +6095,10 @@ class ComponentPaginator(ActionColumnExecutor):
             else:
                 await ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE, **page.to_kwargs())
 
-        else:
+        elif deferring:  # Just edit back in the old components without changing the content
+            await ctx.edit_initial_response(components=self.rows)
+
+        else:  # Avoid changing the content as there are no-more pages.
             await _noop(ctx)
 
     async def _on_next(self, ctx: Context, /) -> None:

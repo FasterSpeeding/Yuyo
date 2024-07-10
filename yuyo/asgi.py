@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -289,7 +289,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_startup))
 
-            except BaseException:
+            except Exception:
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
 
             else:
@@ -299,7 +299,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_shutdown))
 
-            except BaseException:
+            except Exception:
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
 
             else:
@@ -364,9 +364,12 @@ class AsgiAdapter:
             return
 
         try:
-            response = await self.server.on_interaction(body, signature, timestamp)
+            # TODO: update hikari's typing to support bytearray.
+            response = await self.server.on_interaction(
+                body, signature, timestamp  # pyright: ignore[reportArgumentType]
+            )
         except Exception:
-            await _error_response(send, b"Internal Server Error", status_code=500)
+            await _error_response(send, b"Internal Server Error", status_code=500)  # noqa: ASYNC120
             raise
 
         headers: list[tuple[bytes, bytes]] = []
@@ -502,8 +505,7 @@ class AsgiBot(hikari.RESTBotAware):
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -520,8 +522,7 @@ class AsgiBot(hikari.RESTBotAware):
         max_retries: int = 3,
         proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
         rest_url: typing.Optional[str] = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,

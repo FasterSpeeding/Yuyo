@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -480,7 +480,7 @@ class ChunkTracker:
             await asyncio.sleep(1)
             date = _now()
 
-            for nonce, request_info in self._requests.items():
+            for nonce, request_info in self._requests.copy().items():
                 if date - request_info.last_received_at < self._timeout:
                     continue
 
@@ -609,9 +609,7 @@ class ChunkTracker:
             data.missing_chunks.remove(chunk_index)
 
             if not_found_ids:
-                data.not_found_ids.update(  # Pyright bug
-                    map(hikari.Snowflake, not_found_ids)  # pyright: ignore[reportGeneralTypeIssues]
-                )
+                data.not_found_ids.update(map(hikari.Snowflake, not_found_ids))
 
             if not data.missing_chunks:
                 del self._requests[nonce]

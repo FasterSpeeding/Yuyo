@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -53,15 +53,15 @@ class TestCacheStrategy:
     def test_is_shard_bound_property(self):
         assert list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).is_shard_bound is True
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_close(self):
         await list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).close()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_open(self):
         await list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).open()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count(self):
         mock_cache = mock.Mock()
         mock_cache.get_guilds_view.return_value = {
@@ -147,15 +147,15 @@ class TestSakeStrategy:
     def test_is_shard_bound_property(self):
         assert list_status.SakeStrategy(mock.AsyncMock()).is_shard_bound is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_close(self):
         await list_status.SakeStrategy(mock.AsyncMock()).close()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_open(self):
         await list_status.SakeStrategy(mock.AsyncMock()).open()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count(self):
         mock_cache = mock.Mock()
         mock_cache.iter_guilds.return_value.len = mock.AsyncMock()
@@ -163,7 +163,7 @@ class TestSakeStrategy:
 
         assert await strategy.count() is mock_cache.iter_guilds.return_value.len.return_value
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_when_iter_raises_closed_client(self):
         import sake
 
@@ -194,7 +194,7 @@ class TestEventStrategy:
             (4, LookupError),
         ],
     )
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: type[Exception]):
         mock_event_manager = mock.Mock()
         mock_event_manager.unsubscribe.side_effect = [None] * error_on + [error] + [None] * (4 - error_on)
@@ -203,7 +203,7 @@ class TestEventStrategy:
 
         await strategy.close()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_close_when_already_closed(self):
         mock_event_manager = mock.Mock()
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
@@ -212,7 +212,7 @@ class TestEventStrategy:
 
         mock_event_manager.unsubscribe.close.assert_not_called()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_open_when_already_open(self):
         mock_event_manager = mock.Mock()
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
@@ -223,7 +223,7 @@ class TestEventStrategy:
 
         mock_event_manager.subscribe.close.assert_not_called()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_shard_readies(self):
         event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
@@ -267,7 +267,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 3, 1: 1, 2: 2, 3: 4}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_available_event_for_known_guild(self):
         event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
@@ -294,7 +294,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 1}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_available_event_for_unknown_guild(self):
         event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
@@ -322,7 +322,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 1, 1: 0, 2: 1}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_leave_event_for_known_guild(self):
         available_event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
@@ -354,7 +354,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 1, 1: 0}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_leave_event_for_unknown_guild(self):
         available_event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
@@ -388,7 +388,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 0, 1: 0, 2: 1, 3: 0}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_update_event_for_known_guild(self):
         guild_update_event = hikari.GuildUpdateEvent(
             shard=mock.AsyncMock(), old_guild=None, guild=mock.Mock(id=123342123), emojis={}, stickers={}, roles={}
@@ -405,7 +405,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {1: 1}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_guild_update_event_for_unknown_guild(self):
         guild_update_event = hikari.GuildUpdateEvent(
             shard=mock.AsyncMock(), old_guild=None, guild=mock.Mock(id=123342123), emojis={}, stickers={}, roles={}
@@ -423,7 +423,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 1, 1: 1}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_starting_event(self):
         ready_event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
@@ -472,7 +472,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 4}
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_count_after_close(self):
         ready_event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
@@ -563,8 +563,7 @@ class TestEventStrategy:
 
 class TestServiceManager:
     @pytest.mark.skip(reason="TODO")
-    def test_init(self):
-        ...
+    def test_init(self): ...
 
     def test_from_gateway_bot(self):
         mock_counter = mock.AsyncMock()
@@ -700,20 +699,16 @@ class TestServiceManager:
         )
 
         @manager.with_service(repeat=1233122)
-        async def decorated_service_1(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_1(_: list_status.AbstractManager): ...
 
         @manager.with_service(repeat=123.321)
-        async def decorated_service_2(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_2(_: list_status.AbstractManager): ...
 
         @manager.with_service(repeat=datetime.timedelta(seconds=56543))
-        async def decorated_service_3(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_3(_: list_status.AbstractManager): ...
 
         @manager.with_service()
-        async def decorated_service_4(_: list_status.AbstractManager):
-            ...
+        async def decorated_service_4(_: list_status.AbstractManager): ...
 
         assert manager.services == [
             decorated_service_2,
@@ -725,26 +720,22 @@ class TestServiceManager:
         ]
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_open(self):
-        ...
+    @pytest.mark.asyncio
+    async def test_open(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_close(self):
-        ...
+    @pytest.mark.asyncio
+    async def test_close(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_get_me(self):
-        ...
+    @pytest.mark.asyncio
+    async def test_get_me(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_session(self):
-        ...
+    def test_get_session(self): ...
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 class TestTopGGService:
     async def test_call_when_count_is_global(self):
         mock_session = mock.Mock()
@@ -839,7 +830,7 @@ class TestTopGGService:
         mock_session.post.assert_not_called()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 class TestBotsGGService:
     async def test_call_when_count_is_global(self):
         mock_session = mock.Mock()
@@ -892,7 +883,7 @@ class TestBotsGGService:
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 class TestDiscordBotListService:
     async def test_call_when_count_is_global(self):
         mock_session = mock.Mock()

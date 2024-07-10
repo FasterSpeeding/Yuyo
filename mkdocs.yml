@@ -3,6 +3,8 @@ site_name: "Hikari-Yuyo docs"
 repo_url: https://github.com/FasterSpeeding/Yuyo
 theme:
   name: material
+  features:
+    - navigation.prune
   icon:
     admonition:
       note: octicons/tag-16
@@ -20,13 +22,14 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: cyan
+      primary: pink
+      accent: pink
       toggle:
         icon: material/lightbulb
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: cyan
+      primary: pink
       toggle:
         icon: material/lightbulb
         name: Switch to light mode

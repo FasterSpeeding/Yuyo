@@ -56,13 +56,11 @@ def decorated_modal() -> None:
     @modals.with_text_input("other label", parameter="other")
     @modals.with_text_input("label", parameter="field")
     @modals.as_modal
-    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
-        ...
+    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
 
 
 def modal_methods() -> None:
-    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None:
-        ...
+    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
 
     modal = (
         modals.modal(callback)
@@ -135,3 +133,9 @@ def ephemeral_response() -> None:
     async def modal(ctx: modals.Context) -> None:
         await ctx.create_initial_response("Initiating Mower", ephemeral=True)
         await ctx.create_followup("Meowing finished", ephemeral=True)
+
+
+def updating_source() -> None:
+    @modals.as_modal()
+    async def modal(ctx: modals.Context) -> None:
+        await ctx.create_initial_response("content", response_type=hikari.ResponseType.MESSAGE_UPDATE, attachments=[])

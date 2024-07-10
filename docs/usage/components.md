@@ -98,7 +98,7 @@ column) to it:
 * [link_button][yuyo.components.link_button]
 
 ```py
---8<-- "./docs_src/components.py:59:64"
+--8<-- "./docs_src/components.py:59:63"
 ```
 
 Most of these descriptors decorate a callback which'll be called when that
@@ -112,7 +112,7 @@ to the bot.
     then you must make sure to first call `super().__init__()` in it.
 
 ```py
---8<-- "./docs_src/components.py:69:80"
+--8<-- "./docs_src/components.py:68:79"
 ```
 
 Alternatively, static sub-components can be added to an
@@ -120,7 +120,7 @@ Alternatively, static sub-components can be added to an
 chainable `add_static_{}` class methods.
 
 ```py
---8<-- "./docs_src/components.py:85:104"
+--8<-- "./docs_src/components.py:84:99"
 ```
 
 Or by using its `with_static_{}` decorator class methods. The only
@@ -135,7 +135,7 @@ buttons.
 ### Builder
 
 ```py
---8<-- "./docs_src/components.py:109:120"
+--8<-- "./docs_src/components.py:104:115"
 ```
 
 You can also dynamically build a
@@ -143,7 +143,7 @@ You can also dynamically build a
 it by using its chainable `add_{}` methods to add sub-components.
 
 ```py
---8<-- "./docs_src/components.py:125:144"
+--8<-- "./docs_src/components.py:120:135"
 ```
 
 Or by using its `with_{}` decorator methods. The only sub-component type which
@@ -156,7 +156,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:148:164"
+--8<-- "./docs_src/components.py:139:154"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -172,7 +172,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:168:184"
+--8<-- "./docs_src/components.py:158:174"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -182,7 +182,7 @@ Custom IDs have some special handling which allows you to track some metadata
 for a specific message's components. They are split into two parts as
 `"{match}:{metadata}"`, where the "match" part is what Yuyo will use to find
 the executor for a message's components and the "metadata"
-([ComponentContext.id_metadata][yuyo.components.BaseContext.id_metadata]) part
+([ComponentContext.id_metadata][yuyo.components.ComponentContext.id_metadata]) part
 represents any developer added metadata for that specific instance of the
 component.
 
@@ -214,19 +214,22 @@ when registering it globally (i.e. without passing `message=`).
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:188:194"
+--8<-- "./docs_src/components.py:178:184"
 ```
 
-[ComponentContext.respond][yuyo.components.BaseContext.respond] is used to
+[ComponentContext.respond][yuyo.components.ComponentContext.respond] is used to
 respond to an interaction with a new message, this has a similar signature
 to Hikari's message respond method but will only be guaranteed to return a
 [hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
 passed.
 
+Alternatively, [yuyo.InteractionError][yuyo.components.InteractionError] can be
+raised to end the execution of a component with a response message.
+
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:198:202"
+--8<-- "./docs_src/components.py:188:192"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -234,7 +237,7 @@ author can see it) and temporary. A response can be marked as ephemeral by
 passing `ephemeral=True` to either
 [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response]
 (when initially responding to the interaction with a message response) or
-[ComponentContext.create_followup][yuyo.components.BaseContext.create_followup]
+[ComponentContext.create_followup][yuyo.components.ComponentContext.create_followup]
 (for followup responses).
 
 ##### Deferrals
@@ -244,15 +247,15 @@ response within 3 seconds, you can defer the first response using
 [ComponentContext.defer][yuyo.components.ComponentContext.defer].
 
 A deferral should then be finished by editing in the initial response using either
-[ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
-or [ComponentContext.respond][yuyo.components.BaseContext.respond] and if you
+[ComponentContext.edit_initial_response][yuyo.components.ComponentContext.edit_initial_response]
+or [ComponentContext.respond][yuyo.components.ComponentContext.respond] and if you
 want a response to be an ephemeral message create then you'll have to pass
 `ephemeral=True` when deferring.
 
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:206:209"
+--8<-- "./docs_src/components.py:196:199"
 ```
 
 You can also use the initial response to edit the message the component being
@@ -260,8 +263,8 @@ used is on. To do this you need to pass
 `response_type=hikari.ResponseType.MESSAGE_UPDATE` while calling
 [ComponentContext.create_initial_response][yuyo.components.ComponentContext.create_initial_response].
 After doing this any further calls to
-[ComponentContext.delete_initial_response][yuyo.components.BaseContext.delete_initial_response]
-and [ComponentContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
+[ComponentContext.delete_initial_response][yuyo.components.ComponentContext.delete_initial_response]
+and [ComponentContext.edit_initial_response][yuyo.components.ComponentContext.edit_initial_response]
 will target the source message as well.
 
 You cannot change the ephemeral state of the source message.
@@ -286,7 +289,7 @@ Yuyo provides a standard component paginator implementation through
 [components.ComponentPaginator][yuyo.components.ComponentPaginator].
 
 ```py
---8<-- "./docs_src/components.py:213:218"
+--8<-- "./docs_src/components.py:203:208"
 ```
 
 This paginator takes iterators/generators of [yuyo.pagination.Page][]s and will
@@ -297,14 +300,14 @@ Because of this you must use [iter][] before passing a list of pre-built data
 to its init.
 
 ```py
---8<-- "./docs_src/components.py:226:227"
+--8<-- "./docs_src/components.py:216:217"
 ```
 
 This also supports asynchronous iterators/generators, allowing for functionality
 like fetching data as the user scrolls through it.
 
 ```py
---8<-- "./docs_src/components.py:231:238"
+--8<-- "./docs_src/components.py:221:228"
 ```
 
 The paginator only enables 3 buttons by default: step backwards, stop and step

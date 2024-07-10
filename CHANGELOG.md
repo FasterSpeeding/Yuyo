@@ -5,8 +5,77 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.21.1] - 2024-04-29
+### Changed
+- Bumped the minimum Alluka version to `v0.2.0`.
+- The component, modal and reaction clients will now use the "local" Alluka client
+  returned by [alluka.local.get][] if no client is passed and a local Alluka client is set.
+
+## [1.21.0] - 2024-04-21
+### Added
+- Component [StreamExecutor][yuyo.components.StreamExecutor] for streaming over received
+  component contexts.
+- Support for specifying specific component IDs for
+  [WaitForExecutor][yuyo.components.WaitForExecutor].
+
+## [1.20.0] - 2024-03-29
+### Added
+- `yuyo commands declare` command for declaring app commands based on a schema file.
+- `yuyo commands fetch` command for fetching the command schema file for an existing bot.
+- `yuyo commands rename` command for renaming the declared app commands.
+
+## [1.19.1] - 2023-12-28
+### Added
+- Support for Python 3.12.
+
+## [1.19.0] - 2023-08-30
+### Added
+- [ComponentClient.get_executor][yuyo.components.ComponentClient.get_executor]
+  method for getting the executor registered globally for a specific custom ID.
+
+### Changed
+- The ephemeral default is now ignored for message update create initial
+  response and defer calls. (This likely won't effect real world behaviour).
+
+### Fixed
+- Explicitly passing `ephemeral=False` to
+  [create_initial_response][yuyo.components.BaseContext.create_initial_response] or
+  [create_followup][yuyo.components.BaseContext.create_followup] will now correctly
+  override the client-level ephemeral default.
+- The component paginator will no-longer error out with a "Initial response has
+  already been created" error when the jump to last page button tries to push
+  the internal generator forwards only to find out it's depleted.
+
+## [1.18.0] - 2023-08-23
+### Added
+- [yuyo.components.builder][] (a class descriptor),
+  [ActionColumnExecutor.add_builder][yuyo.components.ActionColumnExecutor.add_builder], and
+  [ActionColumnExecutor.add_static_builder][yuyo.components.ActionColumnExecutor.add_static_builder]
+  functions and methods for adding raw component builders to a column without an
+  associated callback.
+
+### Changed
+- [yuyo.pagination.Page][] is now exported top-level at `Yuyo.Page`.
+
+### Fixed
+- Properly track method names for callbacks registered using
+  [as_interactive_button][yuyo.components.as_interactive_button].
+  This allows the custom ID metadata to be overridden by passing
+  `id_metadata={"function_name": "METADATA"}` to
+  [ActionColumnExecutor.\_\_init\_\_][yuyo.components.ActionColumnExecutor.__init__].
+
+## [1.17.0] - 2023-08-18
 ### Added
 - Wait for implementation for modals.
+
+### Changed
+- [Page.\_\_init\_\_][yuyo.pagination.Page.__init__]'s signature now more closely
+  Hikari's message create methods: with new `attachment` and `embed` keyword
+  arguments for passing singular values while also now allowing an embed or file
+  to be passed as `content`.
+
+### Fixed
+- Timed out individual requests will no-longer lead to the chunk tracker crashing.
 
 ## [1.16.0] - 2023-08-11
 ### Added
@@ -775,7 +844,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.21.1...HEAD
+[1.21.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.21.0...v1.21.1
+[1.21.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.20.0...v1.21.0
+[1.20.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.1...v1.20.0
+[1.19.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.19.0...v1.19.1
+[1.19.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.18.0...v1.19.0
+[1.18.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.17.0...v1.18.0
+[1.17.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.2...v1.15.0
 [1.14.2]: https://github.com/FasterSpeeding/Yuyo/compare/v1.14.1...v1.14.2

@@ -21,17 +21,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: "true"
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -51,12 +51,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           submodules: "true"
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: "3.9"
 
@@ -70,14 +70,14 @@ jobs:
           python -m nox -s test-coverage
 
       - name: Upload coverage
-        uses: paambaati/codeclimate-action@4cace242c6e0a2dd554bbb3cc12c58047d8af3e5
+        uses: paambaati/codeclimate-action@7c100bd1ed15de0bdee476b38ca759d8c94207b5
         env:
           CC_TEST_REPORTER_ID: ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933
         with:
           coverageLocations: .coverage.xml:coverage.py
 
       - name: Archive coverage
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b
         with:
           name: coverage
           path: ./coverage_html

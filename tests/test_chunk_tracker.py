@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -151,15 +151,12 @@ class TestChunkTracker:
         assert tracker._shards is mock_bot
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test_request_guild_members(self):
-        ...
+    @pytest.mark.asyncio
+    async def test_request_guild_members(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_auto_chunk_members(self):
-        ...
+    def test_set_auto_chunk_members(self): ...
 
     @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio()
-    async def test(self):
-        ...
+    @pytest.mark.asyncio
+    async def test(self): ...

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ class BaseLink(abc.ABC):
         app
             The Hikari bot or REST app this should be bound to.
         content
-            The string to searh in.
+            The string to search in.
 
         Returns
         -------
@@ -98,7 +98,7 @@ class BaseLink(abc.ABC):
         app
             The Hikari bot or REST app this should be bound to.
         content
-            The string to searh in.
+            The string to search in.
 
         Returns
         -------

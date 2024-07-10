@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 from unittest import mock
 
 import alluka
+import alluka.local
 
 from yuyo import reactions
 
@@ -45,6 +46,12 @@ class TestReactionClient:
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(reactions.ReactionClient) is client
+
+    def test_alluka_when_alluka_local_client(self):
+        with alluka.local.scope_client() as expected_alluka_client:
+            client = reactions.ReactionClient(rest=mock.AsyncMock(), event_manager=mock.Mock())
+
+            assert client.alluka is expected_alluka_client
 
     def test_alluka_with_passed_through_client(self):
         mock_alluka = mock.Mock()

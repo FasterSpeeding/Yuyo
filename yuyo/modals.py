@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2023, Faster Speeding
+# Copyright (c) 2020-2024, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ import typing
 import alluka as alluka_
 import hikari
 import typing_extensions
+from alluka import local as alluka_local
 
 from . import _internal
 from . import components as components_
@@ -75,8 +76,9 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
-    __SelfishSig = typing_extensions.Concatenate[_T, _P]
-    _SelfishSig = __SelfishSig[_T, ...]
+    _ReturnT = typing.TypeVar("_ReturnT")
+    __SelfishSig = collections.Callable[[typing_extensions.Concatenate[_T, _P]], _ReturnT]
+    _SelfishSig = __SelfishSig[_T, ..., _ReturnT]
 
     class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
         """Trait of a cacheless gateway bot."""
@@ -235,7 +237,7 @@ class ModalClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         if alluka is None:
-            alluka = alluka_.Client()
+            alluka = alluka_local.get(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
@@ -967,7 +969,7 @@ class Modal(AbstractModal):
         self._ephemeral_default = ephemeral_default
         self._tracked_fields: list[_TrackedField | _TrackedDataclass] = self._static_tracked_fields.copy()
 
-        # TODO: don't duplicate fields when re-declared
+        # TODO: don't duplicate fields when redeclared
         if id_metadata is None:
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(components=[component]) for _, component in self._static_builders
@@ -977,9 +979,11 @@ class Modal(AbstractModal):
             self._rows = [
                 hikari.impl.ModalActionRowBuilder(
                     components=[
-                        copy.copy(component).set_custom_id(f"{id_match}:{metadata}")
-                        if (metadata := id_metadata.get(id_match))
-                        else component
+                        (
+                            copy.copy(component).set_custom_id(f"{id_match}:{metadata}")
+                            if (metadata := id_metadata.get(id_match))
+                            else component
+                        )
                     ]
                 )
                 for id_match, component in self._static_builders
@@ -1003,7 +1007,7 @@ class Modal(AbstractModal):
             for name, descriptor in _parse_descriptors(cls.callback):
                 descriptor.add_static(name, cls, pass_as_kwarg=True)
 
-    callback: typing.ClassVar[collections.abc.Callable[_SelfishSig[Self], _CoroT[None]]]
+    callback: typing.ClassVar[_SelfishSig[Self, _CoroT[None]]]
 
     @property
     def rows(self) -> collections.abc.Sequence[hikari.api.ModalActionRowBuilder]:
@@ -1294,9 +1298,10 @@ class _DynamicModal(Modal, typing.Generic[_P], parse_signature=False):
         self, callback: collections.abc.Callable[_P, _CoroT[None]], /, *, ephemeral_default: bool = False
     ) -> None:
         super().__init__(ephemeral_default=ephemeral_default)
-        self._actual_callback: collections.Callable[_P, _CoroT[None]] = callback
+        self._actual_callback = callback
 
     def callback(self, *args: _P.args, **kwargs: _P.kwargs) -> _CoroT[None]:
+        assert self._actual_callback is not None
         return self._actual_callback(*args, **kwargs)
 
 
@@ -1340,15 +1345,13 @@ def modal(
 
 
 @typing.overload
-def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]:
-    ...
+def as_modal(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> _DynamicModal[_P]: ...
 
 
 @typing.overload
 def as_modal(
     *, ephemeral_default: bool = False, parse_signature: bool = False
-) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
-    ...
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]: ...
 
 
 # TODO: allow id_metadata here?
@@ -1400,15 +1403,13 @@ class _GenericModal(Modal, typing.Generic[_P], parse_signature=False):
 
 
 @typing.overload
-def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]:
-    ...
+def as_modal_template(callback: collections.abc.Callable[_P, _CoroT[None]], /) -> type[_GenericModal[_P]]: ...
 
 
 @typing.overload
 def as_modal_template(
     *, ephemeral_default: bool = False, parse_signature: bool = True
-) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]:
-    ...
+) -> collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]: ...
 
 
 def as_modal_template(
@@ -1624,16 +1625,13 @@ class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
-        ...
+    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
-    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
-        ...
+    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
-    def to_tracked_field(self, keyword: str, /) -> _TrackedField:
-        ...
+    def to_tracked_field(self, keyword: str, /) -> _TrackedField: ...
 
 
 class _ModalOptionsDescriptor(_ComponentDescriptor):
@@ -1722,8 +1720,7 @@ def text_input(
     default: _T,
     min_length: int = 0,
     max_length: int = 4000,
-) -> typing.Union[str, _T]:
-    ...
+) -> typing.Union[str, _T]: ...
 
 
 @typing.overload
@@ -1737,8 +1734,7 @@ def text_input(
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_length: int = 0,
     max_length: int = 4000,
-) -> str:
-    ...
+) -> str: ...
 
 
 def text_input(
