@@ -287,7 +287,7 @@ should be used to create the initial prompt.
 
 Yuyo provides standard component implementations for handling paginating
 message responses. These all function by adding buttons to the messages
-which are used to move between the response pages.  
+which are used to move between the response pages.
 
 ##### Runtime pagination
 
