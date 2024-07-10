@@ -287,7 +287,7 @@ should be used to create the initial prompt.
 
 Yuyo provides standard component implementations for handling paginating
 message responses. These all function by adding buttons to the messages
-which are used to move between the response pages.  
+which are used to move between the response pages.
 
 ##### Runtime pagination
 
@@ -342,3 +342,12 @@ Buttons can be added or modified by extending
 `include_buttons=False` will need to be passed to
 [components.StaticPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
 if you want to override the default buttons using the relevant `set_` methods.
+
+```
+--8<-- "./docs_src/components.py:248:248"
+```
+
+`content_hash` can be passed to
+[StaticPaginatorIndex.set_paginator][yuyo.components.StaticPaginatorIndex.set_paginator]
+to indicate the version of the state being stored by the bot for a paginator ID.
+Messages linked to old versions will be left in a no-op state when this is set.

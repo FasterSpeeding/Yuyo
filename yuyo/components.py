@@ -81,7 +81,6 @@ from . import modals
 from . import pagination
 from . import timeouts
 from ._internal import localise
-from .interactions import BaseContext as _BaseContext
 
 _T = typing.TypeVar("_T")
 
@@ -5324,7 +5323,15 @@ class StaticPaginatorIndex:
         content_hash
             Content hash that's used to optionally ensure instances of the
             of the paginator's components are compatible with the bot's stored data.
+
+        Raises
+        ------
+        ValueError
+            If `paginator_id` is already set.
         """
+        if paginator_id in self._paginators:
+            raise ValueError("Paginator already set")
+
         self._paginators[paginator_id] = StaticPaginatorData(
             paginator_id, pages, content_hash=content_hash, make_components=self._make_components
         )
@@ -5384,7 +5391,13 @@ class StaticPaginatorIndex:
             The paginator instance's current page.
         """
         metadata = _parse_metadata(ctx.id_metadata)
-        paginator = self.get_paginator(metadata.paginator_id)
+
+        try:
+            paginator = self.get_paginator(metadata.paginator_id)
+
+        except KeyError:
+            raise RuntimeError(f"Unknown paginator {metadata.paginator_id}")
+
         if paginator.content_hash and paginator.content_hash != metadata.content_hash:
             await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
 
@@ -5440,5 +5453,5 @@ def _iter_components(
     return itertools.chain.from_iterable(row.components for row in rows)
 
 
-BaseContext = _BaseContext
+BaseContext = interactions.BaseContext
 """Deprecated alias of [yuyo.interactions.BaseContext][]"""
