@@ -37,6 +37,8 @@ __all__: list[str] = [
     "ComponentContext",
     "ComponentExecutor",
     "ComponentPaginator",
+    "StaticComponentPaginator",
+    "StaticPaginatorIndex",
     "StreamExecutor",
     "WaitForExecutor",
     "as_channel_menu",
@@ -56,25 +58,29 @@ import abc
 import asyncio
 import base64
 import copy
+import dataclasses
 import datetime
+import enum
 import functools
 import hashlib
 import itertools
-import logging
-import os
 import types
 import typing
+import urllib.parse
 from collections import abc as collections
 
+import alluka
 import alluka as alluka_
 import alluka.local as alluka_local
 import hikari
 import typing_extensions
-from hikari import snowflakes
 
 from . import _internal
+from . import interactions
+from . import modals
 from . import pagination
 from . import timeouts
+from ._internal import localise
 
 _T = typing.TypeVar("_T")
 
@@ -94,8 +100,6 @@ if typing.TYPE_CHECKING:
 _P = typing_extensions.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _SelfT = typing.TypeVar("_SelfT")
-_InteractionT = typing.TypeVar("_InteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
-_INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
 
 _ComponentResponseT = typing.Union[
     hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
@@ -106,12 +110,6 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 """Type hint of a component callback."""
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
-
-_LOGGER = logging.getLogger("hikari.yuyo.components")
-
-
-def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int], /) -> float:
-    return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
 def _now() -> datetime.datetime:
@@ -137,1441 +135,7 @@ def _decorate(
     return _consume(value, decorator)
 
 
-class InteractionError(Exception):
-    """Error which is sent as a response to a modal or component call."""
-
-    def __init__(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> None:
-        """Initialise an interaction error.
-
-        Parameters
-        ----------
-        content
-            If provided, the message content to respond with.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead be treated as an
-            embed. This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of
-            the interaction being received.
-        attachment
-            A singular attachment to respond with.
-        attachments
-            A sequence of attachments to respond with.
-        component
-            If provided, builder object of the component to include in this response.
-        components
-            If provided, a sequence of the component builder objects to include
-            in this response.
-        embed
-            An embed to respond with.
-        embeds
-            A sequence of embeds to respond with.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser] derivatives to
-            enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole] derivatives to
-            enforce mentioning specific roles.
-
-        Raises
-        ------
-        ValueError
-            Raised for any of the following reasons:
-
-            * When both `attachment` and `attachments` are provided.
-            * When both `component` and `components` are passed.
-            * When both `embed` and `embeds` are passed.
-            * If more than 100 entries are passed for `role_mentions`.
-            * If more than 100 entries are passed for `user_mentions`.
-        """
-        if attachment and attachments:
-            raise ValueError("Cannot specify both attachment and attachments")
-
-        if component and components:
-            raise ValueError("Cannot specify both component and components")
-
-        if embed and embeds:
-            raise ValueError("Cannot specify both embed and embeds")
-
-        if isinstance(role_mentions, collections.Sequence) and len(role_mentions) > 100:
-            raise ValueError("Cannot specify more than 100 role mentions")
-
-        if isinstance(user_mentions, collections.Sequence) and len(user_mentions) > 100:
-            raise ValueError("Cannot specify more than 100 user mentions")
-
-        self._attachments = [attachment] if attachment else attachments
-        self._content = content
-        self._components = [component] if component else components
-        self._delete_after = delete_after
-        self._embeds = [embed] if embed else embeds
-        self._mentions_everyone = mentions_everyone
-        self._role_mentions = role_mentions
-        self._user_mentions = user_mentions
-
-    def __str__(self) -> str:
-        return self._content or ""
-
-    @typing.overload
-    async def send(
-        self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
-        /,
-        *,
-        ensure_result: typing.Literal[True],
-    ) -> hikari.Message: ...
-
-    @typing.overload
-    async def send(
-        self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
-        /,
-        *,
-        ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]: ...
-
-    async def send(
-        self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
-        /,
-        *,
-        ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]:
-        """Send this error as an interaction response.
-
-        Parameters
-        ----------
-        ctx
-            The interaction context to respond to.
-        ensure_result
-            Ensure that this call will always return a message object.
-
-            If [True][] then this will always return
-            [hikari.Message][hikari.messages.Message], otherwise this will
-            return `hikari.Message | None`.
-
-            It's worth noting that this may lead to an extra request being made
-            under certain scenarios.
-
-        Raises
-        ------
-        ValueError
-            If `delete_after` would be more than 15 minutes after the
-            interaction was received.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no attachments or embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; too many attachments; attachments that are too large;
-            invalid image URLs in embeds; too many components.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.ForbiddenError
-            If you are missing the `SEND_MESSAGES` in the channel or the
-            person you are trying to message has the DM's disabled.
-        hikari.errors.NotFoundError
-            If the channel is not found.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """
-        return await ctx.respond(
-            content=self._content,
-            attachments=self._attachments,
-            components=self._components,
-            delete_after=self._delete_after,
-            embeds=self._embeds,
-            ensure_result=ensure_result,
-            mentions_everyone=self._mentions_everyone,
-            role_mentions=self._role_mentions,
-            user_mentions=self._user_mentions,
-        )
-
-
-class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
-    """Base class for components contexts."""
-
-    __slots__ = (
-        "_ephemeral_default",
-        "_has_responded",
-        "_has_been_deferred",
-        "_interaction",
-        "_id_match",
-        "_id_metadata",
-        "_last_response_id",
-        "_register_task",
-        "_response_future",
-        "_response_lock",
-    )
-
-    def __init__(
-        self,
-        interaction: _InteractionT,
-        id_match: str,
-        id_metadata: str,
-        register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
-        *,
-        ephemeral_default: bool = False,
-        response_future: typing.Union[
-            # _ModalResponseT
-            asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]],
-            asyncio.Future[_ComponentResponseT],
-            None,
-        ] = None,
-    ) -> None:
-        self._ephemeral_default = ephemeral_default
-        self._has_responded = False
-        self._has_been_deferred = False
-        self._id_match = id_match
-        self._id_metadata = id_metadata
-        self._interaction: _InteractionT = interaction
-        self._last_response_id: typing.Optional[hikari.Snowflake] = None
-        self._register_task = register_task
-        self._response_future = response_future
-        self._response_lock = asyncio.Lock()
-
-    @property
-    def author(self) -> hikari.User:
-        """Author of this interaction."""
-        return self._interaction.user
-
-    @property
-    @abc.abstractmethod
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
-        """Hikari cache instance this context's client was initialised with."""
-
-    @property
-    def channel_id(self) -> hikari.Snowflake:
-        """ID of the channel this interaction was triggered in."""
-        return self._interaction.channel_id
-
-    @property
-    def created_at(self) -> datetime.datetime:
-        return self._interaction.created_at
-
-    @property
-    def expires_at(self) -> datetime.datetime:
-        """When this context expires.
-
-        After this time is reached, the message/response methods on this
-        context will always raise
-        [hikari.NotFoundError][hikari.errors.NotFoundError].
-        """
-        return self._interaction.created_at + _INTERACTION_LIFETIME
-
-    @property
-    @abc.abstractmethod
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
-        """Object of the event manager this context's client was initialised with."""
-
-    @property
-    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
-        return self._interaction.guild_id
-
-    @property
-    def has_been_deferred(self) -> bool:
-        """Whether this context's initial response has been deferred.
-
-        This will be true if [BaseContext.defer][yuyo.components.BaseContext.defer]
-        has been called.
-        """
-        return self._has_been_deferred
-
-    @property
-    def has_responded(self) -> bool:
-        """Whether an initial response has been made to this context yet.
-
-        It's worth noting that a context must be either responded to or
-        deferred within 3 seconds from it being received otherwise it'll be
-        marked as failed.
-
-        This will be true if either
-        [BaseContext.respond][yuyo.components.BaseContext.respond],
-        [BaseContext.create_initial_response][yuyo.components.BaseContext.create_initial_response]
-        or [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
-        (after a deferral) has been called.
-        """
-        return self._has_responded
-
-    @property
-    def id_match(self) -> str:
-        """Section of the ID used to identify the relevant executor."""
-        return self._id_match
-
-    @property
-    def id_metadata(self) -> str:
-        """Metadata from the interaction's custom ID."""
-        return self._id_metadata
-
-    @property
-    def interaction(self) -> _InteractionT:
-        """Object of the interaction this context is for."""
-        return self._interaction
-
-    @property
-    def member(self) -> typing.Optional[hikari.InteractionMember]:
-        return self._interaction.member
-
-    @property
-    @abc.abstractmethod
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
-        """Object of the Hikari REST client this context's client was initialised with."""
-
-    @property
-    @abc.abstractmethod
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
-        """Object of the Hikari interaction server provided for this context's client."""
-
-    @property
-    @abc.abstractmethod
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
-        """Object of the Hikari shard manager this context's client was initialised with."""
-
-    @property
-    def shard(self) -> typing.Optional[hikari.api.GatewayShard]:
-        """Shard that triggered the interaction.
-
-        !!! note
-            This will be [None][] if [BaseContext.shards][yuyo.components.BaseContext.shards]
-            is also [None][].
-        """
-        if not self.shards:
-            return None
-
-        if self.guild_id is not None:
-            shard_id = snowflakes.calculate_shard_id(self.shards, self.guild_id)
-
-        else:
-            shard_id = 0
-
-        return self.shards.shards[shard_id]
-
-    @property
-    @abc.abstractmethod
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
-        """Object of the Hikari voice component this context's client was initialised with."""
-
-    def set_ephemeral_default(self, state: bool, /) -> Self:
-        """Set the ephemeral default state for this context.
-
-        Parameters
-        ----------
-        state
-            The new ephemeral default state.
-
-            If this is [True][] then all calls to the response creating methods
-            on this context will default to being ephemeral.
-        """
-        self._ephemeral_default = state
-        return self
-
-    def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta], /) -> float:
-        delete_after = _delete_after_to_float(delete_after)
-        time_left = (
-            _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.timezone.utc) - self._interaction.created_at)
-        ).total_seconds()
-        if delete_after + 10 > time_left:
-            raise ValueError("This interaction will have expired before delete_after is reached")
-
-        return delete_after
-
-    def _get_flags(
-        self,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
-        /,
-        *,
-        ephemeral: typing.Optional[bool] = None,
-        is_create: bool = True,
-    ) -> typing.Union[int, hikari.MessageFlag]:
-        if flags is hikari.UNDEFINED:
-            if ephemeral is True or (ephemeral is None and is_create and self._ephemeral_default):
-                return hikari.MessageFlag.EPHEMERAL
-
-            return hikari.MessageFlag.NONE
-
-        if ephemeral is True:
-            return flags | hikari.MessageFlag.EPHEMERAL
-
-        if ephemeral is False:
-            return flags & ~hikari.MessageFlag.EPHEMERAL
-
-        return flags
-
-    async def defer(
-        self,
-        *,
-        defer_type: hikari.DeferredResponseTypesT = hikari.ResponseType.DEFERRED_MESSAGE_CREATE,
-        ephemeral: typing.Optional[bool] = None,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
-    ) -> None:
-        """Defer the initial response for this context.
-
-        !!! note
-            The ephemeral state of the first response is decided by whether the
-            deferral is ephemeral.
-
-        Parameters
-        ----------
-        defer_type
-            The type of deferral this should be.
-
-            This may any of the following:
-
-            * [ResponseType.DEFERRED_MESSAGE_CREATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_CREATE]
-                to indicate that the following up call to
-                [BaseContext.edit_initial_response][yuyo.components.BaseContext.edit_initial_response]
-                or [BaseContext.respond][yuyo.components.BaseContext.respond]
-                should create a new message.
-            * [ResponseType.DEFERRED_MESSAGE_UPDATE][hikari.interactions.base_interactions.ResponseType.DEFERRED_MESSAGE_UPDATE]
-                to indicate that the following call to the aforementioned
-                methods should update the existing message.
-        ephemeral
-            Whether the deferred response should be ephemeral.
-
-            Passing [True][] here is a shorthand for including `1 << 64` in the
-            passed flags.
-        flags
-            The flags to use for the initial response.
-        """
-        flags = self._get_flags(
-            flags, ephemeral=ephemeral, is_create=defer_type == hikari.ResponseType.DEFERRED_MESSAGE_CREATE
-        )
-
-        async with self._response_lock:
-            if self._has_been_deferred:
-                raise RuntimeError("Context has already been responded to")
-
-            self._has_been_deferred = True
-            if self._response_future:
-                # TODO: ModalInteraction.build_deferred_response needs to support defer_type
-                self._response_future.set_result(hikari.impl.InteractionDeferredBuilder(defer_type, flags=flags))
-
-            else:
-                await self._interaction.create_initial_response(defer_type, flags=flags)
-
-    async def _delete_followup_after(self, delete_after: float, message: hikari.Message, /) -> None:
-        await asyncio.sleep(delete_after)
-        try:
-            await self._interaction.delete_message(message)
-        except hikari.NotFoundError as exc:
-            _LOGGER.debug("Failed to delete response message after %.2f seconds", delete_after, exc_info=exc)
-
-    async def _create_followup(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
-        message = await self._interaction.execute(
-            content=content,
-            attachment=attachment,
-            attachments=attachments,
-            component=component,
-            components=components,
-            embed=embed,
-            embeds=embeds,
-            flags=self._get_flags(flags, ephemeral=ephemeral),
-            tts=tts,
-            mentions_everyone=mentions_everyone,
-            user_mentions=user_mentions,
-            role_mentions=role_mentions,
-        )
-        self._last_response_id = message.id
-        # This behaviour is undocumented and only kept by Discord for "backwards compatibility"
-        # but the followup endpoint can be used to create the initial response for interactions
-        # or edit in a deferred response and (while this does lead to some unexpected behaviour
-        # around deferrals) should be accounted for.
-        self._has_responded = True
-
-        if delete_after is not None:
-            self._register_task(asyncio.create_task(self._delete_followup_after(delete_after, message)))
-
-        return message
-
-    async def create_followup(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        """Create a followup response for this context.
-
-        !!! warning
-            Calling this on a context which hasn't had an initial response yet
-            will lead to a [hikari.NotFoundError][hikari.errors.NotFoundError]
-            being raised.
-
-        Parameters
-        ----------
-        content
-            If provided, the message content to send.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead be treated as an
-            embed. This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of the
-            interaction being received.
-        ephemeral
-            Whether the deferred response should be ephemeral.
-            Passing [True][] here is a shorthand for including `1 << 64` in the
-            passed flags.
-        attachment
-            If provided, the message attachment. This can be a resource,
-            or string of a path on your computer or a URL.
-        attachments
-            If provided, the message attachments. These can be resources, or
-            strings consisting of paths on your computer or URLs.
-        component
-            If provided, builder object of the component to include in this message.
-        components
-            If provided, a sequence of the component builder objects to include
-            in this message.
-        embed
-            If provided, the message embed.
-        embeds
-            If provided, the message embeds.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole]
-            derivatives to enforce mentioning specific roles.
-        tts
-            If provided, whether the message will be sent as a TTS message.
-        flags
-            The flags to set for this response.
-
-            As of writing this can only flag which can be provided is EPHEMERAL,
-            other flags are just ignored.
-
-        Returns
-        -------
-        hikari.messages.Message
-            The created message object.
-
-        Raises
-        ------
-        hikari.errors.NotFoundError
-            If the current interaction is not found or it hasn't had an initial
-            response yet.
-        hikari.errors.BadRequestError
-            This can be raised if the file is too large; if the embed exceeds
-            the defined limits; if the message content is specified only and
-            empty or greater than `2000` characters; if neither content, file
-            or embeds are specified.
-            If any invalid snowflake IDs are passed; a snowflake may be invalid
-            due to it being outside of the range of a 64 bit integer.
-        ValueError
-            If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions.
-
-            If the interaction will have expired before `delete_after` is reached.
-
-            If both `attachment` and `attachments` are passed or both `component`
-            and `components` are passed or both `embed` and `embeds` are passed.
-        """
-        async with self._response_lock:
-            return await self._create_followup(
-                content=content,
-                delete_after=delete_after,
-                ephemeral=ephemeral,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-                tts=tts,
-                flags=flags,
-            )
-
-    async def _delete_initial_response_after(self, delete_after: float, /) -> None:
-        await asyncio.sleep(delete_after)
-        try:
-            await self.delete_initial_response()
-        except hikari.NotFoundError as exc:
-            _LOGGER.debug("Failed to delete response message after %.2f seconds", delete_after, exc_info=exc)
-
-    async def _create_initial_response(
-        self,
-        response_type: hikari.MessageResponseTypesT,
-        /,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
-        tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-    ) -> None:
-        flags = self._get_flags(
-            flags, ephemeral=ephemeral, is_create=response_type == hikari.ResponseType.MESSAGE_CREATE
-        )
-        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
-        if self._has_responded:
-            raise RuntimeError("Initial response has already been created")
-
-        if self._has_been_deferred:
-            raise RuntimeError(
-                "edit_initial_response must be used to set the initial response after a context has been deferred"
-            )
-
-        if not self._response_future:
-            await self._interaction.create_initial_response(
-                response_type=response_type,
-                content=content,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                flags=flags,
-                tts=tts,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-            )
-
-        else:
-            attachments, content = _to_list(attachment, attachments, content, _ATTACHMENT_TYPES, "attachment")
-            components, content = _to_list(component, components, content, hikari.api.ComponentBuilder, "component")
-            embeds, content = _to_list(embed, embeds, content, hikari.Embed, "embed")
-
-            content = str(content) if content is not hikari.UNDEFINED else hikari.UNDEFINED
-            result = hikari.impl.InteractionMessageBuilder(
-                response_type,
-                content,
-                attachments=attachments,
-                components=components,
-                embeds=embeds,
-                flags=flags,
-                is_tts=tts,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-            )
-
-            self._response_future.set_result(result)
-
-        self._has_responded = True
-        if delete_after is not None:
-            self._register_task(asyncio.create_task(self._delete_initial_response_after(delete_after)))
-
-    async def create_initial_response(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        response_type: hikari.MessageResponseTypesT = hikari.ResponseType.MESSAGE_CREATE,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
-        tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-    ) -> None:
-        """Create the initial response for this context.
-
-        !!! warning
-            Calling this on a context which already has an initial response
-            will result in this raising a
-            [hikari.NotFoundError][hikari.errors.NotFoundError]. This includes
-            if the REST interaction server has already responded to the request
-            and deferrals.
-
-        Parameters
-        ----------
-        content
-            If provided, the message content to respond with.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead be treated as an
-            embed. This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        response_type
-            The type of message response to give.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of the
-            interaction being received.
-        ephemeral
-            Whether the deferred response should be ephemeral.
-
-            Passing [True][] here is a shorthand for including `1 << 64` in the
-            passed flags.
-        attachment
-            If provided, the message attachment. This can be a resource,
-            or string of a path on your computer or a URL.
-        attachments
-            If provided, the message attachments. These can be resources, or
-            strings consisting of paths on your computer or URLs.
-        component
-            If provided, builder object of the component to include in this message.
-        components
-            If provided, a sequence of the component builder objects to include
-            in this message.
-        embed
-            If provided, the message embed.
-        embeds
-            If provided, the message embeds.
-        flags
-            If provided, the message flags this response should have.
-
-            As of writing the only message flag which can be set here is
-            [MessageFlag.EPHEMERAL][hikari.messages.MessageFlag.EPHEMERAL].
-        tts
-            If provided, whether the message will be read out by a screen
-            reader using Discord's TTS (text-to-speech) system.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole]
-            derivatives to enforce mentioning specific roles.
-
-        Raises
-        ------
-        ValueError
-            If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions`.
-
-            If the interaction will have expired before `delete_after` is reached.
-
-            If both `attachment` and `attachments` are passed or both `component`
-            and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; invalid image URLs in embeds.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.NotFoundError
-            If the interaction is not found or if the interaction's initial
-            response has already been created.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """
-        async with self._response_lock:
-            await self._create_initial_response(
-                response_type,
-                delete_after=delete_after,
-                ephemeral=ephemeral,
-                content=content,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-                flags=flags,
-                tts=tts,
-            )
-
-    async def delete_initial_response(self) -> None:
-        """Delete the initial response after invoking this context.
-
-        Raises
-        ------
-        LookupError, hikari.errors.NotFoundError
-            The last context has no initial response.
-        """
-        await self._interaction.delete_initial_response()
-        # If they defer then delete the initial response, this should be treated as having
-        # an initial response to allow for followup responses.
-        self._has_responded = True
-
-    async def delete_last_response(self) -> None:
-        """Delete the last response after invoking this context.
-
-        Raises
-        ------
-        LookupError, hikari.errors.NotFoundError
-            The last context has no responses.
-        """
-        if self._last_response_id is None:
-            if self._has_responded or self._has_been_deferred:
-                await self._interaction.delete_initial_response()
-                # If they defer then delete the initial response then this should be treated as having
-                # an initial response to allow for followup responses.
-                self._has_responded = True
-                return
-
-            raise LookupError("Context has no last response")
-
-        await self._interaction.delete_message(self._last_response_id)
-
-    async def edit_initial_response(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedNoneOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        """Edit the initial response for this context.
-
-        Parameters
-        ----------
-        content
-            If provided, the message content to edit the initial response with.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead update the embed.
-            This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of
-            the interaction being received.
-        attachment
-            A singular attachment to edit the initial response with.
-        attachments
-            A sequence of attachments to edit the initial response with.
-        component
-            If provided, builder object of the component to set for this message.
-            This component will replace any previously set components and passing
-            [None][] will remove all components.
-        components
-            If provided, a sequence of the component builder objects set for
-            this message. These components will replace any previously set
-            components and passing [None][] or an empty sequence will
-            remove all components.
-        embed
-            An embed to replace the initial response with.
-        embeds
-            A sequence of embeds to replace the initial response with.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole]
-            derivatives to enforce mentioning specific roles.
-
-        Returns
-        -------
-        hikari.messages.Message
-            The message that has been edited.
-
-        Raises
-        ------
-        ValueError
-            If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions`.
-
-            If `delete_after` would be more than 15 minutes after the
-            interaction was received.
-
-            If both `attachment` and `attachments` are passed or both `component`
-            and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no attachments or embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; too many attachments; attachments that are too large;
-            invalid image URLs in embeds; too many components.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.ForbiddenError
-            If you are missing the `SEND_MESSAGES` in the channel or the
-            person you are trying to message has the DM's disabled.
-        hikari.errors.NotFoundError
-            If the channel is not found.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """
-        delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
-        message = await self._interaction.edit_initial_response(
-            content=content,
-            attachment=attachment,
-            attachments=attachments,
-            component=component,
-            components=components,
-            embed=embed,
-            embeds=embeds,
-            mentions_everyone=mentions_everyone,
-            user_mentions=user_mentions,
-            role_mentions=role_mentions,
-        )
-        # This will be False if the initial response was deferred with this finishing the referral.
-        self._has_responded = True
-
-        if delete_after is not None:
-            self._register_task(asyncio.create_task(self._delete_initial_response_after(delete_after)))
-
-        return message
-
-    async def edit_last_response(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedNoneOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> hikari.Message:
-        """Edit the last response for this context.
-
-        Parameters
-        ----------
-        content
-            If provided, the content to edit the last response with.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead update the embed.
-            This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of
-            the interaction being received.
-        attachment
-            A singular attachment to edit the last response with.
-        attachments
-            A sequence of attachments to edit the last response with.
-        component
-            If provided, builder object of the component to set for this message.
-            This component will replace any previously set components and passing
-            [None][] will remove all components.
-        components
-            If provided, a sequence of the component builder objects set for
-            this message. These components will replace any previously set
-            components and passing [None][] or an empty sequence will
-            remove all components.
-        embed
-            An embed to replace the last response with.
-        embeds
-            A sequence of embeds to replace the last response with.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole]
-            derivatives to enforce mentioning specific roles.
-
-        Returns
-        -------
-        hikari.messages.Message
-            The message that has been edited.
-
-        Raises
-        ------
-        ValueError
-            If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions`.
-
-            If `delete_after` would be more than 15 minutes after the slash
-            interaction was received.
-
-            If both `attachment` and `attachments` are passed or both `component`
-            and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no attachments or embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; too many attachments; attachments that are too large;
-            invalid image URLs in embeds; too many components.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.ForbiddenError
-            If you are missing the `SEND_MESSAGES` in the channel or the
-            person you are trying to message has the DM's disabled.
-        hikari.errors.NotFoundError
-            If the channel is not found.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """
-        if self._last_response_id:
-            delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
-            message = await self._interaction.edit_message(
-                self._last_response_id,
-                content=content,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-            )
-            if delete_after is not None:
-                self._register_task(asyncio.create_task(self._delete_followup_after(delete_after, message)))
-
-            return message
-
-        if self._has_responded or self._has_been_deferred:
-            return await self.edit_initial_response(
-                delete_after=delete_after,
-                content=content,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-            )
-
-        raise LookupError("Context has no previous responses")
-
-    async def fetch_initial_response(self) -> hikari.Message:
-        """Fetch the initial response for this context.
-
-        Returns
-        -------
-        hikari.messages.Message
-            The initial response's message object.
-
-        Raises
-        ------
-        LookupError, hikari.errors.NotFoundError
-            The response was not found.
-        """
-        return await self._interaction.fetch_initial_response()
-
-    async def fetch_last_response(self) -> hikari.Message:
-        """Fetch the last response for this context.
-
-        Returns
-        -------
-        hikari.messages.Message
-            The most response response's message object.
-
-        Raises
-        ------
-        LookupError, hikari.errors.NotFoundError
-            The response was not found.
-        """
-        if self._last_response_id is not None:
-            return await self._interaction.fetch_message(self._last_response_id)
-
-        if self._has_responded:
-            return await self.fetch_initial_response()
-
-        raise LookupError("Context has no previous known responses")
-
-    @typing.overload
-    async def respond(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        ensure_result: typing.Literal[True],
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> hikari.Message: ...
-
-    @typing.overload
-    async def respond(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        ensure_result: bool = False,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]: ...
-
-    async def respond(
-        self,
-        content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
-        *,
-        ensure_result: bool = False,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
-        component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
-        components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-        embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
-        mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]:
-        """Respond to this context.
-
-        Parameters
-        ----------
-        content
-            If provided, the message content to respond with.
-
-            If this is a [hikari.Embed][hikari.embeds.Embed] and no `embed` nor
-            `embeds` kwarg is provided, then this will instead be treated as an
-            embed. This allows for simpler syntax when sending an embed alone.
-
-            Likewise, if this is a [hikari.Resource][hikari.files.Resource],
-            then the content is instead treated as an attachment if no
-            `attachment` and no `attachments` kwargs are provided.
-        ensure_result
-            Ensure that this call will always return a message object.
-
-            If [True][] then this will always return
-            [hikari.Message][hikari.messages.Message], otherwise this will
-            return `hikari.Message | None`.
-
-            It's worth noting that this may lead to an extre request being made
-            under certain scenarios.
-        delete_after
-            If provided, the seconds after which the response message should be deleted.
-
-            Interaction responses can only be deleted within 15 minutes of
-            the interaction being received.
-        attachment
-            If provided, the message attachment. This can be a resource,
-            or string of a path on your computer or a URL.
-        attachments
-            If provided, the message attachments. These can be resources, or
-            strings consisting of paths on your computer or URLs.
-        component
-            If provided, builder object of the component to include in this response.
-        components
-            If provided, a sequence of the component builder objects to include
-            in this response.
-        embed
-            An embed to respond with.
-        embeds
-            A sequence of embeds to respond with.
-        mentions_everyone
-            If provided, whether the message should parse @everyone/@here
-            mentions.
-        user_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialUser][hikari.users.PartialUser]
-            derivatives to enforce mentioning specific users.
-        role_mentions
-            If provided, and [True][], all mentions will be parsed.
-            If provided, and [False][], no mentions will be parsed.
-
-            Alternatively this may be a collection of
-            [hikari.Snowflake][hikari.snowflakes.Snowflake], or
-            [hikari.PartialRole][hikari.guilds.PartialRole]
-            derivatives to enforce mentioning specific roles.
-
-        Returns
-        -------
-        hikari.messages.Message | None
-            The message that has been created if it was immedieatly available or
-            `ensure_result` was set to [True][], else [None][].
-
-        Raises
-        ------
-        ValueError
-            If more than 100 unique objects/entities are passed for
-            `role_mentions` or `user_mentions`.
-
-            If `delete_after` would be more than 15 minutes after the
-            interaction was received.
-
-            If both `attachment` and `attachments` are passed or both `component`
-            and `components` are passed or both `embed` and `embeds` are passed.
-        hikari.errors.BadRequestError
-            This may be raised in several discrete situations, such as messages
-            being empty with no attachments or embeds; messages with more than
-            2000 characters in them, embeds that exceed one of the many embed
-            limits; too many attachments; attachments that are too large;
-            invalid image URLs in embeds; too many components.
-        hikari.errors.UnauthorizedError
-            If you are unauthorized to make the request (invalid/missing token).
-        hikari.errors.ForbiddenError
-            If you are missing the `SEND_MESSAGES` in the channel or the
-            person you are trying to message has the DM's disabled.
-        hikari.errors.NotFoundError
-            If the channel is not found.
-        hikari.errors.RateLimitTooLongError
-            Raised in the event that a rate limit occurs that is
-            longer than `max_rate_limit` when making a request.
-        hikari.errors.InternalServerError
-            If an internal error occurs on Discord while handling the request.
-        """
-        async with self._response_lock:
-            if self._has_responded:
-                return await self._create_followup(
-                    content,
-                    delete_after=delete_after,
-                    attachment=attachment,
-                    attachments=attachments,
-                    component=component,
-                    components=components,
-                    embed=embed,
-                    embeds=embeds,
-                    mentions_everyone=mentions_everyone,
-                    user_mentions=user_mentions,
-                    role_mentions=role_mentions,
-                )
-
-            if self._has_been_deferred:
-                return await self.edit_initial_response(
-                    delete_after=delete_after,
-                    content=content,
-                    attachment=attachment,
-                    attachments=attachments,
-                    component=component,
-                    components=components,
-                    embed=embed,
-                    embeds=embeds,
-                    mentions_everyone=mentions_everyone,
-                    user_mentions=user_mentions,
-                    role_mentions=role_mentions,
-                )
-
-            await self._create_initial_response(
-                hikari.ResponseType.MESSAGE_CREATE,
-                delete_after=delete_after,
-                content=content,
-                attachment=attachment,
-                attachments=attachments,
-                component=component,
-                components=components,
-                embed=embed,
-                embeds=embeds,
-                mentions_everyone=mentions_everyone,
-                user_mentions=user_mentions,
-                role_mentions=role_mentions,
-            )
-
-        if ensure_result:
-            return await self._interaction.fetch_initial_response()
-
-        return None  # MyPy
-
-
-class ComponentContext(BaseContext[hikari.ComponentInteraction]):
+class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
     """The context used for message component triggers."""
 
     __slots__ = ("_client",)
@@ -1733,7 +297,7 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
                 raise RuntimeError("Initial response has already been created")
 
             if self._response_future:
-                components, _ = _to_list(component, components, None, hikari.api.ComponentBuilder, "component")
+                components, _ = _internal.to_list(component, components, None, hikari.api.ComponentBuilder, "component")
 
                 response = hikari.impl.InteractionModalBuilder(title, custom_id, components or [])
                 self._response_future.set_result(response)
@@ -1748,32 +312,6 @@ class ComponentContext(BaseContext[hikari.ComponentInteraction]):
 
 Context = ComponentContext
 """Alias of [ComponentContext][yuyo.components.ComponentContext]."""
-
-
-_ATTACHMENT_TYPES: tuple[type[typing.Any], ...] = (hikari.files.Resource, *hikari.files.RAWISH_TYPES, os.PathLike)
-
-
-def _to_list(
-    singular: hikari.UndefinedOr[_T],
-    plural: hikari.UndefinedOr[collections.Sequence[_T]],
-    other: _OtherT,
-    type_: typing.Union[type[_T], tuple[type[_T], ...]],
-    name: str,
-    /,
-) -> tuple[hikari.UndefinedOr[list[_T]], hikari.UndefinedOr[_OtherT]]:
-    if singular is not hikari.UNDEFINED and plural is not hikari.UNDEFINED:
-        raise ValueError(f"Only one of {name} or {name}s may be passed")
-
-    if singular is not hikari.UNDEFINED:
-        return [singular], other
-
-    if plural is not hikari.UNDEFINED:
-        return list(plural), other
-
-    if other and isinstance(other, type_):
-        return [other], hikari.UNDEFINED
-
-    return hikari.UNDEFINED, other
 
 
 def _gc_executors(executors: dict[typing.Any, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]]) -> None:
@@ -2155,7 +693,7 @@ class ComponentClient:
                 # TODO: properly handle deferrals and going over the 3 minute mark?
                 await ctx.create_initial_response("This message has timed-out.", ephemeral=True)
 
-        except InteractionError as exc:
+        except interactions.InteractionError as exc:
             await exc.send(ctx)
 
         return True
@@ -5738,7 +4276,7 @@ class ComponentPaginator(ActionColumnExecutor):
         iterator : collections.Iterator[yuyo.pagination.EntryT] | collections.AsyncIterator[yuyo.pagination.EntryT]
             The iterator to paginate.
 
-            This should be an iterator of [yuyo.pagination.Page][]s.
+            This should be an iterator of [yuyo.pagination.AbstractPage][]s.
         authors
             Users who are allowed to use the components this represents.
 
@@ -5807,6 +4345,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
         label
@@ -5852,6 +4392,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -5901,6 +4443,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -5950,6 +4494,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -6001,6 +4547,8 @@ class ComponentPaginator(ActionColumnExecutor):
         ----------
         style
             The button's style.
+        custom_id
+            Custom ID to use for identifying button presses.
         emoji
             Emoji to display on this button.
 
@@ -6034,7 +4582,7 @@ class ComponentPaginator(ActionColumnExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self) -> typing.Optional[pagination.Page]:
+    async def get_next_entry(self) -> typing.Optional[pagination.AbstractPage]:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
@@ -6052,7 +4600,7 @@ class ComponentPaginator(ActionColumnExecutor):
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        yuyo.pagination.AbstractPage | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
         return await self._paginator.step_forward()
@@ -6109,10 +4657,801 @@ class ComponentPaginator(ActionColumnExecutor):
             await _noop(ctx)
 
 
+Paginator = ComponentPaginator
+"""Alias of [ComponentPaginator][yuyo.components.ComponentPaginator]."""
+
+
+STATIC_PAGINATION_ID = "yuyo.pag"
+_INDEX_ID_KEY = "id"
+_PAGE_NUMBER_KEY = "index"
+_HASH_INDEX_KEY = "hash"
+
+
+class StaticPaginatorData:
+    """Represents a static paginator's data."""
+
+    __slots__ = ("_content_hash", "_make_components", "_pages", "_paginator_id")
+
+    def __init__(
+        self,
+        paginator_id: str,
+        pages: collections.Sequence[pagination.AbstractPage],
+        /,
+        *,
+        content_hash: typing.Optional[str],
+        make_components: collections.Callable[
+            [str, int, typing.Optional[str]], ActionColumnExecutor
+        ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
+            paginator_id, page_number, content_hash=content_hash
+        ),
+    ) -> None:
+        """Initialise a static paginator.
+
+        Parameters
+        ----------
+        pages
+            Sequence of the static paginator's pages.
+        content_hash
+            Optional hash used to verify data sync.
+        """
+        self._content_hash = content_hash
+        self._make_components = make_components
+        self._pages = pages
+        self._paginator_id = paginator_id
+
+    @property
+    def content_hash(self) -> typing.Optional[str]:
+        """Optional hash used to verify data sync."""
+        return self._content_hash
+
+    @property
+    def pages(self) -> collections.Sequence[pagination.AbstractPage]:
+        """The paginator's pages."""
+        return self._pages
+
+    def get_page(self, page_number: int, /) -> typing.Optional[pagination.AbstractPage]:
+        """Get a page from the paginator.
+
+        Parameters
+        ----------
+        page_number
+            The zero-indexed page index.
+
+        Returns
+        -------
+        yuyo.pagination.AbstractPage | None
+            The found page or None if out of bounds.
+        """
+        try:
+            return self._pages[page_number]
+
+        except IndexError:
+            return None
+
+    def make_components(self, page_number: int, /) -> ActionColumnExecutor:
+        """Make the base message components used to start a paginted message.
+
+        Parameters
+        ----------
+        page_number
+            Index of the starting page.
+
+        Returns
+        -------
+        yuyo.components.ActionColumnExecutor
+            The created acion column execugtor.
+
+        Raises
+        ------
+        KeyError
+            If paginator_id isn't found.
+        """
+        return self._make_components(self._paginator_id, page_number, self._content_hash)
+
+
+def static_paginator_model(
+    *, invalid_number_response: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
+) -> modals.Modal:
+    """Create a default implementation of the modal used for static paginator page jumping.
+
+    Parameters
+    ----------
+    invalid_number_response
+        The response to send when an invalid number is input.
+    field_label
+        Label to show for the number input field.
+
+    Returns
+    -------
+    models.Modal
+        The created modal.
+    """
+    invalid_number_response = invalid_number_response or pagination.Page("Not a valid number")
+
+    @modals.as_modal(parse_signature=True)
+    async def modal(
+        ctx: modals.ModalContext,
+        /,
+        *,
+        field: str = modals.text_input(field_label, custom_id=STATIC_PAGINATION_ID, min_length=1),
+        index: alluka.Injected[StaticPaginatorIndex],
+    ) -> None:
+        try:
+            page_number = int(field)
+        except ValueError:
+            page_number = -1
+
+        if page_number < 1:
+            raise interactions.InteractionError(**invalid_number_response.ctx_to_kwargs(ctx))
+
+        await index.callback(ctx, page_number - 1)
+
+    return modal
+
+
+@dataclasses.dataclass
+class _Metadata:
+    paginator_id: str
+    content_hash: typing.Optional[str]
+    page_number: typing.Optional[int]
+
+
+def _parse_metadata(raw_metadata: str, /) -> _Metadata:
+    metadata = urllib.parse.parse_qs(raw_metadata)
+    paginator_id = metadata[_INDEX_ID_KEY][0]
+
+    try:
+        content_hash = metadata[_HASH_INDEX_KEY][0]
+
+    except (KeyError, IndexError):
+        content_hash = None
+
+    try:  # noqa: TRY101
+        page_number = int(metadata[_PAGE_NUMBER_KEY][0])
+
+    except (KeyError, IndexError):
+        page_number = None
+
+    return _Metadata(content_hash=content_hash, paginator_id=paginator_id, page_number=page_number)
+
+
+class _StaticPaginatorId(str, enum.Enum):
+    FIRST = f"{STATIC_PAGINATION_ID}.first"
+    PREVIOUS = f"{STATIC_PAGINATION_ID}.prev"
+    SELECT = f"{STATIC_PAGINATION_ID}.select"
+    NEXT = f"{STATIC_PAGINATION_ID}.next"
+    LAST = f"{STATIC_PAGINATION_ID}.last"
+
+
+_STATIC_BACKWARDS_BUTTONS = {_StaticPaginatorId.FIRST, _StaticPaginatorId.PREVIOUS}
+_STATIC_FORWARD_BUTTONS = {_StaticPaginatorId.NEXT, _StaticPaginatorId.LAST}
+
+
+def _get_page_number(ctx: ComponentContext, /) -> int:
+    metadata = _parse_metadata(ctx.id_metadata)
+    if metadata.page_number is None:
+        raise RuntimeError("Missing page number in ID metadata")
+
+    return metadata.page_number
+
+
+class StaticComponentPaginator(ActionColumnExecutor):
+    """Implementation of components for paginating static data.
+
+    This enables paginated responses to be persisted between bot restarts.
+    """
+
+    __slots__ = ("_metadata",)
+
+    def __init__(
+        self,
+        paginator_id: str,
+        page_number: int,
+        /,
+        *,
+        content_hash: typing.Optional[str] = None,
+        ephemeral_default: bool = False,
+        include_buttons: bool = True,
+        id_metadata: collections.Mapping[str, str] | None = None,
+    ) -> None:
+        """Initialise a static component paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator this targets.
+
+            This is ignored when this is used to execute interactions.
+        page_number
+            Index of the current page this paginator is on.
+
+            This is ignored when this is used to execute interactions.
+        content_hash
+            Hash used to validate that the received interaction's components
+            are still in-sync with the static data stored in this paginator.
+        ephemeral_default
+            Whether this executor's responses should default to being ephemeral.
+        include_buttons
+            Whether to include the default buttons.
+        id_metadata
+            Mapping of metadata to append to the custom IDs in this column.
+
+            This does not effect the standard buttons.
+        """
+        super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
+        self._metadata: dict[str, str] = {_INDEX_ID_KEY: paginator_id, _PAGE_NUMBER_KEY: str(page_number)}
+
+        if content_hash is not None:
+            self._metadata[_HASH_INDEX_KEY] = content_hash
+
+        if include_buttons:
+            self.add_first_button().add_previous_button().add_select_button().add_next_button().add_last_button()
+
+    def _to_custom_id(
+        self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /
+    ) -> str:
+        if id_metadata:
+            id_metadata = dict(id_metadata)
+            id_metadata.update(self._metadata)
+
+        else:
+            id_metadata = self._metadata
+
+        return f"{custom_id}:{urllib.parse.urlencode(id_metadata)}"
+
+    def add_first_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorId.FIRST,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.LEFT_DOUBLE_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to first entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style,
+            self._on_first,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+
+    def add_previous_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorId.PREVIOUS,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the previous entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style,
+            self._on_previous,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+
+    def add_select_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
+        custom_id: str = _StaticPaginatorId.SELECT,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.SELECT_PAGE_SYMBOL,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the select page button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style,
+            self._on_select,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+
+    def add_next_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorId.NEXT,
+        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the next entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style,
+            self._on_next,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+
+    def add_last_button(
+        self,
+        *,
+        style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
+        custom_id: str = _StaticPaginatorId.LAST,
+        emoji: typing.Union[
+            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
+        ] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
+        is_disabled: bool = False,
+    ) -> Self:
+        r"""Add the jump to last entry button to this paginator.
+
+        You should pass `include_buttons=False` to
+        [StaticComponentPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+        before calling this.
+
+        !!! note
+            These buttons will appear in the order these methods were called in.
+
+        Either `emoji` xor `label` must be provided to be the button's
+        displayed label.
+
+        Parameters
+        ----------
+        style
+            The button's style.
+        emoji
+            Emoji to display on this button.
+
+            Either this or `label` must be provided, but not both.
+        id_metadata
+            Mapping of keys to the values of extra metadata to
+            include in this button's custom ID.
+
+            This will be encoded as a url query string.
+        label
+            Label to display on this button.
+
+            Either this or `emoji` must be provided, but not both.
+        is_disabled
+            Whether to make this button as disabled.
+
+        Returns
+        -------
+        Self
+            To enable chained calls.
+        """
+        # Just convenience to let ppl override label without having to unset the default for emoji.
+        if label is not hikari.UNDEFINED:
+            emoji = hikari.UNDEFINED
+
+        return self.add_interactive_button(
+            style,
+            self._on_last,
+            custom_id=self._to_custom_id(custom_id, id_metadata),
+            emoji=emoji,
+            label=label,
+            is_disabled=is_disabled,
+        )
+
+    async def _on_first(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx, 0)
+
+    async def _on_previous(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        page_number = _get_page_number(ctx)
+
+        if page_number > 0:
+            page_number -= 1
+
+        await index.callback(ctx, page_number)
+
+    async def _on_select(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.create_select_modal(ctx)
+
+    async def _on_next(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        page_number = _get_page_number(ctx)
+        await index.callback(ctx, page_number + 1)
+
+    async def _on_last(self, ctx: ComponentContext, /, *, index: alluka.Injected[StaticPaginatorIndex]) -> None:
+        await index.callback(ctx, -1)
+
+
 def _noop(ctx: Context, /) -> _CoroT:
     """Create a noop initial response to a component context."""
     return ctx.create_initial_response(response_type=hikari.ResponseType.MESSAGE_UPDATE)
 
 
-Paginator = ComponentPaginator
-"""Alias of [ComponentPaginator][yuyo.components.ComponentPaginator]."""
+class StaticPaginatorIndex:
+    """Index of all the static paginators within a bot."""
+
+    __slots__ = (
+        "_make_components",
+        "_make_modal",
+        "_modal_title",
+        "_not_found_response",
+        "_out_of_date_response",
+        "_paginators",
+    )
+
+    def __init__(
+        self,
+        *,
+        make_components: collections.Callable[
+            [str, int, typing.Optional[str]], ActionColumnExecutor
+        ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
+            paginator_id, page_number, content_hash=content_hash
+        ),
+        make_modal: collections.Callable[[], modals.Modal] = static_paginator_model,
+        modal_title: localise.MaybeLocalsiedType[str] = "Select page",
+        not_found_response: typing.Optional[pagination.AbstractPage] = None,
+        out_of_date_response: typing.Optional[pagination.AbstractPage] = None,
+    ) -> None:
+        """Initialise a static paginator index.
+
+        Parameters
+        ----------
+        make_components
+            Callback that's used to make the default pagination
+            message components.
+        make_modal
+            Callback that's used to make a modal that handles the
+            select page button.
+        modal_title
+            Title of the modal that's sent when the select page button
+            is pressed.
+        not_found_response
+            The response to send when a paginator ID isn't found.
+        out_of_date_response
+            The response to send when the content hashes don't match.
+        """
+        self._make_components = make_components
+        self._make_modal = make_modal
+        self._modal_title = localise.MaybeLocalised[str].parse("Modal title", modal_title)
+        self._not_found_response = not_found_response or pagination.Page("Page not found")
+        self._out_of_date_response = out_of_date_response or pagination.Page("This response is out of date")
+        self._paginators: dict[str, StaticPaginatorData] = {}
+
+    @property
+    def not_found_response(self) -> pagination.AbstractPage:
+        """Response that's sent by the default implementation when a paginator ID isn't found."""
+        return self._not_found_response
+
+    @property
+    def out_of_date_response(self) -> pagination.AbstractPage:
+        """Response that's sent by the default implementation when content hashes don't match."""
+        return self._out_of_date_response
+
+    def add_to_clients(self, component_client: ComponentClient, modal_client: modals.ModalClient, /) -> Self:
+        """Add this index to the component and modal clients to enable operation.
+
+        Parameters
+        ----------
+        component_client
+            The component client to add this to.
+        modal_client
+            The modal client to add this to.
+        """
+        component_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
+        modal_client.alluka.set_type_dependency(StaticPaginatorIndex, self)
+        component_client.register_executor(StaticComponentPaginator("", 0), timeout=None)
+        modal_client.register_modal(STATIC_PAGINATION_ID, static_paginator_model(), timeout=None)
+        return self
+
+    def set_paginator(
+        self,
+        paginator_id: str,
+        pages: collections.Sequence[pagination.AbstractPage],
+        /,
+        *,
+        content_hash: typing.Optional[str] = None,
+    ) -> Self:
+        """Set the static paginator for a custom ID.
+
+        Parameters
+        ----------
+        paginator_id
+            ID that's used to identify this paginator.
+        pages
+            Sequence of the paginator's built pages.
+        content_hash
+            Content hash that's used to optionally ensure instances of the
+            of the paginator's components are compatible with the bot's stored data.
+
+        Raises
+        ------
+        ValueError
+            If `paginator_id` is already set.
+        """
+        if paginator_id in self._paginators:
+            raise ValueError("Paginator already set")
+
+        self._paginators[paginator_id] = StaticPaginatorData(
+            paginator_id, pages, content_hash=content_hash, make_components=self._make_components
+        )
+        return self
+
+    def get_paginator(self, paginator_id: str, /) -> StaticPaginatorData:
+        """Get a paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator to get.
+
+        Returns
+        -------
+        yuyo.components.StaticPaginatorData
+            The found static paginator.
+
+        Raises
+        ------
+        KeyError
+            If no paginator was found.
+        """
+        return self._paginators[paginator_id]
+
+    def remove_paginator(self, paginator_id: str, /) -> Self:
+        """Remove a static paginator.
+
+        Parameters
+        ----------
+        paginator_id
+            ID of the paginator to remove.
+
+        Raises
+        ------
+        KeyError
+            If no paginator was found.
+        """
+        del self._paginators[paginator_id]
+        return self
+
+    async def callback(
+        self,
+        ctx: typing.Union[
+            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
+        ],
+        page_number: int,
+        /,
+    ) -> None:
+        """Execute a static paginator interaction.
+
+        Parameters
+        ----------
+        ctx
+            The context of the component or modal interaction being executed.
+        page_number
+            The paginator instance's current page.
+        """
+        metadata = _parse_metadata(ctx.id_metadata)
+
+        try:
+            paginator = self.get_paginator(metadata.paginator_id)
+
+        except KeyError:
+            raise RuntimeError(f"Unknown paginator {metadata.paginator_id}") from None
+
+        if paginator.content_hash and paginator.content_hash != metadata.content_hash:
+            await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
+
+        elif page := paginator.get_page(page_number):
+            last_index = len(paginator.pages) - 1
+            if page_number == -1:
+                page_number = last_index
+
+            components = paginator.make_components(page_number).rows
+            if page_number == last_index or page_number == 0:
+                for component in _iter_components(components):
+                    if not isinstance(component, hikari.api.InteractiveButtonBuilder):
+                        continue
+
+                    custom_id = component.custom_id.split(":", 1)[0]
+                    if (
+                        page_number == 0
+                        and custom_id in _STATIC_BACKWARDS_BUTTONS
+                        or page_number == last_index
+                        and custom_id in _STATIC_FORWARD_BUTTONS
+                    ):
+                        component.set_is_disabled(True)
+
+            await ctx.create_initial_response(
+                response_type=hikari.ResponseType.MESSAGE_UPDATE, components=components, **page.ctx_to_kwargs(ctx)
+            )
+
+        else:
+            await ctx.create_initial_response(ephemeral=True, **self.not_found_response.ctx_to_kwargs(ctx))
+
+    async def create_select_modal(self, ctx: ComponentContext, /) -> None:
+        """Create the standard modal used to handle the select page button.
+
+        Parameters
+        ----------
+        ctx
+            The component context this modal is being made for.
+        """
+        await ctx.create_modal_response(
+            self._modal_title.localise(ctx),
+            f"{STATIC_PAGINATION_ID}:{ctx.id_metadata}",
+            components=self._make_modal().rows,
+        )
+
+
+StaticPaginator = StaticComponentPaginator
+"""Alias of [StaticComponentPaginator][yuyo.components.StaticComponentPaginator]."""
+
+
+def _iter_components(
+    rows: collections.Sequence[hikari.api.MessageActionRowBuilder],
+) -> collections.Iterable[hikari.api.ComponentBuilder]:
+    return itertools.chain.from_iterable(row.components for row in rows)
+
+
+BaseContext = interactions.BaseContext
+"""Deprecated alias of [yuyo.interactions.BaseContext][]"""

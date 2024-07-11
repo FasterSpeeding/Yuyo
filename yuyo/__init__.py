@@ -48,6 +48,8 @@ __all__: list[str] = [
     "ErrorManager",
     "FinishedChunkingEvent",
     "InteractionError",
+    "LocalisedPage",
+    "LocalizedPage",
     "ModalClient",
     "ModalContext",
     "Page",
@@ -57,6 +59,8 @@ __all__: list[str] = [
     "ServiceManager",
     "ShardFinishedChunkingEvent",
     "SlidingTimeout",
+    "StaticComponentPaginator",
+    "StaticPaginatorIndex",
     "StaticTimeout",
     "StreamExecutor",
     "TopGGService",
@@ -67,6 +71,7 @@ __all__: list[str] = [
     "backoff",
     "chunk_tracker",
     "components",
+    "interactions",
     "links",
     "modals",
     "paginate_string",
@@ -93,15 +98,19 @@ from .components import ComponentClient
 from .components import ComponentContext
 from .components import ComponentExecutor
 from .components import ComponentPaginator
-from .components import InteractionError
+from .components import StaticComponentPaginator
+from .components import StaticPaginatorIndex
 from .components import StreamExecutor
 from .components import WaitForExecutor
+from .interactions import InteractionError
 from .list_status import BotsGGService
 from .list_status import DiscordBotListService
 from .list_status import ServiceManager
 from .list_status import TopGGService
 from .modals import ModalClient
 from .modals import ModalContext
+from .pagination import LocalisedPage
+from .pagination import LocalizedPage
 from .pagination import Page
 from .pagination import aenumerate
 from .pagination import async_paginate_string

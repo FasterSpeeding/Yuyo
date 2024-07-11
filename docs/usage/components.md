@@ -156,7 +156,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:139:154"
+--8<-- "./docs_src/components.py:139:152"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -172,7 +172,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:158:174"
+--8<-- "./docs_src/components.py:156:170"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -214,7 +214,7 @@ when registering it globally (i.e. without passing `message=`).
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:178:184"
+--8<-- "./docs_src/components.py:174:180"
 ```
 
 [ComponentContext.respond][yuyo.components.ComponentContext.respond] is used to
@@ -223,13 +223,13 @@ to Hikari's message respond method but will only be guaranteed to return a
 [hikari.Message][hikari.messages.Message] object when `ensure_result=True` is
 passed.
 
-Alternatively, [yuyo.InteractionError][yuyo.components.InteractionError] can be
+Alternatively, [yuyo.InteractionError][yuyo.interactions.InteractionError] can be
 raised to end the execution of a component with a response message.
 
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:188:192"
+--8<-- "./docs_src/components.py:184:188"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -255,7 +255,7 @@ want a response to be an ephemeral message create then you'll have to pass
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:196:199"
+--8<-- "./docs_src/components.py:192:195"
 ```
 
 You can also use the initial response to edit the message the component being
@@ -283,13 +283,20 @@ should be used to create the initial prompt.
 
 ### Other Executors
 
-##### Pagination
+#### Pagination
 
-Yuyo provides a standard component paginator implementation through
-[components.ComponentPaginator][yuyo.components.ComponentPaginator].
+Yuyo provides standard component implementations for handling paginating
+message responses. These all function by adding buttons to the messages
+which are used to move between the response pages.
+
+##### Runtime pagination
+
+[components.ComponentPaginator][yuyo.components.ComponentPaginator] is a
+paginator implementation for creating transient paginators which are linked
+to specific responses/messages.
 
 ```py
---8<-- "./docs_src/components.py:203:208"
+--8<-- "./docs_src/components.py:199:204"
 ```
 
 This paginator takes iterators/generators of [yuyo.pagination.Page][]s and will
@@ -300,14 +307,14 @@ Because of this you must use [iter][] before passing a list of pre-built data
 to its init.
 
 ```py
---8<-- "./docs_src/components.py:216:217"
+--8<-- "./docs_src/components.py:212:213"
 ```
 
 This also supports asynchronous iterators/generators, allowing for functionality
 like fetching data as the user scrolls through it.
 
 ```py
---8<-- "./docs_src/components.py:221:228"
+--8<-- "./docs_src/components.py:217:224"
 ```
 
 The paginator only enables 3 buttons by default: step backwards, stop and step
@@ -319,3 +326,28 @@ above.
 
 You can also add your own buttons to this alongside the pagination buttons using
 the methods provided by [ActionColumnExecutor][yuyo.components.ActionColumnExecutor].
+
+##### Static pagination
+
+[components.StaticPaginator][yuyo.components.StaticPaginator] is a static
+paginator implementation. For this you register paginator pages on bot startup
+and then use the chosen ID to add associated paginator components to messages/responses.
+
+```py
+--8<-- "./docs_src/components.py:228:244"
+```
+
+Buttons can be added or modified by extending
+[components.StaticPaginator][yuyo.components.StaticPaginator].
+`include_buttons=False` will need to be passed to
+[components.StaticPaginator.\_\_init\_\_][yuyo.components.StaticComponentPaginator.__init__]
+if you want to override the default buttons using the relevant `set_` methods.
+
+```
+--8<-- "./docs_src/components.py:248:248"
+```
+
+`content_hash` can be passed to
+[StaticPaginatorIndex.set_paginator][yuyo.components.StaticPaginatorIndex.set_paginator]
+to indicate the version of the state being stored by the bot for a paginator ID.
+Messages linked to old versions will be left in a no-op state when this is set.

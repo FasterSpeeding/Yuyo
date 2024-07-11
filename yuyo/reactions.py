@@ -307,7 +307,7 @@ class ReactionPaginator(ReactionHandler):
             Either an asynchronous or synchronous iterator of the entries this
             should paginate through.
 
-            This should be an iterator of [yuyo.pagination.Page][]s.
+            This should be an iterator of [yuyo.pagination.AbstractPage][]s.
         authors
             An iterable of IDs of the users who can call this paginator.
 
@@ -497,7 +497,7 @@ class ReactionPaginator(ReactionHandler):
         """
         return self._add_button(self._on_last, emoji, add_reaction)
 
-    async def _edit_message(self, response: pagination.Page, /) -> None:
+    async def _edit_message(self, response: pagination.AbstractPage, /) -> None:
         if self._message is None:
             return
 
@@ -525,12 +525,12 @@ class ReactionPaginator(ReactionHandler):
         if page := await self._paginator.jump_to_last():
             await self._edit_message(page)
 
-    async def get_next_entry(self) -> typing.Optional[pagination.Page]:
+    async def get_next_entry(self) -> typing.Optional[pagination.AbstractPage]:
         """Get the next entry in this paginator.
 
         Returns
         -------
-        yuyo.pagination.Page | None
+        yuyo.pagination.AbstractPage | None
             The next entry in this paginator, or [None][] if there are no more entries.
         """
         return await self._paginator.step_forward()

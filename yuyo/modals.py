@@ -63,10 +63,10 @@ import typing_extensions
 from alluka import local as alluka_local
 
 from . import _internal
-from . import components as components_
+from . import interactions
 from . import timeouts
 from ._internal import inspect
-from .components import InteractionError as InteractionError
+from .interactions import InteractionError as InteractionError
 
 _P = typing_extensions.ParamSpec("_P")
 _T = typing.TypeVar("_T")
@@ -100,7 +100,7 @@ NO_DEFAULT: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
 
 
-class ModalContext(components_.BaseContext[hikari.ModalInteraction]):
+class ModalContext(interactions.BaseContext[hikari.ModalInteraction]):
     """The context used for modal triggers."""
 
     __slots__ = ("_client", "_component_ids", "_custom_ids")
@@ -727,7 +727,7 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
 
     async def execute(self, ctx: Context, /) -> None:
         if self._has_finished or self._future.done():
-            raise components_.InteractionError("This modal has timed out")
+            raise interactions.InteractionError("This modal has timed out")
 
         ctx.set_ephemeral_default(self._ephemeral_default)
         self._future.set_result(ctx)

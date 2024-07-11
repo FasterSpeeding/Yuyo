@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support for component pagination based on global ("static") bot data.
+  More information on this can be found [here](/usage/components/#static-pagination).
+
+### Deprecated
+- `yuyo.components.BaseContext` as this has been moved to
+  [yuyo.interactions.BaseContext][].
+
 ## [1.21.1] - 2024-04-29
 ### Changed
 - Bumped the minimum Alluka version to `v0.2.0`.
@@ -39,8 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Explicitly passing `ephemeral=False` to
-  [create_initial_response][yuyo.components.BaseContext.create_initial_response] or
-  [create_followup][yuyo.components.BaseContext.create_followup] will now correctly
+  [create_initial_response][yuyo.interactions.BaseContext.create_initial_response] or
+  [create_followup][yuyo.interactions.BaseContext.create_followup] will now correctly
   override the client-level ephemeral default.
 - The component paginator will no-longer error out with a "Initial response has
   already been created" error when the jump to last page button tries to push
@@ -79,7 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.16.0] - 2023-08-11
 ### Added
-- [yuyo.InteractionError][yuyo.components.InteractionError] error type which can be used to end
+- [yuyo.InteractionError][yuyo.interactions.InteractionError] error type which can be used to end
   modal and component interactions with a message.
 
 ### Fixed
@@ -739,7 +747,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iterators.
 
 ### Fixed
-- [yuyo.components.BaseContext.respond][] trying to edit in the initial response instead
+- [yuyo.interactions.BaseContext.respond][] trying to edit in the initial response instead
   of create a follow up if a deferred initial response was deleted.
 - Long running `delete_after` and component execution tasks will no-longer be cancelled by GC.
 
