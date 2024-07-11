@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Deprecated `yuyo.components.BaseContext` as this has been moved to
+### Added
+- Support for component pagination based on global ("static") bot data.
+  More information on this can be found [here](/usage/components/#static-pagination).
+
+### Deprecated
+- `yuyo.components.BaseContext` as this has been moved to
   [yuyo.interactions.BaseContext][].
 
 ## [1.21.1] - 2024-04-29
