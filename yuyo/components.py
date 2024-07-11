@@ -5396,7 +5396,7 @@ class StaticPaginatorIndex:
             paginator = self.get_paginator(metadata.paginator_id)
 
         except KeyError:
-            raise RuntimeError(f"Unknown paginator {metadata.paginator_id}")
+            raise RuntimeError(f"Unknown paginator {metadata.paginator_id}") from None
 
         if paginator.content_hash and paginator.content_hash != metadata.content_hash:
             await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
