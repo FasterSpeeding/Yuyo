@@ -244,7 +244,7 @@ def static_paginator_example(bot: hikari.GatewayBot) -> None:
         await ctx.respond(**paginator.pages[0].to_kwargs(), components=paginator.make_components(0).rows)
 
 
-def content_hash(PAGINATOR_ID: str, pages: list[pagination.Page]) -> None:
+def content_hash(PAGINATOR_ID: str, pages: list[pagination.Page]) -> None:  # noqa: N803
     components.StaticPaginatorIndex().set_paginator(PAGINATOR_ID, pages, content_hash="v0.1.0")
 
 
