@@ -130,6 +130,11 @@ class ModalContext(interactions.BaseContext[hikari.ModalInteraction]):
         self._response_future = response_future
 
     @property
+    def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
+        return self._client.alluka
+
+    @property
     def client(self) -> Client:
         """The modal this context is bound to."""
         return self._client

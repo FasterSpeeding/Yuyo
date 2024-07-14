@@ -40,6 +40,7 @@ __all__: list[str] = [
     "async_paginate_string",
     "paginate_string",
     "sync_paginate_string",
+    "ResponseKwargs",
 ]
 
 import abc
@@ -47,6 +48,7 @@ import textwrap
 import typing
 from collections import abc as collections
 
+import typing_extensions
 import hikari
 
 from . import _internal
@@ -57,10 +59,23 @@ if typing.TYPE_CHECKING:
 
     _T = typing.TypeVar("_T")
 
-    class _ResponseKwargs(typing.TypedDict):
-        content: hikari.UndefinedOr[str]
-        attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
-        embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
+
+class ResponseKwargs(typing.TypedDict):
+    """Typed dict of a message response's basic kwargs.
+
+    This is returned by
+    [AbstractPage.to_kwargs][yuyo.pagination.AbstractPage.to_kwargs] and
+    [AbstractPage.ctx_to_kwargs][yuyo.pagination.AbstractPage.ctx_to_kwargs].
+    """
+
+    content: typing_extensions.NotRequired[hikari.UndefinedOr[str]]
+    """String message content to send."""
+
+    attachments: typing_extensions.NotRequired[hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]]
+    """A sequence of attachments to send."""
+
+    embeds: typing_extensions.NotRequired[hikari.UndefinedOr[collections.Sequence[hikari.Embed]]]
+    """A sequence of embeds to send."""
 
 
 EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "AbstractPage"]
@@ -328,12 +343,12 @@ class AbstractPage(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def to_kwargs(self) -> _ResponseKwargs:
+    def to_kwargs(self) -> ResponseKwargs:
         """Form create message `**kwargs` for this page.
 
         Returns
         -------
-        dict[str, Any]
+        ResponseKwargs
             The create message kwargs for this page.
         """
 
@@ -344,12 +359,12 @@ class AbstractPage(abc.ABC):
             interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
         ],
         /,
-    ) -> _ResponseKwargs:
+    ) -> ResponseKwargs:
         """Form create message `**kwargs` for this page based on a component or modal context.
 
         Returns
         -------
-        dict[str, Any]
+        ResponseKwargs
             The create message kwargs for this page.
         """
 
@@ -477,12 +492,12 @@ class Page(AbstractPage):
 
         return entry
 
-    def to_kwargs(self) -> _ResponseKwargs:
+    def to_kwargs(self) -> ResponseKwargs:
         """Form create message `**kwargs` for this page.
 
         Returns
         -------
-        dict[str, Any]
+        ResponseKwargs
             The create message kwargs for this page.
         """
         return {"attachments": self._attachments, "content": self._content, "embeds": self._embeds}
@@ -493,12 +508,12 @@ class Page(AbstractPage):
             interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
         ],
         /,
-    ) -> _ResponseKwargs:
+    ) -> ResponseKwargs:
         """Form create message `**kwargs` for this page based on a component or modal context.
 
         Returns
         -------
-        dict[str, Any]
+        ResponseKwargs
             The create message kwargs for this page.
         """
         return self.to_kwargs()
@@ -512,7 +527,7 @@ class LocalisedPage(AbstractPage):
     def __init__(self, pages: collections.Mapping[typing.Union[str, hikari.Locale], AbstractPage], /) -> None:
         self._pages = localise.MaybeLocalised[AbstractPage].parse("page", pages)
 
-    def to_kwargs(self) -> _ResponseKwargs:
+    def to_kwargs(self) -> ResponseKwargs:
         return self._pages.value.to_kwargs()
 
     def ctx_to_kwargs(
@@ -521,7 +536,7 @@ class LocalisedPage(AbstractPage):
             interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
         ],
         /,
-    ) -> _ResponseKwargs:
+    ) -> ResponseKwargs:
         return self._pages.localise(ctx).to_kwargs()
 
 
