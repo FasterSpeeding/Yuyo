@@ -47,6 +47,7 @@ from hikari import snowflakes
 from . import _internal
 
 if typing.TYPE_CHECKING:
+    import alluka as alluka_
     from typing_extensions import Self
 
 
@@ -109,6 +110,12 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
+
+    @property
+    @abc.abstractmethod
+    def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
+        raise NotImplementedError
 
     @property
     def author(self) -> hikari.User:

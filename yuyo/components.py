@@ -163,6 +163,11 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         self._response_future = response_future
 
     @property
+    def alluka(self) -> alluka_.abc.Client:
+        """The Alluka client being used for callback dependency injection."""
+        return self._client.alluka
+
+    @property
     def selected_channels(self) -> collections.Mapping[hikari.Snowflake, hikari.InteractionChannel]:
         """Sequence of the users passed for a channel select menu."""
         if not self.interaction.resolved:
