@@ -60,7 +60,7 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
 
 
-class ResponseKwargs(typing_extensions.TypedDict):
+class ResponseKwargs(typing_extensions.TypedDict, total=False):
     """Typed dict of a message response's basic kwargs.
 
     This is returned by
@@ -68,13 +68,13 @@ class ResponseKwargs(typing_extensions.TypedDict):
     [AbstractPage.ctx_to_kwargs][yuyo.pagination.AbstractPage.ctx_to_kwargs].
     """
 
-    content: typing_extensions.NotRequired[hikari.UndefinedOr[str]]
+    content: hikari.UndefinedOr[str]
     """String message content to send."""
 
-    attachments: typing_extensions.NotRequired[hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]]
+    attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]]
     """A sequence of attachments to send."""
 
-    embeds: typing_extensions.NotRequired[hikari.UndefinedOr[collections.Sequence[hikari.Embed]]]
+    embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]]
     """A sequence of embeds to send."""
 
 
