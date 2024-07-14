@@ -8,11 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [BaseContext.alluka][yuyo.interactions.BaseContext.alluka] property for getting the
   context's alluka client.
+
+### Changed
 - [pagination.ResponseKwargs][yuyo.pagination.ResponseKwargs] is now publicly exported to
   allow 3rd party implementations of
   [AbstractPage.ctx_to_kwargs][yuyo.pagination.AbstractPage.ctx_to_kwargs]
   and [AbstractPage.to_kwargs][yuyo.pagination.AbstractPage.to_kwargs] to have properly
   typed return types.
+- [pagination.ResponseKwargs][yuyo.pagination.ResponseKwargs]'s fields are now all marked
+  as not required.
 
 ## [1.22.0] - 2024-07-11
 ### Added
