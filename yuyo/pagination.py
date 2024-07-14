@@ -36,11 +36,11 @@ __all__: list[str] = [
     "LocalisedPage",
     "LocalizedPage",
     "Page",
+    "ResponseKwargs",
     "aenumerate",
     "async_paginate_string",
     "paginate_string",
     "sync_paginate_string",
-    "ResponseKwargs",
 ]
 
 import abc
@@ -48,8 +48,8 @@ import textwrap
 import typing
 from collections import abc as collections
 
-import typing_extensions
 import hikari
+import typing_extensions
 
 from . import _internal
 from ._internal import localise
