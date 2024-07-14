@@ -60,7 +60,7 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
 
 
-class ResponseKwargs(typing.TypedDict):
+class ResponseKwargs(typing_extensions.TypedDict):
     """Typed dict of a message response's basic kwargs.
 
     This is returned by
