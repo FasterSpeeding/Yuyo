@@ -1418,7 +1418,9 @@ _CHANNEL_TYPES: dict[type[hikari.PartialChannel], set[hikari.ChannelType]] = {
 
 for _channel_cls, _types in _CHANNEL_TYPES.copy().items():
     for _mro_type in _channel_cls.mro():
-        if isinstance(_mro_type, type) and issubclass(_mro_type, hikari.PartialChannel):
+        if isinstance(_mro_type, type) and issubclass(  # pyright: ignore[reportUnnecessaryIsInstance]
+            _mro_type, hikari.PartialChannel
+        ):
             try:
                 _CHANNEL_TYPES[_mro_type].update(_types)
             except KeyError:
