@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "hikari-yuyo"
 version = "1.23.0"
 readme = "README.md"
-requires-python = ">=3.9.0,<3.13"
+requires-python = ">=3.9.0,<3.14"
 license = {file = "LICENSE"}
 authors = [ {name = "Faster Speeding", email="lucina@lmbyrne.dev"} ]
 keywords= ["hikari"]
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Communications :: Chat",
     "Topic :: Software Development :: Libraries",
@@ -181,7 +182,7 @@ top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./te
 [tool.piped.github_actions.publish]
 [tool.piped.github_actions.py_test]
 codeclimate_token = "ff91ba30df9fd9d4f49325b583807d32cff9370fb02c8b6a7487ed94f5326933"
-python_versions = ["3.9", "3.10", "3.11", "3.12"]
+python_versions = ["3.9", "3.10", "3.11", "3.12", "3.13-dev"]
 
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.release_docs]
