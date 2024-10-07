@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.23.1] - 2024-10-07
+### Changed
+- Support Python 3.13
+
 ## [1.23.0] - 2024-07-14
 ### Added
 - [BaseContext.alluka][yuyo.interactions.BaseContext.alluka] property for getting the
@@ -867,7 +871,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Iffy behaviour around "locking" the reaction executor which lead to some requests just being ignored.
 
-[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.23.0...HEAD
+[Unreleased]: https://github.com/FasterSpeeding/Yuyo/compare/v1.23.1...HEAD
+[1.23.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.23.0...v1.23.1
 [1.23.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.22.0...v1.23.0
 [1.22.0]: https://github.com/FasterSpeeding/Yuyo/compare/v1.21.1...v1.22.0
 [1.21.1]: https://github.com/FasterSpeeding/Yuyo/compare/v1.21.0...v1.21.1
