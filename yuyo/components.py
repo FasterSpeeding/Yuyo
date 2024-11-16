@@ -86,6 +86,7 @@ _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
     import tanjun
+    import typing_extensions
     from typing_extensions import Self
 
     _OtherT = typing.TypeVar("_OtherT")
@@ -2317,20 +2318,23 @@ class _StaticField:
         self.name: str = name
 
 
-@typing.runtime_checkable
 class _CustomIdProto(typing.Protocol):
     def set_custom_id(self, value: str, /) -> object:
         raise NotImplementedError
 
     @classmethod
     def __subclasshook__(cls, value: typing.Any) -> bool:
-        try:
-            value.set_custom_id
+        return _is_custom_id_proto(value)
 
-        except AttributeError:
-            return False
 
-        return True
+def _is_custom_id_proto(value: typing.Any, /) -> typing_extensions.TypeGuard[_CustomIdProto]:
+    try:
+        value.set_custom_id
+
+    except AttributeError:
+        return False
+
+    return True
 
 
 class ActionColumnExecutor(AbstractComponentExecutor):
@@ -2474,7 +2478,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         for field in self._static_fields.values():
             if id_metadata and (metadata := (id_metadata.get(field.id_match) or id_metadata.get(field.name))):
                 builder = copy.copy(field.builder)
-                assert isinstance(builder, _CustomIdProto)
+                assert _is_custom_id_proto(builder)
                 builder.set_custom_id(f"{field.id_match}:{metadata}")
 
             else:
