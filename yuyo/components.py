@@ -2477,14 +2477,14 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
         for field in self._static_fields.values():
             if id_metadata and (metadata := (id_metadata.get(field.id_match) or id_metadata.get(field.name))):
-                builder = copy.copy(field.builder)
-                assert _is_custom_id_proto(builder)
-                builder.set_custom_id(f"{field.id_match}:{metadata}")
+                builder_ = builder = copy.copy(field.builder)
+                assert _is_custom_id_proto(builder_)
+                builder_.set_custom_id(f"{field.id_match}:{metadata}")
 
             else:
                 builder = field.builder
 
-            _append_row(self._rows, is_button=field.builder.type is hikari.ComponentType.BUTTON).add_component(builder)
+            _append_row(self._rows, is_button=builder.type is hikari.ComponentType.BUTTON).add_component(builder)
 
             if field.callback:
                 self._callbacks[field.id_match] = (
