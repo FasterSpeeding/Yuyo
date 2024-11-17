@@ -86,7 +86,6 @@ _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
     import tanjun
-    import typing_extensions
     from typing_extensions import Self
 
     _OtherT = typing.TypeVar("_OtherT")
