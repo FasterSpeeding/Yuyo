@@ -1446,10 +1446,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     __slots__ = ("_callback", "_custom_id")
 
     def __init__(
-        self,
-        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
-        custom_id: str | None,
-        /,
+        self, callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], custom_id: str | None, /
     ) -> None:
         if custom_id is None:
             self._custom_id: _internal.MatchId | None = None
@@ -1536,9 +1533,7 @@ def as_interactive_button(
     emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
-]:
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]]:
     """Declare an interactive button on an action column class.
 
     Either `emoji` xor `label` must be provided to be the button's
@@ -1685,9 +1680,7 @@ def as_select_menu(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]:
     """Declare a select menu on an action column class.
 
     The following decorators should be used instead:
@@ -1715,9 +1708,7 @@ def as_mentionable_menu(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_mentionable_menu(
@@ -1730,9 +1721,7 @@ def as_mentionable_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> (
-    collections.Callable[
-        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ]
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
     | _SelectMenu[_SelfT, _P]
 ):
     """Declare a mentionable select menu on an action column class.
@@ -1794,9 +1783,7 @@ def as_role_menu(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_role_menu(
@@ -1809,9 +1796,7 @@ def as_role_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> (
-    collections.Callable[
-        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ]
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
     | _SelectMenu[_SelfT, _P]
 ):
     """Declare a role select menu on an action column class.
@@ -1873,9 +1858,7 @@ def as_user_menu(
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_user_menu(
@@ -1888,9 +1871,7 @@ def as_user_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> (
-    collections.Callable[
-        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ]
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
     | _SelectMenu[_SelfT, _P]
 ):
     """Declare a user select menu on an action column class.
@@ -2007,9 +1988,7 @@ def as_channel_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> (
-    collections.Callable[
-        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
-    ]
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]]
     | _ChannelSelect[_SelfT, _P]
 ):
     """Declare a channel select menu on an action column class.

@@ -49,7 +49,6 @@ import typing
 from collections import abc as collections
 
 import hikari
-import typing
 
 from . import _internal
 from ._internal import localise

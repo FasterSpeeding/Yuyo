@@ -53,6 +53,7 @@ import copy
 import datetime
 import enum
 import functools
+import inspect
 import itertools
 import types
 import typing
@@ -64,7 +65,6 @@ from alluka import local as alluka_local
 from . import _internal
 from . import interactions
 from . import timeouts
-import inspect
 from .interactions import InteractionError as InteractionError
 
 _P = typing.ParamSpec("_P")
