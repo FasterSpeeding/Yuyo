@@ -48,7 +48,6 @@ Changelog = "https://yuyo.cursed.solutions/changelog"
 name = "yuyo"
 
 [tool.black]
-extend-exclude = "^\\/yuyo\\/_internal\\/vendor\\/.*$"
 include = ".*pyi?$"
 line-length = 120
 skip-magic-trailing-comma = true
@@ -73,14 +72,12 @@ exclude_lines = [
     "^\\s*@abc.abstractmethod$",
     "^if typing.TYPE_CHECKING:$"
 ]
-omit = ["yuyo/_internal/vendor/*"]
 
 [tool.flake8]
 accept-encodings = "utf-8"
 count = true
 docstring-convention = "numpy"
 eradicate-aggressive = true
-exclude = ["yuyo/_internal/vendor/**"]
 extend-select = ["TC100", "TC101"]
 force-future-annotations = true
 ignore-decorators = "overload"
@@ -129,7 +126,6 @@ per-file-ignores = [
 [tool.isort]
 profile = "black"
 force_single_line = true
-skip = ["yuyo/_internal/vendor"]
 
 [tool.mypy]
 # some good strict settings
@@ -148,12 +144,11 @@ warn_redundant_casts = false
 allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
-# Ignore vendored modules and doc_src files which fail to parse
+# Ignore doc_src files which fail to parse
 exclude = [
     "docs_src/chunk_tracker.py",
     "docs_src/links.py",
     "docs_src/list_status.py",
-    "yuyo/_internal/vendor/",
 ]
 
 [tool.piped]
@@ -170,7 +165,6 @@ default_sessions = [
 extra_test_installs = ["."]
 mypy_allowed_to_fail = true
 mypy_targets = ["docs_src", "yuyo"]
-path_ignore = "yuyo\\/_internal\\/vendor\\/|docs\\/usage\\/images\\/.+"
 project_name = "yuyo"
 top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./tests"]
 
@@ -195,7 +189,6 @@ python_versions = ["3.11", "3.12", "3.13"]
 exclude = "docs_src"
 
 [tool.pyright]
-exclude = ["yuyo/_internal/vendor"]
 include = ["docs_src", "examples", "noxfile.py", "tests", "yuyo"]
 
 pythonVersion = "3.11"
@@ -242,4 +235,3 @@ exclude-classes = """
 |yuyo.__main__:.*Model
 |yuyo.__main__:_MaybeLocalised
 """
-exclude-modules = "yuyo._internal.vendor"

@@ -65,7 +65,7 @@ from alluka import local as alluka_local
 from . import _internal
 from . import interactions
 from . import timeouts
-from ._internal import inspect
+import inspect
 from .interactions import InteractionError as InteractionError
 
 _P = typing_extensions.ParamSpec("_P")

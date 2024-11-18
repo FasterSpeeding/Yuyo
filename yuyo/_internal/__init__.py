@@ -31,7 +31,7 @@
 """Internal functions and types used in Yuyo."""
 from __future__ import annotations
 
-__all__: list[str] = ["inspect"]
+__all__: list[str] = []
 
 import enum
 import sys
@@ -40,8 +40,6 @@ import uuid
 from collections import abc as collections
 
 import hikari
-
-from .vendor import inspect
 
 if typing.TYPE_CHECKING:
     _DefaultT = typing.TypeVar("_DefaultT")
