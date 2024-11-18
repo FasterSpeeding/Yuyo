@@ -59,7 +59,6 @@ import typing
 
 import alluka as alluka_
 import hikari
-import typing_extensions
 from alluka import local as alluka_local
 
 from . import _internal
@@ -68,7 +67,7 @@ from . import timeouts
 import inspect
 from .interactions import InteractionError as InteractionError
 
-_P = typing_extensions.ParamSpec("_P")
+_P = typing.ParamSpec("_P")
 _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
@@ -78,7 +77,7 @@ if typing.TYPE_CHECKING:
 
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
     _ReturnT = typing.TypeVar("_ReturnT")
-    __SelfishSig = collections.abc.Callable[[typing_extensions.Concatenate[_T, _P]], _ReturnT]
+    __SelfishSig = collections.abc.Callable[[typing.Concatenate[_T, _P]], _ReturnT]
     _SelfishSig = __SelfishSig[_T, ..., _ReturnT]
 
     class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
@@ -1815,7 +1814,7 @@ def text_input(
     return typing.cast("str", descriptor)
 
 
-@typing_extensions.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
+@typing.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
 class _ModalOptionsMeta(type):
     def __new__(
         cls, name: str, bases: tuple[type[typing.Any], ...], namespace: dict[str, typing.Any]

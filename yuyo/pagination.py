@@ -49,7 +49,7 @@ import typing
 from collections import abc as collections
 
 import hikari
-import typing_extensions
+import typing
 
 from . import _internal
 from ._internal import localise
@@ -60,7 +60,7 @@ if typing.TYPE_CHECKING:
     _T = typing.TypeVar("_T")
 
 
-class ResponseKwargs(typing_extensions.TypedDict, total=False):
+class ResponseKwargs(typing.TypedDict, total=False):
     """Typed dict of a message response's basic kwargs.
 
     This is returned by

@@ -73,7 +73,6 @@ import alluka
 import alluka as alluka_
 import alluka.local as alluka_local
 import hikari
-import typing_extensions
 
 from . import _internal
 from . import interactions
@@ -98,7 +97,7 @@ if typing.TYPE_CHECKING:
         """Trait of a cacheless gateway bot."""
 
 
-_P = typing_extensions.ParamSpec("_P")
+_P = typing.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _SelfT = typing.TypeVar("_SelfT")
 
@@ -1448,7 +1447,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         custom_id: str | None,
         /,
     ) -> None:
@@ -1466,7 +1465,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     @typing.overload
     def __get__(
         self, obj: None, obj_type: type[typing.Any] | None = None
-    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]: ...
+    ) -> collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]: ...
 
     @typing.overload
     def __get__(self, obj: object, obj_type: type[typing.Any] | None = None) -> collections.Callable[_P, _CoroT]: ...
@@ -1500,7 +1499,7 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     def __init__(
         self,
         style: hikari.InteractiveButtonTypesT,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         custom_id: str | None = None,
         emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -1538,7 +1537,7 @@ def as_interactive_button(
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
 ]:
     """Declare an interactive button on an action column class.
 
@@ -1644,7 +1643,7 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         type_: hikari.ComponentType | int,
         custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -1687,7 +1686,7 @@ def as_select_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
 ]:
     """Declare a select menu on an action column class.
 
@@ -1704,7 +1703,7 @@ def as_select_menu(
 
 @typing.overload
 def as_mentionable_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
@@ -1717,12 +1716,12 @@ def as_mentionable_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
 ]: ...
 
 
 def as_mentionable_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT] | None = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
     custom_id: str | None = None,
@@ -1732,7 +1731,7 @@ def as_mentionable_menu(
     is_disabled: bool = False,
 ) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
     ]
     | _SelectMenu[_SelfT, _P]
 ):
@@ -1783,7 +1782,7 @@ def as_mentionable_menu(
 
 @typing.overload
 def as_role_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
@@ -1796,12 +1795,12 @@ def as_role_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
 ]: ...
 
 
 def as_role_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT] | None = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
     custom_id: str | None = None,
@@ -1811,7 +1810,7 @@ def as_role_menu(
     is_disabled: bool = False,
 ) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
     ]
     | _SelectMenu[_SelfT, _P]
 ):
@@ -1862,7 +1861,7 @@ def as_role_menu(
 
 @typing.overload
 def as_user_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
@@ -1875,12 +1874,12 @@ def as_user_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
 ]: ...
 
 
 def as_user_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT] | None = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
     custom_id: str | None = None,
@@ -1890,7 +1889,7 @@ def as_user_menu(
     is_disabled: bool = False,
 ) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
     ]
     | _SelectMenu[_SelfT, _P]
 ):
@@ -1944,7 +1943,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         custom_id: str | None = None,
         channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -1979,7 +1978,7 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 
 @typing.overload
 def as_channel_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _ChannelSelect[_SelfT, _P]: ...
 
 
@@ -1993,12 +1992,12 @@ def as_channel_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
 ]: ...
 
 
 def as_channel_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT] | None = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
     custom_id: str | None = None,
@@ -2009,7 +2008,7 @@ def as_channel_menu(
     is_disabled: bool = False,
 ) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
     ]
     | _ChannelSelect[_SelfT, _P]
 ):
@@ -2059,7 +2058,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -2112,7 +2111,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 
 @typing.overload
 def as_text_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _TextMenuDescriptor[_SelfT, _P]: ...
 
 
@@ -2126,12 +2125,12 @@ def as_text_menu(
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
 ]: ...
 
 
 def as_text_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT] | None = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
     custom_id: str | None = None,
@@ -2142,7 +2141,7 @@ def as_text_menu(
     is_disabled: bool = False,
 ) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
     ]
     | _TextMenuDescriptor[_SelfT, _P]
 ):
@@ -2306,7 +2305,7 @@ class _CustomIdProto(typing.Protocol):
         return _is_custom_id_proto(value)
 
 
-def _is_custom_id_proto(value: typing.Any, /) -> typing_extensions.TypeGuard[_CustomIdProto]:
+def _is_custom_id_proto(value: typing.Any, /) -> typing.TypeGuard[_CustomIdProto]:
     try:
         value.set_custom_id
 

@@ -38,7 +38,7 @@ from collections import abc as collections
 
 if typing.TYPE_CHECKING:
     import hikari
-    from typing_extensions import Self
+    from typing import Self
 
     from .. import interactions
 

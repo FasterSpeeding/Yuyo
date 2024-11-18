@@ -52,11 +52,9 @@ if typing.TYPE_CHECKING:
     from collections import abc as collections
     from typing import Self
 
-    import typing_extensions
-
     from . import _internal
 
-    _P = typing_extensions.ParamSpec("_P")
+    _P = typing.ParamSpec("_P")
     _T = typing.TypeVar("_T")
     _CoroT = collections.Coroutine[typing.Any, typing.Any, _T]
 
