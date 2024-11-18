@@ -46,8 +46,7 @@ from hikari.impl import rate_limits
 if typing.TYPE_CHECKING:
     import types
     from collections import abc as collections
-
-    from typing_extensions import Self
+    from typing import Self
 
 
 class Backoff:
@@ -117,7 +116,7 @@ class Backoff:
 
     def __init__(
         self,
-        max_retries: typing.Optional[int] = None,
+        max_retries: int | None = None,
         *,
         base: float = 2.0,
         maximum: float = 64.0,
@@ -160,7 +159,7 @@ class Backoff:
         )
         self._finished = False
         self._max_retries = max_retries
-        self._next_backoff: typing.Optional[float] = None
+        self._next_backoff: float | None = None
         self._retries = 0
         self._started = False
 
@@ -189,7 +188,7 @@ class Backoff:
         """
         return self._max_retries is not None and self._max_retries == self._retries
 
-    async def backoff(self) -> typing.Optional[int]:
+    async def backoff(self) -> int | None:
         """Sleep for the provided backoff or for the next exponent.
 
         This provides an alternative to iterating over this class.
@@ -228,7 +227,7 @@ class Backoff:
         self._retries = 0
         self._started = False
 
-    def set_next_backoff(self, backoff_: typing.Union[float, int, None], /) -> None:
+    def set_next_backoff(self, backoff_: float | int | None, /) -> None:
         """Specify a backoff time for the next iteration or [Backoff.backoff][yuyo.backoff.Backoff.backoff] call.
 
         If this is called then the exponent won't be increased for this iteration.
@@ -289,10 +288,7 @@ class ErrorManager:
     __slots__ = ("_rules",)
 
     def __init__(
-        self,
-        *rules: tuple[
-            collections.Iterable[type[BaseException]], collections.Callable[[typing.Any], typing.Optional[bool]]
-        ],
+        self, *rules: tuple[collections.Iterable[type[BaseException]], collections.Callable[[typing.Any], bool | None]]
     ) -> None:
         """Initialise an error manager instance.
 
@@ -317,11 +313,8 @@ class ErrorManager:
         return self
 
     def __exit__(
-        self,
-        exception_type: typing.Optional[type[BaseException]],
-        exception: typing.Optional[BaseException],
-        _: typing.Optional[types.TracebackType],
-    ) -> typing.Optional[bool]:
+        self, exception_type: type[BaseException] | None, exception: BaseException | None, _: types.TracebackType | None
+    ) -> bool | None:
         if exception_type is None:
             return None
 
@@ -342,7 +335,7 @@ class ErrorManager:
     def add_rule(
         self,
         exceptions: collections.Iterable[type[BaseException]],
-        result: collections.Callable[[typing.Any], typing.Optional[bool]],
+        result: collections.Callable[[typing.Any], bool | None],
         /,
     ) -> Self:
         """Add a rule to this exception context manager.

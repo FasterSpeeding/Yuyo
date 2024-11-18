@@ -49,9 +49,10 @@ from . import pagination
 from . import timeouts
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import tanjun
     from hikari.api import event_manager as event_manager_api
-    from typing_extensions import Self
 
     _CallbackSigT = typing.TypeVar("_CallbackSigT", bound="CallbackSig")
     _EventT = typing.TypeVar("_EventT", bound=hikari.Event)
@@ -61,7 +62,7 @@ if typing.TYPE_CHECKING:
         """Protocol of a cacheless Hikari Gateway bot."""
 
 
-ReactionEventT = typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent]
+ReactionEventT = hikari.ReactionAddEvent | hikari.ReactionDeleteEvent
 """Type hint of the event types [CallbackSig][yuyo.reactions.CallbackSig] takes as its first argument."""
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
@@ -97,9 +98,7 @@ class AbstractReactionHandler(abc.ABC):
         """
 
     @abc.abstractmethod
-    async def on_reaction_event(
-        self, event: ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
-    ) -> None:
+    async def on_reaction_event(self, event: ReactionEventT, /, *, alluka: alluka_.abc.Client | None = None) -> None:
         """Handle a reaction event.
 
         Parameters
@@ -125,7 +124,7 @@ class ReactionHandler(AbstractReactionHandler):
         self,
         *,
         authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] = (),
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: datetime.timedelta | None = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a reaction handler.
 
@@ -140,11 +139,11 @@ class ReactionHandler(AbstractReactionHandler):
             How long it should take for this handler to timeout.
         """
         self._authors = set(map(hikari.Snowflake, authors))
-        self._callbacks: dict[typing.Union[str, int], CallbackSig] = {}
-        self._close_task: typing.Optional[asyncio.Task[None]]
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._callbacks: dict[str | int, CallbackSig] = {}
+        self._close_task: asyncio.Task[None] | None
+        self._last_triggered = datetime.datetime.now(tz=datetime.UTC)
         self._lock = asyncio.Lock()
-        self._message: typing.Optional[hikari.Message] = None
+        self._message: hikari.Message | None = None
 
         if timeout is None:
             self._timeout: timeouts.AbstractTimeout = timeouts.NeverTimeout()
@@ -176,7 +175,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._message = None
 
     def set_callback(
-        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], callback: CallbackSig, /
+        self, emoji_identifier: str | hikari.SnowflakeishOr[hikari.CustomEmoji], callback: CallbackSig, /
     ) -> Self:
         """Add a callback to this reaction handler.
 
@@ -199,9 +198,7 @@ class ReactionHandler(AbstractReactionHandler):
         self._callbacks[emoji_identifier] = callback
         return self
 
-    def remove_callback(
-        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
-    ) -> None:
+    def remove_callback(self, emoji_identifier: str | hikari.SnowflakeishOr[hikari.CustomEmoji], /) -> None:
         """Remove a callback from this reaction handler.
 
         Parameters
@@ -218,7 +215,7 @@ class ReactionHandler(AbstractReactionHandler):
         del self._callbacks[emoji_identifier]
 
     def with_callback(
-        self, emoji_identifier: typing.Union[str, hikari.SnowflakeishOr[hikari.CustomEmoji]], /
+        self, emoji_identifier: str | hikari.SnowflakeishOr[hikari.CustomEmoji], /
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a callback to this reaction handler through a decorator call.
 
@@ -246,9 +243,7 @@ class ReactionHandler(AbstractReactionHandler):
 
         return decorator
 
-    async def on_reaction_event(
-        self, event: ReactionEventT, /, *, alluka: typing.Optional[alluka_.abc.Client] = None
-    ) -> None:
+    async def on_reaction_event(self, event: ReactionEventT, /, *, alluka: alluka_.abc.Client | None = None) -> None:
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             self._close_task = asyncio.create_task(self.close())
@@ -274,7 +269,7 @@ class ReactionHandler(AbstractReactionHandler):
             else:
                 await method(event)
 
-            self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+            self._last_triggered = datetime.datetime.now(tz=datetime.UTC)
 
 
 Handler = ReactionHandler
@@ -297,7 +292,7 @@ class ReactionPaginator(ReactionHandler):
             pagination.STOP_SQUARE,
             pagination.RIGHT_TRIANGLE,
         ),
-        timeout: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=30),
+        timeout: datetime.timedelta | None = datetime.timedelta(seconds=30),
     ) -> None:
         """Initialise a reaction paginator.
 
@@ -322,9 +317,9 @@ class ReactionPaginator(ReactionHandler):
             raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
 
         super().__init__(authors=authors, timeout=timeout)
-        self._delete_task: typing.Optional[asyncio.Task[None]] = None
+        self._delete_task: asyncio.Task[None] | None = None
         self._paginator = pagination.Paginator(iterator)
-        self._reactions: list[typing.Union[hikari.CustomEmoji, str]] = []
+        self._reactions: list[hikari.CustomEmoji | str] = []
 
         if pagination.LEFT_DOUBLE_TRIANGLE in triggers:
             self.add_first_button()
@@ -341,9 +336,7 @@ class ReactionPaginator(ReactionHandler):
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.add_last_button()
 
-    def _add_button(
-        self, callback: CallbackSig, emoji: typing.Union[hikari.CustomEmoji, str], add_reaction: bool, /
-    ) -> Self:
+    def _add_button(self, callback: CallbackSig, emoji: hikari.CustomEmoji | str, add_reaction: bool, /) -> Self:
         self.set_callback(emoji, callback)
 
         if add_reaction:
@@ -352,10 +345,7 @@ class ReactionPaginator(ReactionHandler):
         return self
 
     def add_first_button(
-        self,
-        *,
-        emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_DOUBLE_TRIANGLE,
-        add_reaction: bool = True,
+        self, *, emoji: hikari.CustomEmoji | str = pagination.LEFT_DOUBLE_TRIANGLE, add_reaction: bool = True
     ) -> Self:
         r"""Add the jump to first entry reaction button to this paginator.
 
@@ -383,7 +373,7 @@ class ReactionPaginator(ReactionHandler):
         return self._add_button(self._on_first, emoji, add_reaction)
 
     def add_previous_button(
-        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.LEFT_TRIANGLE, add_reaction: bool = True
+        self, *, emoji: hikari.CustomEmoji | str = pagination.LEFT_TRIANGLE, add_reaction: bool = True
     ) -> Self:
         r"""Add the previous entry reaction button to this paginator.
 
@@ -411,7 +401,7 @@ class ReactionPaginator(ReactionHandler):
         return self._add_button(self._on_previous, emoji, add_reaction)
 
     def add_stop_button(
-        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.STOP_SQUARE, add_reaction: bool = True
+        self, *, emoji: hikari.CustomEmoji | str = pagination.STOP_SQUARE, add_reaction: bool = True
     ) -> Self:
         r"""Add the stop reaction button to this paginator.
 
@@ -439,7 +429,7 @@ class ReactionPaginator(ReactionHandler):
         return self._add_button(self._on_disable, emoji, add_reaction)
 
     def add_next_button(
-        self, *, emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_TRIANGLE, add_reaction: bool = True
+        self, *, emoji: hikari.CustomEmoji | str = pagination.RIGHT_TRIANGLE, add_reaction: bool = True
     ) -> Self:
         r"""Add the next entry reaction button to this paginator.
 
@@ -467,10 +457,7 @@ class ReactionPaginator(ReactionHandler):
         return self._add_button(self._on_next, emoji, add_reaction)
 
     def add_last_button(
-        self,
-        *,
-        emoji: typing.Union[hikari.CustomEmoji, str] = pagination.RIGHT_DOUBLE_TRIANGLE,
-        add_reaction: bool = True,
+        self, *, emoji: hikari.CustomEmoji | str = pagination.RIGHT_DOUBLE_TRIANGLE, add_reaction: bool = True
     ) -> Self:
         r"""Add the jump to last entry reaction button to this paginator.
 
@@ -525,7 +512,7 @@ class ReactionPaginator(ReactionHandler):
         if page := await self._paginator.jump_to_last():
             await self._edit_message(page)
 
-    async def get_next_entry(self) -> typing.Optional[pagination.AbstractPage]:
+    async def get_next_entry(self) -> pagination.AbstractPage | None:
         """Get the next entry in this paginator.
 
         Returns
@@ -681,7 +668,7 @@ class ReactionClient:
         *,
         rest: hikari.api.RESTClient,
         event_manager: hikari.api.EventManager,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
+        alluka: alluka_.abc.Client | None = None,
         event_managed: bool = True,
     ) -> None:
         """Initialise a reaction client.
@@ -715,7 +702,7 @@ class ReactionClient:
         self._alluka = alluka
         self.blacklist: list[hikari.Snowflake] = []
         self._event_manager = event_manager
-        self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._gc_task: asyncio.Task[None] | None = None
         self._handlers: dict[hikari.Snowflake, AbstractReactionHandler] = {}
         self._rest = rest
 
@@ -730,7 +717,7 @@ class ReactionClient:
 
     @classmethod
     def from_gateway_bot(
-        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+        cls, bot: _GatewayBotProto, /, *, alluka: alluka_.abc.Client | None = None, event_managed: bool = True
     ) -> Self:
         """Build a `ReactionClient` from a gateway bot.
 
@@ -811,9 +798,7 @@ class ReactionClient:
 
             await asyncio.sleep(5)  # TODO: is this a good time?
 
-    async def _on_reaction_event(
-        self, event: typing.Union[hikari.ReactionAddEvent, hikari.ReactionDeleteEvent], /
-    ) -> None:
+    async def _on_reaction_event(self, event: hikari.ReactionAddEvent | hikari.ReactionDeleteEvent, /) -> None:
         if event.user_id in self.blacklist:
             return
 
@@ -850,9 +835,7 @@ class ReactionClient:
         self._handlers[hikari.Snowflake(message)] = handler
         return self
 
-    def get_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], /
-    ) -> typing.Optional[AbstractReactionHandler]:
+    def get_handler(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> AbstractReactionHandler | None:
         """Get a reference to a handler registered in this reaction client.
 
         !!! note
@@ -870,9 +853,7 @@ class ReactionClient:
         """
         return self._handlers.get(hikari.Snowflake(message))
 
-    def remove_handler(
-        self, message: hikari.SnowflakeishOr[hikari.Message], /
-    ) -> typing.Optional[AbstractReactionHandler]:
+    def remove_handler(self, message: hikari.SnowflakeishOr[hikari.Message], /) -> AbstractReactionHandler | None:
         """Remove a handler from this reaction client.
 
         !!! note

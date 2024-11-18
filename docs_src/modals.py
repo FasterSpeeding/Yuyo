@@ -13,7 +13,6 @@
 # pyright: reportUnusedClass=none
 # pyright: reportUnusedFunction=none
 # pyright: reportUnusedVariable=none
-import typing
 import uuid
 
 import alluka
@@ -29,7 +28,7 @@ def modal_class() -> None:
             self,
             ctx: modals.Context,
             field: str = modals.text_input("label", min_length=5, max_length=50, default="John Doe"),
-            other_field: typing.Optional[str] = modals.text_input(
+            other_field: str | None = modals.text_input(
                 "other label", style=hikari.TextInputStyle.PARAGRAPH, default=None
             ),
         ) -> None:
@@ -39,7 +38,7 @@ def modal_class() -> None:
 def modal_class_decorated() -> None:
     @modals.with_static_text_input("label", parameter="field", default=None)
     class Modal(modals.Modal):
-        async def callback(self, ctx: modals.Context, field: typing.Optional[str], other_field: str) -> None:
+        async def callback(self, ctx: modals.Context, field: str | None, other_field: str) -> None:
             ctx.interaction.components
 
     Modal.add_static_text_input("other label", parameter="other_field")
@@ -56,11 +55,11 @@ def decorated_modal() -> None:
     @modals.with_text_input("other label", parameter="other")
     @modals.with_text_input("label", parameter="field")
     @modals.as_modal
-    async def modal(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
+    async def modal(ctx: modals.Context, field: str, other_field: str | None) -> None: ...
 
 
 def modal_methods() -> None:
-    async def callback(ctx: modals.Context, field: str, other_field: typing.Optional[str]) -> None: ...
+    async def callback(ctx: modals.Context, field: str, other_field: str | None) -> None: ...
 
     modal = (
         modals.modal(callback)
@@ -72,9 +71,7 @@ def modal_methods() -> None:
 def modal_dataclass() -> None:
     class ModalOptions(modals.ModalOptions):
         field: str = modals.text_input("label", min_length=5, max_length=500)
-        other_field: typing.Optional[str] = modals.text_input(
-            "other label", default=None, style=hikari.TextInputStyle.PARAGRAPH
-        )
+        other_field: str | None = modals.text_input("other label", default=None, style=hikari.TextInputStyle.PARAGRAPH)
 
     @modals.as_modal(parse_signature=True)
     async def modal(ctx: modals.Context, options: ModalOptions) -> None:

@@ -119,7 +119,7 @@ class TestNeverTimeout:
 
 
 def _now() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
+    return datetime.datetime.now(tz=datetime.UTC)
 
 
 class TestStaticTimeout:

@@ -169,18 +169,18 @@ class TestBaseContext:
         ("now", "expires_at"),
         [
             (
-                datetime.datetime(2023, 3, 31, 20, 2, 15, 173495, tzinfo=datetime.timezone.utc),
-                datetime.datetime(2023, 3, 31, 20, 17, 15, 173495, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2023, 3, 31, 20, 2, 15, 173495, tzinfo=datetime.UTC),
+                datetime.datetime(2023, 3, 31, 20, 17, 15, 173495, tzinfo=datetime.UTC),
             ),
             (
-                datetime.datetime(2019, 6, 2, 14, 6, 1, 432653, tzinfo=datetime.timezone.utc),
-                datetime.datetime(2019, 6, 2, 14, 21, 1, 432653, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2019, 6, 2, 14, 6, 1, 432653, tzinfo=datetime.UTC),
+                datetime.datetime(2019, 6, 2, 14, 21, 1, 432653, tzinfo=datetime.UTC),
             ),
         ],
     )
     def test_expires_at_property(self, now: datetime.datetime, expires_at: datetime.datetime):
         with freezegun.freeze_time(now):
-            date = datetime.datetime.now(tz=datetime.timezone.utc)
+            date = datetime.datetime.now(tz=datetime.UTC)
 
             context = yuyo.components.Context(
                 mock.Mock(), mock.Mock(created_at=date), "", "", register_task=lambda v: None

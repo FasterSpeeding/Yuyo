@@ -33,7 +33,6 @@
 # pyright: reportPrivateUsage=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from unittest import mock
 
 import alluka
@@ -293,7 +292,7 @@ class TestModal:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext,
-            a_field: typing.Union[str, int] = modals.text_input(
+            a_field: str | int = modals.text_input(
                 "bababooi",
                 custom_id="yeet:me",
                 style=hikari.TextInputStyle.PARAGRAPH,
@@ -333,7 +332,7 @@ class TestModal:
     def test_with_text_input_descriptor_uses_string_default_as_value(self, default: str):
         @modals.as_modal_template()
         async def modal_template(
-            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=default)
+            ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default=default)
         ) -> None: ...
 
         modal = modal_template()
@@ -354,7 +353,7 @@ class TestModal:
     def test_with_text_input_descriptor_with_non_str_default(self):
         @modals.as_modal_template()
         async def modal_template(
-            ctx: modals.ModalContext, a_field: typing.Union[str, int] = modals.text_input("bababooi", default=123)
+            ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default=123)
         ) -> None: ...
 
         modal = modal_template()
@@ -375,8 +374,7 @@ class TestModal:
     def test_with_text_input_descriptor_when_string_default_over_4000_chars(self):
         @modals.as_modal_template()
         async def modal_template(
-            ctx: modals.ModalContext,
-            a_field: typing.Union[str, int] = modals.text_input("bababooi", default="x" * 4001),
+            ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default="x" * 4001)
         ) -> None: ...
 
         modal = modal_template()
@@ -449,7 +447,7 @@ class TestModal:
     def test_with_text_modals_options_class(self):
         class ModalOptions(modals.ModalOptions):
             fieldy: str = modals.text_input("fieldy")
-            meowy: typing.Union[str, None] = modals.text_input(
+            meowy: str | None = modals.text_input(
                 "x3",
                 custom_id="nyeep",
                 style=hikari.TextInputStyle.PARAGRAPH,

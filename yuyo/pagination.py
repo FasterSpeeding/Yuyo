@@ -78,6 +78,7 @@ class ResponseKwargs(typing_extensions.TypedDict, total=False):
     """A sequence of embeds to send."""
 
 
+# This would have to be a string when using | which wouldn't be treated as a type-hint.
 EntryT = typing.Union[tuple[hikari.UndefinedOr[str], hikari.UndefinedOr[hikari.Embed]], "AbstractPage"]
 """A type hint used to represent a paginator entry.
 
@@ -126,7 +127,7 @@ async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    wrapper: str | None = None,
 ) -> collections.AsyncIterator[str]:
     """Lazily paginate an iterator of lines.
 
@@ -192,12 +193,7 @@ async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@
 
 
 def sync_paginate_string(
-    lines: collections.Iterable[str],
-    /,
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    lines: collections.Iterable[str], /, *, char_limit: int = 2000, line_limit: int = 25, wrapper: str | None = None
 ) -> collections.Iterator[str]:
     """Lazily paginate an iterator of lines.
 
@@ -268,28 +264,18 @@ def paginate_string(
     *,
     char_limit: int = 2000,
     line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    wrapper: str | None = None,
 ) -> collections.AsyncIterator[str]: ...
 
 
 @typing.overload
 def paginate_string(
-    lines: collections.Iterator[str],
-    /,
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    lines: collections.Iterator[str], /, *, char_limit: int = 2000, line_limit: int = 25, wrapper: str | None = None
 ) -> collections.Iterator[str]: ...
 
 
 def paginate_string(
-    lines: _internal.IterableT[str],
-    /,
-    *,
-    char_limit: int = 2000,
-    line_limit: int = 25,
-    wrapper: typing.Optional[str] = None,
+    lines: _internal.IterableT[str], /, *, char_limit: int = 2000, line_limit: int = 25, wrapper: str | None = None
 ) -> _internal.IteratorT[str]:
     """Lazily paginate an iterator of lines.
 
@@ -355,9 +341,7 @@ class AbstractPage(abc.ABC):
     @abc.abstractmethod
     def ctx_to_kwargs(
         self,
-        ctx: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
+        ctx: interactions.BaseContext[hikari.ComponentInteraction] | interactions.BaseContext[hikari.ModalInteraction],
         /,
     ) -> ResponseKwargs:
         """Form create message `**kwargs` for this page based on a component or modal context.
@@ -377,7 +361,7 @@ class Page(AbstractPage):
     @typing.overload
     def __init__(
         self,
-        content: typing.Union[str, hikari.UndefinedType] = hikari.UNDEFINED,
+        content: str | hikari.UndefinedType = hikari.UNDEFINED,
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
@@ -405,7 +389,7 @@ class Page(AbstractPage):
 
     def __init__(
         self,
-        content: typing.Union[str, hikari.Embed, hikari.Resourceish, hikari.UndefinedType] = hikari.UNDEFINED,
+        content: str | hikari.Embed | hikari.Resourceish | hikari.UndefinedType = hikari.UNDEFINED,
         *,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
@@ -504,9 +488,7 @@ class Page(AbstractPage):
 
     def ctx_to_kwargs(
         self,
-        _: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
+        _: interactions.BaseContext[hikari.ComponentInteraction] | interactions.BaseContext[hikari.ModalInteraction],
         /,
     ) -> ResponseKwargs:
         """Form create message `**kwargs` for this page based on a component or modal context.
@@ -524,7 +506,7 @@ class LocalisedPage(AbstractPage):
 
     __slots__ = ("_pages",)
 
-    def __init__(self, pages: collections.Mapping[typing.Union[str, hikari.Locale], AbstractPage], /) -> None:
+    def __init__(self, pages: collections.Mapping[str | hikari.Locale, AbstractPage], /) -> None:
         self._pages = localise.MaybeLocalised[AbstractPage].parse("page", pages)
 
     def to_kwargs(self) -> ResponseKwargs:
@@ -532,9 +514,7 @@ class LocalisedPage(AbstractPage):
 
     def ctx_to_kwargs(
         self,
-        ctx: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
+        ctx: interactions.BaseContext[hikari.ComponentInteraction] | interactions.BaseContext[hikari.ModalInteraction],
         /,
     ) -> ResponseKwargs:
         return self._pages.localise(ctx).to_kwargs()
@@ -572,7 +552,7 @@ class Paginator:
 
         self._buffer: list[AbstractPage] = []
         self._index: int = -1
-        self._iterator: typing.Optional[_internal.IteratorT[EntryT]] = iterator
+        self._iterator: _internal.IteratorT[EntryT] | None = iterator
 
     @property
     def has_finished_iterating(self) -> bool:
@@ -589,7 +569,7 @@ class Paginator:
     def _is_behind_buffer(self) -> bool:
         return len(self._buffer) >= self._index + 2
 
-    async def step_forward(self) -> typing.Optional[AbstractPage]:
+    async def step_forward(self) -> AbstractPage | None:
         """Move this forward a page.
 
         Returns
@@ -618,7 +598,7 @@ class Paginator:
         self._iterator = None
         return None  # MyPy
 
-    def step_back(self) -> typing.Optional[AbstractPage]:
+    def step_back(self) -> AbstractPage | None:
         """Move back a page.
 
         Returns
@@ -635,7 +615,7 @@ class Paginator:
 
         return None  # MyPy compat
 
-    def jump_to_first(self) -> typing.Optional[AbstractPage]:
+    def jump_to_first(self) -> AbstractPage | None:
         """Jump to the first page.
 
         Returns
@@ -654,7 +634,7 @@ class Paginator:
 
         return None  # MyPy compat
 
-    async def jump_to_last(self) -> typing.Optional[AbstractPage]:
+    async def jump_to_last(self) -> AbstractPage | None:
         """Jump to the last page.
 
         Returns

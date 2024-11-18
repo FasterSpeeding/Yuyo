@@ -48,8 +48,8 @@ if typing.TYPE_CHECKING:
     _OtherT = typing.TypeVar("_OtherT")
 
 _T = typing.TypeVar("_T")
-IterableT = typing.Union[collections.AsyncIterable[_T], collections.Iterable[_T]]
-IteratorT = typing.Union[collections.AsyncIterator[_T], collections.Iterator[_T]]
+IterableT = collections.AsyncIterable[_T] | collections.Iterable[_T]
+IteratorT = collections.AsyncIterator[_T] | collections.Iterator[_T]
 
 
 class GatewayBotProto(hikari.EventManagerAware, hikari.RESTAware, hikari.ShardAware, typing.Protocol):
@@ -81,11 +81,11 @@ else:
     async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T: ...
 
     @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> typing.Union[_T, _DefaultT]: ...
+    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> _T | _DefaultT: ...
 
     async def anext_(
-        iterator: collections.AsyncIterator[_T], default: typing.Union[_DefaultT, NoDefault] = NO_DEFAULT, /
-    ) -> typing.Union[_T, _DefaultT]:
+        iterator: collections.AsyncIterator[_T], default: _DefaultT | NoDefault = NO_DEFAULT, /
+    ) -> _T | _DefaultT:
         """Backwards compat impl of `anext`."""
         try:
             return await iterator.__anext__()
@@ -115,7 +115,7 @@ async def collect_iterable(iterator: IterableT[_T], /) -> list[_T]:
     return list(iterator)
 
 
-async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> typing.Union[_T, _DefaultT]:
+async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> _T | _DefaultT:
     """Get the next value in an async or sync iterator."""
     if isinstance(iterator, collections.AsyncIterator):
         return await anext_(iterator, default)
@@ -161,7 +161,7 @@ class MatchId(typing.NamedTuple):
     custom_id: str
 
 
-def gen_custom_id(custom_id: typing.Optional[str]) -> MatchId:
+def gen_custom_id(custom_id: str | None) -> MatchId:
     """Generate a custom ID from user input.
 
     Returns
@@ -180,7 +180,7 @@ def to_list(
     singular: hikari.UndefinedOr[_T],
     plural: hikari.UndefinedOr[collections.Sequence[_T]],
     other: _OtherT,
-    type_: typing.Union[type[_T], tuple[type[_T], ...]],
+    type_: type[_T] | tuple[type[_T], ...],
     name: str,
     /,
 ) -> tuple[hikari.UndefinedOr[list[_T]], hikari.UndefinedOr[_OtherT]]:

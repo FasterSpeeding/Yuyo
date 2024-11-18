@@ -57,8 +57,7 @@ import hikari.urls
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
-
-    from typing_extensions import Self
+    from typing import Self
 
 _SUB_DOMAIN = r"(?:www\.|ptb\.|canary\.)?"
 
@@ -72,7 +71,7 @@ class BaseLink(abc.ABC):
     _MATCH_PATTERN: typing.ClassVar[re.Pattern[str]]
 
     @classmethod
-    def find(cls, app: hikari.RESTAware, content: str, /) -> typing.Optional[Self]:
+    def find(cls, app: hikari.RESTAware, content: str, /) -> Self | None:
         """Find the first link in a string.
 
         Parameters
@@ -144,7 +143,7 @@ def make_channel_link(
     channel: hikari.SnowflakeishOr[hikari.PartialChannel],
     /,
     *,
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None = None,
 ) -> str:
     """Make a raw link for a channel.
 
@@ -183,7 +182,7 @@ class ChannelLink(BaseLink):
     __slots__ = ("_app", "_guild_id", "_channel_id")
 
     _app: hikari.RESTAware
-    _guild_id: typing.Optional[hikari.Snowflake]
+    _guild_id: hikari.Snowflake | None
     _channel_id: hikari.Snowflake
 
     _FIND_PATTERN = _MATCH_PATTERN = re.compile(
@@ -206,7 +205,7 @@ class ChannelLink(BaseLink):
         return self._channel_id
 
     @property
-    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
+    def guild_id(self) -> hikari.Snowflake | None:
         """ID of the guild this links to.
 
         Will be [None][] for DM links.
@@ -244,7 +243,7 @@ class ChannelLink(BaseLink):
         """
         return await self._app.rest.fetch_channel(self._channel_id)
 
-    def get_channel(self) -> typing.Optional[hikari.GuildChannel]:
+    def get_channel(self) -> hikari.GuildChannel | None:
         """Get the channel this links to from the cache.
 
         Returns
@@ -257,7 +256,7 @@ class ChannelLink(BaseLink):
 
         return None  # MyPy compat
 
-    async def fetch_guild(self) -> typing.Optional[hikari.RESTGuild]:
+    async def fetch_guild(self) -> hikari.RESTGuild | None:
         """Fetch the guild this links to.
 
         Returns
@@ -286,7 +285,7 @@ class ChannelLink(BaseLink):
 
         return None  # Mypy compat
 
-    def get_guild(self) -> typing.Optional[hikari.GatewayGuild]:
+    def get_guild(self) -> hikari.GatewayGuild | None:
         """Get the guild this links to from the cache.
 
         Returns
@@ -302,7 +301,7 @@ class ChannelLink(BaseLink):
         return None  # MyPy compat
 
 
-def make_invite_link(invite: typing.Union[str, hikari.InviteCode], /) -> str:
+def make_invite_link(invite: str | hikari.InviteCode, /) -> str:
     """Make a raw link for an invite.
 
     Parameters
@@ -375,7 +374,7 @@ class InviteLink(hikari.InviteCode, BaseLink):
         """
         return await self._app.rest.fetch_invite(self._code)
 
-    def get_invite(self) -> typing.Optional[hikari.InviteWithMetadata]:
+    def get_invite(self) -> hikari.InviteWithMetadata | None:
         """Get the invite this links to from the cache.
 
         Returns
@@ -394,7 +393,7 @@ def make_message_link(
     message: hikari.SnowflakeishOr[hikari.PartialMessage],
     /,
     *,
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None = None,
 ) -> str:
     """Make a raw link for a message.
 
@@ -484,7 +483,7 @@ class MessageLink(ChannelLink):
         """
         return await self._app.rest.fetch_message(self._channel_id, self._message_id)
 
-    def get_message(self) -> typing.Optional[hikari.Message]:
+    def get_message(self) -> hikari.Message | None:
         """Get the message this links to from the cache.
 
         Returns
@@ -498,7 +497,7 @@ class MessageLink(ChannelLink):
         return None
 
 
-def make_template_link(template: typing.Union[hikari.Template, str], /) -> str:
+def make_template_link(template: hikari.Template | str, /) -> str:
     """Make a raw link for a guild template.
 
     Parameters
@@ -667,16 +666,16 @@ class WebhookLink(hikari.ExecutableWebhook, BaseLink):
 
 def make_oauth_link(
     client: hikari.SnowflakeishOr[hikari.PartialApplication],
-    scopes: collections.Sequence[typing.Union[hikari.OAuth2Scope, str]],
+    scopes: collections.Sequence[hikari.OAuth2Scope | str],
     /,
     *,
-    disable_guild_select: typing.Optional[bool] = None,
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
-    permissions: typing.Union[hikari.Permissions, int, None] = None,
-    prompt: typing.Optional[str] = None,
-    redirect_uri: typing.Optional[str] = None,
-    response_type: typing.Optional[str] = None,
-    state: typing.Optional[str] = None,
+    disable_guild_select: bool | None = None,
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None = None,
+    permissions: hikari.Permissions | int | None = None,
+    prompt: str | None = None,
+    redirect_uri: str | None = None,
+    response_type: str | None = None,
+    state: str | None = None,
 ) -> str:
     """Create an Oauth2 authorize link.
 
@@ -728,7 +727,7 @@ def make_oauth_link(
     str
         The created Oauth2 authorize link.
     """
-    query_params: dict[str, typing.Union[str, int]] = {"client_id": int(client), "scope": " ".join(scopes)}
+    query_params: dict[str, str | int] = {"client_id": int(client), "scope": " ".join(scopes)}
 
     if disable_guild_select is not None:
         query_params["disable_guild_select"] = str(disable_guild_select).lower()
@@ -758,9 +757,9 @@ def make_bot_invite(
     client: hikari.SnowflakeishOr[hikari.PartialApplication],
     /,
     *,
-    disable_guild_select: typing.Optional[bool] = None,
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]] = None,
-    permissions: typing.Union[hikari.Permissions, int, None] = hikari.Permissions.NONE,
+    disable_guild_select: bool | None = None,
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None = None,
+    permissions: hikari.Permissions | int | None = hikari.Permissions.NONE,
 ) -> str:
     """Create a Bot invite url.
 

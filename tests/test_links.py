@@ -32,7 +32,6 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from unittest import mock
 
 import hikari
@@ -53,7 +52,7 @@ def mock_intable(integer: int) -> mock.Mock:
         (mock.Mock(hikari.InviteCode, code="MakeAmerica_gay-again"), "https://discord.gg/MakeAmerica_gay-again"),
     ],
 )
-def test_make_invite_link(invite: typing.Union[str, hikari.InviteCode], expected_str: str):
+def test_make_invite_link(invite: str | hikari.InviteCode, expected_str: str):
     invite_link = yuyo.links.make_invite_link(invite)
 
     assert invite_link == expected_str
@@ -173,7 +172,7 @@ class TestInviteLink:
     ],
 )
 def test_make_message_link(
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]],
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None,
     channel: hikari.SnowflakeishOr[hikari.PartialChannel],
     message: hikari.SnowflakeishOr[hikari.PartialMessage],
     expected_str: str,
@@ -183,7 +182,7 @@ def test_make_message_link(
     assert result == expected_str
 
 
-_MESSAGE_LINKS: list[tuple[str, typing.Optional[int], int, int]] = [
+_MESSAGE_LINKS: list[tuple[str, int | None, int, int]] = [
     (" https://discord.com/channels/654234/234765/8763245 ", 654234, 234765, 8763245),
     (" http://discord.com/channels/32232/45333/5434 ", 32232, 45333, 5434),
     ("https://discord.com/channels/@me/6541234/123321", None, 6541234, 123321),
@@ -223,7 +222,7 @@ _MESSAGE_LINKS: list[tuple[str, typing.Optional[int], int, int]] = [
 
 class TestMessageLink:
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id", "message_id"), _MESSAGE_LINKS)
-    def test_find(self, raw_link: str, guild_id: typing.Optional[int], channel_id: int, message_id: int):
+    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int):
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.MessageLink.find(
@@ -266,7 +265,7 @@ class TestMessageLink:
         assert list(yuyo.links.MessageLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id", "message_id"), _MESSAGE_LINKS)
-    def test_from_link(self, raw_link: str, guild_id: typing.Optional[int], channel_id: int, message_id: int):
+    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int):
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.MessageLink.from_link(mock_app, raw_link)
@@ -355,7 +354,7 @@ class TestMessageLink:
     ],
 )
 def test_make_channel_link(
-    guild: typing.Optional[hikari.SnowflakeishOr[hikari.PartialGuild]],
+    guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None,
     channel: hikari.SnowflakeishOr[hikari.PartialChannel],
     expected_str: str,
 ):
@@ -364,7 +363,7 @@ def test_make_channel_link(
     assert result == expected_str
 
 
-_CHANNEL_LINKS: list[tuple[str, typing.Optional[int], int]] = [
+_CHANNEL_LINKS: list[tuple[str, int | None, int]] = [
     *[entry[:-1] for entry in _MESSAGE_LINKS],
     (" https://discord.com/channels/543345/123123 ", 543345, 123123),
     (" http://discord.com/channels/123321/543345 ", 123321, 543345),
@@ -405,7 +404,7 @@ _CHANNEL_LINKS: list[tuple[str, typing.Optional[int], int]] = [
 
 class TestChannelInvite:
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id"), _CHANNEL_LINKS)
-    def test_find(self, raw_link: str, guild_id: typing.Optional[int], channel_id: int):
+    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int):
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.ChannelLink.find(
@@ -442,7 +441,7 @@ class TestChannelInvite:
         assert list(yuyo.links.ChannelLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id"), _CHANNEL_LINKS)
-    def test_from_link(self, raw_link: str, guild_id: typing.Optional[int], channel_id: int):
+    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int):
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.ChannelLink.from_link(mock_app, raw_link)
@@ -597,7 +596,7 @@ class TestChannelInvite:
         (mock.Mock(hikari.Template, code="standingHere.iRealise"), "https://discord.new/standingHere.iRealise"),
     ],
 )
-def test_make_template_link(template: typing.Union[str, hikari.Template], expected_str: str):
+def test_make_template_link(template: str | hikari.Template, expected_str: str):
     result = yuyo.links.make_template_link(template)
 
     assert result == expected_str

@@ -47,21 +47,22 @@ from hikari import snowflakes
 from . import _internal
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import alluka as alluka_
-    from typing_extensions import Self
 
 
 _InteractionT = typing.TypeVar("_InteractionT", hikari.ModalInteraction, hikari.ComponentInteraction)
 _INTERACTION_LIFETIME: typing.Final[datetime.timedelta] = datetime.timedelta(minutes=15)
-_ComponentResponseT = typing.Union[
-    hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
-]
+_ComponentResponseT = (
+    hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder | hikari.api.InteractionModalBuilder
+)
 """Type hint of the builder response types allows for component interactions."""
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
 
 
-def _delete_after_to_float(delete_after: typing.Union[datetime.timedelta, float, int], /) -> float:
+def _delete_after_to_float(delete_after: datetime.timedelta | float | int, /) -> float:
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
 
 
@@ -92,12 +93,12 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Union[
+        response_future: (
             # _ModalResponseT
-            asyncio.Future[typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]],
-            asyncio.Future[_ComponentResponseT],
-            None,
-        ] = None,
+            asyncio.Future[hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder]
+            | asyncio.Future[_ComponentResponseT]
+            | None
+        ) = None,
     ) -> None:
         """Initialise a base context."""
         self._ephemeral_default = ephemeral_default
@@ -106,7 +107,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self._id_match = id_match
         self._id_metadata = id_metadata
         self._interaction: _InteractionT = interaction
-        self._last_response_id: typing.Optional[hikari.Snowflake] = None
+        self._last_response_id: hikari.Snowflake | None = None
         self._register_task = register_task
         self._response_future = response_future
         self._response_lock = asyncio.Lock()
@@ -124,7 +125,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
     @property
     @abc.abstractmethod
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """Hikari cache instance this context's client was initialised with."""
 
     @property
@@ -148,11 +149,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
     @property
     @abc.abstractmethod
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
+    def events(self) -> hikari.api.EventManager | None:
         """Object of the event manager this context's client was initialised with."""
 
     @property
-    def guild_id(self) -> typing.Optional[hikari.Snowflake]:
+    def guild_id(self) -> hikari.Snowflake | None:
         return self._interaction.guild_id
 
     @property
@@ -196,26 +197,26 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         return self._interaction
 
     @property
-    def member(self) -> typing.Optional[hikari.InteractionMember]:
+    def member(self) -> hikari.InteractionMember | None:
         return self._interaction.member
 
     @property
     @abc.abstractmethod
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+    def rest(self) -> hikari.api.RESTClient | None:
         """Object of the Hikari REST client this context's client was initialised with."""
 
     @property
     @abc.abstractmethod
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+    def server(self) -> hikari.api.InteractionServer | None:
         """Object of the Hikari interaction server provided for this context's client."""
 
     @property
     @abc.abstractmethod
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """Object of the Hikari shard manager this context's client was initialised with."""
 
     @property
-    def shard(self) -> typing.Optional[hikari.api.GatewayShard]:
+    def shard(self) -> hikari.api.GatewayShard | None:
         """Shard that triggered the interaction.
 
         !!! note
@@ -235,7 +236,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
     @property
     @abc.abstractmethod
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+    def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this context's client was initialised with."""
 
     def set_ephemeral_default(self, state: bool, /) -> Self:
@@ -252,10 +253,10 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self._ephemeral_default = state
         return self
 
-    def _validate_delete_after(self, delete_after: typing.Union[float, int, datetime.timedelta], /) -> float:
+    def _validate_delete_after(self, delete_after: float | int | datetime.timedelta, /) -> float:
         delete_after = _delete_after_to_float(delete_after)
         time_left = (
-            _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.timezone.utc) - self._interaction.created_at)
+            _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.UTC) - self._interaction.created_at)
         ).total_seconds()
         if delete_after + 10 > time_left:
             raise ValueError("This interaction will have expired before delete_after is reached")
@@ -264,12 +265,12 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
     def _get_flags(
         self,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        flags: hikari.UndefinedType | int | hikari.MessageFlag = hikari.UNDEFINED,
         /,
         *,
-        ephemeral: typing.Optional[bool] = None,
+        ephemeral: bool | None = None,
         is_create: bool = True,
-    ) -> typing.Union[int, hikari.MessageFlag]:
+    ) -> int | hikari.MessageFlag:
         if flags is hikari.UNDEFINED:
             if ephemeral is True or (ephemeral is None and is_create and self._ephemeral_default):
                 return hikari.MessageFlag.EPHEMERAL
@@ -288,8 +289,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         *,
         defer_type: hikari.DeferredResponseTypesT = hikari.ResponseType.DEFERRED_MESSAGE_CREATE,
-        ephemeral: typing.Optional[bool] = None,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        ephemeral: bool | None = None,
+        flags: hikari.UndefinedType | int | hikari.MessageFlag = hikari.UNDEFINED,
     ) -> None:
         """Defer the initial response for this context.
 
@@ -347,8 +348,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
+        ephemeral: bool | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -356,14 +357,10 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        flags: hikari.UndefinedType | int | hikari.MessageFlag = hikari.UNDEFINED,
     ) -> hikari.Message:
         delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
         message = await self._interaction.execute(
@@ -396,8 +393,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
+        ephemeral: bool | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -405,14 +402,10 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        flags: typing.Union[hikari.UndefinedType, int, hikari.MessageFlag] = hikari.UNDEFINED,
+        flags: hikari.UndefinedType | int | hikari.MessageFlag = hikari.UNDEFINED,
     ) -> hikari.Message:
         """Create a followup response for this context.
 
@@ -541,8 +534,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         /,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
+        ephemeral: bool | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -550,13 +543,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        flags: int | hikari.MessageFlag | hikari.UndefinedType = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
         flags = self._get_flags(
@@ -620,8 +609,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         response_type: hikari.MessageResponseTypesT = hikari.ResponseType.MESSAGE_CREATE,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
-        ephemeral: typing.Optional[bool] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
+        ephemeral: bool | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -629,13 +618,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        flags: typing.Union[int, hikari.MessageFlag, hikari.UndefinedType] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        flags: int | hikari.MessageFlag | hikari.UndefinedType = hikari.UNDEFINED,
         tts: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
     ) -> None:
         """Create the initial response for this context.
@@ -796,7 +781,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -804,12 +789,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
     ) -> hikari.Message:
         """Edit the initial response for this context.
 
@@ -927,7 +908,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedNoneOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedNoneOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedNoneOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -935,12 +916,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedNoneOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedNoneOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
     ) -> hikari.Message:
         """Edit the last response for this context.
 
@@ -1112,7 +1089,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: typing.Literal[True],
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -1120,12 +1097,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
     ) -> hikari.Message: ...
 
     @typing.overload
@@ -1134,7 +1107,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: bool = False,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -1142,20 +1115,16 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]: ...
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+    ) -> hikari.Message | None: ...
 
     async def respond(
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
         ensure_result: bool = False,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -1163,13 +1132,9 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-    ) -> typing.Optional[hikari.Message]:
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+    ) -> hikari.Message | None:
         """Respond to this context.
 
         Parameters
@@ -1328,7 +1293,7 @@ class InteractionError(Exception):
         self,
         content: hikari.UndefinedOr[typing.Any] = hikari.UNDEFINED,
         *,
-        delete_after: typing.Union[datetime.timedelta, float, int, None] = None,
+        delete_after: datetime.timedelta | float | int | None = None,
         attachment: hikari.UndefinedOr[hikari.Resourceish] = hikari.UNDEFINED,
         attachments: hikari.UndefinedOr[collections.Sequence[hikari.Resourceish]] = hikari.UNDEFINED,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
@@ -1336,12 +1301,8 @@ class InteractionError(Exception):
         embed: hikari.UndefinedOr[hikari.Embed] = hikari.UNDEFINED,
         embeds: hikari.UndefinedOr[collections.Sequence[hikari.Embed]] = hikari.UNDEFINED,
         mentions_everyone: hikari.UndefinedOr[bool] = hikari.UNDEFINED,
-        user_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialUser], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
-        role_mentions: typing.Union[
-            hikari.SnowflakeishSequence[hikari.PartialRole], bool, hikari.UndefinedType
-        ] = hikari.UNDEFINED,
+        user_mentions: hikari.SnowflakeishSequence[hikari.PartialUser] | bool | hikari.UndefinedType = hikari.UNDEFINED,
+        role_mentions: hikari.SnowflakeishSequence[hikari.PartialRole] | bool | hikari.UndefinedType = hikari.UNDEFINED,
     ) -> None:
         """Initialise an interaction error.
 
@@ -1436,7 +1397,7 @@ class InteractionError(Exception):
     @typing.overload
     async def send(
         self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        ctx: BaseContext[hikari.ComponentInteraction] | BaseContext[hikari.ModalInteraction],
         /,
         *,
         ensure_result: typing.Literal[True],
@@ -1445,19 +1406,19 @@ class InteractionError(Exception):
     @typing.overload
     async def send(
         self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        ctx: BaseContext[hikari.ComponentInteraction] | BaseContext[hikari.ModalInteraction],
         /,
         *,
         ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]: ...
+    ) -> hikari.Message | None: ...
 
     async def send(
         self,
-        ctx: typing.Union[BaseContext[hikari.ComponentInteraction], BaseContext[hikari.ModalInteraction]],
+        ctx: BaseContext[hikari.ComponentInteraction] | BaseContext[hikari.ModalInteraction],
         /,
         *,
         ensure_result: bool = False,
-    ) -> typing.Optional[hikari.Message]:
+    ) -> hikari.Message | None:
         """Send this error as an interaction response.
 
         Parameters

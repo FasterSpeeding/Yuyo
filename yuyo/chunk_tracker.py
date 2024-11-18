@@ -50,9 +50,9 @@ import hikari
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
+    from typing import Self
 
     import typing_extensions
-    from typing_extensions import Self
 
     from . import _internal
 
@@ -245,23 +245,23 @@ class _RequestData:
         guild_id: hikari.Snowflake,
         /,
         *,
-        chunk_count: typing.Optional[int] = None,
+        chunk_count: int | None = None,
         first_received_at: datetime.datetime,
         last_received_at: datetime.datetime,
-        missing_chunks: typing.Optional[set[int]] = None,
-        not_found_ids: typing.Optional[set[hikari.Snowflake]] = None,
+        missing_chunks: set[int] | None = None,
+        not_found_ids: set[hikari.Snowflake] | None = None,
     ) -> None:
-        self.chunk_count: typing.Optional[int] = chunk_count
+        self.chunk_count: int | None = chunk_count
         self.first_received_at: datetime.datetime = first_received_at
         self.guild_id: hikari.Snowflake = guild_id
         self.last_received_at: datetime.datetime = last_received_at
-        self.missing_chunks: typing.Optional[set[int]] = missing_chunks
+        self.missing_chunks: set[int] | None = missing_chunks
         self.not_found_ids: set[hikari.Snowflake] = not_found_ids or set()
         self.shard: hikari.api.GatewayShard = shard
 
 
 def _now() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
+    return datetime.datetime.now(tz=datetime.UTC)
 
 
 class _ShardInfo:
@@ -273,7 +273,7 @@ class _ShardInfo:
         guild_ids: collections.Sequence[hikari.Snowflake],
         /,
         *,
-        known_nonces: typing.Optional[dict[hikari.Snowflake, str]] = None,
+        known_nonces: dict[hikari.Snowflake, str] | None = None,
     ) -> None:
         self.any_received = False
         self.guild_ids = set(guild_ids)
@@ -333,7 +333,7 @@ class ChunkTracker:
         shards: hikari.ShardAware,
         /,
         *,
-        timeout: typing.Union[int, float, datetime.timedelta] = datetime.timedelta(seconds=5),
+        timeout: int | float | datetime.timedelta = datetime.timedelta(seconds=5),
     ) -> None:
         """Initialise a chunk tracker.
 
@@ -363,7 +363,7 @@ class ChunkTracker:
         self._requests: dict[str, _RequestData] = {}
         self._rest = rest
         self._shards = shards
-        self._task: typing.Optional[asyncio.Task[None]] = None
+        self._task: asyncio.Task[None] | None = None
         self._timeout = timeout
         self._tracked_identifies: dict[int, _ShardInfo] = {}
         event_manager.subscribe(hikari.ShardPayloadEvent, self._on_payload_event)
@@ -376,7 +376,7 @@ class ChunkTracker:
         bot: _internal.GatewayBotProto,
         /,
         *,
-        timeout: typing.Union[int, float, datetime.timedelta] = datetime.timedelta(seconds=5),
+        timeout: int | float | datetime.timedelta = datetime.timedelta(seconds=5),
     ) -> Self:
         """Initialise a chunk tracker from a gateway bot.
 
@@ -508,7 +508,7 @@ class ChunkTracker:
             timed_out_requests.clear()
             timed_out_shards.clear()
 
-    async def _dispatch_finished(self, data: _RequestData, /, *, nonce: typing.Optional[str] = None) -> None:
+    async def _dispatch_finished(self, data: _RequestData, /, *, nonce: str | None = None) -> None:
         await self._event_manager.dispatch(ChunkRequestFinishedEvent(self._rest, data.shard, data))
         shard_info = self._tracked_identifies.get(data.shard.id)
         if not shard_info or nonce and not shard_info.check_nonce(data.guild_id, nonce):
@@ -539,7 +539,7 @@ class ChunkTracker:
         guild_id = hikari.Snowflake(event.payload["id"])
         auto_chunk = self._auto_chunk_members and event.shard.intents & hikari.Intents.GUILD_MEMBERS
 
-        shard_info: typing.Optional[_ShardInfo]  # MyPy
+        shard_info: _ShardInfo | None  # MyPy
         if not event.payload.get("large"):
             # Any sane auto-chunker will be ignoring this case so we can short-cut
             # the tracking of chunking which was triggered based on GUILD_CREATEs
