@@ -35,7 +35,6 @@ __all__ = ["NeverTimeout", "SlidingTimeout", "StaticTimeout"]
 
 import abc
 import datetime
-import typing
 
 
 class AbstractTimeout(abc.ABC):
@@ -68,7 +67,7 @@ class SlidingTimeout(AbstractTimeout):
 
     __slots__ = ("_last_triggered", "_timeout", "_uses_left")
 
-    def __init__(self, timeout: typing.Union[datetime.timedelta, int, float], /, *, max_uses: int = 1) -> None:
+    def __init__(self, timeout: datetime.timedelta | int | float, /, *, max_uses: int = 1) -> None:
         """Initialise a sliding timeout.
 
         Parameters
@@ -83,7 +82,7 @@ class SlidingTimeout(AbstractTimeout):
         if not isinstance(timeout, datetime.timedelta):
             timeout = datetime.timedelta(seconds=timeout)
 
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._last_triggered = datetime.datetime.now(tz=datetime.UTC)
         self._timeout = timeout
         self._uses_left = max_uses
 
@@ -93,7 +92,7 @@ class SlidingTimeout(AbstractTimeout):
         if self._uses_left == 0:
             return True
 
-        return datetime.datetime.now(tz=datetime.timezone.utc) - self._last_triggered > self._timeout
+        return datetime.datetime.now(tz=datetime.UTC) - self._last_triggered > self._timeout
 
     def increment_uses(self) -> bool:
         # <<inherited docstring from AbstractTimeout>>.
@@ -103,7 +102,7 @@ class SlidingTimeout(AbstractTimeout):
         elif self._uses_left == 0:
             raise RuntimeError("Uses already depleted")
 
-        self._last_triggered = datetime.datetime.now(tz=datetime.timezone.utc)
+        self._last_triggered = datetime.datetime.now(tz=datetime.UTC)
         return self._uses_left == 0
 
 

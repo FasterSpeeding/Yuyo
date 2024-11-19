@@ -32,48 +32,12 @@
 # pyright: reportUnknownMemberType=none
 # This leads to too many false-positives around mocks.
 
-import typing
 from collections import abc as collections
 from unittest import mock
 
 import pytest
 
 from yuyo import _internal
-
-
-@pytest.mark.asyncio
-async def test_backwards_compat_aiter_():
-    mock_iterable = mock.Mock(
-        collections.AsyncIterable,
-        __aiter__=mock.Mock(return_value=mock.AsyncMock(collections.AsyncIterator, __anext__=mock.AsyncMock())),
-    )
-
-    result: typing.Any = _internal.aiter_(mock_iterable)
-
-    assert result is mock_iterable.__aiter__.return_value
-    mock_iterable.__aiter__.assert_called_once_with()
-
-
-@pytest.mark.asyncio
-async def test_backwards_compat_anext_():
-    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(return_value=554433))
-
-    assert await _internal.anext_(mock_iterator, 432) == 554433
-
-
-@pytest.mark.asyncio
-async def test_backwards_compat_anext__when_exhausted():
-    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(side_effect=StopAsyncIteration))
-
-    assert await _internal.anext_(mock_iterator, 659595) == 659595
-
-
-@pytest.mark.asyncio
-async def test_backwards_compat_anext__when_exhausted_and_no_default():
-    mock_iterator = mock.Mock(collections.AsyncIterator, __anext__=mock.AsyncMock(side_effect=StopAsyncIteration))
-
-    with pytest.raises(StopAsyncIteration):
-        await _internal.anext_(mock_iterator)
 
 
 @pytest.mark.asyncio

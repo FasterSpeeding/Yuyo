@@ -81,7 +81,7 @@ async def fake_awake(value: _T, /) -> _T:
 
 @pytest.mark.asyncio
 async def test_aenumerate():
-    iterator = pagination.aenumerate((await fake_awake(value) for value in ("a", "meow", "nyaa", "nom")))
+    iterator = pagination.aenumerate(await fake_awake(value) for value in ("a", "meow", "nyaa", "nom"))
 
     result = await _internal.collect_iterable(iterator)
 

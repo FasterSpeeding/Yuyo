@@ -196,7 +196,7 @@ def to_msg_action_row_builder(action_row: hikari.MessageActionRowComponent, /) -
 
 def to_button_builder(
     button: hikari.ButtonComponent, /
-) -> typing.Union[hikari.api.LinkButtonBuilder, hikari.api.InteractiveButtonBuilder]:
+) -> hikari.api.LinkButtonBuilder | hikari.api.InteractiveButtonBuilder:
     """Convert a button component to a builder.
 
     Parameters

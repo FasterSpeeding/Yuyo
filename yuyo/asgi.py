@@ -41,15 +41,13 @@ import uuid
 
 import hikari
 
-from . import _internal
-
 if typing.TYPE_CHECKING:
     import concurrent.futures
     from collections import abc as collections
+    from typing import Self
 
     import asgiref.typing as asgiref
     from hikari.api import config as hikari_config
-    from typing_extensions import Self
 
 
 _CONTENT_TYPE_KEY: typing.Final[bytes] = b"content-type"
@@ -91,7 +89,7 @@ class AsgiAdapter:
         server: hikari.api.InteractionServer,
         /,
         *,
-        executor: typing.Optional[concurrent.futures.Executor] = None,
+        executor: concurrent.futures.Executor | None = None,
         max_body_size: int = 1024**2,
     ) -> None:
         """Initialise the adapter.
@@ -408,9 +406,9 @@ class AsgiAdapter:
 
         for index, attachment in enumerate(response.files):
             async with attachment.stream(executor=self._executor) as reader:
-                iterator = _internal.aiter_(reader)
+                iterator = aiter(reader)
                 try:
-                    data = await _internal.anext_(iterator)
+                    data = await anext(iterator)
                 except StopAsyncIteration:
                     data = b""
 
@@ -429,7 +427,7 @@ class AsgiAdapter:
         await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
 
 
-def _content_type(response: hikari.api.Response, /) -> typing.Optional[bytes]:
+def _content_type(response: hikari.api.Response, /) -> bytes | None:
     if response.content_type:
         if response.charset:
             return f"{response.content_type}; charset={response.charset}".encode()
@@ -439,12 +437,10 @@ def _content_type(response: hikari.api.Response, /) -> typing.Optional[bytes]:
     return None  # MyPy
 
 
-def _find_headers(
-    scope: asgiref.HTTPScope, /
-) -> tuple[typing.Optional[bytes], typing.Optional[bytes], typing.Optional[bytes]]:
-    content_type: typing.Optional[bytes] = None
-    signature: typing.Optional[bytes] = None
-    timestamp: typing.Optional[bytes] = None
+def _find_headers(scope: asgiref.HTTPScope, /) -> tuple[bytes | None, bytes | None, bytes | None]:
+    content_type: bytes | None = None
+    signature: bytes | None = None
+    timestamp: bytes | None = None
     for name, value in scope["headers"]:
         # As per-spec these should be matched case-insensitively.
         name = name.lower()
@@ -496,48 +492,48 @@ class AsgiBot(hikari.RESTBotAware):
         self,
         token: hikari.api.TokenStrategy,
         *,
-        public_key: typing.Union[bytes, str, None] = None,
+        public_key: bytes | str | None = None,
         asgi_managed: bool = True,
-        executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        executor: concurrent.futures.Executor | None = None,
+        http_settings: hikari.impl.HTTPSettings | None = None,
         max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
-        rest_url: typing.Optional[str] = None,
+        proxy_settings: hikari.impl.ProxySettings | None = None,
+        rest_url: str | None = None,
     ) -> None: ...
 
     @typing.overload
     def __init__(
         self,
         token: str,
-        token_type: typing.Union[str, hikari.TokenType] = hikari.TokenType.BOT,
-        public_key: typing.Union[bytes, str, None] = None,
+        token_type: str | hikari.TokenType = hikari.TokenType.BOT,
+        public_key: bytes | str | None = None,
         *,
         asgi_managed: bool = True,
-        executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        executor: concurrent.futures.Executor | None = None,
+        http_settings: hikari.impl.HTTPSettings | None = None,
         max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
-        rest_url: typing.Optional[str] = None,
+        proxy_settings: hikari.impl.ProxySettings | None = None,
+        rest_url: str | None = None,
     ) -> None: ...
 
     def __init__(
         self,
-        token: typing.Union[str, hikari.api.TokenStrategy],
-        token_type: typing.Union[hikari.TokenType, str, None] = None,
-        public_key: typing.Union[bytes, str, None] = None,
+        token: str | hikari.api.TokenStrategy,
+        token_type: hikari.TokenType | str | None = None,
+        public_key: bytes | str | None = None,
         *,
         asgi_managed: bool = True,
-        executor: typing.Optional[concurrent.futures.Executor] = None,
-        http_settings: typing.Optional[hikari.impl.HTTPSettings] = None,
+        executor: concurrent.futures.Executor | None = None,
+        http_settings: hikari.impl.HTTPSettings | None = None,
         max_body_size: int = 1024**2,
         max_rate_limit: float = 300.0,
         max_retries: int = 3,
-        proxy_settings: typing.Optional[hikari.impl.ProxySettings] = None,
-        rest_url: typing.Optional[str] = None,
+        proxy_settings: hikari.impl.ProxySettings | None = None,
+        rest_url: str | None = None,
     ) -> None:
         """Initialise a new ASGI bot.
 
@@ -628,7 +624,7 @@ class AsgiBot(hikari.RESTBotAware):
         self._executor = executor
         self._http_settings = http_settings or hikari.impl.HTTPSettings()
         self._is_alive = False
-        self._join_event: typing.Optional[asyncio.Event] = None
+        self._join_event: asyncio.Event | None = None
         self._on_shutdown: dict[
             collections.Callable[[Self], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
             collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, typing.Any]],
@@ -668,7 +664,7 @@ class AsgiBot(hikari.RESTBotAware):
         return self._entity_factory
 
     @property
-    def executor(self) -> typing.Optional[concurrent.futures.Executor]:
+    def executor(self) -> concurrent.futures.Executor | None:
         return self._executor
 
     @property

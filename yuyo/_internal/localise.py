@@ -37,14 +37,15 @@ import typing
 from collections import abc as collections
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import hikari
-    from typing_extensions import Self
 
     from .. import interactions
 
 _T = typing.TypeVar("_T", bound=object)
 
-MaybeLocalsiedType = typing.Union[_T, collections.Mapping[str, _T]]
+MaybeLocalsiedType = _T | collections.Mapping[str, _T]
 
 
 class MaybeLocalised(typing.Generic[_T]):
@@ -58,7 +59,7 @@ class MaybeLocalised(typing.Generic[_T]):
         self.localisations = localisations
 
     @classmethod
-    def parse(cls, field_name: typing.Union[str, hikari.Locale], raw_value: MaybeLocalsiedType[_T], /) -> Self:
+    def parse(cls, field_name: str | hikari.Locale, raw_value: MaybeLocalsiedType[_T], /) -> Self:
         if isinstance(raw_value, collections.Mapping):
             raw_value = typing.cast("collections.Mapping[str, _T]", raw_value)
             value = raw_value.get("default") or next(iter(raw_value.values()))
@@ -82,9 +83,7 @@ class MaybeLocalised(typing.Generic[_T]):
 
     def localise(
         self,
-        ctx: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
+        ctx: interactions.BaseContext[hikari.ComponentInteraction] | interactions.BaseContext[hikari.ModalInteraction],
         /,
     ) -> _T:
         return self.localisations.get(ctx.interaction.locale) or self.value

@@ -60,8 +60,7 @@ except ModuleNotFoundError as _exc:
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
-
-    from typing_extensions import Self
+    from typing import Self
 
 
 _EnumT = typing.TypeVar("_EnumT", bound=enum.Enum)
@@ -160,7 +159,7 @@ _Snowflake = typing.Annotated[hikari.Snowflake, _snowflake_schema]
 
 @pydantic.GetPydanticSchema
 def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHandler) -> pydantic_core.CoreSchema:
-    def _cast_enum(value: typing.Union[str, int]) -> _EnumT:
+    def _cast_enum(value: str | int) -> _EnumT:
         result = source_type(value)
         if isinstance(result, source_type):
             return result
@@ -190,8 +189,8 @@ def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHand
     )
 
 
-_Locale = typing.Union[typing.Literal["default"], typing.Annotated[hikari.Locale, _enum_schema]]
-_MaybeLocalisedType = typing.Union[str, dict[_Locale, str]]
+_Locale = typing.Literal["default"] | typing.Annotated[hikari.Locale, _enum_schema]
+_MaybeLocalisedType = str | dict[_Locale, str]
 
 
 class _MaybeLocalised(localise.MaybeLocalised[str]):
@@ -214,7 +213,7 @@ class _MaybeLocalised(localise.MaybeLocalised[str]):
     @classmethod
     def pydantic_parse(cls, raw_value: _MaybeLocalisedType, info: pydantic_core.core_schema.ValidationInfo, /) -> Self:
         field_name = info.field_name or "<UNKNOWN>"
-        return cls.parse(field_name, typing.cast("typing.Union[str, collections.Mapping[str, str]]", raw_value))
+        return cls.parse(field_name, typing.cast("str | collections.Mapping[str, str]", raw_value))
 
     def unparse(self) -> _MaybeLocalisedType:
         if self.localisations:
@@ -269,12 +268,10 @@ def _always_true(*args: typing.Any, **kwargs: typing.Any) -> bool:
 
 
 class _RenameModel(pydantic.BaseModel):
-    commands: dict[typing.Union[str, _Snowflake], _MaybeLocalised]
+    commands: dict[str | _Snowflake, _MaybeLocalised]
 
 
-async def _rename_coro(
-    token: str, renames: collections.Mapping[typing.Union[str, _Snowflake], _MaybeLocalised]
-) -> None:
+async def _rename_coro(token: str, renames: collections.Mapping[str | _Snowflake, _MaybeLocalised]) -> None:
     app = hikari.RESTApp()
     new_commands: list[hikari.api.CommandBuilder] = []
     renames = dict(renames)
@@ -319,7 +316,7 @@ async def _rename_coro(
     await app.close()
 
 
-def _cast_rename_flag(value: str) -> tuple[typing.Union[hikari.Snowflake, str], str]:
+def _cast_rename_flag(value: str) -> tuple[hikari.Snowflake | str, str]:
     try:
         key, value = value.split("=", 1)
 
@@ -354,9 +351,7 @@ _DEFAULT_RENAME_FILE = pathlib.Path("./command_renames.toml")
 )
 @_commands_group.command(name="rename")
 def _rename(  # pyright: ignore[reportUnusedFunction]
-    token: str,
-    schema_file: typing.Optional[pathlib.Path],
-    command: collections.Sequence[tuple[typing.Union[hikari.Snowflake, str], str]],
+    token: str, schema_file: pathlib.Path | None, command: collections.Sequence[tuple[hikari.Snowflake | str, str]]
 ) -> None:
     """Rename some of a bot's declared application commands."""
     commands = {key: _MaybeLocalised("name", value, {}) for key, value in command}
@@ -380,7 +375,7 @@ class _CommandChoiceModel(pydantic.BaseModel):
     """Represents the choices set for an application command's argument."""
 
     name: _MaybeLocalised
-    value: typing.Union[str, int, float]
+    value: str | int | float
 
     @classmethod
     def from_choice(cls, choice: hikari.CommandChoice, /) -> Self:
@@ -401,14 +396,14 @@ class _CommandOptionModel(pydantic.BaseModel):
     name: _MaybeLocalised
     description: _MaybeLocalised
     is_required: bool = False
-    choices: typing.Optional[list[_CommandChoiceModel]] = pydantic.Field(default_factory=list)
-    options: typing.Optional[list[_CommandOptionModel]] = pydantic.Field(default_factory=list)
-    channel_types: typing.Optional[list[_ChannelType]] = pydantic.Field(default_factory=list)
+    choices: list[_CommandChoiceModel] | None = pydantic.Field(default_factory=list)
+    options: list[_CommandOptionModel] | None = pydantic.Field(default_factory=list)
+    channel_types: list[_ChannelType] | None = pydantic.Field(default_factory=list)
     autocomplete: bool = False
-    min_value: typing.Union[int, float, None] = None
-    max_value: typing.Union[int, float, None] = None
-    min_length: typing.Optional[int] = None
-    max_length: typing.Optional[int] = None
+    min_value: int | float | None = None
+    max_value: int | float | None = None
+    min_length: int | None = None
+    max_length: int | None = None
 
     @classmethod
     def from_option(cls, opt: hikari.CommandOption, /) -> Self:
@@ -504,8 +499,8 @@ class _DeclareSlashCmdModel(_CommandModel):
     ] = hikari.CommandType.SLASH
     name: _MaybeLocalised
     description: _MaybeLocalised
-    id: typing.Optional[_Snowflake] = None  # noqa: VNE003
-    default_member_permissions: typing.Optional[int] = None
+    id: _Snowflake | None = None  # noqa: VNE003
+    default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
     options: list[_CommandOptionModel] = pydantic.Field(default_factory=list)
@@ -555,8 +550,8 @@ class _DeclareMenuCmdModel(_CommandModel):
         typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
     ]
     name: _MaybeLocalised
-    id: typing.Optional[_Snowflake] = None  # noqa: VNE003
-    default_member_permissions: typing.Optional[int] = None
+    id: _Snowflake | None = None  # noqa: VNE003
+    default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
 
@@ -594,7 +589,7 @@ class _DeclareMenuCmdModel(_CommandModel):
         )
 
 
-_CommandModelIsh = typing.Union[_DeclareSlashCmdModel, _DeclareMenuCmdModel]
+_CommandModelIsh = _DeclareSlashCmdModel | _DeclareMenuCmdModel
 
 
 class _DeclareModel(pydantic.BaseModel):

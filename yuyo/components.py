@@ -73,7 +73,6 @@ import alluka
 import alluka as alluka_
 import alluka.local as alluka_local
 import hikari
-import typing_extensions
 
 from . import _internal
 from . import interactions
@@ -85,8 +84,9 @@ from ._internal import localise
 _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import tanjun
-    from typing_extensions import Self
 
     _OtherT = typing.TypeVar("_OtherT")
     _TextMenuT = typing.TypeVar(
@@ -97,13 +97,13 @@ if typing.TYPE_CHECKING:
         """Trait of a cacheless gateway bot."""
 
 
-_P = typing_extensions.ParamSpec("_P")
+_P = typing.ParamSpec("_P")
 _CoroT = collections.Coroutine[typing.Any, typing.Any, None]
 _SelfT = typing.TypeVar("_SelfT")
 
-_ComponentResponseT = typing.Union[
-    hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder, hikari.api.InteractionModalBuilder
-]
+_ComponentResponseT = (
+    hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder | hikari.api.InteractionModalBuilder
+)
 """Type hint of the builder response types allows for component interactions."""
 
 CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing.Any, None]]
@@ -113,21 +113,19 @@ _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
 
 
 def _now() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
+    return datetime.datetime.now(tz=datetime.UTC)
 
 
 def _consume(
-    value: typing.Optional[_T], callback: collections.Callable[[_T], _OtherT], /
-) -> typing.Union[_OtherT, collections.Callable[[_T], _OtherT]]:
+    value: _T | None, callback: collections.Callable[[_T], _OtherT], /
+) -> _OtherT | collections.Callable[[_T], _OtherT]:
     if value is not None:
         return callback(value)
 
     return callback
 
 
-def _decorate(
-    value: typing.Optional[_T], callback: collections.Callable[[_T], object], /
-) -> typing.Union[_T, collections.Callable[[_T], _T]]:
+def _decorate(value: _T | None, callback: collections.Callable[[_T], object], /) -> _T | collections.Callable[[_T], _T]:
     def decorator(value_: _T) -> _T:
         callback(value_)
         return value_
@@ -149,7 +147,7 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         register_task: collections.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
+        response_future: asyncio.Future[_ComponentResponseT] | None = None,
     ) -> None:
         super().__init__(
             interaction=interaction,
@@ -217,7 +215,7 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         return self.interaction.resolved.members
 
     @property
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """Hikari cache instance this context's client was initialised with."""
         return self._client.cache
 
@@ -227,27 +225,27 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         return self._client
 
     @property
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
+    def events(self) -> hikari.api.EventManager | None:
         """Object of the event manager this context's client was initialised with."""
         return self._client.events
 
     @property
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+    def rest(self) -> hikari.api.RESTClient | None:
         """Object of the Hikari REST client this context's client was initialised with."""
         return self._client.rest
 
     @property
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+    def server(self) -> hikari.api.InteractionServer | None:
         """Object of the Hikari interaction server provided for this context's client."""
         return self._client.server
 
     @property
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """Object of the Hikari shard manager this context's client was initialised with."""
         return self._client.shards
 
     @property
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+    def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this context's client was initialised with."""
         return self._client.voice
 
@@ -259,7 +257,7 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         *,
         component: hikari.UndefinedOr[hikari.api.ComponentBuilder] = hikari.UNDEFINED,
         components: hikari.UndefinedOr[collections.Sequence[hikari.api.ComponentBuilder]] = hikari.UNDEFINED,
-    ) -> typing.Optional[WaitFor]:
+    ) -> WaitFor | None:
         """Send a modal as the initial response for this context.
 
         !!! warning
@@ -369,14 +367,14 @@ class ComponentClient:
     def __init__(
         self,
         *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        cache: typing.Optional[hikari.api.Cache] = None,
-        event_manager: typing.Optional[hikari.api.EventManager] = None,
-        event_managed: typing.Optional[bool] = None,
-        rest: typing.Optional[hikari.api.RESTClient] = None,
-        server: typing.Optional[hikari.api.InteractionServer] = None,
-        shards: typing.Optional[hikari.ShardAware] = None,
-        voice: typing.Optional[hikari.api.VoiceComponent] = None,
+        alluka: alluka_.abc.Client | None = None,
+        cache: hikari.api.Cache | None = None,
+        event_manager: hikari.api.EventManager | None = None,
+        event_managed: bool | None = None,
+        rest: hikari.api.RESTClient | None = None,
+        server: hikari.api.InteractionServer | None = None,
+        shards: hikari.ShardAware | None = None,
+        voice: hikari.api.VoiceComponent | None = None,
     ) -> None:
         """Initialise a component client.
 
@@ -423,7 +421,7 @@ class ComponentClient:
         """Dict of custom IDs to executors."""
 
         self._event_manager = event_manager
-        self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._gc_task: asyncio.Task[None] | None = None
         self._message_executors: dict[hikari.Snowflake, tuple[timeouts.AbstractTimeout, AbstractComponentExecutor]] = {}
         """Dict of message IDs to executors."""
 
@@ -444,10 +442,7 @@ class ComponentClient:
         self.open()
 
     def __exit__(
-        self,
-        _: typing.Optional[type[BaseException]],
-        __: typing.Optional[BaseException],
-        ___: typing.Optional[types.TracebackType],
+        self, _: type[BaseException] | None, __: BaseException | None, ___: types.TracebackType | None
     ) -> None:
         self.close()
 
@@ -457,38 +452,38 @@ class ComponentClient:
         return self._alluka
 
     @property
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """Hikari cache instance this client was initialised with."""
         return self._cache
 
     @property
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
+    def events(self) -> hikari.api.EventManager | None:
         """Object of the event manager this client was initialised with."""
         return self._event_manager
 
     @property
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+    def rest(self) -> hikari.api.RESTClient | None:
         """Object of the Hikari REST client this client was initialised with."""
         return self._rest
 
     @property
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+    def server(self) -> hikari.api.InteractionServer | None:
         """Object of the Hikari interaction server provided for this client."""
         return self._server
 
     @property
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """Object of the Hikari shard manager this client was initialised with."""
         return self._shards
 
     @property
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+    def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this client was initialised with."""
         return self._voice
 
     @classmethod
     def from_gateway_bot(
-        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+        cls, bot: _GatewayBotProto, /, *, alluka: alluka_.abc.Client | None = None, event_managed: bool = True
     ) -> Self:
         """Build a component client from a Gateway Bot.
 
@@ -528,12 +523,7 @@ class ComponentClient:
 
     @classmethod
     def from_rest_bot(
-        cls,
-        bot: hikari.RESTBotAware,
-        /,
-        *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        bot_managed: bool = False,
+        cls, bot: hikari.RESTBotAware, /, *, alluka: alluka_.abc.Client | None = None, bot_managed: bool = False
     ) -> Self:
         """Build a component client from a REST Bot.
 
@@ -616,10 +606,10 @@ class ComponentClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, _: typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
+    async def _on_starting(self, _: hikari.StartingEvent | hikari.RESTBotAware, /) -> None:
         self.open()
 
-    async def _on_stopping(self, _: typing.Union[hikari.StoppingEvent, hikari.RESTBotAware], /) -> None:
+    async def _on_stopping(self, _: hikari.StoppingEvent | hikari.RESTBotAware, /) -> None:
         self.close()
 
     async def _gc(self) -> None:
@@ -668,7 +658,7 @@ class ComponentClient:
         id_metadata: str,
         /,
         *,
-        future: typing.Optional[asyncio.Future[_ComponentResponseT]] = None,
+        future: asyncio.Future[_ComponentResponseT] | None = None,
     ) -> bool:
         timeout, executor = entry
         if timeout.has_expired:
@@ -742,7 +732,7 @@ class ComponentClient:
         id_match: str,
         id_metadata: str,
         /,
-    ) -> typing.Optional[_ComponentResponseT]:
+    ) -> _ComponentResponseT | None:
         future: asyncio.Future[_ComponentResponseT] = asyncio.Future()
         self._add_task(
             asyncio.create_task(
@@ -791,8 +781,8 @@ class ComponentClient:
         executor: AbstractComponentExecutor,
         /,
         *,
-        message: typing.Optional[hikari.SnowflakeishOr[hikari.Message]] = None,
-        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
+        message: hikari.SnowflakeishOr[hikari.Message] | None = None,
+        timeout: timeouts.AbstractTimeout | None | _internal.NoDefault = _internal.NO_DEFAULT,
     ) -> Self:
         """Add an executor to this client.
 
@@ -848,7 +838,7 @@ class ComponentClient:
 
         return self
 
-    def get_executor(self, custom_id: str, /) -> typing.Optional[AbstractComponentExecutor]:
+    def get_executor(self, custom_id: str, /) -> AbstractComponentExecutor | None:
         """Get the component executor registered for a custom ID.
 
         !!! note
@@ -873,7 +863,7 @@ class ComponentClient:
 
     def get_executor_for_message(
         self, message: hikari.SnowflakeishOr[hikari.Message], /
-    ) -> typing.Optional[AbstractComponentExecutor]:
+    ) -> AbstractComponentExecutor | None:
         """Get the component executor registered for a message.
 
         Parameters
@@ -1148,10 +1138,10 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     def __init__(
         self,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] | None = None,
         custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
-        timeout: typing.Optional[datetime.timedelta],
+        timeout: datetime.timedelta | None,
     ) -> None:
         """Initialise a wait for executor.
 
@@ -1176,9 +1166,9 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         self._custom_ids = custom_ids
         self._ephemeral_default = ephemeral_default
         self._finished = False
-        self._future: typing.Optional[asyncio.Future[Context]] = None
+        self._future: asyncio.Future[Context] | None = None
         self._timeout = timeout
-        self._timeout_at: typing.Optional[datetime.datetime] = None
+        self._timeout_at: datetime.datetime | None = None
 
     @property
     def custom_ids(self) -> collections.Collection[str]:
@@ -1269,11 +1259,11 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
     def __init__(
         self,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]],
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] | None,
         custom_ids: collections.Collection[str] = (),
         ephemeral_default: bool = False,
         max_backlog: int = 5,
-        timeout: typing.Union[float, int, datetime.timedelta, None],
+        timeout: float | int | datetime.timedelta | None,
     ) -> None:
         """Initialise a stream executor.
 
@@ -1309,7 +1299,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         self._ephemeral_default = ephemeral_default
         self._finished = False
         self._max_backlog = max_backlog
-        self._queue: typing.Optional[asyncio.Queue[ComponentContext]] = None
+        self._queue: asyncio.Queue[ComponentContext] | None = None
         self._timeout = timeout
 
     @property
@@ -1326,10 +1316,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         return self
 
     def __exit__(
-        self,
-        exc_type: typing.Optional[type[BaseException]],
-        exc: typing.Optional[BaseException],
-        exc_traceback: typing.Optional[types.TracebackType],
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_traceback: types.TracebackType | None
     ) -> Self:
         self.close()
         return self
@@ -1363,7 +1350,7 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
         try:
             return await asyncio.wait_for(self._queue.get(), timeout=self._timeout)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise StopAsyncIteration from None
 
     async def execute(self, ctx: ComponentContext, /) -> None:
@@ -1430,7 +1417,7 @@ for _channel_cls, _types in _CHANNEL_TYPES.copy().items():
 _CHANNEL_TYPES[hikari.InteractionChannel] = _CHANNEL_TYPES[hikari.PartialChannel]
 
 
-def _parse_channel_types(*channel_types: typing.Union[type[hikari.PartialChannel], int]) -> list[hikari.ChannelType]:
+def _parse_channel_types(*channel_types: type[hikari.PartialChannel] | int) -> list[hikari.ChannelType]:
     """Parse a channel types collection to a list of channel type integers."""
     types_iter = itertools.chain.from_iterable(
         (hikari.ChannelType(type_),) if isinstance(type_, int) else _CHANNEL_TYPES[type_] for type_ in channel_types
@@ -1459,13 +1446,10 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
     __slots__ = ("_callback", "_custom_id")
 
     def __init__(
-        self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
-        custom_id: typing.Optional[str],
-        /,
+        self, callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], custom_id: str | None, /
     ) -> None:
         if custom_id is None:
-            self._custom_id: typing.Optional[_internal.MatchId] = None
+            self._custom_id: _internal.MatchId | None = None
 
         else:
             self._custom_id = _internal.gen_custom_id(custom_id)
@@ -1477,16 +1461,14 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 
     @typing.overload
     def __get__(
-        self, obj: None, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]: ...
+        self, obj: None, obj_type: type[typing.Any] | None = None
+    ) -> collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]: ...
 
     @typing.overload
-    def __get__(
-        self, obj: object, obj_type: typing.Optional[type[typing.Any]] = None
-    ) -> collections.Callable[_P, _CoroT]: ...
+    def __get__(self, obj: object, obj_type: type[typing.Any] | None = None) -> collections.Callable[_P, _CoroT]: ...
 
     def __get__(
-        self, obj: typing.Optional[object], obj_type: typing.Optional[type[typing.Any]] = None
+        self, obj: object | None, obj_type: type[typing.Any] | None = None
     ) -> collections.Callable[..., typing.Any]:
         if obj is None:
             return self._callback
@@ -1514,9 +1496,9 @@ class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     def __init__(
         self,
         style: hikari.InteractiveButtonTypesT,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
@@ -1547,13 +1529,11 @@ def as_interactive_button(
     style: hikari.InteractiveButtonTypesT,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
-    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    custom_id: str | None = None,
+    emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]
-]:
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _StaticButton[_SelfT, _P]]:
     """Declare an interactive button on an action column class.
 
     Either `emoji` xor `label` must be provided to be the button's
@@ -1597,7 +1577,7 @@ class _StaticLinkButton(_ComponentDescriptor):
     def __init__(
         self,
         url: str,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> None:
@@ -1623,7 +1603,7 @@ def link_button(
     url: str,
     /,
     *,
-    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
     label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     is_disabled: bool = False,
 ) -> _StaticLinkButton:
@@ -1658,9 +1638,9 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
-        type_: typing.Union[hikari.ComponentType, int],
-        custom_id: typing.Optional[str] = None,
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        type_: hikari.ComponentType | int,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -1692,17 +1672,15 @@ class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
 
 
 def as_select_menu(
-    type_: typing.Union[hikari.ComponentType, int],
+    type_: hikari.ComponentType | int,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]:
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]:
     """Declare a select menu on an action column class.
 
     The following decorators should be used instead:
@@ -1718,38 +1696,34 @@ def as_select_menu(
 
 @typing.overload
 def as_mentionable_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
 def as_mentionable_menu(
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_mentionable_menu(
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> typing.Union[
-    collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ],
-    _SelectMenu[_SelfT, _P],
-]:
+) -> (
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
+    | _SelectMenu[_SelfT, _P]
+):
     """Declare a mentionable select menu on an action column class.
 
     Parameters
@@ -1797,38 +1771,34 @@ def as_mentionable_menu(
 
 @typing.overload
 def as_role_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
 def as_role_menu(
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_role_menu(
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> typing.Union[
-    collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ],
-    _SelectMenu[_SelfT, _P],
-]:
+) -> (
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
+    | _SelectMenu[_SelfT, _P]
+):
     """Declare a role select menu on an action column class.
 
     Parameters
@@ -1876,38 +1846,34 @@ def as_role_menu(
 
 @typing.overload
 def as_user_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _SelectMenu[_SelfT, _P]: ...
 
 
 @typing.overload
 def as_user_menu(
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-]: ...
+) -> collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]: ...
 
 
 def as_user_menu(
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> typing.Union[
-    collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]
-    ],
-    _SelectMenu[_SelfT, _P],
-]:
+) -> (
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _SelectMenu[_SelfT, _P]]
+    | _SelectMenu[_SelfT, _P]
+):
     """Declare a user select menu on an action column class.
 
     Parameters
@@ -1958,11 +1924,9 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -1995,44 +1959,38 @@ class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
 
 @typing.overload
 def as_channel_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _ChannelSelect[_SelfT, _P]: ...
 
 
 @typing.overload
 def as_channel_menu(
     *,
-    custom_id: typing.Optional[str] = None,
-    channel_types: typing.Optional[
-        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-    ] = None,
+    custom_id: str | None = None,
+    channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
 ]: ...
 
 
 def as_channel_menu(
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
-    channel_types: typing.Optional[
-        collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-    ] = None,
+    custom_id: str | None = None,
+    channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> typing.Union[
-    collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]
-    ],
-    _ChannelSelect[_SelfT, _P],
-]:
+) -> (
+    collections.Callable[[collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _ChannelSelect[_SelfT, _P]]
+    | _ChannelSelect[_SelfT, _P]
+):
     """Declare a channel select menu on an action column class.
 
     Parameters
@@ -2079,8 +2037,8 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 
     def __init__(
         self,
-        callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT],
-        custom_id: typing.Optional[str] = None,
+        callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -2119,7 +2077,7 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
         /,
         *,
         description: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         is_default: bool = False,
     ) -> Self:
         self._options.append(
@@ -2132,40 +2090,40 @@ class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
 
 @typing.overload
 def as_text_menu(
-    callback: collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT], /
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT], /
 ) -> _TextMenuDescriptor[_SelfT, _P]: ...
 
 
 @typing.overload
 def as_text_menu(
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
 ) -> collections.Callable[
-    [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
+    [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
 ]: ...
 
 
 def as_text_menu(
-    callback: typing.Optional[collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]] = None,
+    callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT] | None = None,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     min_values: int = 0,
     max_values: int = 1,
     is_disabled: bool = False,
-) -> typing.Union[
+) -> (
     collections.Callable[
-        [collections.Callable[typing_extensions.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
-    ],
-    _TextMenuDescriptor[_SelfT, _P],
-]:
+        [collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT]], _TextMenuDescriptor[_SelfT, _P]
+    ]
+    | _TextMenuDescriptor[_SelfT, _P]
+):
     """Declare a text select menu on an action column class.
 
     Parameters
@@ -2216,7 +2174,7 @@ def with_option(
     /,
     *,
     description: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+    emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
     is_default: bool = False,
 ) -> collections.Callable[[_TextMenuT], _TextMenuT]:
     """Add an option to a text select menu through a decorator call.
@@ -2303,7 +2261,7 @@ class _StaticField:
     def __init__(
         self,
         id_match: str,
-        callback: typing.Optional[CallbackSig],
+        callback: CallbackSig | None,
         builder: hikari.api.ComponentBuilder,
         /,
         *,
@@ -2311,7 +2269,7 @@ class _StaticField:
         self_bound: bool = False,
     ) -> None:
         self.builder: hikari.api.ComponentBuilder = builder
-        self.callback: typing.Optional[CallbackSig] = callback
+        self.callback: CallbackSig | None = callback
         self.id_match: str = id_match
         self.is_self_bound: bool = self_bound
         self.name: str = name
@@ -2326,7 +2284,7 @@ class _CustomIdProto(typing.Protocol):
         return _is_custom_id_proto(value)
 
 
-def _is_custom_id_proto(value: typing.Any, /) -> typing_extensions.TypeGuard[_CustomIdProto]:
+def _is_custom_id_proto(value: typing.Any, /) -> typing.TypeGuard[_CustomIdProto]:
     try:
         value.set_custom_id
 
@@ -2382,7 +2340,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         __slots__ = ("special_string",)  # ActionColumnExecutor supports slotting.
 
         # The init can be overridden to store extra data on the column object when subclassing.
-        def __init__(self, special_string: str, timeout: typing.Optional[datetime.timedelta] = None):
+        def __init__(self, special_string: str, timeout: datetime.timedelta | None = None):
             super().__init__(timeout=timeout)
             self.special_string = special_string
 
@@ -2445,9 +2403,9 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     def __init__(
         self,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] | None = None,
         ephemeral_default: bool = False,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        id_metadata: collections.Mapping[str, str] | None = None,
     ) -> None:
         """Initialise an action column executor.
 
@@ -2572,8 +2530,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -2619,8 +2577,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         style: hikari.InteractiveButtonTypesT,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
@@ -2663,8 +2621,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
@@ -2725,8 +2683,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         style: hikari.InteractiveButtonTypesT,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> collections.Callable[[_CallbackSigT], _CallbackSigT]:
@@ -2773,7 +2731,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         url: str,
         /,
         *,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -2807,7 +2765,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         url: str,
         /,
         *,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> type[Self]:
@@ -2851,11 +2809,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def add_select_menu(
         self,
-        type_: typing.Union[hikari.ComponentType, int],
+        type_: hikari.ComponentType | int,
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -2886,11 +2844,11 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def add_static_select_menu(
         cls,
-        type_: typing.Union[hikari.ComponentType, int],
+        type_: hikari.ComponentType | int,
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -2931,7 +2889,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -2982,7 +2940,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -2991,15 +2949,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_mentionable_menu(
         self,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a mentionable select menu to this action column through a decorator call.
 
         Parameters
@@ -3038,7 +2996,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3097,7 +3055,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3107,15 +3065,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_mentionable_menu(
         cls,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a static mentionable select menu to this action column class through a decorator call.
 
         Parameters
@@ -3159,7 +3117,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3210,7 +3168,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3219,15 +3177,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_role_menu(
         self,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a role select menu to this action column through a decorator call.
 
         Parameters
@@ -3266,7 +3224,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3325,7 +3283,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3335,15 +3293,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_role_menu(
         cls,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a static role select menu to this action column class through a decorator call.
 
         Parameters
@@ -3387,7 +3345,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3438,7 +3396,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3447,15 +3405,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_user_menu(
         self,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a user select menu to this action column through a decorator call.
 
         Parameters
@@ -3494,7 +3452,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3553,7 +3511,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3563,15 +3521,15 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_user_menu(
         cls,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a static user select menu to this action column class through a decorator call.
 
         Parameters
@@ -3615,10 +3573,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3673,10 +3629,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3685,18 +3639,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_channel_menu(
         self,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a channel select menu to this action column through a decorator call.
 
         Parameters
@@ -3738,10 +3690,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3812,10 +3762,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
@@ -3825,18 +3773,16 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_channel_menu(
         cls,
-        callback: typing.Optional[_CallbackSigT] = None,
+        callback: _CallbackSigT | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
-        channel_types: typing.Optional[
-            collections.Sequence[typing.Union[hikari.ChannelType, type[hikari.PartialChannel]]]
-        ] = None,
+        custom_id: str | None = None,
+        channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[_CallbackSigT, collections.Callable[[_CallbackSigT], _CallbackSigT]]:
+    ) -> _CallbackSigT | collections.Callable[[_CallbackSigT], _CallbackSigT]:
         """Add a channel select menu to this action column class through a decorator call.
 
         Parameters
@@ -3883,7 +3829,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -3950,7 +3896,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         self,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -3960,19 +3906,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
 
     def with_text_menu(
         self,
-        callback: typing.Optional[collections.Callable[_P, _CoroT]] = None,
+        callback: collections.Callable[_P, _CoroT] | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[
-        _WrappedTextMenuBuilder[_P],
-        collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]],
-    ]:
+    ) -> (
+        _WrappedTextMenuBuilder[_P]
+        | collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]
+    ):
         """Add a text select menu to this action column through a decorator callback.
 
         Parameters
@@ -4019,7 +3965,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         callback: CallbackSig,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -4098,7 +4044,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         cls,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -4109,19 +4055,19 @@ class ActionColumnExecutor(AbstractComponentExecutor):
     @classmethod
     def with_static_text_menu(
         cls,
-        callback: typing.Optional[collections.Callable[_P, _CoroT]] = None,
+        callback: collections.Callable[_P, _CoroT] | None = None,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
         max_values: int = 1,
         is_disabled: bool = False,
-    ) -> typing.Union[
-        _WrappedTextMenuBuilder[_P],
-        collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]],
-    ]:
+    ) -> (
+        _WrappedTextMenuBuilder[_P]
+        | collections.Callable[[collections.Callable[_P, _CoroT]], _WrappedTextMenuBuilder[_P]]
+    ):
         """Add a text select menu to this action column class through a decorator call.
 
         Parameters
@@ -4188,7 +4134,7 @@ class _WrappedTextMenuBuilder(typing.Generic[_P]):
         /,
         *,
         description: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = hikari.UNDEFINED,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         is_default: bool = False,
     ) -> Self:
         self._builder.add_option(label, value, description=description, emoji=emoji, is_default=is_default)
@@ -4246,7 +4192,7 @@ def column_template(ephemeral_default: bool = False) -> type[ActionColumnExecuto
             self,
             *,
             ephemeral_default: bool = _ephemeral_default,
-            id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+            id_metadata: collections.Mapping[str, str] | None = None,
         ) -> None:
             super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
 
@@ -4271,7 +4217,7 @@ class ComponentPaginator(ActionColumnExecutor):
         iterator: _internal.IteratorT[pagination.EntryT],
         /,
         *,
-        authors: typing.Optional[collections.Iterable[hikari.SnowflakeishOr[hikari.User]]] = None,
+        authors: collections.Iterable[hikari.SnowflakeishOr[hikari.User]] | None = None,
         ephemeral_default: bool = False,
         triggers: collections.Collection[str] = (
             pagination.LEFT_TRIANGLE,
@@ -4332,10 +4278,8 @@ class ComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[
-            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.LEFT_DOUBLE_TRIANGLE,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.LEFT_DOUBLE_TRIANGLE,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4381,8 +4325,8 @@ class ComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.LEFT_TRIANGLE,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4432,8 +4376,8 @@ class ComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.BLACK_CROSS,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.BLACK_CROSS,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4483,8 +4427,8 @@ class ComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.RIGHT_TRIANGLE,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4534,10 +4478,8 @@ class ComponentPaginator(ActionColumnExecutor):
         self,
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
-        custom_id: typing.Optional[str] = None,
-        emoji: typing.Union[
-            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.RIGHT_DOUBLE_TRIANGLE,
+        custom_id: str | None = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.RIGHT_DOUBLE_TRIANGLE,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4592,7 +4534,7 @@ class ComponentPaginator(ActionColumnExecutor):
 
         await super().execute(ctx)
 
-    async def get_next_entry(self) -> typing.Optional[pagination.AbstractPage]:
+    async def get_next_entry(self) -> pagination.AbstractPage | None:
         """Get the next entry in this paginator.
 
         This is generally helpful for making the message which the paginator will be based off
@@ -4688,9 +4630,9 @@ class StaticPaginatorData:
         pages: collections.Sequence[pagination.AbstractPage],
         /,
         *,
-        content_hash: typing.Optional[str],
+        content_hash: str | None,
         make_components: collections.Callable[
-            [str, int, typing.Optional[str]], ActionColumnExecutor
+            [str, int, str | None], ActionColumnExecutor
         ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
             paginator_id, page_number, content_hash=content_hash
         ),
@@ -4710,7 +4652,7 @@ class StaticPaginatorData:
         self._paginator_id = paginator_id
 
     @property
-    def content_hash(self) -> typing.Optional[str]:
+    def content_hash(self) -> str | None:
         """Optional hash used to verify data sync."""
         return self._content_hash
 
@@ -4719,7 +4661,7 @@ class StaticPaginatorData:
         """The paginator's pages."""
         return self._pages
 
-    def get_page(self, page_number: int, /) -> typing.Optional[pagination.AbstractPage]:
+    def get_page(self, page_number: int, /) -> pagination.AbstractPage | None:
         """Get a page from the paginator.
 
         Parameters
@@ -4760,7 +4702,7 @@ class StaticPaginatorData:
 
 
 def static_paginator_model(
-    *, invalid_number_response: typing.Optional[pagination.AbstractPage] = None, field_label: str = "Page number"
+    *, invalid_number_response: pagination.AbstractPage | None = None, field_label: str = "Page number"
 ) -> modals.Modal:
     """Create a default implementation of the modal used for static paginator page jumping.
 
@@ -4802,8 +4744,8 @@ def static_paginator_model(
 @dataclasses.dataclass
 class _Metadata:
     paginator_id: str
-    content_hash: typing.Optional[str]
-    page_number: typing.Optional[int]
+    content_hash: str | None
+    page_number: int | None
 
 
 def _parse_metadata(raw_metadata: str, /) -> _Metadata:
@@ -4859,7 +4801,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         page_number: int,
         /,
         *,
-        content_hash: typing.Optional[str] = None,
+        content_hash: str | None = None,
         ephemeral_default: bool = False,
         include_buttons: bool = True,
         id_metadata: collections.Mapping[str, str] | None = None,
@@ -4897,9 +4839,7 @@ class StaticComponentPaginator(ActionColumnExecutor):
         if include_buttons:
             self.add_first_button().add_previous_button().add_select_button().add_next_button().add_last_button()
 
-    def _to_custom_id(
-        self, custom_id: str, id_metadata: typing.Optional[collections.Mapping[str, str]] = None, /
-    ) -> str:
+    def _to_custom_id(self, custom_id: str, id_metadata: collections.Mapping[str, str] | None = None, /) -> str:
         if id_metadata:
             id_metadata = dict(id_metadata)
             id_metadata.update(self._metadata)
@@ -4914,10 +4854,8 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
         custom_id: str = _StaticPaginatorId.FIRST,
-        emoji: typing.Union[
-            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.LEFT_DOUBLE_TRIANGLE,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.LEFT_DOUBLE_TRIANGLE,
+        id_metadata: collections.Mapping[str, str] | None = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -4972,8 +4910,8 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
         custom_id: str = _StaticPaginatorId.PREVIOUS,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.LEFT_TRIANGLE,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.LEFT_TRIANGLE,
+        id_metadata: collections.Mapping[str, str] | None = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -5032,10 +4970,8 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.DANGER,
         custom_id: str = _StaticPaginatorId.SELECT,
-        emoji: typing.Union[
-            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.SELECT_PAGE_SYMBOL,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.SELECT_PAGE_SYMBOL,
+        id_metadata: collections.Mapping[str, str] | None = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -5094,8 +5030,8 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
         custom_id: str = _StaticPaginatorId.NEXT,
-        emoji: typing.Union[hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType] = pagination.RIGHT_TRIANGLE,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.RIGHT_TRIANGLE,
+        id_metadata: collections.Mapping[str, str] | None = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -5154,10 +5090,8 @@ class StaticComponentPaginator(ActionColumnExecutor):
         *,
         style: hikari.InteractiveButtonTypesT = hikari.ButtonStyle.SECONDARY,
         custom_id: str = _StaticPaginatorId.LAST,
-        emoji: typing.Union[
-            hikari.Snowflakeish, hikari.Emoji, str, hikari.UndefinedType
-        ] = pagination.RIGHT_DOUBLE_TRIANGLE,
-        id_metadata: typing.Optional[collections.Mapping[str, str]] = None,
+        emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = pagination.RIGHT_DOUBLE_TRIANGLE,
+        id_metadata: collections.Mapping[str, str] | None = None,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
     ) -> Self:
@@ -5254,14 +5188,14 @@ class StaticPaginatorIndex:
         self,
         *,
         make_components: collections.Callable[
-            [str, int, typing.Optional[str]], ActionColumnExecutor
+            [str, int, str | None], ActionColumnExecutor
         ] = lambda paginator_id, page_number, content_hash: StaticComponentPaginator(
             paginator_id, page_number, content_hash=content_hash
         ),
         make_modal: collections.Callable[[], modals.Modal] = static_paginator_model,
         modal_title: localise.MaybeLocalsiedType[str] = "Select page",
-        not_found_response: typing.Optional[pagination.AbstractPage] = None,
-        out_of_date_response: typing.Optional[pagination.AbstractPage] = None,
+        not_found_response: pagination.AbstractPage | None = None,
+        out_of_date_response: pagination.AbstractPage | None = None,
     ) -> None:
         """Initialise a static paginator index.
 
@@ -5320,7 +5254,7 @@ class StaticPaginatorIndex:
         pages: collections.Sequence[pagination.AbstractPage],
         /,
         *,
-        content_hash: typing.Optional[str] = None,
+        content_hash: str | None = None,
     ) -> Self:
         """Set the static paginator for a custom ID.
 
@@ -5385,9 +5319,7 @@ class StaticPaginatorIndex:
 
     async def callback(
         self,
-        ctx: typing.Union[
-            interactions.BaseContext[hikari.ComponentInteraction], interactions.BaseContext[hikari.ModalInteraction]
-        ],
+        ctx: interactions.BaseContext[hikari.ComponentInteraction] | interactions.BaseContext[hikari.ModalInteraction],
         page_number: int,
         /,
     ) -> None:

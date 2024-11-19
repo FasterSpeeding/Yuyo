@@ -57,10 +57,11 @@ import hikari.snowflakes
 from . import backoff
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import sake
     import tanjun
     from hikari import traits
-    from typing_extensions import Self
 
     from . import _internal
 
@@ -109,7 +110,7 @@ class AbstractCountStrategy(abc.ABC):
         """Open the counter."""
 
     @abc.abstractmethod
-    async def count(self) -> typing.Union[int, collections.Mapping[int, int]]:
+    async def count(self) -> int | collections.Mapping[int, int]:
         """Get a possibly cached guild count from this counter.
 
         Returns
@@ -378,7 +379,7 @@ class AbstractManager(typing.Protocol):
 
     @property
     @abc.abstractmethod
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """The cache service this manager is bound to."""
 
     @property
@@ -388,12 +389,12 @@ class AbstractManager(typing.Protocol):
 
     @property
     @abc.abstractmethod
-    def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
+    def event_manager(self) -> hikari.api.EventManager | None:
         """The event manager this manager is bound to."""
 
     @property
     @abc.abstractmethod
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """The shard aware client this manager is bound to."""
 
     @property
@@ -466,12 +467,12 @@ class ServiceManager(AbstractManager):
         rest: hikari.api.RESTClient,
         /,
         *,
-        cache: typing.Optional[hikari.api.Cache] = None,
-        event_manager: typing.Optional[hikari.api.EventManager] = None,
-        shards: typing.Optional[traits.ShardAware] = None,
-        event_managed: typing.Optional[bool] = None,
-        strategy: typing.Optional[AbstractCountStrategy] = None,
-        user_agent: typing.Optional[str] = None,
+        cache: hikari.api.Cache | None = None,
+        event_manager: hikari.api.EventManager | None = None,
+        shards: traits.ShardAware | None = None,
+        event_managed: bool | None = None,
+        strategy: AbstractCountStrategy | None = None,
+        user_agent: str | None = None,
     ) -> None:
         """Initialise a service manager.
 
@@ -515,11 +516,11 @@ class ServiceManager(AbstractManager):
         self._event_manager = event_manager
         self._rest = rest
         self._services: list[_ServiceDescriptor] = []
-        self._session: typing.Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
         self._shards = shards
-        self._task: typing.Optional[asyncio.Task[None]] = None
-        self._me: typing.Optional[hikari.OwnUser] = None
-        self._me_lock: typing.Optional[asyncio.Lock] = None
+        self._task: asyncio.Task[None] | None = None
+        self._me: hikari.OwnUser | None = None
+        self._me_lock: asyncio.Lock | None = None
         self._user_agent = user_agent
 
         if strategy:
@@ -554,8 +555,8 @@ class ServiceManager(AbstractManager):
         /,
         *,
         event_managed: bool = True,
-        strategy: typing.Optional[AbstractCountStrategy] = None,
-        user_agent: typing.Optional[str] = None,
+        strategy: AbstractCountStrategy | None = None,
+        user_agent: str | None = None,
     ) -> Self:
         """Build a service manager from a gateway bot.
 
@@ -602,8 +603,8 @@ class ServiceManager(AbstractManager):
         /,
         *,
         tanjun_managed: bool = True,
-        strategy: typing.Optional[AbstractCountStrategy] = None,
-        user_agent: typing.Optional[str] = None,
+        strategy: AbstractCountStrategy | None = None,
+        user_agent: str | None = None,
     ) -> Self:
         """Build a service manager from a Tanjun client.
 
@@ -664,7 +665,7 @@ class ServiceManager(AbstractManager):
         return self._task is not None
 
     @property
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         return self._cache
 
     @property
@@ -672,7 +673,7 @@ class ServiceManager(AbstractManager):
         return self._counter
 
     @property
-    def event_manager(self) -> typing.Optional[hikari.api.EventManager]:
+    def event_manager(self) -> hikari.api.EventManager | None:
         return self._event_manager
 
     @property
@@ -680,7 +681,7 @@ class ServiceManager(AbstractManager):
         return self._rest
 
     @property
-    def shards(self) -> typing.Optional[traits.ShardAware]:
+    def shards(self) -> traits.ShardAware | None:
         return self._shards
 
     @property
@@ -698,11 +699,7 @@ class ServiceManager(AbstractManager):
         await self.close()
 
     def add_service(
-        self,
-        service: ServiceSig,
-        /,
-        *,
-        repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1),
+        self, service: ServiceSig, /, *, repeat: datetime.timedelta | int | float = datetime.timedelta(hours=1)
     ) -> Self:
         """Add a service to this manager.
 
@@ -767,7 +764,7 @@ class ServiceManager(AbstractManager):
             raise ValueError("Couldn't find service")
 
     def with_service(
-        self, *, repeat: typing.Union[datetime.timedelta, int, float] = datetime.timedelta(hours=1)
+        self, *, repeat: datetime.timedelta | int | float = datetime.timedelta(hours=1)
     ) -> collections.Callable[[_ServiceSigT], _ServiceSigT]:
         """Add a service to this manager by decorating a function.
 
@@ -955,7 +952,7 @@ class TopGGService:
 
         if isinstance(counts, int):
             is_global = True
-            json: dict[str, typing.Union[int, list[int]]] = {"server_count": counts}
+            json: dict[str, int | list[int]] = {"server_count": counts}
 
         else:
             if not client.shards:
@@ -964,7 +961,7 @@ class TopGGService:
             _LOGGER.debug("Fetching stats from Top.GG")
             async with session.get(url, headers=headers) as response:
                 response.raise_for_status()
-                raw_shards: typing.Optional[list[str]] = (await response.json()).get("shards")
+                raw_shards: list[str] | None = (await response.json()).get("shards")
 
             is_global = False
             shards = {index: int(count) for index, count in enumerate(raw_shards or ())}
@@ -1000,7 +997,7 @@ class BotsGGService:
         session = client.get_session()
 
         if isinstance(counts, int):
-            json: dict[str, typing.Union[int, list[dict[str, int]]]] = {"guildCount": counts}
+            json: dict[str, int | list[dict[str, int]]] = {"guildCount": counts}
             is_global = True
 
         else:
@@ -1055,9 +1052,7 @@ class DiscordBotListService:
 
             back_off.reset()
 
-    async def _post(
-        self, client: AbstractManager, count: int, /, *, shard_id: typing.Optional[int] = None
-    ) -> typing.Optional[int]:
+    async def _post(self, client: AbstractManager, count: int, /, *, shard_id: int | None = None) -> int | None:
         headers = {"Authorization": self._token, "User-Agent": client.user_agent}
         json = {"guilds": count}
         me = await client.get_me()

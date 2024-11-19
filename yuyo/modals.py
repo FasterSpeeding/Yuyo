@@ -53,31 +53,31 @@ import copy
 import datetime
 import enum
 import functools
+import inspect
 import itertools
 import types
 import typing
 
 import alluka as alluka_
 import hikari
-import typing_extensions
 from alluka import local as alluka_local
 
 from . import _internal
 from . import interactions
 from . import timeouts
-from ._internal import inspect
 from .interactions import InteractionError as InteractionError
 
-_P = typing_extensions.ParamSpec("_P")
+_P = typing.ParamSpec("_P")
 _T = typing.TypeVar("_T")
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     import tanjun
-    from typing_extensions import Self
 
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
     _ReturnT = typing.TypeVar("_ReturnT")
-    __SelfishSig = collections.Callable[[typing_extensions.Concatenate[_T, _P]], _ReturnT]
+    __SelfishSig = collections.abc.Callable[[typing.Concatenate[_T, _P]], _ReturnT]
     _SelfishSig = __SelfishSig[_T, ..., _ReturnT]
 
     class _GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol):
@@ -86,7 +86,7 @@ if typing.TYPE_CHECKING:
 
 _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
 
-_ModalResponseT = typing.Union[hikari.api.InteractionMessageBuilder, hikari.api.InteractionDeferredBuilder]
+_ModalResponseT = hikari.api.InteractionMessageBuilder | hikari.api.InteractionDeferredBuilder
 """Type hint of the builder response types allows for modal interactions."""
 
 
@@ -115,7 +115,7 @@ class ModalContext(interactions.BaseContext[hikari.ModalInteraction]):
         register_task: collections.abc.Callable[[asyncio.Task[typing.Any]], None],
         *,
         ephemeral_default: bool = False,
-        response_future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
+        response_future: asyncio.Future[_ModalResponseT] | None = None,
     ) -> None:
         super().__init__(
             interaction=interaction,
@@ -140,32 +140,32 @@ class ModalContext(interactions.BaseContext[hikari.ModalInteraction]):
         return self._client
 
     @property
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """Hikari cache instance this context's client was initialised with."""
         return self._client.cache
 
     @property
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
+    def events(self) -> hikari.api.EventManager | None:
         """Object of the event manager this context's client was initialised with."""
         return self._client.events
 
     @property
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+    def rest(self) -> hikari.api.RESTClient | None:
         """Object of the Hikari REST client this context's client was initialised with."""
         return self._client.rest
 
     @property
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+    def server(self) -> hikari.api.InteractionServer | None:
         """Object of the Hikari interaction server provided for this context's client."""
         return self._client.server
 
     @property
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """Object of the Hikari shard manager this context's client was initialised with."""
         return self._client.shards
 
     @property
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+    def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this context's client was initialised with."""
         return self._client.voice
 
@@ -198,14 +198,14 @@ class ModalClient:
     def __init__(
         self,
         *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        cache: typing.Optional[hikari.api.Cache] = None,
-        event_manager: typing.Optional[hikari.api.EventManager] = None,
-        event_managed: typing.Optional[bool] = None,
-        rest: typing.Optional[hikari.api.RESTClient] = None,
-        server: typing.Optional[hikari.api.InteractionServer] = None,
-        shards: typing.Optional[hikari.ShardAware] = None,
-        voice: typing.Optional[hikari.api.VoiceComponent] = None,
+        alluka: alluka_.abc.Client | None = None,
+        cache: hikari.api.Cache | None = None,
+        event_manager: hikari.api.EventManager | None = None,
+        event_managed: bool | None = None,
+        rest: hikari.api.RESTClient | None = None,
+        server: hikari.api.InteractionServer | None = None,
+        shards: hikari.ShardAware | None = None,
+        voice: hikari.api.VoiceComponent | None = None,
     ) -> None:
         """Initialise a modal client.
 
@@ -248,7 +248,7 @@ class ModalClient:
         self._alluka = alluka
         self._cache = cache
         self._event_manager = event_manager
-        self._gc_task: typing.Optional[asyncio.Task[None]] = None
+        self._gc_task: asyncio.Task[None] | None = None
         self._modals: dict[str, tuple[timeouts.AbstractTimeout, AbstractModal]] = {}
         self._rest = rest
         self._server = server
@@ -267,10 +267,7 @@ class ModalClient:
         self.open()
 
     def __exit__(
-        self,
-        _: typing.Optional[type[BaseException]],
-        __: typing.Optional[BaseException],
-        ___: typing.Optional[types.TracebackType],
+        self, _: type[BaseException] | None, __: BaseException | None, ___: types.TracebackType | None
     ) -> None:
         self.close()
 
@@ -280,38 +277,38 @@ class ModalClient:
         return self._alluka
 
     @property
-    def cache(self) -> typing.Optional[hikari.api.Cache]:
+    def cache(self) -> hikari.api.Cache | None:
         """Hikari cache instance this client was initialised with."""
         return self._cache
 
     @property
-    def events(self) -> typing.Optional[hikari.api.EventManager]:
+    def events(self) -> hikari.api.EventManager | None:
         """Object of the event manager this client was initialised with."""
         return self._event_manager
 
     @property
-    def rest(self) -> typing.Optional[hikari.api.RESTClient]:
+    def rest(self) -> hikari.api.RESTClient | None:
         """Object of the Hikari REST client this client was initialised with."""
         return self._rest
 
     @property
-    def server(self) -> typing.Optional[hikari.api.InteractionServer]:
+    def server(self) -> hikari.api.InteractionServer | None:
         """Object of the Hikari interaction server provided for this client."""
         return self._server
 
     @property
-    def shards(self) -> typing.Optional[hikari.ShardAware]:
+    def shards(self) -> hikari.ShardAware | None:
         """Object of the Hikari shard manager this client was initialised with."""
         return self._shards
 
     @property
-    def voice(self) -> typing.Optional[hikari.api.VoiceComponent]:
+    def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this client was initialised with."""
         return self._voice
 
     @classmethod
     def from_gateway_bot(
-        cls, bot: _GatewayBotProto, /, *, alluka: typing.Optional[alluka_.abc.Client] = None, event_managed: bool = True
+        cls, bot: _GatewayBotProto, /, *, alluka: alluka_.abc.Client | None = None, event_managed: bool = True
     ) -> Self:
         """Build a modal client from a Gateway Bot.
 
@@ -351,12 +348,7 @@ class ModalClient:
 
     @classmethod
     def from_rest_bot(
-        cls,
-        bot: hikari.RESTBotAware,
-        /,
-        *,
-        alluka: typing.Optional[alluka_.abc.Client] = None,
-        bot_managed: bool = False,
+        cls, bot: hikari.RESTBotAware, /, *, alluka: alluka_.abc.Client | None = None, bot_managed: bool = False
     ) -> Self:
         """Build a modal client from a REST Bot.
 
@@ -438,10 +430,10 @@ class ModalClient:
             self._tasks.append(task)
             task.add_done_callback(self._remove_task)
 
-    async def _on_starting(self, _: typing.Union[hikari.StartingEvent, hikari.RESTBotAware], /) -> None:
+    async def _on_starting(self, _: hikari.StartingEvent | hikari.RESTBotAware, /) -> None:
         self.open()
 
-    async def _on_stopping(self, _: typing.Union[hikari.StoppingEvent, hikari.RESTBotAware], /) -> None:
+    async def _on_stopping(self, _: hikari.StoppingEvent | hikari.RESTBotAware, /) -> None:
         self.close()
 
     async def _gc(self) -> None:
@@ -493,7 +485,7 @@ class ModalClient:
         id_metadata: str,
         /,
         *,
-        future: typing.Optional[asyncio.Future[_ModalResponseT]] = None,
+        future: asyncio.Future[_ModalResponseT] | None = None,
     ) -> None:
         timeout, modal = entry
         if timeout.increment_uses():
@@ -568,7 +560,7 @@ class ModalClient:
         modal: AbstractModal,
         /,
         *,
-        timeout: typing.Union[timeouts.AbstractTimeout, None, _internal.NoDefault] = _internal.NO_DEFAULT,
+        timeout: timeouts.AbstractTimeout | None | _internal.NoDefault = _internal.NO_DEFAULT,
     ) -> Self:
         """Register a modal for a custom ID.
 
@@ -607,7 +599,7 @@ class ModalClient:
             raise ValueError(f"{custom_id!r} is already registered as a normal match")
 
         if timeout is _internal.NO_DEFAULT:
-            timeout = timeouts.StaticTimeout(datetime.datetime.now(tz=datetime.timezone.utc) + _DEFAULT_TIMEOUT)
+            timeout = timeouts.StaticTimeout(datetime.datetime.now(tz=datetime.UTC) + _DEFAULT_TIMEOUT)
 
         elif timeout is None:
             timeout = timeouts.NeverTimeout()
@@ -615,7 +607,7 @@ class ModalClient:
         self._modals[custom_id] = (timeout, modal)
         return self
 
-    def get_modal(self, custom_id: str, /) -> typing.Optional[AbstractModal]:
+    def get_modal(self, custom_id: str, /) -> AbstractModal | None:
         """Get the modal set for a custom ID.
 
         Parameters
@@ -676,7 +668,7 @@ class AbstractModal(abc.ABC):
 
 
 def _now() -> datetime.datetime:
-    return datetime.datetime.now(tz=datetime.timezone.utc)
+    return datetime.datetime.now(tz=datetime.UTC)
 
 
 class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
@@ -704,7 +696,7 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
     __slots__ = ("_ephemeral_default", "_future", "_has_finished", "_timeout", "_timeout_at")
 
     def __init__(
-        self, *, ephemeral_default: bool = False, timeout: typing.Optional[datetime.timedelta] = _DEFAULT_TIMEOUT
+        self, *, ephemeral_default: bool = False, timeout: datetime.timedelta | None = _DEFAULT_TIMEOUT
     ) -> None:
         """Initialise a wait for executor.
 
@@ -719,9 +711,9 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
         """
         self._ephemeral_default = ephemeral_default
         self._future: asyncio.Future[Context] = asyncio.get_running_loop().create_future()
-        self._has_finished: typing.Optional[bool] = None
+        self._has_finished: bool | None = None
         self._timeout = timeout
-        self._timeout_at: typing.Optional[datetime.datetime] = None
+        self._timeout_at: datetime.datetime | None = None
 
     @property
     def has_expired(self) -> bool:
@@ -950,15 +942,12 @@ class Modal(AbstractModal):
 
     __slots__ = ("_ephemeral_default", "_rows", "_tracked_fields")
 
-    _actual_callback: typing.Optional[collections.Callable[..., _CoroT[None]]] = None
+    _actual_callback: collections.abc.Callable[..., _CoroT[None]] | None = None
     _static_tracked_fields: typing.ClassVar[list[_TrackedField | _TrackedDataclass]] = []
     _static_builders: typing.ClassVar[list[tuple[str, hikari.api.TextInputBuilder]]] = []
 
     def __init__(
-        self,
-        *,
-        ephemeral_default: bool = False,
-        id_metadata: typing.Union[collections.abc.Mapping[str, str], None] = None,
+        self, *, ephemeral_default: bool = False, id_metadata: collections.abc.Mapping[str, str] | None = None
     ) -> None:
         """Initialise a component executor.
 
@@ -1020,9 +1009,7 @@ class Modal(AbstractModal):
         return self._rows
 
     @classmethod
-    def add_static_dataclass(
-        cls, options: type[ModalOptions], /, *, parameter: typing.Optional[str] = None
-    ) -> type[Self]:
+    def add_static_dataclass(cls, options: type[ModalOptions], /, *, parameter: str | None = None) -> type[Self]:
         if parameter:
             fields: list[_TrackedField] = []
 
@@ -1038,7 +1025,7 @@ class Modal(AbstractModal):
 
         return cls
 
-    def add_dataclass(self, options: type[ModalOptions], /, *, parameter: typing.Optional[str] = None) -> Self:
+    def add_dataclass(self, options: type[ModalOptions], /, *, parameter: str | None = None) -> Self:
         if parameter:
             fields: list[_TrackedField] = []
 
@@ -1060,14 +1047,14 @@ class Modal(AbstractModal):
         label: str,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        parameter: typing.Optional[str] = None,
+        parameter: str | None = None,
     ) -> type[Self]:
         """Add a text input field to all instances and subclasses of this modal class.
 
@@ -1149,14 +1136,14 @@ class Modal(AbstractModal):
         label: str,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
         max_length: int = 4000,
-        parameter: typing.Optional[str] = None,
+        parameter: str | None = None,
     ) -> Self:
         """Add a text input field to this modal instance.
 
@@ -1233,7 +1220,7 @@ class Modal(AbstractModal):
         components: dict[str, hikari.ModalComponentTypesT] = {}
         assert isinstance(ctx.component_ids, dict)
 
-        component: typing.Optional[hikari.ModalComponentTypesT]  # MyPy compat
+        component: hikari.ModalComponentTypesT | None  # MyPy compat
         for component in itertools.chain.from_iterable(
             component_.components for component_ in ctx.interaction.components
         ):
@@ -1258,15 +1245,15 @@ def _workout_value(default: typing.Any, value: hikari.UndefinedOr[str]) -> hikar
 def _make_text_input(
     *,
     label: str,
-    custom_id: typing.Optional[str],
+    custom_id: str | None,
     style: hikari.TextInputStyle,
     placeholder: hikari.UndefinedOr[str],
     value: hikari.UndefinedOr[str],
     default: typing.Any,
     min_length: int,
     max_length: int,
-    parameter: typing.Optional[str],
-) -> tuple[str, hikari.impl.TextInputBuilder, typing.Optional[_TrackedField]]:
+    parameter: str | None,
+) -> tuple[str, hikari.impl.TextInputBuilder, _TrackedField | None]:
     if custom_id is not None:
         id_match = _internal.split_custom_id(custom_id)[0]
 
@@ -1361,14 +1348,12 @@ def as_modal(
 
 # TODO: allow id_metadata here?
 def as_modal(
-    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
+    callback: collections.abc.Callable[_P, _CoroT[None]] | None = None,
     /,
     *,
     ephemeral_default: bool = False,
     parse_signature: bool = False,
-) -> typing.Union[
-    _DynamicModal[_P], collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]
-]:
+) -> _DynamicModal[_P] | collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], _DynamicModal[_P]]:
     """Create a modal instance through a decorator call.
 
     !!! info
@@ -1418,15 +1403,15 @@ def as_modal_template(
 
 
 def as_modal_template(
-    callback: typing.Optional[collections.abc.Callable[_P, _CoroT[None]]] = None,
+    callback: collections.abc.Callable[_P, _CoroT[None]] | None = None,
     /,
     *,
     ephemeral_default: bool = False,
     parse_signature: bool = True,
-) -> typing.Union[
-    type[_GenericModal[_P]],
-    collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]],
-]:
+) -> (
+    type[_GenericModal[_P]]
+    | collections.abc.Callable[[collections.abc.Callable[_P, _CoroT[None]]], type[_GenericModal[_P]]]
+):
     """Create a modal template through a decorator callback.
 
     The return type acts like any other slotted modal subclass and supports the
@@ -1454,7 +1439,7 @@ def as_modal_template(
                 self,
                 *,
                 ephemeral_default: bool = ephemeral_default,
-                id_metadata: typing.Union[collections.abc.Mapping[str, str], None] = None,
+                id_metadata: collections.abc.Mapping[str, str] | None = None,
             ) -> None:
                 super().__init__(ephemeral_default=ephemeral_default, id_metadata=id_metadata)
 
@@ -1474,14 +1459,14 @@ def with_static_text_input(
     label: str,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    parameter: typing.Optional[str] = None,
+    parameter: str | None = None,
 ) -> collections.abc.Callable[[type[_ModalT]], type[_ModalT]]:
     """Add a static text input field to the decorated modal subclass.
 
@@ -1545,14 +1530,14 @@ def with_text_input(
     label: str,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     default: typing.Any = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-    parameter: typing.Optional[str] = None,
+    parameter: str | None = None,
 ) -> collections.abc.Callable[[_ModalT], _ModalT]:
     """Add a text input field to the decorated modal instance.
 
@@ -1663,7 +1648,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         label: str,
         /,
         *,
-        custom_id: typing.Optional[str] = None,
+        custom_id: str | None = None,
         style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -1718,14 +1703,14 @@ def text_input(
     label: str,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     default: _T,
     min_length: int = 0,
     max_length: int = 4000,
-) -> typing.Union[str, _T]: ...
+) -> str | _T: ...
 
 
 @typing.overload
@@ -1733,7 +1718,7 @@ def text_input(
     label: str,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -1746,14 +1731,14 @@ def text_input(
     label: str,
     /,
     *,
-    custom_id: typing.Optional[str] = None,
+    custom_id: str | None = None,
     style: hikari.TextInputStyle = hikari.TextInputStyle.SHORT,
     placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
     value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
-    default: typing.Union[_T, typing.Literal[_NoDefaultEnum.VALUE]] = NO_DEFAULT,
+    default: _T | typing.Literal[_NoDefaultEnum.VALUE] = NO_DEFAULT,
     min_length: int = 0,
     max_length: int = 4000,
-) -> typing.Union[str, _T]:
+) -> str | _T:
     """Descriptor used to declare a text input field.
 
     Parameters
@@ -1829,7 +1814,7 @@ def text_input(
     return typing.cast("str", descriptor)
 
 
-@typing_extensions.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
+@typing.dataclass_transform(field_specifiers=(text_input,), kw_only_default=True, order_default=True)
 class _ModalOptionsMeta(type):
     def __new__(
         cls, name: str, bases: tuple[type[typing.Any], ...], namespace: dict[str, typing.Any]

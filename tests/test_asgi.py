@@ -54,7 +54,7 @@ import yuyo
 class _ChunkedReader(hikari.files.AsyncReader):
     __slots__ = ("_chunks",)
 
-    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: str | None = None) -> None:
         super().__init__(filename, mimetype)
         self._chunks = iter(chunks)
 
@@ -71,10 +71,7 @@ class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[
         return self._reader
 
     async def __aexit__(
-        self,
-        exc_type: typing.Optional[type[BaseException]],
-        exc: typing.Optional[BaseException],
-        exc_tb: typing.Optional[types.TracebackType],
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: types.TracebackType | None
     ) -> None:
         pass
 
@@ -82,7 +79,7 @@ class _NoOpAsyncReaderContextManagerImpl(hikari.files.AsyncReaderContextManager[
 class _ChunkedFile(hikari.files.Resource[_ChunkedReader]):
     __slots__ = ("_reader",)
 
-    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: typing.Optional[str] = None) -> None:
+    def __init__(self, chunks: list[bytes], filename: str, /, *, mimetype: str | None = None) -> None:
         self._reader = _ChunkedReader(chunks, filename, mimetype=mimetype)
 
     @property
@@ -94,7 +91,7 @@ class _ChunkedFile(hikari.files.Resource[_ChunkedReader]):
         raise NotImplementedError
 
     def stream(
-        self, *, executor: typing.Optional[concurrent.futures.Executor] = None, head_only: bool = False
+        self, *, executor: concurrent.futures.Executor | None = None, head_only: bool = False
     ) -> hikari.files.AsyncReaderContextManager[_ChunkedReader]:
         return _NoOpAsyncReaderContextManagerImpl(self._reader)
 
