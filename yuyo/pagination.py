@@ -153,9 +153,9 @@ async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@
     # As this is incremented before yielding and zero-index we have to start at -1.
     page_size = 0
     page: list[str] = []
-    lines = _internal.aiter_(lines)
+    lines = aiter(lines)
 
-    while (line := await _internal.anext_(lines, None)) is not None:
+    while (line := await anext(lines, None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
         if len(page) >= line_limit or page and page_size + len(line) > char_limit:

@@ -41,8 +41,6 @@ import uuid
 
 import hikari
 
-from . import _internal
-
 if typing.TYPE_CHECKING:
     import concurrent.futures
     from collections import abc as collections
@@ -408,9 +406,9 @@ class AsgiAdapter:
 
         for index, attachment in enumerate(response.files):
             async with attachment.stream(executor=self._executor) as reader:
-                iterator = _internal.aiter_(reader)
+                iterator = aiter(reader)
                 try:
-                    data = await _internal.anext_(iterator)
+                    data = await anext(iterator)
                 except StopAsyncIteration:
                     data = b""
 

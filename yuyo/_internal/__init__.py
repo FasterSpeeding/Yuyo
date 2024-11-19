@@ -34,7 +34,6 @@ from __future__ import annotations
 __all__: list[str] = []
 
 import enum
-import sys
 import typing
 import uuid
 from collections import abc as collections
@@ -65,35 +64,6 @@ NoDefault = typing.Literal[_NoDefaultEnum.VALUE]
 """The type of `NO_DEFAULT`."""
 
 
-if sys.version_info >= (3, 10):
-    aiter_ = aiter  # noqa: F821
-    anext_ = anext  # noqa: F821
-
-else:
-
-    def aiter_(iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[_T]:
-        """Backwards compat impl of `aiter`."""
-        return iterable.__aiter__()
-
-    @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], /) -> _T: ...
-
-    @typing.overload
-    async def anext_(iterator: collections.AsyncIterator[_T], default: _DefaultT, /) -> _T | _DefaultT: ...
-
-    async def anext_(
-        iterator: collections.AsyncIterator[_T], default: _DefaultT | NoDefault = NO_DEFAULT, /
-    ) -> _T | _DefaultT:
-        """Backwards compat impl of `anext`."""
-        try:
-            return await iterator.__anext__()
-        except StopAsyncIteration:
-            if default is NO_DEFAULT:
-                raise
-
-            return typing.cast("_T", default)
-
-
 async def collect_iterable(iterator: IterableT[_T], /) -> list[_T]:
     """Collect the rest of an async or sync iterator into a mutable sequence.
 
@@ -116,7 +86,7 @@ async def collect_iterable(iterator: IterableT[_T], /) -> list[_T]:
 async def seek_iterator(iterator: IteratorT[_T], /, default: _DefaultT) -> _T | _DefaultT:
     """Get the next value in an async or sync iterator."""
     if isinstance(iterator, collections.AsyncIterator):
-        return await anext_(iterator, default)
+        return await anext(iterator, default)
 
     return next(iterator, default)
 
