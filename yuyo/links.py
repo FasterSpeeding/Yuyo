@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -179,7 +178,7 @@ class ChannelLink(BaseLink):
       channel links in a string.
     """
 
-    __slots__ = ("_app", "_guild_id", "_channel_id")
+    __slots__ = ("_app", "_channel_id", "_guild_id")
 
     _app: hikari.RESTAware
     _guild_id: hikari.Snowflake | None

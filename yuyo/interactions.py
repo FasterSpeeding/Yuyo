@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -74,11 +73,11 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
     __slots__ = (
         "_ephemeral_default",
-        "_has_responded",
         "_has_been_deferred",
-        "_interaction",
+        "_has_responded",
         "_id_match",
         "_id_metadata",
+        "_interaction",
         "_last_response_id",
         "_register_task",
         "_response_future",

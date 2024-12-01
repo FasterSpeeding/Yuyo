@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -93,7 +92,7 @@ class TestSlidingTimeout:
     def test_increment_uses_when_unlimited(self):
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=-1)
 
-        for _ in range(0, 10000):
+        for _ in range(10000):
             assert timeout.increment_uses() is False
             assert timeout.has_expired is False
 
@@ -114,7 +113,7 @@ class TestNeverTimeout:
     def test_increment_uses(self):
         timeout = timeouts.NeverTimeout()
 
-        for _ in range(0, 10000):
+        for _ in range(10000):
             assert timeout.increment_uses() is False
 
 
@@ -127,7 +126,7 @@ class TestStaticTimeout:
         with freezegun.freeze_time() as frozen:
             timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(seconds=60), max_uses=100)
 
-            for _ in range(0, 59):
+            for _ in range(59):
                 frozen.tick(datetime.timedelta(seconds=1))
                 timeout.increment_uses()
                 assert timeout.has_expired is False
@@ -139,7 +138,7 @@ class TestStaticTimeout:
         with freezegun.freeze_time() as frozen:
             timeout = timeouts.StaticTimeout(datetime.datetime.now() + datetime.timedelta(seconds=60), max_uses=100)
 
-            for _ in range(0, 59):
+            for _ in range(59):
                 frozen.tick(datetime.timedelta(seconds=1))
                 timeout.increment_uses()
                 assert timeout.has_expired is False
@@ -173,7 +172,7 @@ class TestStaticTimeout:
     def test_increment_uses_when_unlimited(self):
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=40), max_uses=-1)
 
-        for _ in range(0, 10000):
+        for _ in range(10000):
             assert timeout.increment_uses() is False
             assert timeout.has_expired is False
 

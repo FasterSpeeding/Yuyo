@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -763,12 +762,8 @@ class TestWebhookLink:
         )
 
         assert list(yuyo.links.WebhookLink.find_iter(mock_app, string)) == [
-            yuyo.links.WebhookLink(  # noqa: S106
-                _app=mock_app, _webhook_id=hikari.Snowflake(5431231), _token="i-am_the.catgirl"
-            ),
-            yuyo.links.WebhookLink(  # noqa: S106
-                _app=mock_app, _webhook_id=hikari.Snowflake(3123123), _token="welcome-my.friend"
-            ),
+            yuyo.links.WebhookLink(_app=mock_app, _webhook_id=hikari.Snowflake(5431231), _token="i-am_the.catgirl"),
+            yuyo.links.WebhookLink(_app=mock_app, _webhook_id=hikari.Snowflake(3123123), _token="welcome-my.friend"),
         ]
 
     @pytest.mark.parametrize(
@@ -800,9 +795,7 @@ class TestWebhookLink:
             yuyo.links.WebhookLink.from_link(mock.AsyncMock(), string)
 
     def test_str_cast(self):
-        link = yuyo.links.WebhookLink(  # noqa: S106
-            _app=mock.AsyncMock(), _token="lielielie", _webhook_id=hikari.Snowflake(123342)
-        )
+        link = yuyo.links.WebhookLink(_app=mock.AsyncMock(), _token="lielielie", _webhook_id=hikari.Snowflake(123342))
 
         assert str(link) == "https://discord.com/api/webhooks/123342/lielielie"
 
@@ -810,7 +803,7 @@ class TestWebhookLink:
     async def test_fetch_webhook(self):
         mock_app = mock.AsyncMock()
         mock_app.rest.fetch_webhook.return_value = mock.Mock(hikari.IncomingWebhook)
-        link = yuyo.links.WebhookLink(  # noqa: S106
+        link = yuyo.links.WebhookLink(
             _app=mock_app, _token="I'm the one to blame", _webhook_id=hikari.Snowflake(654345)
         )
 

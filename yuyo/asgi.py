@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -367,7 +366,7 @@ class AsgiAdapter:
                 body, signature, timestamp  # pyright: ignore[reportArgumentType]
             )
         except Exception:
-            await _error_response(send, b"Internal Server Error", status_code=500)  # noqa: ASYNC120
+            await _error_response(send, b"Internal Server Error", status_code=500)
             raise
 
         headers: list[tuple[bytes, bytes]] = []
@@ -377,7 +376,7 @@ class AsgiAdapter:
         boundary = None
         if response.files:
             boundary = uuid.uuid4().hex.encode()
-            headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))  # noqa: S001
+            headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))
 
         elif content_type := _content_type(response):
             headers.append((_CONTENT_TYPE_KEY, content_type))
@@ -398,8 +397,8 @@ class AsgiAdapter:
         if response.payload:
             content_type = _content_type(response) or _JSON_CONTENT_TYPE
             body = (
-                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
-                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"  # noqa: MOD001
+                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'
+                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"
                 % (boundary, content_type, len(response.payload), response.payload)
             )
             await send({"type": "http.response.body", "body": body, "more_body": True})
@@ -415,16 +414,15 @@ class AsgiAdapter:
                 mimetype = reader.mimetype.encode() if reader.mimetype else _OCTET_STREAM_CONTENT_TYPE
                 filename = urllib.parse.quote(reader.filename, "").encode()
                 body = (
-                    b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'  # noqa: MOD001
-                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b'  # noqa: MOD001
-                    % (boundary, index, filename, mimetype, data)
+                    b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'
+                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b' % (boundary, index, filename, mimetype, data)
                 )
                 await send({"type": "http.response.body", "body": body, "more_body": True})
 
                 async for chunk in iterator:
                     await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
-        await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
+        await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})
 
 
 def _content_type(response: hikari.api.Response, /) -> bytes | None:

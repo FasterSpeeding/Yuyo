@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2023, Faster Speeding
@@ -392,7 +391,7 @@ _ChannelType = typing.Annotated[hikari.ChannelType, _enum_schema]
 
 
 class _CommandOptionModel(pydantic.BaseModel):
-    type: _OptionType  # noqa: VNE003
+    type: _OptionType
     name: _MaybeLocalised
     description: _MaybeLocalised
     is_required: bool = False
@@ -494,12 +493,12 @@ def _validate_slash_name(name: str, /) -> bool:
 
 
 class _DeclareSlashCmdModel(_CommandModel):
-    type: typing.Annotated[  # noqa: VNE003
-        typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)
-    ] = hikari.CommandType.SLASH
+    type: typing.Annotated[typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)] = (
+        hikari.CommandType.SLASH
+    )
     name: _MaybeLocalised
     description: _MaybeLocalised
-    id: _Snowflake | None = None  # noqa: VNE003
+    id: _Snowflake | None = None
     default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -546,11 +545,11 @@ class _DeclareSlashCmdModel(_CommandModel):
 
 
 class _DeclareMenuCmdModel(_CommandModel):
-    type: typing.Annotated[  # noqa: VNE003
+    type: typing.Annotated[
         typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
     ]
     name: _MaybeLocalised
-    id: _Snowflake | None = None  # noqa: VNE003
+    id: _Snowflake | None = None
     default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False

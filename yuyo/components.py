@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -431,7 +430,7 @@ class ComponentClient:
         self._tasks: list[asyncio.Task[typing.Any]] = []
         self._voice = voice
 
-        if event_managed or event_managed is None and event_manager:
+        if event_managed or (event_managed is None and event_manager):
             if not event_manager:
                 raise ValueError("event_managed may only be passed when an event_manager is also passed")
 
@@ -1177,7 +1176,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
     @property
     def has_expired(self) -> bool:
-        return bool(self._finished or self._timeout_at and _now() > self._timeout_at)
+        return bool(self._finished or (self._timeout_at and _now() > self._timeout_at))
 
     def increment_uses(self) -> bool:
         return True
@@ -1491,7 +1490,7 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_emoji", "_is_disabled", "_label", "_style")
 
     def __init__(
         self,
@@ -1572,7 +1571,7 @@ def as_interactive_button(
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_custom_id", "_emoji", "_is_disabled", "_label", "_url")
 
     def __init__(
         self,
@@ -1634,7 +1633,7 @@ def link_button(
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_is_disabled", "_max_values", "_min_values", "_placeholder", "_type")
 
     def __init__(
         self,
@@ -1920,7 +1919,7 @@ def as_user_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_channel_types", "_is_disabled", "_max_values", "_min_values", "_placeholder")
 
     def __init__(
         self,
@@ -2033,7 +2032,7 @@ def as_channel_menu(
 
 
 class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_is_disabled", "_max_values", "_min_values", "_options", "_placeholder")
 
     def __init__(
         self,
@@ -4758,7 +4757,7 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
     except (KeyError, IndexError):
         content_hash = None
 
-    try:  # noqa: TRY101
+    try:
         page_number = int(metadata[_PAGE_NUMBER_KEY][0])
 
     except (KeyError, IndexError):
@@ -5355,11 +5354,8 @@ class StaticPaginatorIndex:
                         continue
 
                     custom_id = component.custom_id.split(":", 1)[0]
-                    if (
-                        page_number == 0
-                        and custom_id in _STATIC_BACKWARDS_BUTTONS
-                        or page_number == last_index
-                        and custom_id in _STATIC_FORWARD_BUTTONS
+                    if (page_number == 0 and custom_id in _STATIC_BACKWARDS_BUTTONS) or (
+                        page_number == last_index and custom_id in _STATIC_FORWARD_BUTTONS
                     ):
                         component.set_is_disabled(True)
 

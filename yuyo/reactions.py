@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -249,7 +248,7 @@ class ReactionHandler(AbstractReactionHandler):
             self._close_task = asyncio.create_task(self.close())
             raise
 
-        if self._message is None or self._authors and event.user_id not in self._authors:
+        if self._message is None or (self._authors and event.user_id not in self._authors):
             return
 
         emoji_identifier = event.emoji_id or event.emoji_name
@@ -492,7 +491,7 @@ class ReactionPaginator(ReactionHandler):
             await self._message.edit(**response.to_kwargs())
 
         except (hikari.NotFoundError, hikari.ForbiddenError) as exc:
-            raise HandlerClosed() from exc
+            raise HandlerClosed from exc
 
     async def _on_disable(self, _: ReactionEventT, /) -> None:
         self._paginator.close()
@@ -661,7 +660,7 @@ Paginator = ReactionPaginator
 class ReactionClient:
     """A class which handles the events for multiple registered reaction handlers."""
 
-    __slots__ = ("_alluka", "blacklist", "_event_manager", "_gc_task", "_handlers", "_rest")
+    __slots__ = ("_alluka", "_event_manager", "_gc_task", "_handlers", "_rest", "blacklist")
 
     def __init__(
         self,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -256,7 +255,7 @@ class ModalClient:
         self._tasks: list[asyncio.Task[typing.Any]] = []
         self._voice = voice
 
-        if event_managed or event_managed is None and event_manager:
+        if event_managed or (event_managed is None and event_manager):
             if not event_manager:
                 raise ValueError("event_managed may only be passed when an event_manager is also passed")
 
@@ -717,7 +716,7 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
 
     @property
     def has_expired(self) -> bool:
-        return bool(self._has_finished or self._timeout_at and _now() > self._timeout_at)
+        return bool(self._has_finished or (self._timeout_at and _now() > self._timeout_at))
 
     def increment_uses(self) -> bool:
         return True
@@ -815,7 +814,6 @@ class Modal(AbstractModal):
 
     Examples
     --------
-
     There's a few different ways this can be used to create a modal.
 
     Sub-components can be added to an instance of a modal using chainable
@@ -1641,7 +1639,7 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
-    __slots__ = ("_label", "_custom_id", "_style", "_placeholder", "_value", "_default", "_min_length", "_max_length")
+    __slots__ = ("_custom_id", "_default", "_label", "_max_length", "_min_length", "_placeholder", "_style", "_value")
 
     def __init__(
         self,

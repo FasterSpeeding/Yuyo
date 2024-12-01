@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -561,7 +560,7 @@ class TestComponentClient:
         mock_open = mock.Mock()
 
         class StubClient(yuyo.ComponentClient):
-            open = mock_open  # noqa: VNE003
+            open = mock_open
 
         stub_client = StubClient()
 

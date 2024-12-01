@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -143,7 +142,7 @@ def test_to_slash_cmd_builder_with_options():
     assert option.options is not mock_option_1.choices
     assert option.choices
     assert mock_option_1.choices
-    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices))
+    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices, strict=True))
     assert option.channel_types == mock_option_1.channel_types
     assert option.channel_types is not mock_option_1.channel_types
     assert option.autocomplete is mock_option_1.autocomplete
@@ -232,7 +231,7 @@ def test_to_slash_cmd_builder_with_nested_options():
     assert option.options is not mock_option_1.choices
     assert option.choices
     assert mock_option_1.choices
-    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices))
+    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices, strict=True))
     assert option.channel_types == mock_option_1.channel_types
     assert option.channel_types is not mock_option_1.channel_types
     assert option.autocomplete is mock_option_1.autocomplete
@@ -326,7 +325,7 @@ def test_to_slash_cmd_builder_with_double_nested_options():
     assert option.options is not mock_option_1.choices
     assert option.choices
     assert mock_option_1.choices
-    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices))
+    assert not any(choice is other for choice, other in zip(option.choices, mock_option_1.choices, strict=True))
     assert option.channel_types == mock_option_1.channel_types
     assert option.channel_types is not mock_option_1.channel_types
     assert option.autocomplete is mock_option_1.autocomplete

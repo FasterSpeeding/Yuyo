@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Yuyo Examples - A collection of examples for Yuyo.
 # Written in 2023 by Faster Speeding Lucina@lmbyrne.dev
 #

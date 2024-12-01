@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -435,7 +434,7 @@ class AbstractManager(typing.Protocol):
 
 
 class _ServiceDescriptor:
-    __slots__ = ("repeat", "function")
+    __slots__ = ("function", "repeat")
 
     def __init__(self, service: ServiceSig, repeat: float, /) -> None:
         self.function = service
@@ -538,7 +537,7 @@ class ServiceManager(AbstractManager):
             else:
                 raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
 
-        if event_managed or event_managed is None and event_manager:
+        if event_managed or (event_managed is None and event_manager):
             if not event_manager:
                 raise ValueError("event_managed may only be passed when an event_manager is also passed")
 
@@ -1043,7 +1042,7 @@ class DiscordBotListService:
                     _LOGGER.info("Posted stats to DiscordBotList for shard %s", shard_id)
                     break
 
-                elif retry_after != -1:
+                if retry_after != -1:
                     back_off.set_next_backoff(retry_after)
                     _LOGGER.info("Rate-limited on posting stats to DiscordBotList, retrying in %s seconds", retry_after)
 

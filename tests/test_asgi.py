@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -419,7 +418,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'
                             b'Type: application/json; charset=nooooo\r\nContent-Length: 32\r\n\r\n{"ok"'
                             b': "no", "byebye": "boomer"}' % boundary_uuid.hex.encode()
                         ),
@@ -430,7 +429,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'
                             b'filename="hi.txt"\r\nContent-Type: text/plain\r\n\r\nbeep beep\ni\'m a sheep'
                             % boundary_uuid.hex.encode()
                         ),
@@ -441,7 +440,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'
                             b'filename="bye.exe"\r\nContent-Type: fuckedup/me\r\n\r\ngood\nbye\nmy\nMiku'
                             % boundary_uuid.hex.encode()
                         ),
@@ -451,7 +450,7 @@ class TestAsgiAdapter:
                 mock.call(
                     {
                         "type": "http.response.body",
-                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),
                         "more_body": False,
                     }
                 ),
@@ -517,7 +516,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'
                             b"Type: application/json\r\nContent-Length: 27\r\n\r\n{"
                             b'"ok": "no", "bye": "boom"}' % boundary_uuid.hex.encode()
                         ),
@@ -528,7 +527,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'
                             b'filename="chunky.chunks"\r\nContent-Type: split/me/up\r\n\r\nchunk1\n\n\nhi bye'
                             % boundary_uuid.hex.encode()
                         ),
@@ -541,7 +540,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'
                             b'filename="yeet.txt"\r\nContent-Type: text/plain\r\n\r\nyeet meow\nnyaa'
                             % boundary_uuid.hex.encode()
                         ),
@@ -551,7 +550,7 @@ class TestAsgiAdapter:
                 mock.call(
                     {
                         "type": "http.response.body",
-                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),
                         "more_body": False,
                     }
                 ),
@@ -613,7 +612,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'  # noqa: MOD001
+                            b'--%b\r\nContent-Disposition: form-data; name="payload_json"\r\nContent-'
                             b'Type: application/json; charset=yeet\r\nContent-Length: 35\r\n\r\n{"ok": '
                             b'"yes", "yeet the": "boomer"}' % boundary_uuid.hex.encode()
                         ),
@@ -624,7 +623,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[0]";'
                             b'filename="empty.inside"\r\nContent-Type: voided\r\n\r\n' % boundary_uuid.hex.encode()
                         ),
                         "more_body": True,
@@ -634,7 +633,7 @@ class TestAsgiAdapter:
                     {
                         "type": "http.response.body",
                         "body": (
-                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'  # noqa: MOD001
+                            b'\r\n--%b\r\nContent-Disposition: form-data; name="files[1]";'
                             b'filename="bye.exe"\r\nContent-Type: fuckedup/me\r\n\r\ngood\nbye\nmy\nMiku'
                             % boundary_uuid.hex.encode()
                         ),
@@ -644,7 +643,7 @@ class TestAsgiAdapter:
                 mock.call(
                     {
                         "type": "http.response.body",
-                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),  # noqa: MOD001
+                        "body": b"\r\n--%b--" % boundary_uuid.hex.encode(),
                         "more_body": False,
                     }
                 ),
@@ -1100,7 +1099,7 @@ class TestAsgiBot:
         with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
             bot = yuyo.AsgiBot("token", "Bot", executor=mock_executor)
 
-            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+            mock_rest_client_impl.assert_called_once_with(
                 cache=None,
                 entity_factory=bot.entity_factory,
                 executor=mock_executor,
@@ -1133,7 +1132,7 @@ class TestAsgiBot:
         with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
             bot = yuyo.AsgiBot("token", "Bot", http_settings=mock_settings)
 
-            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+            mock_rest_client_impl.assert_called_once_with(
                 cache=None,
                 entity_factory=bot.entity_factory,
                 executor=None,
@@ -1170,7 +1169,7 @@ class TestAsgiBot:
         with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
             bot = yuyo.AsgiBot("token", "Bot", proxy_settings=mock_settings)
 
-            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+            mock_rest_client_impl.assert_called_once_with(
                 cache=None,
                 entity_factory=bot.entity_factory,
                 executor=None,
@@ -1189,7 +1188,7 @@ class TestAsgiBot:
         with mock.patch.object(hikari.impl, "RESTClientImpl") as mock_rest_client_impl:
             bot = yuyo.AsgiBot("token")
 
-            mock_rest_client_impl.assert_called_once_with(  # noqa: S106
+            mock_rest_client_impl.assert_called_once_with(
                 cache=None,
                 entity_factory=bot.entity_factory,
                 executor=None,
