@@ -19,7 +19,7 @@ as one of the targets for updating the bot's guild count.
 Top.GG API tokens are found in the "webhooks" tab while editing the bot's entry.
 
 ```py
---8<-- "./docs_src/list_status.py:28:39"
+--8<-- "./docs_src/list_status.py:28:29"
 ```
 
 [DiscordBotListService][yuyo.list_status.DiscordBotListService] is used to set
