@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -110,6 +109,8 @@ CallbackSig = collections.Callable[..., collections.Coroutine[typing.Any, typing
 """Type hint of a component callback."""
 
 _CallbackSigT = typing.TypeVar("_CallbackSigT", bound=CallbackSig)
+
+_MAX_COMPONENTS = 5
 
 
 def _now() -> datetime.datetime:
@@ -297,7 +298,8 @@ class ComponentContext(interactions.BaseContext[hikari.ComponentInteraction]):
         """
         async with self._response_lock:
             if self._has_responded or self._has_been_deferred:
-                raise RuntimeError("Initial response has already been created")
+                error_message = "Initial response has already been created"
+                raise RuntimeError(error_message)
 
             if self._response_future:
                 components, _ = _internal.to_list(component, components, None, hikari.api.ComponentBuilder, "component")
@@ -323,7 +325,7 @@ def _gc_executors(executors: dict[typing.Any, tuple[timeouts.AbstractTimeout, Ab
             try:
                 del executors[key]
                 # This may slow this gc task down but the more we yield the better.
-                # await executor.close()  # TODO: this
+                # await executor.close()  # TODO: this  # noqa: ERA001
 
             except KeyError:
                 pass
@@ -431,9 +433,10 @@ class ComponentClient:
         self._tasks: list[asyncio.Task[typing.Any]] = []
         self._voice = voice
 
-        if event_managed or event_managed is None and event_manager:
+        if event_managed or (event_managed is None and event_manager):
             if not event_manager:
-                raise ValueError("event_managed may only be passed when an event_manager is also passed")
+                error_message = "event_managed may only be passed when an event_manager is also passed"
+                raise ValueError(error_message)
 
             event_manager.subscribe(hikari.StartingEvent, self._on_starting)
             event_manager.subscribe(hikari.StoppingEvent, self._on_stopping)
@@ -547,13 +550,13 @@ class ComponentClient:
         ComponentClient
             The initialised component client.
         """
-        client = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
+        self = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
 
         if bot_managed:
-            bot.add_startup_callback(client._on_starting)
-            bot.add_shutdown_callback(client._on_stopping)
+            bot.add_startup_callback(self._on_starting)
+            bot.add_shutdown_callback(self._on_stopping)
 
-        return client
+        return self
 
     @classmethod
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
@@ -825,13 +828,15 @@ class ComponentClient:
             message = hikari.Snowflake(message)
 
             if message in self._message_executors:
-                raise ValueError("Message already registered")
+                error_message = "Message already registered"
+                raise ValueError(error_message)
 
             self._message_executors[message] = entry
 
         else:
             if already_registered := self._executors.keys() & executor.custom_ids:
-                raise ValueError("The following custom IDs are already registered:", ", ".join(already_registered))
+                error_message = "The following custom IDs are already registered:"
+                raise ValueError(error_message, ", ".join(already_registered))
 
             for custom_id in executor.custom_ids:
                 self._executors[custom_id] = entry
@@ -906,7 +911,8 @@ class ComponentClient:
                 del self._executors[custom_id]
 
         if not registered:
-            raise KeyError("Executor isn't registered")
+            error_message = "Executor isn't registered"
+            raise KeyError(error_message)
 
         return self
 
@@ -988,7 +994,8 @@ class SingleExecutor(AbstractComponentExecutor):
             If `":"` is in the custom ID.
         """
         if ":" in custom_id:
-            raise ValueError("Custom ID cannot contain `:`")
+            error_message = "Custom ID cannot contain `:`"
+            raise ValueError(error_message)
 
         self._callback = callback
         self._custom_id = custom_id
@@ -1077,7 +1084,8 @@ class ComponentExecutor(AbstractComponentExecutor):  # TODO: Not found action?
             If `":"` is in the custom ID.
         """
         if ":" in custom_id:
-            raise RuntimeError("Custom ID cannot contain `:`")
+            error_message = "Custom ID cannot contain `:`"
+            raise RuntimeError(error_message)
 
         self._id_to_callback[custom_id] = callback
         return self
@@ -1177,7 +1185,7 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
     @property
     def has_expired(self) -> bool:
-        return bool(self._finished or self._timeout_at and _now() > self._timeout_at)
+        return bool(self._finished or (self._timeout_at and _now() > self._timeout_at))
 
     def increment_uses(self) -> bool:
         return True
@@ -1198,7 +1206,8 @@ class WaitForExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
             If the timeout is reached.
         """
         if self._future:
-            raise RuntimeError("This executor is already being waited for")
+            error_message = "This executor is already being waited for"
+            raise RuntimeError(error_message)
 
         if self._timeout:
             self._timeout_at = _now() + self._timeout
@@ -1326,7 +1335,8 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
     def open(self) -> None:
         if self._queue is not None:
-            raise RuntimeError("Stream is already active")
+            error_message = "Stream is already active"
+            raise RuntimeError(error_message)
 
         # Assert that this is called in a running event loop
         asyncio.get_running_loop()
@@ -1335,7 +1345,8 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
     def close(self) -> None:
         if self._queue is None:
-            raise RuntimeError("Stream is not active")
+            error_message = "Stream is not active"
+            raise RuntimeError(error_message)
 
         self._finished = True
         self._queue = None
@@ -1345,7 +1356,8 @@ class StreamExecutor(AbstractComponentExecutor, timeouts.AbstractTimeout):
 
     async def __anext__(self) -> ComponentContext:
         if self._queue is None:
-            raise RuntimeError("Stream is not active")
+            error_message = "Stream is not active"
+            raise RuntimeError(error_message)
 
         try:
             return await asyncio.wait_for(self._queue.get(), timeout=self._timeout)
@@ -1427,7 +1439,8 @@ def _parse_channel_types(*channel_types: type[hikari.PartialChannel] | int) -> l
         return list(dict.fromkeys(types_iter))
 
     except KeyError as exc:
-        raise ValueError(f"Unknown channel type {exc.args[0]}") from exc
+        error_message = f"Unknown channel type {exc.args[0]}"
+        raise ValueError(error_message) from exc
 
 
 class _ComponentDescriptor(abc.ABC):
@@ -1491,11 +1504,13 @@ class _CallableComponentDescriptor(_ComponentDescriptor, typing.Generic[_SelfT, 
 class _StaticButton(_CallableComponentDescriptor[_SelfT, _P]):
     """Used to represent a button method."""
 
-    __slots__ = ("_style", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_emoji", "_is_disabled", "_label", "_style")
 
     def __init__(
         self,
         style: hikari.InteractiveButtonTypesT,
+        /,
+        *,
         callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         custom_id: str | None = None,
         emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
@@ -1568,15 +1583,19 @@ def as_interactive_button(
             ...
     ```
     """
-    return lambda callback: _StaticButton(style, callback, custom_id, emoji, label, is_disabled)
+    return lambda callback: _StaticButton(
+        style, callback=callback, custom_id=custom_id, emoji=emoji, label=label, is_disabled=is_disabled
+    )
 
 
 class _StaticLinkButton(_ComponentDescriptor):
-    __slots__ = ("_custom_id", "_url", "_emoji", "_label", "_is_disabled")
+    __slots__ = ("_custom_id", "_emoji", "_is_disabled", "_label", "_url")
 
     def __init__(
         self,
         url: str,
+        /,
+        *,
         emoji: hikari.Snowflakeish | hikari.Emoji | str | hikari.UndefinedType = hikari.UNDEFINED,
         label: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         is_disabled: bool = False,
@@ -1630,16 +1649,18 @@ def link_button(
         link_button = components.link_button("https://example.com", label="label")
     ```
     """
-    return _StaticLinkButton(url, emoji, label, is_disabled)
+    return _StaticLinkButton(url, emoji=emoji, label=label, is_disabled=is_disabled)
 
 
 class _SelectMenu(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_type", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_is_disabled", "_max_values", "_min_values", "_placeholder", "_type")
 
     def __init__(
         self,
         callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
         type_: hikari.ComponentType | int,
+        /,
+        *,
         custom_id: str | None = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         min_values: int = 0,
@@ -1691,7 +1712,15 @@ def as_select_menu(
     * [as_text_menu][yuyo.components.as_text_menu]
     * [as_user_menu][yuyo.components.as_user_menu]
     """
-    return lambda callback: _SelectMenu(callback, type_, custom_id, placeholder, min_values, max_values, is_disabled)
+    return lambda callback: _SelectMenu(
+        callback,
+        type_,
+        custom_id=custom_id,
+        placeholder=placeholder,
+        min_values=min_values,
+        max_values=max_values,
+        is_disabled=is_disabled,
+    )
 
 
 @typing.overload
@@ -1920,11 +1949,13 @@ def as_user_menu(
 
 
 class _ChannelSelect(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_channel_types", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_channel_types", "_is_disabled", "_max_values", "_min_values", "_placeholder")
 
     def __init__(
         self,
         callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        /,
+        *,
         custom_id: str | None = None,
         channel_types: None | (collections.Sequence[hikari.ChannelType | type[hikari.PartialChannel]]) = None,
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -2027,17 +2058,25 @@ def as_channel_menu(
     return _consume(
         callback,
         lambda callback_: _ChannelSelect(
-            callback_, custom_id, channel_types, placeholder, min_values, max_values, is_disabled
+            callback_,
+            custom_id=custom_id,
+            channel_types=channel_types,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
         ),
     )
 
 
 class _TextMenuDescriptor(_CallableComponentDescriptor[_SelfT, _P]):
-    __slots__ = ("_options", "_placeholder", "_min_values", "_max_values", "_is_disabled")
+    __slots__ = ("_is_disabled", "_max_values", "_min_values", "_options", "_placeholder")
 
     def __init__(
         self,
         callback: collections.Callable[typing.Concatenate[_SelfT, _P], _CoroT],
+        /,
+        *,
         custom_id: str | None = None,
         options: collections.Sequence[hikari.api.SelectOptionBuilder] = (),
         placeholder: hikari.UndefinedOr[str] = hikari.UNDEFINED,
@@ -2163,7 +2202,13 @@ def as_text_menu(
     return _consume(
         callback,
         lambda callback_: _TextMenuDescriptor(
-            callback_, custom_id, options, placeholder, min_values, max_values, is_disabled
+            callback_,
+            custom_id=custom_id,
+            options=options,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            is_disabled=is_disabled,
         ),
     )
 
@@ -2228,7 +2273,7 @@ class _BuilderDescriptor(_ComponentDescriptor):
         # currently generated to avoid duplication.
         self._custom_id = _internal.random_custom_id()
 
-    def to_field(self, cls_path: str, name: str) -> _StaticField:
+    def to_field(self, _: str, __: str, /) -> _StaticField:
         return _StaticField(self._custom_id, None, self._builder)
 
 
@@ -2286,7 +2331,7 @@ class _CustomIdProto(typing.Protocol):
 
 def _is_custom_id_proto(value: typing.Any, /) -> typing.TypeGuard[_CustomIdProto]:
     try:
-        value.set_custom_id
+        value.set_custom_id  # noqa: B018
 
     except AttributeError:
         return False
@@ -2458,7 +2503,7 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         # This slice ignores [object, ...] and flips the order.
         for super_cls in cls.mro()[-2::-1]:
             if issubclass(super_cls, ActionColumnExecutor):
-                added_static_fields.update(super_cls._added_static_fields)
+                added_static_fields.update(super_cls._added_static_fields)  # noqa: SLF001
                 namespace.update(super_cls.__dict__)
 
         for name, attr in namespace.items():
@@ -2663,7 +2708,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
+            error_message = "Can only add static components to subclasses"
+            raise RuntimeError(error_message)
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
@@ -2797,7 +2843,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
+            error_message = "Can only add static components to subclasses"
+            raise RuntimeError(error_message)
 
         custom_id = _internal.random_custom_id()
         field = _StaticField(
@@ -2865,7 +2912,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
         * [.add_static_user_menu][yuyo.components.ActionColumnExecutor.add_static_user_menu]
         """
         if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
+            error_message = "Can only add static components to subclasses"
+            raise RuntimeError(error_message)
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
@@ -3733,7 +3781,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
+            error_message = "Can only add static components to subclasses"
+            raise RuntimeError(error_message)
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         field = _StaticField(
@@ -4017,7 +4066,8 @@ class ActionColumnExecutor(AbstractComponentExecutor):
             (rather than on a subclass).
         """
         if cls is ActionColumnExecutor:
-            raise RuntimeError("Can only add static components to subclasses")
+            error_message = "Can only add static components to subclasses"
+            raise RuntimeError(error_message)
 
         id_match, custom_id = _internal.gen_custom_id(custom_id)
         component = _TextSelectMenuBuilder(
@@ -4144,7 +4194,7 @@ class _WrappedTextMenuBuilder(typing.Generic[_P]):
 def _row_is_full(row: hikari.api.MessageActionRowBuilder) -> bool:
     components = row.components
     if components and isinstance(components[0], hikari.api.ButtonBuilder):
-        return len(components) >= 5
+        return len(components) >= _MAX_COMPONENTS
 
     return bool(components)
 
@@ -4166,7 +4216,8 @@ def _append_row(
     return row
 
 
-def column_template(ephemeral_default: bool = False) -> type[ActionColumnExecutor]:
+# TODO: make positional only
+def column_template(ephemeral_default: bool = False) -> type[ActionColumnExecutor]:  # noqa: FBT001, FBT002
     """Create a column template through a decorator callback.
 
     The returned type acts like any other slotted action column subclass and
@@ -4250,9 +4301,10 @@ class ComponentPaginator(ActionColumnExecutor):
             [yuyo.pagination.LEFT_DOUBLE_TRIANGLE][] and [yuyo.pagination.LEFT_TRIANGLE][].
         """
         if not isinstance(
-            iterator, (collections.Iterator, collections.AsyncIterator)
+            iterator, collections.Iterator | collections.AsyncIterator
         ):  # pyright: ignore[reportUnnecessaryIsInstance]
-            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            error_message = f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}"
+            raise TypeError(error_message)
 
         super().__init__(authors=authors, ephemeral_default=ephemeral_default)
 
@@ -4758,7 +4810,7 @@ def _parse_metadata(raw_metadata: str, /) -> _Metadata:
     except (KeyError, IndexError):
         content_hash = None
 
-    try:  # noqa: TRY101
+    try:
         page_number = int(metadata[_PAGE_NUMBER_KEY][0])
 
     except (KeyError, IndexError):
@@ -4782,7 +4834,8 @@ _STATIC_FORWARD_BUTTONS = {_StaticPaginatorId.NEXT, _StaticPaginatorId.LAST}
 def _get_page_number(ctx: ComponentContext, /) -> int:
     metadata = _parse_metadata(ctx.id_metadata)
     if metadata.page_number is None:
-        raise RuntimeError("Missing page number in ID metadata")
+        error_message = "Missing page number in ID metadata"
+        raise RuntimeError(error_message)
 
     return metadata.page_number
 
@@ -5274,7 +5327,8 @@ class StaticPaginatorIndex:
             If `paginator_id` is already set.
         """
         if paginator_id in self._paginators:
-            raise ValueError("Paginator already set")
+            error_message = "Paginator already set"
+            raise ValueError(error_message)
 
         self._paginators[paginator_id] = StaticPaginatorData(
             paginator_id, pages, content_hash=content_hash, make_components=self._make_components
@@ -5338,7 +5392,8 @@ class StaticPaginatorIndex:
             paginator = self.get_paginator(metadata.paginator_id)
 
         except KeyError:
-            raise RuntimeError(f"Unknown paginator {metadata.paginator_id}") from None
+            error_message = f"Unknown paginator {metadata.paginator_id}"
+            raise RuntimeError(error_message) from None
 
         if paginator.content_hash and paginator.content_hash != metadata.content_hash:
             await ctx.create_initial_response(ephemeral=True, **self.out_of_date_response.ctx_to_kwargs(ctx))
@@ -5355,11 +5410,8 @@ class StaticPaginatorIndex:
                         continue
 
                     custom_id = component.custom_id.split(":", 1)[0]
-                    if (
-                        page_number == 0
-                        and custom_id in _STATIC_BACKWARDS_BUTTONS
-                        or page_number == last_index
-                        and custom_id in _STATIC_FORWARD_BUTTONS
+                    if (page_number == 0 and custom_id in _STATIC_BACKWARDS_BUTTONS) or (
+                        page_number == last_index and custom_id in _STATIC_FORWARD_BUTTONS
                     ):
                         component.set_is_disabled(True)
 

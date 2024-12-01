@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -168,7 +167,8 @@ class AsgiAdapter:
             await self._process_lifespan_event(receive, send)
 
         else:
-            raise NotImplementedError("Websocket operations are not supported")
+            error_message = "Websocket operations are not supported"
+            raise NotImplementedError(error_message)
 
     def add_shutdown_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -287,7 +287,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_startup))
 
-            except Exception:
+            except Exception:  # noqa: BLE001
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
 
             else:
@@ -297,14 +297,15 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_shutdown))
 
-            except Exception:
+            except Exception:  # noqa: BLE001
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
 
             else:
                 await send({"type": "lifespan.shutdown.complete"})
 
         else:
-            raise RuntimeError(f"Unknown lifespan event {message_type}")
+            error_message = f"Unknown lifespan event {message_type}"
+            raise RuntimeError(error_message)
 
     async def _process_request(
         self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
@@ -367,7 +368,7 @@ class AsgiAdapter:
                 body, signature, timestamp  # pyright: ignore[reportArgumentType]
             )
         except Exception:
-            await _error_response(send, b"Internal Server Error", status_code=500)  # noqa: ASYNC120
+            await _error_response(send, b"Internal Server Error", status_code=500)
             raise
 
         headers: list[tuple[bytes, bytes]] = []
@@ -377,7 +378,7 @@ class AsgiAdapter:
         boundary = None
         if response.files:
             boundary = uuid.uuid4().hex.encode()
-            headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))  # noqa: S001
+            headers.append((_CONTENT_TYPE_KEY, _MULTIPART_CONTENT_TYPE % boundary))
 
         elif content_type := _content_type(response):
             headers.append((_CONTENT_TYPE_KEY, content_type))
@@ -398,8 +399,8 @@ class AsgiAdapter:
         if response.payload:
             content_type = _content_type(response) or _JSON_CONTENT_TYPE
             body = (
-                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'  # noqa: MOD001
-                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"  # noqa: MOD001
+                b'--%b\r\nContent-Disposition: form-data; name="payload_json"'
+                b"\r\nContent-Type: %b\r\nContent-Length: %i\r\n\r\n%b"
                 % (boundary, content_type, len(response.payload), response.payload)
             )
             await send({"type": "http.response.body", "body": body, "more_body": True})
@@ -415,16 +416,15 @@ class AsgiAdapter:
                 mimetype = reader.mimetype.encode() if reader.mimetype else _OCTET_STREAM_CONTENT_TYPE
                 filename = urllib.parse.quote(reader.filename, "").encode()
                 body = (
-                    b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'  # noqa: MOD001
-                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b'  # noqa: MOD001
-                    % (boundary, index, filename, mimetype, data)
+                    b'\r\n--%b\r\nContent-Disposition: form-data; name="files[%i]";'
+                    b'filename="%b"\r\nContent-Type: %b\r\n\r\n%b' % (boundary, index, filename, mimetype, data)
                 )
                 await send({"type": "http.response.body", "body": body, "more_body": True})
 
                 async for chunk in iterator:
                     await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
-        await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})  # noqa: MOD001
+        await send({"type": "http.response.body", "body": b"\r\n--%b--" % boundary, "more_body": False})
 
 
 def _content_type(response: hikari.api.Response, /) -> bytes | None:
@@ -441,9 +441,9 @@ def _find_headers(scope: asgiref.HTTPScope, /) -> tuple[bytes | None, bytes | No
     content_type: bytes | None = None
     signature: bytes | None = None
     timestamp: bytes | None = None
-    for name, value in scope["headers"]:
+    for raw_name, value in scope["headers"]:
         # As per-spec these should be matched case-insensitively.
-        name = name.lower()
+        name = raw_name.lower()
         if name == _X_SIGNATURE_ED25519_HEADER:
             signature = bytes.fromhex(value.decode("ascii"))
 
@@ -742,10 +742,12 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if self._is_alive:
-            raise RuntimeError("The client is already running")
+            error_message = "The client is already running"
+            raise RuntimeError(error_message)
 
         try:
             loop = asyncio.get_running_loop()
@@ -778,10 +780,12 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if self._is_alive:
-            raise RuntimeError("The client is already running")
+            error_message = "The client is already running"
+            raise RuntimeError(error_message)
 
         await asyncio.gather(*(callback(self) for callback in self._on_startup))
         await self._start()
@@ -809,17 +813,20 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if not self._is_alive or not self._join_event:
-            raise RuntimeError("The client is not running")
+            error_message = "The client is not running"
+            raise RuntimeError(error_message)
 
         await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
         await self._close()
 
     async def join(self) -> None:
         if self._join_event is None:
-            raise RuntimeError("The client is not running")
+            error_message = "The client is not running"
+            raise RuntimeError(error_message)
 
         await self._join_event.wait()
 

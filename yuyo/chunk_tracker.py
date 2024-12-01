@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -431,7 +430,7 @@ class ChunkTracker:
             guild, include_presences=include_presences, query=query, limit=limit, users=users, nonce=nonce
         )
 
-    def set_auto_chunk_members(self, state: bool, /, *, chunk_presences: bool = True) -> Self:
+    def set_auto_chunk_members(self, state: bool, /, *, chunk_presences: bool = True) -> Self:  # noqa: FBT001
         """Configure whether this should request member chunks in response to GUILD_CREATE.
 
         This may be useful for filling 3rd party caches but may conflict with
@@ -509,7 +508,7 @@ class ChunkTracker:
     async def _dispatch_finished(self, data: _RequestData, /, *, nonce: str | None = None) -> None:
         await self._event_manager.dispatch(ChunkRequestFinishedEvent(self._rest, data.shard, data))
         shard_info = self._tracked_identifies.get(data.shard.id)
-        if not shard_info or nonce and not shard_info.check_nonce(data.guild_id, nonce):
+        if not shard_info or (nonce and not shard_info.check_nonce(data.guild_id, nonce)):
             return
 
         try:
@@ -596,7 +595,7 @@ class ChunkTracker:
             shard_info.any_received = True
             shard_info.last_received_at = date
 
-        data = self._requests.get(nonce)  # noqa: S113
+        data = self._requests.get(nonce)
         if data:
             if data.missing_chunks is None:
                 data.chunk_count = chunk_count

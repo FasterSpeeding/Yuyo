@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -41,7 +40,7 @@ if typing.TYPE_CHECKING:
 
     import hikari
 
-    from .. import interactions
+    from yuyo import interactions
 
 _T = typing.TypeVar("_T", bound=object)
 
@@ -51,7 +50,7 @@ MaybeLocalsiedType = _T | collections.Mapping[str, _T]
 class MaybeLocalised(typing.Generic[_T]):
     """Helper class used for handling localisation."""
 
-    __slots__ = ("field_name", "value", "localisations")
+    __slots__ = ("field_name", "localisations", "value")
 
     def __init__(self, field_name: str, value: _T, localisations: collections.Mapping[str, _T]) -> None:
         self.field_name = field_name
@@ -75,9 +74,10 @@ class MaybeLocalised(typing.Generic[_T]):
     def assert_matches(self, pattern: str, match: collections.Callable[[_T], bool], /) -> Self:
         for value in self._values():
             if not match(value):
-                raise ValueError(
+                error_message = (
                     f"Invalid {self.field_name} provided, {value!r} doesn't match the required pattern `{pattern}`"
                 )
+                raise ValueError(error_message)
 
         return self
 

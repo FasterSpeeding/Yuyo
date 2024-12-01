@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -120,7 +119,7 @@ SELECT_PAGE_SYMBOL: typing.Final[hikari.UnicodeEmoji] = hikari.UnicodeEmoji("\N{
 """The emoji used for the select specific page button which triggers a modal."""
 
 
-async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
+async def async_paginate_string(
     lines: collections.AsyncIterable[str],
     /,
     *,
@@ -158,7 +157,7 @@ async def async_paginate_string(  # noqa: ASYNC900  # Async generator without `@
     while (line := await anext(lines, None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
-        if len(page) >= line_limit or page and page_size + len(line) > char_limit:
+        if len(page) >= line_limit or (page and page_size + len(line) > char_limit):
             yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
             page.clear()
             page_size = 0
@@ -224,7 +223,7 @@ def sync_paginate_string(
     while (line := next(lines, None)) is not None:
         # If the page is already populated and adding the current line would bring it over one of the predefined limits
         # then we want to yield this page.
-        if len(page) >= line_limit or page and page_size + len(line) > char_limit:
+        if len(page) >= line_limit or (page and page_size + len(line) > char_limit):
             yield wrapper.format("\n".join(page)) if wrapper else "\n".join(page)
             page.clear()
             page_size = 0
@@ -301,9 +300,7 @@ def paginate_string(
     return sync_paginate_string(lines, char_limit=char_limit, line_limit=line_limit, wrapper=wrapper)
 
 
-async def aenumerate(  # noqa: ASYNC900  # Async generator without `@asynccontextmanager` not allowed.
-    iterable: collections.AsyncIterable[_T], /
-) -> collections.AsyncIterator[tuple[int, _T]]:
+async def aenumerate(iterable: collections.AsyncIterable[_T], /) -> collections.AsyncIterator[tuple[int, _T]]:
     """Async equivalent of [enumerate][].
 
     Parameters
@@ -429,21 +426,23 @@ class Page(AbstractPage):
         """
         if attachment is not hikari.UNDEFINED:
             if attachments is not hikari.UNDEFINED:
-                raise ValueError("Cannot specify both attachment and attachments")
+                error_message = "Cannot specify both attachment and attachments"
+                raise ValueError(error_message)
 
             attachments = [attachment]
 
         elif (
             attachments is hikari.UNDEFINED
             and content is not hikari.UNDEFINED
-            and not isinstance(content, (str, hikari.Embed))
+            and not isinstance(content, str | hikari.Embed)
         ):
             attachments = [content]
             content = hikari.UNDEFINED
 
         if embed is not hikari.UNDEFINED:
             if embeds is not hikari.UNDEFINED:
-                raise ValueError("Cannot specify both embed and embeds")
+                error_message = "Cannot specify both embed and embeds"
+                raise ValueError(error_message)
 
             embeds = [embed]
 
@@ -545,9 +544,10 @@ class Paginator:
             This should be an iterator of [AbstractPage][yuyo.pagination.AbstractPage]s.
         """
         if not isinstance(
-            iterator, (collections.Iterator, collections.AsyncIterator)
+            iterator, collections.Iterator | collections.AsyncIterator
         ):  # pyright: ignore[reportUnnecessaryIsInstance]
-            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            error_message = f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}"
+            raise TypeError(error_message)
 
         self._buffer: list[AbstractPage] = []
         self._index: int = -1
@@ -612,7 +612,7 @@ class Paginator:
             self._index -= 1
             return self._buffer[self._index]
 
-        return None  # MyPy compat
+        return None
 
     def jump_to_first(self) -> AbstractPage | None:
         """Jump to the first page.
@@ -631,7 +631,7 @@ class Paginator:
             self._index = 0
             return self._buffer[0]
 
-        return None  # MyPy compat
+        return None
 
     async def jump_to_last(self) -> AbstractPage | None:
         """Jump to the last page.
@@ -650,4 +650,4 @@ class Paginator:
             self._index = len(self._buffer) - 1
             return self._buffer[-1]
 
-        return None  # MyPy compat
+        return None

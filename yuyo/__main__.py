@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2023, Faster Speeding
@@ -38,6 +37,7 @@ import enum
 import json
 import logging
 import pathlib
+import sys
 import typing
 import unicodedata
 
@@ -56,7 +56,8 @@ try:
     import toml
 
 except ModuleNotFoundError as _exc:
-    raise RuntimeError("Missing necessary dependencies; try reinstalling with the yuyo[cli] flag") from _exc
+    error_message = "Missing necessary dependencies; try reinstalling with the yuyo[cli] flag"
+    raise RuntimeError(error_message) from _exc
 
 if typing.TYPE_CHECKING:
     from collections import abc as collections
@@ -83,8 +84,8 @@ def _parse_config(path: pathlib.Path, /) -> collections.Mapping[str, typing.Any]
         load = _CONFIG_PARSERS[file_type]
 
     except KeyError:
-        logging.exception(f"Unknown file type {file_type}")
-        exit(1)
+        logging.exception("Unknown file type %s", file_type)
+        sys.exit(1)
 
     with path.open("r") as file:
         return load(file)
@@ -96,8 +97,8 @@ def _dump_config(path: pathlib.Path, data: typing.Any, /) -> None:
         dump = _CONFIG_DUMPERS[file_type]
 
     except KeyError:
-        logging.exception(f"Unknown file type {file_type}")
-        exit(1)
+        logging.exception("Unknown file type %s", file_type)
+        sys.exit(1)
 
     with path.open("w+") as file:
         dump(data, file)
@@ -115,7 +116,7 @@ def _cli() -> None:
 
 @_cli.group(name="commands")
 def _commands_group() -> None:
-    """A collection of terminal commands for managing application commands."""
+    """Get a collection of terminal commands for managing application commands."""
 
 
 _CommandTypes = typing.Literal["message_menu", "slash", "user_menu"]
@@ -132,7 +133,8 @@ def _cast_snowflake(value: int) -> hikari.Snowflake:
     if hikari.Snowflake.min() <= value <= hikari.Snowflake.max():
         return hikari.Snowflake(value)
 
-    raise ValueError(f"{value} is not a valid snowflake")
+    error_message = f"{value} is not a valid snowflake"
+    raise ValueError(error_message)
 
 
 @pydantic.GetPydanticSchema
@@ -164,7 +166,8 @@ def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHand
         if isinstance(result, source_type):
             return result
 
-        raise ValueError(f"{value!r} is not a valid {source_type.__name__}")
+        error_message = f"{value!r} is not a valid {source_type.__name__}"
+        raise ValueError(error_message)
 
     if issubclass(source_type, int):
         origin_schema = pydantic_core.core_schema.int_schema()
@@ -175,7 +178,8 @@ def _enum_schema(source_type: type[_EnumT], _handler: pydantic.GetCoreSchemaHand
         ser_type = str
 
     else:
-        raise NotImplementedError("Only string and int enums are supported")
+        error_message = "Only string and int enums are supported"
+        raise NotImplementedError(error_message)
 
     from_schema = pydantic_core.core_schema.chain_schema(
         [origin_schema, pydantic_core.core_schema.no_info_plain_validator_function(_cast_enum)]
@@ -236,7 +240,8 @@ class _MaybeLocalised(localise.MaybeLocalised[str]):
 
             def is_lower(value: str, /) -> bool:
                 if value.lower() != value:
-                    raise ValueError(f"Invalid {self.field_name} provided, {value!r} must be lowercase")
+                    error_message = f"Invalid {self.field_name} provided, {value!r} must be lowercase"
+                    raise ValueError(error_message)
 
                 return True
 
@@ -251,19 +256,21 @@ class _MaybeLocalised(localise.MaybeLocalised[str]):
         real_max_len = lengths[-1]
 
         if real_max_len > max_length:
-            raise ValueError(
+            error_message = (
                 f"{self.field_name.capitalize()} must be less than or equal to {max_length} characters in length"
             )
+            raise ValueError(error_message)
 
         if real_min_len < min_length:
-            raise ValueError(
+            error_message = (
                 f"{self.field_name.capitalize()} must be greater than or equal to {min_length} characters in length"
             )
+            raise ValueError(error_message)
 
         return self
 
 
-def _always_true(*args: typing.Any, **kwargs: typing.Any) -> bool:
+def _always_true(*args: typing.Any, **kwargs: typing.Any) -> bool:  # noqa: ARG001
     return True
 
 
@@ -277,7 +284,8 @@ async def _rename_coro(token: str, renames: collections.Mapping[str | _Snowflake
     renames = dict(renames)
 
     if not renames:
-        raise RuntimeError("No commands passed")
+        error_message = "No commands passed"
+        raise RuntimeError(error_message)
 
     # TODO: allow doing this all in one async with statement.
     # TODO: support using bearer tokens.
@@ -308,8 +316,10 @@ async def _rename_coro(token: str, renames: collections.Mapping[str | _Snowflake
 
         if renames:
             if _LOGGER.isEnabledFor(logging.CRITICAL):
-                _LOGGER.critical("Couldn't find the following commands:\n" + "\n".join(f"- {name}" for name in renames))
-            exit(1)
+                _LOGGER.critical(
+                    "Couldn't find the following commands:\n%s", "\n".join(f"- {name}" for name in renames)
+                )
+            sys.exit(1)
 
         await rest.set_application_commands(application, new_commands)
 
@@ -321,7 +331,8 @@ def _cast_rename_flag(value: str) -> tuple[hikari.Snowflake | str, str]:
         key, value = value.split("=", 1)
 
     except ValueError:
-        raise ValueError(f"Invalid value passed for -c `{value!r}`") from None
+        error_message = f"Invalid value passed for -c `{value!r}`"
+        raise ValueError(error_message) from None
 
     key = key.strip()
     if key.isdigit():
@@ -392,7 +403,7 @@ _ChannelType = typing.Annotated[hikari.ChannelType, _enum_schema]
 
 
 class _CommandOptionModel(pydantic.BaseModel):
-    type: _OptionType  # noqa: VNE003
+    type: _OptionType
     name: _MaybeLocalised
     description: _MaybeLocalised
     is_required: bool = False
@@ -472,6 +483,11 @@ _VALID_NAME_UNICODE_CATEGORIES = frozenset(
 )
 _VALID_NAME_CHARACTERS = frozenset(("-", "_"))
 
+_DEVI_FIRST_CHAR = 0x0900
+_DEVI_LAST_CHAR = 0x097F
+_THAI_FIRST_CHAR = 0x0E00
+_THAI_LAST_CHAR = 0x0E7F
+
 
 def _check_name_char(character: str, /) -> bool:
     # `^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$`
@@ -484,8 +500,8 @@ def _check_name_char(character: str, /) -> bool:
     return (
         character in _VALID_NAME_CHARACTERS
         or unicodedata.category(character) in _VALID_NAME_UNICODE_CATEGORIES
-        or 0x0900 >= (code_point := ord(character)) <= 0x097F
-        or 0x0E00 >= code_point <= 0x0E7F
+        or _DEVI_FIRST_CHAR >= (code_point := ord(character)) <= _DEVI_LAST_CHAR
+        or _THAI_FIRST_CHAR >= code_point <= _THAI_LAST_CHAR
     )
 
 
@@ -494,12 +510,12 @@ def _validate_slash_name(name: str, /) -> bool:
 
 
 class _DeclareSlashCmdModel(_CommandModel):
-    type: typing.Annotated[  # noqa: VNE003
-        typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)
-    ] = hikari.CommandType.SLASH
+    type: typing.Annotated[typing.Literal[hikari.CommandType.SLASH], pydantic.PlainSerializer(_to_int)] = (
+        hikari.CommandType.SLASH
+    )
     name: _MaybeLocalised
     description: _MaybeLocalised
-    id: _Snowflake | None = None  # noqa: VNE003
+    id: _Snowflake | None = None
     default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -546,11 +562,11 @@ class _DeclareSlashCmdModel(_CommandModel):
 
 
 class _DeclareMenuCmdModel(_CommandModel):
-    type: typing.Annotated[  # noqa: VNE003
+    type: typing.Annotated[
         typing.Literal[hikari.CommandType.MESSAGE, hikari.CommandType.USER], pydantic.PlainSerializer(_to_int)
     ]
     name: _MaybeLocalised
-    id: _Snowflake | None = None  # noqa: VNE003
+    id: _Snowflake | None = None
     default_member_permissions: int | None = None
     is_dm_enabled: bool = True
     is_nsfw: bool = False
@@ -655,7 +671,8 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
             commands.append(_DeclareMenuCmdModel.from_builder(builder))
 
         else:
-            raise NotImplementedError(f"Unsupported command type {command.type}")
+            error_message = f"Unsupported command type {command.type}"
+            raise NotImplementedError(error_message)
 
     return commands
 
@@ -686,7 +703,9 @@ async def _fetch_coro(token: str) -> list[_CommandModelIsh]:
     help="Whether to exclude command IDs from the output",
     required=True,
 )
-def _fetch_schema(schema: pathlib.Path, token: str, exclude_id: bool) -> None:  # pyright: ignore[reportUnusedFunction]
+def _fetch_schema(  # pyright: ignore[reportUnusedFunction]
+    schema: pathlib.Path, token: str, *, exclude_id: bool
+) -> None:
     """Fetch a bot's current command schema."""
     commands = asyncio.run(_fetch_coro(token))
     data = _DeclareModel(commands=commands)

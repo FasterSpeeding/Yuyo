@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -65,7 +64,7 @@ from alluka import local as alluka_local
 from . import _internal
 from . import interactions
 from . import timeouts
-from .interactions import InteractionError as InteractionError
+from .interactions import InteractionError
 
 _P = typing.ParamSpec("_P")
 _T = typing.TypeVar("_T")
@@ -98,6 +97,8 @@ _DEFAULT_TIMEOUT = datetime.timedelta(minutes=2)
 
 NO_DEFAULT: typing.Literal[_NoDefaultEnum.VALUE] = _NoDefaultEnum.VALUE
 """Singleton used to signify when a field has no default."""
+
+_MAX_STRING_LENGTH = 4000
 
 
 class ModalContext(interactions.BaseContext[hikari.ModalInteraction]):
@@ -256,9 +257,10 @@ class ModalClient:
         self._tasks: list[asyncio.Task[typing.Any]] = []
         self._voice = voice
 
-        if event_managed or event_managed is None and event_manager:
+        if event_managed or (event_managed is None and event_manager):
             if not event_manager:
-                raise ValueError("event_managed may only be passed when an event_manager is also passed")
+                error_message = "event_managed may only be passed when an event_manager is also passed"
+                raise ValueError(error_message)
 
             event_manager.subscribe(hikari.StartingEvent, self._on_starting)
             event_manager.subscribe(hikari.StoppingEvent, self._on_stopping)
@@ -372,13 +374,13 @@ class ModalClient:
         ModalClient
             The initialised modal client.
         """
-        client = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
+        self = cls(alluka=alluka, rest=bot.rest, server=bot.interaction_server)
 
         if bot_managed:
-            bot.add_startup_callback(client._on_starting)
-            bot.add_shutdown_callback(client._on_stopping)
+            bot.add_startup_callback(self._on_starting)
+            bot.add_shutdown_callback(self._on_stopping)
 
-        return client
+        return self
 
     @classmethod
     def from_tanjun(cls, tanjun_client: tanjun.abc.Client, /, *, tanjun_managed: bool = True) -> Self:
@@ -593,10 +595,12 @@ class ModalClient:
             If `":"` is in the custom ID.
         """
         if ":" in custom_id:
-            raise RuntimeError("Custom ID cannot contain `:`")
+            error_message = "Custom ID cannot contain `:`"
+            raise RuntimeError(error_message)
 
         if custom_id in self._modals:
-            raise ValueError(f"{custom_id!r} is already registered as a normal match")
+            error_message = f"{custom_id!r} is already registered as a normal match"
+            raise ValueError(error_message)
 
         if timeout is _internal.NO_DEFAULT:
             timeout = timeouts.StaticTimeout(datetime.datetime.now(tz=datetime.UTC) + _DEFAULT_TIMEOUT)
@@ -717,14 +721,15 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
 
     @property
     def has_expired(self) -> bool:
-        return bool(self._has_finished or self._timeout_at and _now() > self._timeout_at)
+        return bool(self._has_finished or (self._timeout_at and _now() > self._timeout_at))
 
     def increment_uses(self) -> bool:
         return True
 
     async def execute(self, ctx: Context, /) -> None:
         if self._has_finished or self._future.done():
-            raise interactions.InteractionError("This modal has timed out")
+            error_message = "This modal has timed out"
+            raise interactions.InteractionError(error_message)
 
         ctx.set_ephemeral_default(self._ephemeral_default)
         self._future.set_result(ctx)
@@ -745,7 +750,8 @@ class WaitForModal(AbstractModal, timeouts.AbstractTimeout):
             If the timeout is reached.
         """
         if self._has_finished is not None:
-            raise RuntimeError("This executor is already being waited for")
+            error_message = "This executor is already being waited for"
+            raise RuntimeError(error_message)
 
         self._has_finished = False
         if self._timeout:
@@ -782,14 +788,16 @@ class _TrackedField:
         # cases where they just just don't provide the component.
         if not component or not component.value:
             if self.default is NO_DEFAULT:
-                raise RuntimeError(f"Missing required component `{self.id_match}`")
+                error_message = f"Missing required component `{self.id_match}`"
+                raise RuntimeError(error_message)
 
             return self.default
 
         if component.type is not self.type:
-            raise RuntimeError(
+            error_message = (
                 f"Mismatched component type, expected {self.type} for `{self.id_match}` but got {component.type}"
             )
+            raise RuntimeError(error_message)
 
         return component.value
 
@@ -815,7 +823,6 @@ class Modal(AbstractModal):
 
     Examples
     --------
-
     There's a few different ways this can be used to create a modal.
 
     Sub-components can be added to an instance of a modal using chainable
@@ -983,7 +990,7 @@ class Modal(AbstractModal):
                 for id_match, component in self._static_builders
             ]
 
-    def __init_subclass__(cls, parse_signature: bool = True, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def __init_subclass__(cls, *args: typing.Any, parse_signature: bool = True, **kwargs: typing.Any) -> None:
         super().__init_subclass__(*args, **kwargs)
         cls._static_tracked_fields = []
         cls._static_builders = []
@@ -1013,14 +1020,20 @@ class Modal(AbstractModal):
         if parameter:
             fields: list[_TrackedField] = []
 
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
+            for (
+                name,
+                descriptor,
+            ) in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
                 descriptor.add_static(name, cls)
                 fields.append(descriptor.to_tracked_field(name))
 
             cls._static_tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
+            for (
+                name,
+                descriptor,
+            ) in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
                 descriptor.add_static(name, cls)
 
         return cls
@@ -1029,14 +1042,20 @@ class Modal(AbstractModal):
         if parameter:
             fields: list[_TrackedField] = []
 
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
+            for (
+                name,
+                descriptor,
+            ) in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
                 descriptor.add(name, self)
                 fields.append(descriptor.to_tracked_field(name))
 
             self._tracked_fields.append(_TrackedDataclass(parameter, options, fields))
 
         else:
-            for name, descriptor in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]
+            for (
+                name,
+                descriptor,
+            ) in options._modal_fields.items():  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
                 descriptor.add(name, self)
 
         return self
@@ -1111,7 +1130,8 @@ class Modal(AbstractModal):
             a subclass).
         """
         if cls is Modal:
-            raise RuntimeError("Can only add static fields to subclasses")
+            error_message = "Can only add static fields to subclasses"
+            raise RuntimeError(error_message)
 
         id_match, component, field = _make_text_input(
             custom_id=custom_id,
@@ -1214,13 +1234,14 @@ class Modal(AbstractModal):
     async def execute(self, ctx: Context, /) -> None:
         # <<inherited docstring from AbstractModal>>.
         if self._actual_callback is None:
-            raise RuntimeError(f"Modal {self!r} has no callback")
+            error_message = f"Modal {self!r} has no callback"
+            raise RuntimeError(error_message)
 
         ctx.set_ephemeral_default(self._ephemeral_default)
         components: dict[str, hikari.ModalComponentTypesT] = {}
         assert isinstance(ctx.component_ids, dict)
 
-        component: hikari.ModalComponentTypesT | None  # MyPy compat
+        component: hikari.ModalComponentTypesT | None
         for component in itertools.chain.from_iterable(
             component_.components for component_ in ctx.interaction.components
         ):
@@ -1236,7 +1257,7 @@ def _workout_value(default: typing.Any, value: hikari.UndefinedOr[str]) -> hikar
     if value is not hikari.UNDEFINED or default is hikari.UNDEFINED:
         return value
 
-    if isinstance(default, str) and len(default) <= 4000:
+    if isinstance(default, str) and len(default) <= _MAX_STRING_LENGTH:
         return default
 
     return value
@@ -1615,10 +1636,10 @@ class _ComponentDescriptor(abc.ABC):
     __slots__ = ()
 
     @abc.abstractmethod
-    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None: ...
+    def add(self, field_name: str, modal: Modal, /, *, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
-    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None: ...
+    def add_static(self, field_name: str, modal: type[Modal], /, *, pass_as_kwarg: bool = False) -> None: ...
 
     @abc.abstractmethod
     def to_tracked_field(self, keyword: str, /) -> _TrackedField: ...
@@ -1630,10 +1651,10 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
     def __init__(self, options: type[ModalOptions], /) -> None:
         self._options = options
 
-    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
+    def add(self, field_name: str, modal: Modal, /, *, pass_as_kwarg: bool = False) -> None:
         modal.add_dataclass(self._options, parameter=field_name if pass_as_kwarg else None)
 
-    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
+    def add_static(self, field_name: str, modal: type[Modal], /, *, pass_as_kwarg: bool = False) -> None:
         modal.add_static_dataclass(self._options, parameter=field_name if pass_as_kwarg else None)
 
     def to_tracked_field(self, keyword: str, /) -> _TrackedField:
@@ -1641,7 +1662,7 @@ class _ModalOptionsDescriptor(_ComponentDescriptor):
 
 
 class _TextInputDescriptor(_ComponentDescriptor):
-    __slots__ = ("_label", "_custom_id", "_style", "_placeholder", "_value", "_default", "_min_length", "_max_length")
+    __slots__ = ("_custom_id", "_default", "_label", "_max_length", "_min_length", "_placeholder", "_style", "_value")
 
     def __init__(
         self,
@@ -1654,7 +1675,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         value: hikari.UndefinedOr[str] = hikari.UNDEFINED,
         default: typing.Any = NO_DEFAULT,
         min_length: int = 0,
-        max_length: int = 4000,
+        max_length: int = _MAX_STRING_LENGTH,
     ) -> None:
         self._label = label
         self._custom_id = custom_id
@@ -1665,7 +1686,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
         self._min_length = min_length
         self._max_length = max_length
 
-    def add(self, field_name: str, modal: Modal, /, pass_as_kwarg: bool = False) -> None:
+    def add(self, field_name: str, modal: Modal, /, *, pass_as_kwarg: bool = False) -> None:
         custom_id = self._custom_id or field_name
         modal.add_text_input(
             self._label,
@@ -1679,7 +1700,7 @@ class _TextInputDescriptor(_ComponentDescriptor):
             max_length=self._max_length,
         )
 
-    def add_static(self, field_name: str, modal: type[Modal], /, pass_as_kwarg: bool = False) -> None:
+    def add_static(self, field_name: str, modal: type[Modal], /, *, pass_as_kwarg: bool = False) -> None:
         custom_id = self._custom_id or field_name
         modal.add_static_text_input(
             self._label,
@@ -1824,7 +1845,7 @@ class _ModalOptionsMeta(type):
 
         for sub_cls in bases:
             if issubclass(sub_cls, ModalOptions):
-                fields.update(sub_cls._modal_fields)  # pyright: ignore[reportPrivateUsage]
+                fields.update(sub_cls._modal_fields)  # pyright: ignore[reportPrivateUsage]  # noqa: SLF001
 
         for key, value in namespace.copy().items():
             if isinstance(value, _ComponentDescriptor):
@@ -1832,7 +1853,9 @@ class _ModalOptionsMeta(type):
                 del namespace[key]
 
         namespace["_modal_fields"] = types.MappingProxyType(fields)
-        namedtuple = collections.namedtuple(name, fields.keys())  # pyright: ignore[reportUntypedNamedTuple]
+        namedtuple = collections.namedtuple(  # pyright: ignore[reportUntypedNamedTuple]  # noqa: PYI024
+            name, fields.keys()
+        )
         return super().__new__(cls, name, (namedtuple, *bases), namespace)
 
 

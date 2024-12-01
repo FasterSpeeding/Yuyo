@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -100,7 +99,8 @@ class SlidingTimeout(AbstractTimeout):
             self._uses_left -= 1
 
         elif self._uses_left == 0:
-            raise RuntimeError("Uses already depleted")
+            error_message = "Uses already depleted"
+            raise RuntimeError(error_message)
 
         self._last_triggered = datetime.datetime.now(tz=datetime.UTC)
         return self._uses_left == 0
@@ -156,6 +156,7 @@ class StaticTimeout(AbstractTimeout):
             self._uses_left -= 1
 
         elif self._uses_left == 0:
-            raise RuntimeError("Uses already depleted")
+            error_message = "Uses already depleted"
+            raise RuntimeError(error_message)
 
         return self._uses_left == 0

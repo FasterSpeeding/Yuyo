@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Yuyo Examples - A collection of examples for Yuyo.
 # Written in 2023 by Faster Speeding Lucina@lmbyrne.dev
 #
@@ -10,9 +9,10 @@
 # If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 
 # pyright: reportUnusedVariable=none
+# pyright: reportArgumentType=none
 import os
 
-import agraffe  # type: ignore  # TODO: add py.typed to agraffe
+import agraffe  # type: ignore  # TODO: add py.typed to agraffe  # noqa: PGH003
 import fastapi
 import tanjun
 
@@ -31,7 +31,7 @@ def fastapi_mount() -> None:
 
     app = fastapi.FastAPI(on_startup=[bot.start], on_shutdown=[bot.close])
 
-    app.mount("/bot", bot)  # type: ignore
+    app.mount("/bot", bot)
 
 
 def serverless() -> None:
@@ -39,4 +39,4 @@ def serverless() -> None:
 
     # ... Setup bot
 
-    entry_point = agraffe.Agraffe.entry_point(bot)  # type: ignore
+    entry_point = agraffe.Agraffe.entry_point(bot)

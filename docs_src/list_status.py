@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Yuyo Examples - A collection of examples for Yuyo.
 # Written in 2023 by Faster Speeding Lucina@lmbyrne.dev
 #
@@ -20,28 +19,28 @@ import sake
 from yuyo import list_status
 
 
-def top_gg(bot: hikari.GatewayBot):
+def top_gg(bot: hikari.GatewayBot) -> None:
     manager = list_status.ServiceManager.from_gateway_bot(bot)
     manager.add_service(list_status.TopGGService("TOKEN"))
 
 
-def discord_bot_list(bot: hikari.GatewayBot):
+def discord_bot_list(bot: hikari.GatewayBot) -> None:
     manager = list_status.ServiceManager.from_gateway_bot(bot)
     manager.add_service(list_status.DiscordBotListService("TOKEN"))
 
 
-def bots_gg(bot: hikari.GatewayBot):
+def bots_gg(bot: hikari.GatewayBot) -> None:
     manager = list_status.ServiceManager.from_gateway_bot(bot)
     manager.add_service(list_status.BotsGGService("TOKEN"))
 
 
-def sake_counter(bot: hikari.GatewayBot, cache: sake.abc.GuildCache):
+def sake_counter(bot: hikari.GatewayBot, cache: sake.abc.GuildCache) -> None:
     cache  # type: sake.abc.GuildCache
     counter = list_status.SakeStrategy(cache)
     manager = list_status.ServiceManager.from_gateway_bot(bot, strategy=counter)
 
 
-def custom_service(bot: hikari.GatewayBot):
+def custom_service(bot: hikari.GatewayBot) -> None:
     manager = list_status.ServiceManager.from_gateway_bot(bot)
 
     @manager.with_service()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -131,7 +130,8 @@ class BaseLink(abc.ABC):
         if match := cls._MATCH_PATTERN.fullmatch(link.strip()):
             return cls._from_match(app, match)
 
-        raise ValueError("Link doesn't match pattern")
+        error_message = "Link doesn't match pattern"
+        raise ValueError(error_message)
 
     @classmethod
     @abc.abstractmethod
@@ -179,7 +179,7 @@ class ChannelLink(BaseLink):
       channel links in a string.
     """
 
-    __slots__ = ("_app", "_guild_id", "_channel_id")
+    __slots__ = ("_app", "_channel_id", "_guild_id")
 
     _app: hikari.RESTAware
     _guild_id: hikari.Snowflake | None
@@ -254,7 +254,7 @@ class ChannelLink(BaseLink):
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_guild_channel(self._channel_id) or self._app.cache.get_thread(self._channel_id)
 
-        return None  # MyPy compat
+        return None
 
     async def fetch_guild(self) -> hikari.RESTGuild | None:
         """Fetch the guild this links to.
@@ -283,7 +283,7 @@ class ChannelLink(BaseLink):
         if self._guild_id:
             return await self._app.rest.fetch_guild(self._guild_id)
 
-        return None  # Mypy compat
+        return None
 
     def get_guild(self) -> hikari.GatewayGuild | None:
         """Get the guild this links to from the cache.
@@ -298,7 +298,7 @@ class ChannelLink(BaseLink):
         if self._guild_id and isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_guild(self._guild_id)
 
-        return None  # MyPy compat
+        return None
 
 
 def make_invite_link(invite: str | hikari.InviteCode, /) -> str:
@@ -385,7 +385,7 @@ class InviteLink(hikari.InviteCode, BaseLink):
         if isinstance(self._app, hikari.CacheAware):
             return self._app.cache.get_invite(self._code)
 
-        return None  # MyPy compat
+        return None
 
 
 def make_message_link(

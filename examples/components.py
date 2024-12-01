@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """General examples how Yuyo's component client is used."""
+
 import hikari
 
 import yuyo

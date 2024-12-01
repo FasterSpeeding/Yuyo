@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -41,19 +40,19 @@ from yuyo import reactions
 
 
 class TestReactionClient:
-    def test_alluka(self):
+    def test_alluka(self) -> None:
         client = reactions.ReactionClient(rest=mock.AsyncMock(), event_manager=mock.Mock())
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(reactions.ReactionClient) is client
 
-    def test_alluka_when_alluka_local_client(self):
+    def test_alluka_when_alluka_local_client(self) -> None:
         with alluka.local.scope_client() as expected_alluka_client:
             client = reactions.ReactionClient(rest=mock.AsyncMock(), event_manager=mock.Mock())
 
             assert client.alluka is expected_alluka_client
 
-    def test_alluka_with_passed_through_client(self):
+    def test_alluka_with_passed_through_client(self) -> None:
         mock_alluka = mock.Mock()
 
         client = reactions.ReactionClient(alluka=mock_alluka, rest=mock.AsyncMock(), event_manager=mock.Mock())
@@ -63,7 +62,7 @@ class TestReactionClient:
 
 
 class TestReactionHandler:
-    def test_authors_property(self):
+    def test_authors_property(self) -> None:
         handler = reactions.ReactionHandler(authors=[123, 321, 543, 1234])
 
         assert handler.authors == {123, 321, 543, 1234}
