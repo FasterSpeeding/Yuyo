@@ -44,6 +44,10 @@ Repository = "https://github.com/FasterSpeeding/Yuyo"
 Documentation = "https://yuyo.cursed.solutions/"
 Changelog = "https://yuyo.cursed.solutions/changelog"
 
+[dependency-groups]
+templating = ["Jinja2>=3.1.2"]
+
+
 [tool.flit.module]
 name = "yuyo"
 
