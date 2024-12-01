@@ -242,7 +242,7 @@ class ModalClient:
             If `event_managed` is passed as [True][] when `event_manager` is [None][].
         """
         if alluka is None:
-            alluka = alluka_local.get(default=None) or alluka_.Client()
+            alluka = alluka_local.get_client(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka

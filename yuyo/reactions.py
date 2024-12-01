@@ -696,7 +696,7 @@ class ReactionClient:
             closed based on the lifetime events dispatched by `event_managed`.
         """
         if alluka is None:
-            alluka = alluka_local.get(default=None) or alluka_.Client()
+            alluka = alluka_local.get_client(default=None) or alluka_.Client()
             self._set_standard_deps(alluka)
 
         self._alluka = alluka
