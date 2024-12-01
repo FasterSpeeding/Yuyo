@@ -6,7 +6,7 @@ interaction requests received from Discord for slash commands, context menus,
 message components and modals as part of an ASGI server.
 
 ```py
---8<-- "./docs_src/asgi.py:24:27"
+--8<-- "./docs_src/asgi.py:23:26"
 ```
 
 If the above example was saved in the file "bot.py"
@@ -25,7 +25,7 @@ or using [FastAPI](https://fastapi.tiangolo.com/)'s
 to mount this bot on a specific route within an existing FastAPI server:
 
 ```py
---8<-- "./docs_src/asgi.py:31:35"
+--8<-- "./docs_src/asgi.py:30:34"
 ```
 
 The extra steps this example goes through to let FastAPI startup and shutdown
@@ -35,7 +35,7 @@ sub-application.
 #### Serverless
 
 ```py
---8<-- "./docs_src/asgi.py:39:43"
+--8<-- "./docs_src/asgi.py:38:42"
 ```
 
 Thanks to the flexibility of the ASGI standard, this can also be used with
