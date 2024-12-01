@@ -246,7 +246,8 @@ class ReactionHandler(AbstractReactionHandler):
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             self._close_task = asyncio.create_task(self.close())
-            raise RuntimeError("Reaction Handler has expired")
+            error_message = "Reaction Handler has expired"
+            raise RuntimeError(error_message)
 
         if self._message is None or (self._authors and event.user_id not in self._authors):
             return
