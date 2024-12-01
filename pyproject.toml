@@ -45,8 +45,43 @@ Documentation = "https://yuyo.cursed.solutions/"
 Changelog = "https://yuyo.cursed.solutions/changelog"
 
 [dependency-groups]
+docs = [
+    "markdown-include>=0.8",
+    "mkdocs>=1.4.2",
+    "mkdocstrings[python]>=0.19",
+    "mkdocs-material>=8.5.11",
+    "mkdocs-minify-plugin>=0.6.4",
+]
+freeze-locks = ["uv"]
+lint = [
+    "codespell>=2.2.2",
+    "pre-commit-hooks>=4.4",
+    "slotscheck>=0.16.1",
+    "ruff",
+]
+publish = ["flit>=3.8.0"]
+reformat = [
+    "black>=22.10.0",
+    "isort>=5.11.3",
+    "pre-commit-hooks>=4.4",
+    "pycln>=2.1.2",
+    "sort-all>=1.2",
+]
 templating = ["Jinja2>=3.1.2"]
-
+tests = [
+    "pytest>=7",
+    "pytest-cov>=4",
+    "pytest-sugar>=0.9.6",
+    "pytest-timeout>=2.1",
+]
+type-checking = [
+    "mypy>=0.991",
+    "nox",
+    "pyright>=1.1.285",
+    {include-group = "tests"},
+    "agraffe>=0.7",
+    "fastapi>=0.95",
+]
 
 [tool.flit.module]
 name = "yuyo"
