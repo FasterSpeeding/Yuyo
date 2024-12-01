@@ -169,7 +169,7 @@ default_sessions = [
     "test",
     "verify-types",
 ]
-extra_test_installs = [".[sake]"]
+extra_test_installs = [".[asgi, sake]"]
 mypy_allowed_to_fail = true
 mypy_targets = ["docs_src", "yuyo"]
 path_ignore = "docs\\/usage\\/images\\/.+"
