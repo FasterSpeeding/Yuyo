@@ -55,7 +55,7 @@ included on every instance of the modal class. There's a couple of ways to
 declare these:
 
 ```py
---8<-- "./docs_src/modals.py:26:35"
+--8<-- "./docs_src/modals.py:25:34"
 ```
 
 Subclassing [Modal][yuyo.modals.Modal] lets you create a unique modal template.
@@ -75,7 +75,7 @@ The following descriptors are supported:
     then you must make sure to first call `super().__init__()` in it.
 
 ```py
---8<-- "./docs_src/modals.py:39:44"
+--8<-- "./docs_src/modals.py:38:43"
 ```
 
 You can also define the template's fields by manually calling the `add_static_{}`
@@ -88,7 +88,7 @@ callback if you explicitly pass the relevant argument's name as `parameter=` to
 the add (class) method.
 
 ```py
---8<-- "./docs_src/modals.py:48:51"
+--8<-- "./docs_src/modals.py:47:50"
 ```
 
 [as_modal_template][yuyo.modals.as_modal_template] provides a short hand for
@@ -97,11 +97,11 @@ creating a [Modal][yuyo.modals.Modal] subclass from a callback.
 ##### Instances
 
 ```py
---8<-- "./docs_src/modals.py:55:58"
+--8<-- "./docs_src/modals.py:54:57"
 ```
 
 ```py
---8<-- "./docs_src/modals.py:62:68"
+--8<-- "./docs_src/modals.py:61:67"
 ```
 
 [as_modal][yuyo.modals.as_modal] and [modal][yuyo.modals.modal] both provide
@@ -113,7 +113,7 @@ These only support the signature field descriptors and modal dataclasses when
 ##### Options Dataclass
 
 ```py
---8<-- "./docs_src/modals.py:72:78"
+--8<-- "./docs_src/modals.py:71:77"
 ```
 
 Another aspect of signature parsing is [ModalOptions][yuyo.modals.ModalOptions].
@@ -133,7 +133,7 @@ There's two main ways to handle modal interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/modals.py:82:96"
+--8<-- "./docs_src/modals.py:81:95"
 ```
 
 Subclassing [Modal][yuyo.modals.Modal] let you associate state with a specific
@@ -149,7 +149,7 @@ the parent interaction's custom ID as the modal's custom ID (as shown above).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/modals.py:100:116"
+--8<-- "./docs_src/modals.py:99:115"
 ```
 
 Alternatively, modals can be reused by using a global custom ID and registering the
@@ -169,7 +169,7 @@ total length.
 ### Responding to Modals
 
 ```py
---8<-- "./docs_src/modals.py:120:125"
+--8<-- "./docs_src/modals.py:119:124"
 ```
 
 [ModalContext.respond][yuyo.modals.ModalContext.respond] is used to
@@ -187,7 +187,7 @@ raised to end the execution of a modal with a response message.
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/modals.py:129:132"
+--8<-- "./docs_src/modals.py:128:131"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -213,7 +213,7 @@ deferring.
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/modals.py:136:138"
+--8<-- "./docs_src/modals.py:135:137"
 ```
 
 When a modal is triggered by a button which is attached to a message you can also

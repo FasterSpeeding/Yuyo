@@ -81,7 +81,7 @@ There's several different ways to declare components using Yuyo:
 ### Subclassing
 
 ```py
---8<-- "./docs_src/components.py:32:55"
+--8<-- "./docs_src/components.py:31:54"
 ```
 
 When subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor],
@@ -98,7 +98,7 @@ column) to it:
 * [link_button][yuyo.components.link_button]
 
 ```py
---8<-- "./docs_src/components.py:59:63"
+--8<-- "./docs_src/components.py:58:62"
 ```
 
 Most of these descriptors decorate a callback which'll be called when that
@@ -112,7 +112,7 @@ to the bot.
     then you must make sure to first call `super().__init__()` in it.
 
 ```py
---8<-- "./docs_src/components.py:68:79"
+--8<-- "./docs_src/components.py:67:78"
 ```
 
 Alternatively, static sub-components can be added to an
@@ -120,7 +120,7 @@ Alternatively, static sub-components can be added to an
 chainable `add_static_{}` class methods.
 
 ```py
---8<-- "./docs_src/components.py:84:99"
+--8<-- "./docs_src/components.py:83:98"
 ```
 
 Or by using its `with_static_{}` decorator class methods. The only
@@ -135,7 +135,7 @@ buttons.
 ### Builder
 
 ```py
---8<-- "./docs_src/components.py:104:115"
+--8<-- "./docs_src/components.py:103:114"
 ```
 
 You can also dynamically build a
@@ -143,7 +143,7 @@ You can also dynamically build a
 it by using its chainable `add_{}` methods to add sub-components.
 
 ```py
---8<-- "./docs_src/components.py:120:135"
+--8<-- "./docs_src/components.py:119:134"
 ```
 
 Or by using its `with_{}` decorator methods. The only sub-component type which
@@ -156,7 +156,7 @@ There's two main ways to handle component interactions with Yuyo:
 ##### Stateful
 
 ```py
---8<-- "./docs_src/components.py:139:152"
+--8<-- "./docs_src/components.py:138:151"
 ```
 
 Subclassing [ActionColumnExecutor][yuyo.components.ActionColumnExecutor] allows
@@ -172,7 +172,7 @@ resets every use).
 ##### Stateless
 
 ```py
---8<-- "./docs_src/components.py:156:170"
+--8<-- "./docs_src/components.py:155:169"
 ```
 
 Alternatively, components can be reused by registering the component to the client
@@ -214,7 +214,7 @@ when registering it globally (i.e. without passing `message=`).
 ### Responding to Components
 
 ```py
---8<-- "./docs_src/components.py:174:180"
+--8<-- "./docs_src/components.py:173:179"
 ```
 
 [ComponentContext.respond][yuyo.components.ComponentContext.respond] is used to
@@ -229,7 +229,7 @@ raised to end the execution of a component with a response message.
 ##### Ephemeral responses
 
 ```py
---8<-- "./docs_src/components.py:184:188"
+--8<-- "./docs_src/components.py:183:187"
 ```
 
 Ephemeral responses mark the response message as private (so that only the
@@ -255,7 +255,7 @@ want a response to be an ephemeral message create then you'll have to pass
 ##### Updating the source message
 
 ```py
---8<-- "./docs_src/components.py:192:195"
+--8<-- "./docs_src/components.py:191:194"
 ```
 
 You can also use the initial response to edit the message the component being
@@ -296,7 +296,7 @@ paginator implementation for creating transient paginators which are linked
 to specific responses/messages.
 
 ```py
---8<-- "./docs_src/components.py:199:204"
+--8<-- "./docs_src/components.py:198:203"
 ```
 
 This paginator takes iterators/generators of [yuyo.pagination.Page][]s and will
@@ -307,14 +307,14 @@ Because of this you must use [iter][] before passing a list of pre-built data
 to its init.
 
 ```py
---8<-- "./docs_src/components.py:212:213"
+--8<-- "./docs_src/components.py:211:212"
 ```
 
 This also supports asynchronous iterators/generators, allowing for functionality
 like fetching data as the user scrolls through it.
 
 ```py
---8<-- "./docs_src/components.py:217:224"
+--8<-- "./docs_src/components.py:216:223"
 ```
 
 The paginator only enables 3 buttons by default: step backwards, stop and step
@@ -334,7 +334,7 @@ paginator implementation. For this you register paginator pages on bot startup
 and then use the chosen ID to add associated paginator components to messages/responses.
 
 ```py
---8<-- "./docs_src/components.py:228:244"
+--8<-- "./docs_src/components.py:227:243"
 ```
 
 Buttons can be added or modified by extending
@@ -344,7 +344,7 @@ Buttons can be added or modified by extending
 if you want to override the default buttons using the relevant `set_` methods.
 
 ```
---8<-- "./docs_src/components.py:248:248"
+--8<-- "./docs_src/components.py:247:247"
 ```
 
 `content_hash` can be passed to

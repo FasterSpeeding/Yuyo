@@ -10,7 +10,7 @@ counting strategy is passed.
 ### Usage
 
 ```py
---8<-- "./docs_src/list_status.py:24:25"
+--8<-- "./docs_src/list_status.py:23:24"
 ```
 
 [TopGGService][yuyo.list_status.TopGGService] is used to set <https://top.gg>
@@ -19,7 +19,7 @@ as one of the targets for updating the bot's guild count.
 Top.GG API tokens are found in the "webhooks" tab while editing the bot's entry.
 
 ```py
---8<-- "./docs_src/list_status.py:29:30"
+--8<-- "./docs_src/list_status.py:28:39"
 ```
 
 [DiscordBotListService][yuyo.list_status.DiscordBotListService] is used to set
@@ -29,7 +29,7 @@ count.
 <!-- TODO: where to find token? -->
 
 ```py
---8<-- "./docs_src/list_status.py:34:35"
+--8<-- "./docs_src/list_status.py:33:34"
 ```
 
 [BotsGGService][yuyo.list_status.BotsGGService] is used to set
@@ -41,7 +41,7 @@ Bots.gg API tokens are found at <https://discord.bots.gg/docs> (when logged in).
 ##### Custom service
 
 ```py
---8<-- "./docs_src/list_status.py:45:56"
+--8<-- "./docs_src/list_status.py:44:55"
 ```
 
 Services are simply asynchronous callbacks which call
@@ -56,7 +56,7 @@ global guild count or `Mapping[int, int]` to give per-shard guild counts.
 ##### Sake counting
 
 ```py
---8<-- "./docs_src/list_status.py:39:41"
+--8<-- "./docs_src/list_status.py:38:40"
 ```
 
 The Sake strategy lets this be used with an asynchronous Redis guild cache.

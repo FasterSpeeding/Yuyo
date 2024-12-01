@@ -6,7 +6,7 @@ builder objects.
 ### Commands
 
 ```py
---8<-- "./docs_src/builders.py:19:19"
+--8<-- "./docs_src/builders.py:18:18"
 ```
 
 [to_cmd_builder][yuyo.to_builder.to_cmd_builder] converts a
@@ -21,7 +21,7 @@ losing this information typing wise.
 ### Message components
 
 ```py
---8<-- "./docs_src/builders.py:23:23"
+--8<-- "./docs_src/builders.py:22:22"
 ```
 
 [to_msg_action_row_builder][yuyo.to_builder.to_msg_action_row_builder] converts

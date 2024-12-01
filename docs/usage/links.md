@@ -11,7 +11,7 @@ All of these methods take a Hikari "app" (Bot or REST app object) as their
 first argument.
 
 ```py
---8<-- "./docs_src/links.py:20:20"
+--8<-- "./docs_src/links.py:19:19"
 ```
 
 [BaseLink.from_link][yuyo.links.BaseLink.from_link] lets you parse a raw link
@@ -19,7 +19,7 @@ string. This is strict about validation and will raise a [ValueError][] if the
 full passed string isn't a match for the expected link structure.
 
 ```py
---8<-- "./docs_src/links.py:24:25"
+--8<-- "./docs_src/links.py:23:24"
 ```
 
 [BaseLink.find][yuyo.links.BaseLink.find] lets you extract the first link in a
@@ -27,7 +27,7 @@ string. This will search for a link at any point in the string and returns the
 parsed link object or [None][] if no link was found.
 
 ```py
---8<-- "./docs_src/links.py:29:30"
+--8<-- "./docs_src/links.py:28:29"
 ```
 
 [BaseLink.find_iter][yuyo.links.BaseLink.find_iter] lets you iterate over the
@@ -42,7 +42,7 @@ Yuyo (which all support the parsing methods listed above):
 ##### Channel links
 
 ```py
---8<-- "./docs_src/links.py:34:43"
+--8<-- "./docs_src/links.py:33:42"
 ```
 
 [ChannelLink][yuyo.links.ChannelLink] handles parsing channel links.
@@ -51,7 +51,7 @@ Yuyo (which all support the parsing methods listed above):
 DM channels.
 
 ```py
---8<-- "./docs_src/links.py:47:50"
+--8<-- "./docs_src/links.py:46:49"
 ```
 
 [links.make_channel_link][yuyo.links.make_channel_link] lets you make a channel
@@ -60,13 +60,13 @@ link string.
 ##### Invite links
 
 ```py
---8<-- "./docs_src/links.py:54:59"
+--8<-- "./docs_src/links.py:53:58"
 ```
 
 [InviteLink][yuyo.links.InviteLink] handles parsing invite links.
 
 ```py
---8<-- "./docs_src/links.py:63:64"
+--8<-- "./docs_src/links.py:62:63"
 ```
 
 [links.make_invite_link][yuyo.links.make_invite_link] lets you make an invite
@@ -75,7 +75,7 @@ link string.
 ##### Message links
 
 ```py
---8<-- "./docs_src/links.py:68:80"
+--8<-- "./docs_src/links.py:67:79"
 ```
 
 [MessageLink][yuyo.links.MessageLink] handles parsing message links.
@@ -84,7 +84,7 @@ link string.
 DM messages.
 
 ```py
---8<-- "./docs_src/links.py:84:88"
+--8<-- "./docs_src/links.py:83:87"
 ```
 
 [links.make_message_link][yuyo.links.make_message_link] lets you make a message
@@ -93,13 +93,13 @@ link string.
 ##### Guild template links
 
 ```py
---8<-- "./docs_src/links.py:92:96"
+--8<-- "./docs_src/links.py:91:95"
 ```
 
 [TemplateLink][yuyo.links.TemplateLink] handles parsing guild template links.
 
 ```py
---8<-- "./docs_src/links.py:100:101"
+--8<-- "./docs_src/links.py:99:100"
 ```
 
 [links.make_template_link][yuyo.links.make_template_link] lets you make a
@@ -108,7 +108,7 @@ template link string.
 ##### Webhook links
 
 ```py
---8<-- "./docs_src/links.py:105:110"
+--8<-- "./docs_src/links.py:104:109"
 ```
 
 [WebhookLink][yuyo.links.WebhookLink] handles parsing webhook links.
@@ -117,7 +117,7 @@ This class inherits from [hikari.ExecutableWebhook][hikari.webhooks.ExecutableWe
 therefore has all the webhook execute methods you'll find on interaction and webhook objects.
 
 ```py
---8<-- "./docs_src/links.py:114:115"
+--8<-- "./docs_src/links.py:113:114"
 ```
 
 [links.make_webhook_link][yuyo.links.make_webhook_link] lets you make a webhook
@@ -127,7 +127,7 @@ link string.
 ### Bot invite links
 
 ```py
---8<-- "./docs_src/links.py:119:121"
+--8<-- "./docs_src/links.py:118:120"
 ```
 
 [links.make_bot_invite][yuyo.links.make_bot_invite] lets you make a bot invite link.
