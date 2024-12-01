@@ -106,6 +106,19 @@ wheels = [
 ]
 
 [[package]]
+name = "anyio"
+version = "4.6.2.post1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "idna" },
+    { name = "sniffio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/09/45b9b7a6d4e45c6bcb5bf61d19e3ab87df68e0601fa8c5293de3542546cc/anyio-4.6.2.post1.tar.gz", hash = "sha256:4c8bc31ccdb51c7f7bd251f51c609e038d63e34219b44aa86e47576389880b4c", size = 173422 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e4/f5/f2b75d2fc6f1a260f340f0e7c6a060f4dd2961cc16884ed851b0d18da06a/anyio-4.6.2.post1-py3-none-any.whl", hash = "sha256:6d170c36fba3bdd840c73d3868c1e777e33676a69c3a72cf0a0d5d6d8009b61d", size = 90377 },
+]
+
+[[package]]
 name = "argcomplete"
 version = "3.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -415,6 +428,20 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi"
+version = "0.115.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ae/29/f71316b9273b6552a263748e49cd7b83898dc9499a663d30c7b9cb853cb8/fastapi-0.115.5.tar.gz", hash = "sha256:0e7a4d0dc0d01c68df21887cce0945e72d3c48b9f4f79dfe7a7d53aa08fbb289", size = 301047 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/54/c4/148d5046a96c428464557264877ae5a9338a83bbe0df045088749ec89820/fastapi-0.115.5-py3-none-any.whl", hash = "sha256:596b95adbe1474da47049e802f9a65ab2ffa9c2b07e7efee70eb8a66c9f2f796", size = 94866 },
+]
+
+[[package]]
 name = "filelock"
 version = "3.16.1"
 source = { registry = "https://pypi.org/simple" }
@@ -643,6 +670,7 @@ templating = [
     { name = "jinja2" },
 ]
 tests = [
+    { name = "asgiref" },
     { name = "freezegun" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -654,6 +682,7 @@ tests = [
 type-checking = [
     { name = "asgiref" },
     { name = "click" },
+    { name = "fastapi" },
     { name = "freezegun" },
     { name = "hikari-sake" },
     { name = "hikari-tanjun" },
@@ -710,6 +739,7 @@ reformat = [
 ]
 templating = [{ name = "jinja2", specifier = ">=3.1.2" }]
 tests = [
+    { name = "asgiref", specifier = "~=3.0" },
     { name = "freezegun", specifier = ">=1.2.2" },
     { name = "pytest", specifier = ">=7" },
     { name = "pytest", specifier = ">=7,<8" },
@@ -722,6 +752,7 @@ tests = [
 type-checking = [
     { name = "asgiref", specifier = "~=3.0" },
     { name = "click", specifier = ">=8,<9" },
+    { name = "fastapi" },
     { name = "freezegun", specifier = ">=1.2.2" },
     { name = "hikari-sake", specifier = ">=1.0.4a1,<2" },
     { name = "hikari-tanjun", specifier = ">=2.11.0,<3" },
@@ -1788,6 +1819,15 @@ wheels = [
 ]
 
 [[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/87/a6771e1546d97e7e041b6ae58d80074f81b7d5121207425c964ddf5cfdbd/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc", size = 20372 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235 },
+]
+
+[[package]]
 name = "sort-all"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1797,6 +1837,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/40/be/1325e717294bb01a69c9255ba397056b990abb2e03365554b5850a8483b3/sort_all-1.3.0.tar.gz", hash = "sha256:41fd883a4dcba38fef30e4dfc2c8ecf75dc6f450baa6c8bb2e6d30c7189fc148", size = 4946 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/65/dc790a4bf84e0b695a9b1d2a217bad7c88fa31d76fa3569b8daec75f2bc2/sort_all-1.3.0-py3-none-any.whl", hash = "sha256:1e452564993c1084a85b0d4600d00e638492d2fd9db7443c38627e9899f8e06a", size = 4711 },
+]
+
+[[package]]
+name = "starlette"
+version = "0.41.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/4c/9b5764bd22eec91c4039ef4c55334e9187085da2d8a2df7bd570869aae18/starlette-0.41.3.tar.gz", hash = "sha256:0e4ab3d16522a255be6b28260b938eae2482f98ce5cc934cb08dce8dc3ba5835", size = 2574159 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/00/2b325970b3060c7cecebab6d295afe763365822b1306a12eeab198f74323/starlette-0.41.3-py3-none-any.whl", hash = "sha256:44cedb2b7c77a9de33a8b74b2b90e9f50d11fcf25d8270ea525ad71a25374ff7", size = 73225 },
 ]
 
 [[package]]
