@@ -73,16 +73,28 @@ tests = [
     "pytest-cov>=4",
     "pytest-sugar>=0.9.6",
     "pytest-timeout>=2.1",
+    "freezegun>=1.2.2",
+    "pytest-asyncio>=0.20.2",
+    "pytest-xdist>=3.1",
+    # The pytest extensions aren't compatible with v8 yet.
+    "pytest>=7, <8",
 ]
 type-checking = [
     "mypy>=0.991",
     "nox",
     "pyright>=1.1.285",
     {include-group = "tests"},
-    {include-group = "asgi"},
-    {include-group = "cli"},
-    {include-group = "sake"},
-    {include-group = "tanjun"},
+    # From `asgi` extra
+    "asgiref~=3.0",
+    # From `cli` extra
+    "click>=8, <9",
+    "pydantic>=2, <3",
+    "python-dotenv>=1, <2",
+    "toml>=0.10, <1",
+    # From `sake` extra
+    "hikari-sake>=1.0.4a1, <2",
+    # From `tanjun` extra
+    "hikari-tanjun>=2.11.0, <3"
 ]
 
 [tool.flit.module]
@@ -153,7 +165,7 @@ default_sessions = [
     "test",
     "verify-types",
 ]
-extra_test_installs = ["."]
+extra_test_installs = [".[sake]"]
 mypy_allowed_to_fail = true
 mypy_targets = ["docs_src", "yuyo"]
 path_ignore = "docs\\/usage\\/images\\/.+"
