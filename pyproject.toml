@@ -79,8 +79,10 @@ type-checking = [
     "nox",
     "pyright>=1.1.285",
     {include-group = "tests"},
-    "agraffe>=0.7",
-    "fastapi>=0.95",
+    {include-group = "asgi"},
+    {include-group = "cli"},
+    {include-group = "sake"},
+    {include-group = "tanjun"},
 ]
 
 [tool.flit.module]
@@ -304,4 +306,4 @@ exclude-classes = """
 """
 
 [tool.uv]
-reinstall-package = ["hikari-tanjun"]
+reinstall-package = ["hikari-yuyo"]
