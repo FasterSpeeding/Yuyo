@@ -151,7 +151,8 @@ class Backoff:
             [float][] or if `max_retries` is less than `1`.
         """
         if max_retries is not None and max_retries < 1:
-            raise ValueError("max_retries must be greater than 1")
+            error_message = "max_retries must be greater than 1"
+            raise ValueError(error_message)
 
         self._backoff = rate_limits.ExponentialBackOff(
             base=base, maximum=maximum, jitter_multiplier=jitter_multiplier, initial_increment=initial_increment
@@ -308,7 +309,7 @@ class ErrorManager:
         """
         self._rules = {(tuple(exceptions), callback) for exceptions, callback in rules}
 
-    def __enter__(self) -> ErrorManager:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(

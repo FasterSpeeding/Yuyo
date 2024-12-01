@@ -41,56 +41,56 @@ from yuyo import chunk_tracker
 
 
 class TestChunkRequestFinishedEvent:
-    def test_app_property(self):
+    def test_app_property(self) -> None:
         mock_app = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock_app, mock.Mock(), mock.Mock())
 
         assert event.app is mock_app
 
-    def test_shard_property(self):
+    def test_shard_property(self) -> None:
         mock_shard = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock_shard, mock.Mock())
 
         assert event.shard is mock_shard
 
-    def test_chunk_count_property(self):
+    def test_chunk_count_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
 
         assert event.chunk_count is mock_data.chunk_count
 
-    def test_first_received_at_property(self):
+    def test_first_received_at_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
 
         assert event.first_received_at is mock_data.first_received_at
 
-    def test_guild_id_property(self):
+    def test_guild_id_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
 
         assert event.guild_id is mock_data.guild_id
 
-    def test_last_received_at_property(self):
+    def test_last_received_at_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
 
         assert event.last_received_at is mock_data.last_received_at
 
-    def test_missed_chunks_at_property(self):
+    def test_missed_chunks_at_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
 
         assert event.missed_chunks is mock_data.missing_chunks
 
-    def test_not_found_ids_at_property(self):
+    def test_not_found_ids_at_property(self) -> None:
         mock_data = mock.Mock()
 
         event = chunk_tracker.ChunkRequestFinishedEvent(mock.Mock(), mock.Mock(), mock_data)
@@ -99,7 +99,7 @@ class TestChunkRequestFinishedEvent:
 
 
 class TestFinishedChunkingEvent:
-    def test_app_property(self):
+    def test_app_property(self) -> None:
         mock_app = mock.Mock()
 
         event = chunk_tracker.FinishedChunkingEvent(mock_app)
@@ -108,21 +108,21 @@ class TestFinishedChunkingEvent:
 
 
 class TestShardFinishedChunkingEvent:
-    def test_app_property(self):
+    def test_app_property(self) -> None:
         mock_app = mock.Mock()
 
         event = chunk_tracker.ShardFinishedChunkingEvent(mock_app, mock.Mock())
 
         assert event.app is mock_app
 
-    def test_shard_property(self):
+    def test_shard_property(self) -> None:
         mock_shard = mock.Mock()
 
         event = chunk_tracker.ShardFinishedChunkingEvent(mock.Mock(), mock_shard)
 
         assert event.shard is mock_shard
 
-    def test_incomplete_guild_ids_property(self):
+    def test_incomplete_guild_ids_property(self) -> None:
         event = chunk_tracker.ShardFinishedChunkingEvent(
             mock.Mock(),
             mock.Mock(),
@@ -131,7 +131,7 @@ class TestShardFinishedChunkingEvent:
 
         assert event.incomplete_guild_ids == (123, 54, 654)
 
-    def test_missed_guild_ids_property(self):
+    def test_missed_guild_ids_property(self) -> None:
         event = chunk_tracker.ShardFinishedChunkingEvent(
             mock.Mock(), mock.Mock(), missed_guild_ids=(hikari.Snowflake(123312), hikari.Snowflake(433))
         )
@@ -140,7 +140,7 @@ class TestShardFinishedChunkingEvent:
 
 
 class TestChunkTracker:
-    def test_from_gateway_bot(self):
+    def test_from_gateway_bot(self) -> None:
         mock_bot = mock.Mock()
 
         tracker = chunk_tracker.ChunkTracker.from_gateway_bot(mock_bot)
@@ -151,11 +151,11 @@ class TestChunkTracker:
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_request_guild_members(self): ...
+    async def test_request_guild_members(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_auto_chunk_members(self): ...
+    def test_set_auto_chunk_members(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test(self): ...
+    async def test(self) -> None: ...

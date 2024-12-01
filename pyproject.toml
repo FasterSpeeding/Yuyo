@@ -234,25 +234,29 @@ filterwarnings = [
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed in ``
-    "COM812",  # Trailing comma missing (incompatible with black)
-    "D102",    # Missing docstring in public method
-    "D105",    # Missing docstring in magic method
-    "FIX002",  # Line contains TODO, consider resolving the issue
-    "I001",    # [*] Import block is un-sorted or un-formatted
-    "N818",    # Exception name `FailedModuleUnload` should be named with an Error suffix
-    "PYI041",  # Use `float` instead of `int | float`
-    "S101",    # Use of `assert` detected
-    "SIM105",  # Use `contextlib.suppress(Error)` instead of `try`-`except`-`pass`
-    "SIM108",  # Use ternary operator `` instead of `if`-`else`-block
-    "TD002",   # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
-    "TD003",   # Missing issue link on the line following this TODO
+    "ANN401",   # Dynamically typed expressions (typing.Any) are disallowed in ``
+    "COM812",   # Trailing comma missing (incompatible with black)
+    "D102",     # Missing docstring in public method
+    "D105",     # Missing docstring in magic method
+    "FIX002",   # Line contains TODO, consider resolving the issue
+    "I001",     # [*] Import block is un-sorted or un-formatted
+    "N818",     # Exception name `FailedModuleUnload` should be named with an Error suffix
+    "PD011",    # Use `.to_numpy()` instead of `.values`
+    "PLR1714",  # Consider merging multiple comparisons: ``. Use a `set` if the elements are hashable.
+    "PYI041",   # Use `float` instead of `int | float`
+    "S101",     # Use of `assert` detected
+    "SIM105",   # Use `contextlib.suppress(Error)` instead of `try`-`except`-`pass`
+    "SIM108",   # Use ternary operator `` instead of `if`-`else`-block
+    "TD002",    # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
+    "TD003",    # Missing issue link on the line following this TODO
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "docs_src/**/*.py" = [
     "ARG001",  # Unused function argument: ``
+    "ARG002",  # Unused method argument: ``
     "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "B018",    # Found useless expression. Either assign it to a variable or remove it.
     "D100",    # Missing docstring in public module
     "D101",    # Missing docstring in public class
     "D102",    # Missing docstring in public method
@@ -265,7 +269,11 @@ ignore = [
     "PYI013",  # [*] Non-empty class body must not contain `...`
     "T201",    # `print` found
 ]
+"docs_src/links.py" = [
+    "ERA001",  # Found commented-out code
+]
 "examples/**/*.py" = [
+    "ARG001",  # Unused function argument: ``
     "B008",    # Do not perform function call `` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
     "D100",    # Missing docstring in public module
     "D101",    # Missing docstring in public class
@@ -291,6 +299,7 @@ ignore = [
     "PGH003",   # Use specific rule codes when ignoring type issues
     "PLR2004",  # Magic value used in comparison, consider replacing `` with a constant variable
     "SLF001",   # Private member accessed: ``
+    "S106",     # Possible hardcoded password assigned to argument:
 ]
 
 [tool.ruff.lint.mccabe]

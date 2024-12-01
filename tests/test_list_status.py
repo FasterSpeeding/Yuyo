@@ -49,19 +49,19 @@ except ModuleNotFoundError:
 
 
 class TestCacheStrategy:
-    def test_is_shard_bound_property(self):
+    def test_is_shard_bound_property(self) -> None:
         assert list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).is_shard_bound is True
 
     @pytest.mark.asyncio
-    async def test_close(self):
+    async def test_close(self) -> None:
         await list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).close()
 
     @pytest.mark.asyncio
-    async def test_open(self):
+    async def test_open(self) -> None:
         await list_status.CacheStrategy(mock.Mock(), mock.AsyncMock()).open()
 
     @pytest.mark.asyncio
-    async def test_count(self):
+    async def test_count(self) -> None:
         mock_cache = mock.Mock()
         mock_cache.get_guilds_view.return_value = {
             342343242301298764: mock.Mock(),
@@ -77,7 +77,7 @@ class TestCacheStrategy:
 
         assert await strategy.count() == {0: 0, 1: 0, 2: 3, 3: 2}
 
-    def test_spawn(self):
+    def test_spawn(self) -> None:
         mock_cache = mock.Mock()
         mock_cache.settings = hikari.impl.CacheSettings(
             components=hikari.api.CacheComponents.GUILDS
@@ -95,13 +95,13 @@ class TestCacheStrategy:
         assert isinstance(result, list_status.CacheStrategy)
         assert result._cache == mock_cache
 
-    def test_spawn_when_no_cache(self):
+    def test_spawn_when_no_cache(self) -> None:
         manager = list_status.ServiceManager(mock.AsyncMock(), shards=mock.AsyncMock(), strategy=mock.AsyncMock())
 
         with pytest.raises(list_status._InvalidStrategyError):
             list_status.CacheStrategy.spawn(manager)
 
-    def test_spawn_when_no_shards(self):
+    def test_spawn_when_no_shards(self) -> None:
         manager = list_status.ServiceManager(
             mock.AsyncMock(), cache=mock.Mock(), strategy=mock.AsyncMock(is_shard_bound=False)
         )
@@ -109,7 +109,7 @@ class TestCacheStrategy:
         with pytest.raises(list_status._InvalidStrategyError):
             list_status.CacheStrategy.spawn(manager)
 
-    def test_spawn_when_missing_cache_components(self):
+    def test_spawn_when_missing_cache_components(self) -> None:
         mock_cache = mock.Mock()
         mock_cache.settings = hikari.impl.CacheSettings(
             components=hikari.api.CacheComponents.ALL & ~hikari.api.CacheComponents.GUILDS
@@ -125,7 +125,7 @@ class TestCacheStrategy:
         with pytest.raises(list_status._InvalidStrategyError):
             list_status.CacheStrategy.spawn(manager)
 
-    def test_spawn_when_missing_intent(self):
+    def test_spawn_when_missing_intent(self) -> None:
         mock_cache = mock.Mock()
         mock_cache.settings = hikari.impl.CacheSettings(
             components=hikari.api.CacheComponents.GUILDS
@@ -143,19 +143,19 @@ class TestCacheStrategy:
 
 
 class TestSakeStrategy:
-    def test_is_shard_bound_property(self):
+    def test_is_shard_bound_property(self) -> None:
         assert list_status.SakeStrategy(mock.AsyncMock()).is_shard_bound is False
 
     @pytest.mark.asyncio
-    async def test_close(self):
+    async def test_close(self) -> None:
         await list_status.SakeStrategy(mock.AsyncMock()).close()
 
     @pytest.mark.asyncio
-    async def test_open(self):
+    async def test_open(self) -> None:
         await list_status.SakeStrategy(mock.AsyncMock()).open()
 
     @pytest.mark.asyncio
-    async def test_count(self):
+    async def test_count(self) -> None:
         mock_cache = mock.Mock()
         mock_cache.iter_guilds.return_value.len = mock.AsyncMock()
         strategy = list_status.SakeStrategy(mock_cache)
@@ -163,7 +163,7 @@ class TestSakeStrategy:
         assert await strategy.count() is mock_cache.iter_guilds.return_value.len.return_value
 
     @pytest.mark.asyncio
-    async def test_count_when_iter_raises_closed_client(self):
+    async def test_count_when_iter_raises_closed_client(self) -> None:
         import sake
 
         mock_cache = mock.Mock()
@@ -175,7 +175,7 @@ class TestSakeStrategy:
 
 
 class TestEventStrategy:
-    def test_is_shard_bound_property(self):
+    def test_is_shard_bound_property(self) -> None:
         assert list_status.EventStrategy(mock.Mock(), mock.AsyncMock()).is_shard_bound is True
 
     @pytest.mark.parametrize(
@@ -194,7 +194,7 @@ class TestEventStrategy:
         ],
     )
     @pytest.mark.asyncio
-    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: type[Exception]):
+    async def test_close_when_any_event_listener_not_registered(self, error_on: int, error: type[Exception]) -> None:
         mock_event_manager = mock.Mock()
         mock_event_manager.unsubscribe.side_effect = [None] * error_on + [error] + [None] * (4 - error_on)
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
@@ -203,7 +203,7 @@ class TestEventStrategy:
         await strategy.close()
 
     @pytest.mark.asyncio
-    async def test_close_when_already_closed(self):
+    async def test_close_when_already_closed(self) -> None:
         mock_event_manager = mock.Mock()
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
 
@@ -212,7 +212,7 @@ class TestEventStrategy:
         mock_event_manager.unsubscribe.close.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_open_when_already_open(self):
+    async def test_open_when_already_open(self) -> None:
         mock_event_manager = mock.Mock()
         strategy = list_status.EventStrategy(mock_event_manager, mock.AsyncMock())
         await strategy.open()
@@ -223,7 +223,7 @@ class TestEventStrategy:
         mock_event_manager.subscribe.close.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_count_after_shard_readies(self):
+    async def test_count_after_shard_readies(self) -> None:
         event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
             actual_gateway_version=10,
@@ -267,7 +267,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 3, 1: 1, 2: 2, 3: 4}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_available_event_for_known_guild(self):
+    async def test_count_after_guild_available_event_for_known_guild(self) -> None:
         event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
             guild=mock.Mock(id=hikari.Snowflake(45123123)),
@@ -294,7 +294,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 1}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_available_event_for_unknown_guild(self):
+    async def test_count_after_guild_available_event_for_unknown_guild(self) -> None:
         event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
             guild=mock.Mock(id=hikari.Snowflake(45123123)),
@@ -322,7 +322,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 1, 1: 0, 2: 1}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_leave_event_for_known_guild(self):
+    async def test_count_after_guild_leave_event_for_known_guild(self) -> None:
         available_event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
             guild=mock.Mock(id=hikari.Snowflake(45123123)),
@@ -354,7 +354,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 1, 1: 0}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_leave_event_for_unknown_guild(self):
+    async def test_count_after_guild_leave_event_for_unknown_guild(self) -> None:
         available_event = hikari.GuildAvailableEvent(
             shard=mock.AsyncMock(),
             guild=mock.Mock(id=hikari.Snowflake(12345123)),
@@ -388,7 +388,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 0, 1: 0, 2: 1, 3: 0}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_update_event_for_known_guild(self):
+    async def test_count_after_guild_update_event_for_known_guild(self) -> None:
         guild_update_event = hikari.GuildUpdateEvent(
             shard=mock.AsyncMock(), old_guild=None, guild=mock.Mock(id=123342123), emojis={}, stickers={}, roles={}
         )
@@ -405,7 +405,7 @@ class TestEventStrategy:
         assert await strategy.count() == {1: 1}
 
     @pytest.mark.asyncio
-    async def test_count_after_guild_update_event_for_unknown_guild(self):
+    async def test_count_after_guild_update_event_for_unknown_guild(self) -> None:
         guild_update_event = hikari.GuildUpdateEvent(
             shard=mock.AsyncMock(), old_guild=None, guild=mock.Mock(id=123342123), emojis={}, stickers={}, roles={}
         )
@@ -423,7 +423,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 1, 1: 1}
 
     @pytest.mark.asyncio
-    async def test_count_after_starting_event(self):
+    async def test_count_after_starting_event(self) -> None:
         ready_event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
             actual_gateway_version=10,
@@ -472,7 +472,7 @@ class TestEventStrategy:
         assert await strategy.count() == {0: 4}
 
     @pytest.mark.asyncio
-    async def test_count_after_close(self):
+    async def test_count_after_close(self) -> None:
         ready_event = hikari.ShardReadyEvent(
             shard=mock.AsyncMock(),
             actual_gateway_version=10,
@@ -520,7 +520,7 @@ class TestEventStrategy:
 
         assert await strategy.count() == {0: 0, 1: 0}
 
-    def test_spawn(self):
+    def test_spawn(self) -> None:
         mock_manager = mock.Mock()
         mock_shards = mock.AsyncMock(
             intents=hikari.Intents.GUILDS | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_WEBHOOKS
@@ -535,7 +535,7 @@ class TestEventStrategy:
         assert result._event_manager is mock_manager
         assert result._shards is mock_shards
 
-    def test_spawn_when_no_event_manager(self):
+    def test_spawn_when_no_event_manager(self) -> None:
         mock_shards = mock.AsyncMock(
             intents=hikari.Intents.GUILDS | hikari.Intents.MESSAGE_CONTENT | hikari.Intents.GUILD_WEBHOOKS
         )
@@ -544,7 +544,7 @@ class TestEventStrategy:
         with pytest.raises(list_status._InvalidStrategyError):
             list_status.EventStrategy.spawn(manager)
 
-    def test_spawn_when_no_shards(self):
+    def test_spawn_when_no_shards(self) -> None:
         manager = list_status.ServiceManager(
             mock.AsyncMock(), event_manager=mock.Mock(), strategy=mock.AsyncMock(is_shard_bound=False)
         )
@@ -552,7 +552,7 @@ class TestEventStrategy:
         with pytest.raises(list_status._InvalidStrategyError):
             list_status.EventStrategy.spawn(manager)
 
-    def test_spawn_when_missing_intent(self):
+    def test_spawn_when_missing_intent(self) -> None:
         mock_shards = mock.AsyncMock(intents=hikari.Intents.ALL & ~hikari.Intents.GUILDS)
         manager = list_status.ServiceManager(mock.AsyncMock(), shards=mock_shards, strategy=mock.AsyncMock())
 
@@ -562,9 +562,9 @@ class TestEventStrategy:
 
 class TestServiceManager:
     @pytest.mark.skip(reason="TODO")
-    def test_init(self): ...
+    def test_init(self) -> None: ...
 
-    def test_from_gateway_bot(self):
+    def test_from_gateway_bot(self) -> None:
         mock_counter = mock.AsyncMock()
         mock_bot = mock.AsyncMock(event_manager=mock.Mock())
 
@@ -577,7 +577,7 @@ class TestServiceManager:
         assert manager.user_agent == "yeet yeet"
         mock_bot.event_manager.subscribe.assert_called()
 
-    def test_from_gateway_bot_when_only_bot(self):
+    def test_from_gateway_bot_when_only_bot(self) -> None:
         mock_bot = mock.AsyncMock(event_manager=mock.Mock())
 
         manager = list_status.ServiceManager.from_gateway_bot(mock_bot, event_managed=False)
@@ -585,7 +585,7 @@ class TestServiceManager:
         assert manager.user_agent == "Yuyo.last_status"
         mock_bot.event_manager.subscribe.assert_not_called()
 
-    def test_from_gateway_bot_when_cacheless(self):
+    def test_from_gateway_bot_when_cacheless(self) -> None:
         mock_counter = mock.AsyncMock()
         mock_bot = mock.AsyncMock(_internal.GatewayBotProto, event_manager=mock.Mock())
 
@@ -599,7 +599,7 @@ class TestServiceManager:
         mock_bot.event_manager.subscribe.assert_called()
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
-    def test_from_tanjun_when_optional_kwargs_provided(self):
+    def test_from_tanjun_when_optional_kwargs_provided(self) -> None:
         mock_counter = mock.AsyncMock()
         mock_bot = mock.Mock()
 
@@ -620,7 +620,7 @@ class TestServiceManager:
         )
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
-    def test_from_tanjun(self):
+    def test_from_tanjun(self) -> None:
         assert tanjun
 
         mock_bot = mock.Mock()
@@ -645,18 +645,18 @@ class TestServiceManager:
             any_order=True,
         )
 
-    def test_is_alive_property(self):
+    def test_is_alive_property(self) -> None:
         manager = list_status.ServiceManager(mock.AsyncMock(), strategy=mock.AsyncMock(is_shard_bound=False))
 
         assert manager.is_alive is False
 
-    def test_counter_property(self):
+    def test_counter_property(self) -> None:
         mock_counter = mock.AsyncMock(is_shard_bound=False)
         manager = list_status.ServiceManager(mock.AsyncMock(), strategy=mock_counter)
 
         assert manager.counter is mock_counter
 
-    def test_event_manager_property(self):
+    def test_event_manager_property(self) -> None:
         mock_event_manager = mock.Mock()
         manager = list_status.ServiceManager(
             mock.AsyncMock(), event_manager=mock_event_manager, strategy=mock.AsyncMock(is_shard_bound=False)
@@ -664,7 +664,7 @@ class TestServiceManager:
 
         assert manager.event_manager is mock_event_manager
 
-    def test_add_service(self):
+    def test_add_service(self) -> None:
         manager = list_status.ServiceManager(mock.AsyncMock(), strategy=mock.AsyncMock(is_shard_bound=False))
         mock_service_1 = mock.AsyncMock()
         mock_service_2 = mock.AsyncMock()
@@ -677,7 +677,7 @@ class TestServiceManager:
 
         assert manager.services == [mock_service_3, mock_service_4, mock_service_1, mock_service_2]
 
-    def test_remove_service(self):
+    def test_remove_service(self) -> None:
         mock_service_1 = mock.AsyncMock()
         mock_service_2 = mock.AsyncMock()
         manager = (
@@ -688,7 +688,7 @@ class TestServiceManager:
 
         assert manager.services == [mock_service_2, mock_service_1]
 
-    def test_with_service(self):
+    def test_with_service(self) -> None:
         mock_service_1 = mock.AsyncMock()
         mock_service_2 = mock.AsyncMock()
         manager = (
@@ -698,16 +698,16 @@ class TestServiceManager:
         )
 
         @manager.with_service(repeat=1233122)
-        async def decorated_service_1(_: list_status.AbstractManager): ...
+        async def decorated_service_1(_: list_status.AbstractManager) -> None: ...
 
         @manager.with_service(repeat=123.321)
-        async def decorated_service_2(_: list_status.AbstractManager): ...
+        async def decorated_service_2(_: list_status.AbstractManager) -> None: ...
 
         @manager.with_service(repeat=datetime.timedelta(seconds=56543))
-        async def decorated_service_3(_: list_status.AbstractManager): ...
+        async def decorated_service_3(_: list_status.AbstractManager) -> None: ...
 
         @manager.with_service()
-        async def decorated_service_4(_: list_status.AbstractManager): ...
+        async def decorated_service_4(_: list_status.AbstractManager) -> None: ...
 
         assert manager.services == [
             decorated_service_2,
@@ -720,23 +720,23 @@ class TestServiceManager:
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_open(self): ...
+    async def test_open(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_close(self): ...
+    async def test_close(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_get_me(self): ...
+    async def test_get_me(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_session(self): ...
+    def test_get_session(self) -> None: ...
 
 
 @pytest.mark.asyncio
 class TestTopGGService:
-    async def test_call_when_count_is_global(self):
+    async def test_call_when_count_is_global(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -755,7 +755,7 @@ class TestTopGGService:
             json={"server_count": 43343, "shard_count": 64},
         )
 
-    async def test_call_when_shard_specific(self):
+    async def test_call_when_shard_specific(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -785,7 +785,7 @@ class TestTopGGService:
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
-    async def test_call_when_count_is_shard_specific_and_shards_not_previously_tracked(self):
+    async def test_call_when_count_is_shard_specific_and_shards_not_previously_tracked(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -816,7 +816,7 @@ class TestTopGGService:
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
-    async def test_call_when_count_is_shard_specific_and_client_shards_not_specified(self):
+    async def test_call_when_count_is_shard_specific_and_client_shards_not_specified(self) -> None:
         mock_session = mock.Mock()
         mock_manager = mock.Mock(get_me=mock.AsyncMock(), shards=None, user_agent="echo meow")
         mock_manager.counter.count = mock.AsyncMock(return_value={0: 231, 1: 343, 2: 32123})
@@ -831,7 +831,7 @@ class TestTopGGService:
 
 @pytest.mark.asyncio
 class TestBotsGGService:
-    async def test_call_when_count_is_global(self):
+    async def test_call_when_count_is_global(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -852,7 +852,7 @@ class TestBotsGGService:
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
-    async def test_call_when_count_is_shard_specific(self):
+    async def test_call_when_count_is_shard_specific(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -884,7 +884,7 @@ class TestBotsGGService:
 
 @pytest.mark.asyncio
 class TestDiscordBotListService:
-    async def test_call_when_count_is_global(self):
+    async def test_call_when_count_is_global(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200
@@ -905,7 +905,7 @@ class TestDiscordBotListService:
         mock_session.post.return_value.__aenter__.assert_awaited_once_with()
         mock_session.post.return_value.__aexit__.assert_awaited_once_with(None, None, None)
 
-    async def test_call_when_count_is_shard_specific(self):
+    async def test_call_when_count_is_shard_specific(self) -> None:
         mock_session = mock.Mock()
         mock_session.post.return_value = mock.Mock(__aenter__=mock.AsyncMock(), __aexit__=mock.AsyncMock())
         mock_session.post.return_value.__aenter__.return_value.status = 200

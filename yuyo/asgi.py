@@ -167,7 +167,8 @@ class AsgiAdapter:
             await self._process_lifespan_event(receive, send)
 
         else:
-            raise NotImplementedError("Websocket operations are not supported")
+            error_message = "Websocket operations are not supported"
+            raise NotImplementedError(error_message)
 
     def add_shutdown_callback(
         self, callback: collections.Callable[[], collections.Coroutine[typing.Any, typing.Any, None]], /
@@ -286,7 +287,7 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_startup))
 
-            except Exception:
+            except Exception:  # noqa: BLE001
                 await send({"type": "lifespan.startup.failed", "message": traceback.format_exc()})
 
             else:
@@ -296,14 +297,15 @@ class AsgiAdapter:
             try:
                 await asyncio.gather(*(callback() for callback in self._on_shutdown))
 
-            except Exception:
+            except Exception:  # noqa: BLE001
                 await send({"type": "lifespan.shutdown.failed", "message": traceback.format_exc()})
 
             else:
                 await send({"type": "lifespan.shutdown.complete"})
 
         else:
-            raise RuntimeError(f"Unknown lifespan event {message_type}")
+            error_message = f"Unknown lifespan event {message_type}"
+            raise RuntimeError(error_message)
 
     async def _process_request(
         self, scope: asgiref.HTTPScope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable, /
@@ -439,9 +441,9 @@ def _find_headers(scope: asgiref.HTTPScope, /) -> tuple[bytes | None, bytes | No
     content_type: bytes | None = None
     signature: bytes | None = None
     timestamp: bytes | None = None
-    for name, value in scope["headers"]:
+    for raw_name, value in scope["headers"]:
         # As per-spec these should be matched case-insensitively.
-        name = name.lower()
+        name = raw_name.lower()
         if name == _X_SIGNATURE_ED25519_HEADER:
             signature = bytes.fromhex(value.decode("ascii"))
 
@@ -740,10 +742,12 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if self._is_alive:
-            raise RuntimeError("The client is already running")
+            error_message = "The client is already running"
+            raise RuntimeError(error_message)
 
         try:
             loop = asyncio.get_running_loop()
@@ -776,10 +780,12 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if self._is_alive:
-            raise RuntimeError("The client is already running")
+            error_message = "The client is already running"
+            raise RuntimeError(error_message)
 
         await asyncio.gather(*(callback(self) for callback in self._on_startup))
         await self._start()
@@ -807,17 +813,20 @@ class AsgiBot(hikari.RESTBotAware):
             If the client is ASGI managed.
         """
         if self._is_asgi_managed:
-            raise RuntimeError("The client is being managed by ASGI lifespan events")
+            error_message = "The client is being managed by ASGI lifespan events"
+            raise RuntimeError(error_message)
 
         if not self._is_alive or not self._join_event:
-            raise RuntimeError("The client is not running")
+            error_message = "The client is not running"
+            raise RuntimeError(error_message)
 
         await asyncio.gather(*(callback(self) for callback in self._on_shutdown))
         await self._close()
 
     async def join(self) -> None:
         if self._join_event is None:
-            raise RuntimeError("The client is not running")
+            error_message = "The client is not running"
+            raise RuntimeError(error_message)
 
         await self._join_event.wait()
 

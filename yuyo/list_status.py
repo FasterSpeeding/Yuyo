@@ -43,6 +43,7 @@ __all__: list[str] = [
 import abc
 import asyncio
 import datetime
+import http
 import logging
 import time
 import typing
@@ -73,9 +74,16 @@ if typing.TYPE_CHECKING:
 _LOGGER = logging.getLogger("hikari.yuyo")
 _strategies: list[type[_LoadableStrategy]] = []
 _DEFAULT_USER_AGENT = "Yuyo.last_status"
-_RATE_LIMITED_STATUS = 429
 _RETRY_AFTER_KEY = "Retry-After"
-_RETRY_ERROR_CODES = frozenset((_RATE_LIMITED_STATUS, 500, 502, 503, 504))
+_RETRY_ERROR_CODES = frozenset(
+    (
+        http.HTTPStatus.TOO_MANY_REQUESTS,
+        http.HTTPStatus.INTERNAL_SERVER_ERROR,
+        http.HTTPStatus.BAD_GATEWAY,
+        http.HTTPStatus.SERVICE_UNAVAILABLE,
+        http.HTTPStatus.GATEWAY_TIMEOUT,
+    )
+)
 _USER_AGENT = _DEFAULT_USER_AGENT + " (Bot:{})"
 
 ServiceSig = collections.Callable[["AbstractManager"], collections.Coroutine[typing.Any, typing.Any, None]]
@@ -535,17 +543,20 @@ class ServiceManager(AbstractManager):
                     pass
 
             else:
-                raise ValueError("Cannot find a valid guild counting strategy for the provided Hikari client(s)")
+                error_message = "Cannot find a valid guild counting strategy for the provided Hikari client(s)"
+                raise ValueError(error_message)
 
         if event_managed or (event_managed is None and event_manager):
             if not event_manager:
-                raise ValueError("event_managed may only be passed when an event_manager is also passed")
+                error_message = "event_managed may only be passed when an event_manager is also passed"
+                raise ValueError(error_message)
 
             event_manager.subscribe(hikari.StartingEvent, self._on_starting_event)
             event_manager.subscribe(hikari.StoppingEvent, self._on_stopping_event)
 
         if self._counter.is_shard_bound and not self._shards:
-            raise ValueError("Cannot use a shard bound strategy without shards present")
+            error_message = "Cannot use a shard bound strategy without shards present"
+            raise ValueError(error_message)
 
     @classmethod
     def from_gateway_bot(
@@ -722,7 +733,8 @@ class ServiceManager(AbstractManager):
             If the client is already running.
         """
         if self._task:
-            raise RuntimeError("Cannot add a service to an already running manager")
+            error_message = "Cannot add a service to an already running manager"
+            raise RuntimeError(error_message)
 
         if isinstance(repeat, datetime.timedelta):
             float_repeat = repeat.total_seconds()
@@ -731,7 +743,8 @@ class ServiceManager(AbstractManager):
             float_repeat = float(repeat)
 
         if float_repeat < 1:
-            raise ValueError("Repeat cannot be under 1 second")
+            error_message = "Repeat cannot be under 1 second"
+            raise ValueError(error_message)
 
         _queue_insert(self._services, lambda s: s.repeat > float_repeat, _ServiceDescriptor(service, float_repeat))
         return self
@@ -752,7 +765,8 @@ class ServiceManager(AbstractManager):
             If the service callback isn't found.
         """
         if self._task:
-            raise RuntimeError("Cannot remove a service while this manager is running")
+            error_message = "Cannot remove a service while this manager is running"
+            raise RuntimeError(error_message)
 
         for descriptor in self._services.copy():
             if descriptor.function == service:
@@ -760,7 +774,8 @@ class ServiceManager(AbstractManager):
                 break
 
         else:
-            raise ValueError("Couldn't find service")
+            error_message = "Couldn't find service"
+            raise ValueError(error_message)
 
     def with_service(
         self, *, repeat: datetime.timedelta | int | float = datetime.timedelta(hours=1)
@@ -813,7 +828,8 @@ class ServiceManager(AbstractManager):
             If this manager is already running.
         """
         if not self._services:
-            raise RuntimeError("Cannot run a client with no registered services.")
+            error_message = "Cannot run a client with no registered services."
+            raise RuntimeError(error_message)
 
         if not self._session or self._session.closed:
             self._session = aiohttp.ClientSession()
@@ -843,7 +859,8 @@ class ServiceManager(AbstractManager):
 
     def get_session(self) -> aiohttp.ClientSession:
         if not self._session:
-            raise RuntimeError("Client is currently inactive")
+            error_message = "Client is currently inactive"
+            raise RuntimeError(error_message)
 
         # Asserts that this is only called within a running event loop.
         asyncio.get_running_loop()
@@ -876,13 +893,14 @@ class ServiceManager(AbstractManager):
 
                 time_taken = time.perf_counter() - time_taken
                 queue = [(time_ - time_taken, service) for time_, service in queue]
-                _queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))
+                _queue_insert(queue, lambda s: s[0] > service.repeat, (service.repeat, service))  # noqa: B023
 
 
 def _queue_insert(sequence: list[_T], check: collections.Callable[[_T], bool], value: _T, /) -> None:
     # As we rely on order here for queueing calls we have a dedicated method for inserting based on time left.
     index: int = -1
-    for index, sub_value in enumerate(sequence):
+    for _index, sub_value in enumerate(sequence):
+        index = _index
         if check(sub_value):
             break
 
@@ -893,17 +911,17 @@ def _queue_insert(sequence: list[_T], check: collections.Callable[[_T], bool], v
 
 
 async def _log_response(service_name: str, response: aiohttp.ClientResponse, /, *, is_global: bool = True) -> None:
-    if response.status < 300:
-        _LOGGER.info("Posted bot's stats to %s for the ", service_name, "whole bot" if is_global else "local shards")
+    if response.status < http.HTTPStatus.MULTIPLE_CHOICES:
+        _LOGGER.info("Posted bot's stats to %s for the %s", service_name, "whole bot" if is_global else "local shards")
         return
 
     try:
         content = await response.read()
 
-    except Exception:
+    except Exception:  # noqa: BLE001
         content = b"<Couldn't read response content>"
 
-    if response.status >= 500:
+    if response.status >= http.HTTPStatus.INTERNAL_SERVER_ERROR:
         _LOGGER.warning(
             "Failed to post bot's stats to %s due to internal server error %s: %r",
             service_name,
@@ -911,10 +929,10 @@ async def _log_response(service_name: str, response: aiohttp.ClientResponse, /, 
             content,
         )
 
-    elif response.status == 401:
+    elif response.status == http.HTTPStatus.UNAUTHORIZED:
         _LOGGER.warning("%s returned a 401, are you sure you provided the right token? %r", service_name, content)
 
-    elif response.status == _RATE_LIMITED_STATUS:
+    elif response.status == http.HTTPStatus.TOO_MANY_REQUESTS:
         _LOGGER.warning("Hit ratelimit while trying to post bot's stats to %s: %r", service_name, content)
 
     else:
@@ -955,7 +973,8 @@ class TopGGService:
 
         else:
             if not client.shards:
-                raise RuntimeError("Shard count unknown")
+                error_message = "Shard count unknown"
+                raise RuntimeError(error_message)
 
             _LOGGER.debug("Fetching stats from Top.GG")
             async with session.get(url, headers=headers) as response:
@@ -1065,7 +1084,7 @@ class DiscordBotListService:
         ) as response:
             if shard_id is None:
                 await _log_response("Discordbotlist.com", response, is_global=False)
-                return None  # MyPy compatibility
+                return None
 
             if response.status in _RETRY_ERROR_CODES:
                 if retry_after := response.headers.get(_RETRY_AFTER_KEY):
@@ -1075,4 +1094,4 @@ class DiscordBotListService:
 
             response.raise_for_status()
 
-        return None  # MyPy compatibility
+        return None

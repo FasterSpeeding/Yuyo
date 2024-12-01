@@ -246,7 +246,7 @@ class ReactionHandler(AbstractReactionHandler):
         # <<inherited docstring from AbstractReactionHandler>>.
         if self.has_expired:
             self._close_task = asyncio.create_task(self.close())
-            raise
+            raise RuntimeError("Reaction Handler has expired")
 
         if self._message is None or (self._authors and event.user_id not in self._authors):
             return
@@ -311,9 +311,10 @@ class ReactionPaginator(ReactionHandler):
             How long it should take for this paginator to timeout.
         """
         if not isinstance(
-            iterator, (collections.Iterator, collections.AsyncIterator)
+            iterator, collections.Iterator | collections.AsyncIterator
         ):  # pyright: ignore[reportUnnecessaryIsInstance]
-            raise TypeError(f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}")
+            error_message = f"Invalid value passed for `iterator`, expected an iterator but got {type(iterator)}"
+            raise TypeError(error_message)
 
         super().__init__(authors=authors, timeout=timeout)
         self._delete_task: asyncio.Task[None] | None = None
@@ -335,7 +336,7 @@ class ReactionPaginator(ReactionHandler):
         if pagination.RIGHT_DOUBLE_TRIANGLE in triggers:
             self.add_last_button()
 
-    def _add_button(self, callback: CallbackSig, emoji: hikari.CustomEmoji | str, add_reaction: bool, /) -> Self:
+    def _add_button(self, callback: CallbackSig, emoji: hikari.CustomEmoji | str, /, *, add_reaction: bool) -> Self:
         self.set_callback(emoji, callback)
 
         if add_reaction:
@@ -369,7 +370,7 @@ class ReactionPaginator(ReactionHandler):
         Self
             To enable chained calls.
         """
-        return self._add_button(self._on_first, emoji, add_reaction)
+        return self._add_button(self._on_first, emoji, add_reaction=add_reaction)
 
     def add_previous_button(
         self, *, emoji: hikari.CustomEmoji | str = pagination.LEFT_TRIANGLE, add_reaction: bool = True
@@ -397,7 +398,7 @@ class ReactionPaginator(ReactionHandler):
         Self
             To enable chained calls.
         """
-        return self._add_button(self._on_previous, emoji, add_reaction)
+        return self._add_button(self._on_previous, emoji, add_reaction=add_reaction)
 
     def add_stop_button(
         self, *, emoji: hikari.CustomEmoji | str = pagination.STOP_SQUARE, add_reaction: bool = True
@@ -425,7 +426,7 @@ class ReactionPaginator(ReactionHandler):
         Self
             To enable chained calls.
         """
-        return self._add_button(self._on_disable, emoji, add_reaction)
+        return self._add_button(self._on_disable, emoji, add_reaction=add_reaction)
 
     def add_next_button(
         self, *, emoji: hikari.CustomEmoji | str = pagination.RIGHT_TRIANGLE, add_reaction: bool = True
@@ -453,7 +454,7 @@ class ReactionPaginator(ReactionHandler):
         Self
             To enable chained calls.
         """
-        return self._add_button(self._on_next, emoji, add_reaction)
+        return self._add_button(self._on_next, emoji, add_reaction=add_reaction)
 
     def add_last_button(
         self, *, emoji: hikari.CustomEmoji | str = pagination.RIGHT_DOUBLE_TRIANGLE, add_reaction: bool = True
@@ -481,7 +482,7 @@ class ReactionPaginator(ReactionHandler):
         Self
             To enable chained calls.
         """
-        return self._add_button(self._on_last, emoji, add_reaction)
+        return self._add_button(self._on_last, emoji, add_reaction=add_reaction)
 
     async def _edit_message(self, response: pagination.AbstractPage, /) -> None:
         if self._message is None:
@@ -641,12 +642,14 @@ class ReactionPaginator(ReactionHandler):
             If the provided iterator didn't yield any content for the first message.
         """
         if self._message is not None:
-            raise RuntimeError("ReactionPaginator is already running")
+            error_message = "ReactionPaginator is already running"
+            raise RuntimeError(error_message)
 
         entry = await self._paginator.step_forward()
 
         if entry is None:
-            raise ValueError("ReactionPaginator iterator yielded no pages.")
+            error_message = "ReactionPaginator iterator yielded no pages."
+            raise ValueError(error_message)
 
         message = await rest.create_message(channel_id, **entry.to_kwargs())
         await self.open(message, add_reactions=add_reactions)
@@ -771,7 +774,8 @@ class ReactionClient:
         import tanjun
 
         if not tanjun_client.events:
-            raise ValueError("Cannot build from a tanjun client with no event manager")
+            error_message = "Cannot build from a tanjun client with no event manager"
+            raise ValueError(error_message)
 
         self = cls(alluka=tanjun_client.injector, rest=tanjun_client.rest, event_manager=tanjun_client.events)
         self._set_standard_deps(tanjun_client.injector)

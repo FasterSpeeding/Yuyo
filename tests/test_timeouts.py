@@ -37,7 +37,7 @@ from yuyo import timeouts
 
 
 class TestSlidingTimeout:
-    def test_has_expired(self):
+    def test_has_expired(self) -> None:
         with freezegun.freeze_time() as frozen:
             timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=60), max_uses=4)
 
@@ -48,7 +48,7 @@ class TestSlidingTimeout:
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
 
-    def test_slides(self):
+    def test_slides(self) -> None:
         with freezegun.freeze_time() as frozen:
             timeout = timeouts.SlidingTimeout(datetime.timedelta(seconds=30), max_uses=10)
 
@@ -66,7 +66,7 @@ class TestSlidingTimeout:
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
 
-    def test_has_expired_when_no_uses_left(self):
+    def test_has_expired_when_no_uses_left(self) -> None:
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=1)
 
         assert timeout.has_expired is False
@@ -74,7 +74,7 @@ class TestSlidingTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
-    def test_increment_uses(self):
+    def test_increment_uses(self) -> None:
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=4)
 
         assert timeout.increment_uses() is False
@@ -89,14 +89,14 @@ class TestSlidingTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
-    def test_increment_uses_when_unlimited(self):
+    def test_increment_uses_when_unlimited(self) -> None:
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=-1)
 
         for _ in range(10000):
             assert timeout.increment_uses() is False
             assert timeout.has_expired is False
 
-    def test_increment_uses_when_already_expired(self):
+    def test_increment_uses_when_already_expired(self) -> None:
         timeout = timeouts.SlidingTimeout(datetime.timedelta(days=6000), max_uses=1)
 
         assert timeout.increment_uses() is True
@@ -107,10 +107,10 @@ class TestSlidingTimeout:
 
 
 class TestNeverTimeout:
-    def test_has_expired(self):
+    def test_has_expired(self) -> None:
         assert timeouts.NeverTimeout().has_expired is False
 
-    def test_increment_uses(self):
+    def test_increment_uses(self) -> None:
         timeout = timeouts.NeverTimeout()
 
         for _ in range(10000):
@@ -122,7 +122,7 @@ def _now() -> datetime.datetime:
 
 
 class TestStaticTimeout:
-    def test_has_expired(self):
+    def test_has_expired(self) -> None:
         with freezegun.freeze_time() as frozen:
             timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(seconds=60), max_uses=100)
 
@@ -134,9 +134,10 @@ class TestStaticTimeout:
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
 
-    def test_has_expired_when_timezone_naive(self):
+    def test_has_expired_when_timezone_naive(self) -> None:
         with freezegun.freeze_time() as frozen:
-            timeout = timeouts.StaticTimeout(datetime.datetime.now() + datetime.timedelta(seconds=60), max_uses=100)
+            date = datetime.datetime.now()  # noqa: DTZ005
+            timeout = timeouts.StaticTimeout(date + datetime.timedelta(seconds=60), max_uses=100)
 
             for _ in range(59):
                 frozen.tick(datetime.timedelta(seconds=1))
@@ -146,7 +147,7 @@ class TestStaticTimeout:
             frozen.tick(datetime.timedelta(seconds=2))
             assert timeout.has_expired is True
 
-    def test_has_expired_when_no_uses_left(self):
+    def test_has_expired_when_no_uses_left(self) -> None:
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=60), max_uses=1)
 
         assert timeout.has_expired is False
@@ -154,7 +155,7 @@ class TestStaticTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
-    def test_increment_uses(self):
+    def test_increment_uses(self) -> None:
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=6000), max_uses=4)
 
         assert timeout.increment_uses() is False
@@ -169,14 +170,14 @@ class TestStaticTimeout:
         assert timeout.increment_uses() is True
         assert timeout.has_expired is True
 
-    def test_increment_uses_when_unlimited(self):
+    def test_increment_uses_when_unlimited(self) -> None:
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=40), max_uses=-1)
 
         for _ in range(10000):
             assert timeout.increment_uses() is False
             assert timeout.has_expired is False
 
-    def test_increment_uses_when_already_expired(self):
+    def test_increment_uses_when_already_expired(self) -> None:
         timeout = timeouts.StaticTimeout(_now() + datetime.timedelta(days=40000), max_uses=1)
 
         assert timeout.increment_uses() is True

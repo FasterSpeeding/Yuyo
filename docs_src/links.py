@@ -15,21 +15,21 @@ import hikari
 from yuyo import links
 
 
-def from_link(app: hikari.RESTAware):
+def from_link(app: hikari.RESTAware) -> None:
     link = links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
 
 
-async def find(app: hikari.RESTAware):
+async def find(app: hikari.RESTAware) -> None:
     if link := links.InviteLink.find(app, "meow you can nyaa us at discord.gg/nekosmeowers"):
         ...
 
 
-def find_iter(app: hikari.RESTAware):
-    for link in links.MessageLink.find_iter(app, "message content"):
+def find_iter(app: hikari.RESTAware) -> None:
+    for _link in links.MessageLink.find_iter(app, "message content"):
         ...
 
 
-async def channel_link(app: hikari.RESTAware):
+async def channel_link(app: hikari.RESTAware) -> None:
     link = links.ChannelLink.from_link(app, "https://discord.com/channels/453123/67765564")
 
     link.is_dm_link  # value: False
@@ -49,7 +49,7 @@ def make_channel_link() -> None:
     link  # value: "https://discord.com/channels/@me/543123"
 
 
-async def invite_link(app: hikari.RESTAware):
+async def invite_link(app: hikari.RESTAware) -> None:
     link = links.InviteLink.from_link(app, "https://discord.gg/nekosmeowers")
 
     link.code  # value: "nekosmeowers"
@@ -63,7 +63,7 @@ def make_invite_link() -> None:
     link  # value: "https://discord.gg/codecode"
 
 
-async def message_link(app: hikari.RESTAware):
+async def message_link(app: hikari.RESTAware) -> None:
     link = links.MessageLink.from_link(app, "https://discord.com/channels/54123123321123/2134432234342/56445234124")
 
     link.is_dm_link  # value: False
@@ -87,7 +87,7 @@ def make_message_link() -> None:
     link  # value: "https://discord.com/channels/@me/333333333/5555555555"
 
 
-async def template_link(app: hikari.RESTAware):
+async def template_link(app: hikari.RESTAware) -> None:
     link = links.TemplateLink.from_link(app, "https://discord.new/aaaaaaaaaa")
 
     link.code  # value: "aaaaaaaaaa"
@@ -100,7 +100,7 @@ def make_template_link() -> None:
     raw_link  # value: "https://discord.new/cododododoe"
 
 
-async def webhook_link(app: hikari.RESTAware):
+async def webhook_link(app: hikari.RESTAware) -> None:
     link = links.WebhookLink.from_link(app, "https://discord.com/api/webhooks/123321123/efsdfasdsa")
 
     link.webhook_id  # value: 123321123

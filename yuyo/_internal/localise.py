@@ -40,7 +40,7 @@ if typing.TYPE_CHECKING:
 
     import hikari
 
-    from .. import interactions
+    from yuyo import interactions
 
 _T = typing.TypeVar("_T", bound=object)
 
@@ -74,9 +74,10 @@ class MaybeLocalised(typing.Generic[_T]):
     def assert_matches(self, pattern: str, match: collections.Callable[[_T], bool], /) -> Self:
         for value in self._values():
             if not match(value):
-                raise ValueError(
+                error_message = (
                     f"Invalid {self.field_name} provided, {value!r} doesn't match the required pattern `{pattern}`"
                 )
+                raise ValueError(error_message)
 
         return self
 

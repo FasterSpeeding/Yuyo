@@ -47,7 +47,7 @@ import yuyo
         (hikari.CommandType.USER, hikari.api.ContextMenuCommandBuilder),
     ],
 )
-def test_to_cmd_builder(cmd_type: hikari.CommandType, expected_cls: type[hikari.api.CommandBuilder]):
+def test_to_cmd_builder(cmd_type: hikari.CommandType, expected_cls: type[hikari.api.CommandBuilder]) -> None:
     result = yuyo.to_builder.to_cmd_builder(
         mock.Mock(type=cmd_type, name_localizations={}, description_localizations={}, options=[])
     )
@@ -55,14 +55,14 @@ def test_to_cmd_builder(cmd_type: hikari.CommandType, expected_cls: type[hikari.
     assert isinstance(result, expected_cls)
 
 
-def test_to_cmd_builder_with_unknown_cmd_type():
+def test_to_cmd_builder_with_unknown_cmd_type() -> None:
     mock_cmd = mock.Mock(type=123321123)
 
     with pytest.raises(NotImplementedError, match="123321123"):
         yuyo.to_builder.to_cmd_builder(mock_cmd)
 
 
-def test_to_slash_cmd_builder():
+def test_to_slash_cmd_builder() -> None:
     mock_slash_cmd = hikari.SlashCommand(
         app=mock.Mock(),
         id=hikari.Snowflake(54123),
@@ -95,7 +95,7 @@ def test_to_slash_cmd_builder():
     assert result.description_localizations is not mock_slash_cmd.description_localizations
 
 
-def test_to_slash_cmd_builder_with_options():
+def test_to_slash_cmd_builder_with_options() -> None:
     mock_option_1 = hikari.CommandOption(
         type=hikari.OptionType.USER,
         name="polgfokpfgdokdsfokp",
@@ -175,7 +175,7 @@ def test_to_slash_cmd_builder_with_options():
     assert option.max_length is mock_option_2.max_length
 
 
-def test_to_slash_cmd_builder_with_nested_options():
+def test_to_slash_cmd_builder_with_nested_options() -> None:
     mock_option_1 = hikari.CommandOption(
         type=hikari.OptionType.CHANNEL,
         name="fdkklfd",
@@ -264,7 +264,7 @@ def test_to_slash_cmd_builder_with_nested_options():
     assert option.max_length is mock_option_2.max_length
 
 
-def test_to_slash_cmd_builder_with_double_nested_options():
+def test_to_slash_cmd_builder_with_double_nested_options() -> None:
     mock_option_1 = hikari.CommandOption(
         type=hikari.OptionType.MENTIONABLE,
         name="fdfgkfgjdiowoieroiroqoqwoeewq",
@@ -358,7 +358,7 @@ def test_to_slash_cmd_builder_with_double_nested_options():
     assert option.max_length is mock_option_2.max_length
 
 
-def test_to_context_menu_builder():
+def test_to_context_menu_builder() -> None:
     mock_cmd = hikari.ContextMenuCommand(
         app=mock.Mock(),
         type=hikari.CommandType.MESSAGE,
@@ -385,7 +385,7 @@ def test_to_context_menu_builder():
     assert result.name_localizations is not mock_cmd.name_localizations
 
 
-def test_to_msg_action_row_builder():
+def test_to_msg_action_row_builder() -> None:
     mock_interactive_button = hikari.ButtonComponent(
         style=hikari.ButtonStyle.DANGER,
         type=hikari.ComponentType.BUTTON,
@@ -496,14 +496,14 @@ def test_to_msg_action_row_builder():
     assert component.max_values is mock_channel_select_menu.max_values
 
 
-def test_to_msg_action_row_builder_when_sub_type_unknown():
+def test_to_msg_action_row_builder_when_sub_type_unknown() -> None:
     select_menu = mock.Mock(components=[mock.Mock(type=543123)])
 
     with pytest.raises(NotImplementedError, match="543123"):
         yuyo.to_builder.to_msg_action_row_builder(select_menu)
 
 
-def test_to_button_builder_for_link_button():
+def test_to_button_builder_for_link_button() -> None:
     mock_button = hikari.ButtonComponent(
         custom_id=None,
         type=hikari.ComponentType.BUTTON,
@@ -524,7 +524,7 @@ def test_to_button_builder_for_link_button():
     assert "emoji" not in result.build()
 
 
-def test_to_button_builder_for_link_button_when_all_fields_set():
+def test_to_button_builder_for_link_button_when_all_fields_set() -> None:
     mock_button = hikari.ButtonComponent(
         type=hikari.ComponentType.BUTTON,
         label="gkflfgklfgklfgkl",
@@ -545,7 +545,7 @@ def test_to_button_builder_for_link_button_when_all_fields_set():
     assert result.build()["emoji"] == {"id": "65234"}
 
 
-def test_to_button_builder_for_link_button_when_emoji_is_custom():
+def test_to_button_builder_for_link_button_when_emoji_is_custom() -> None:
     mock_button = hikari.ButtonComponent(
         type=hikari.ComponentType.BUTTON,
         label="fdlkdflkfdl",
@@ -564,7 +564,7 @@ def test_to_button_builder_for_link_button_when_emoji_is_custom():
 
 
 @pytest.mark.parametrize("button_style", set(hikari.ButtonStyle).difference({hikari.ButtonStyle.LINK}))
-def test_to_button_builder_for_interactive_button(button_style: hikari.ButtonStyle):
+def test_to_button_builder_for_interactive_button(button_style: hikari.ButtonStyle) -> None:
     mock_button = hikari.ButtonComponent(
         type=hikari.ComponentType.BUTTON,
         custom_id="fdkdfkllksd",
@@ -586,7 +586,7 @@ def test_to_button_builder_for_interactive_button(button_style: hikari.ButtonSty
     assert "emoji" not in result.build()
 
 
-def test_to_button_builder_for_interactive_button_when_all_fields_set():
+def test_to_button_builder_for_interactive_button_when_all_fields_set() -> None:
     mock_button = hikari.ButtonComponent(
         type=hikari.ComponentType.BUTTON,
         custom_id="gklfgklfgkl",
@@ -608,7 +608,7 @@ def test_to_button_builder_for_interactive_button_when_all_fields_set():
     assert result.build()["emoji"] == {"id": "123321"}
 
 
-def test_to_button_builder_for_interactive_button_when_emoji_is_custom():
+def test_to_button_builder_for_interactive_button_when_emoji_is_custom() -> None:
     mock_button = hikari.ButtonComponent(
         type=hikari.ComponentType.BUTTON,
         label="hohohoho",
@@ -626,7 +626,7 @@ def test_to_button_builder_for_interactive_button_when_emoji_is_custom():
     assert result.build()["emoji"] == {"name": "meow"}
 
 
-def test_to_channel_select_menu_builder():
+def test_to_channel_select_menu_builder() -> None:
     mock_menu = hikari.ChannelSelectMenuComponent(
         type=hikari.ComponentType.CHANNEL_SELECT_MENU,
         channel_types=[hikari.ChannelType.GUILD_NEWS, hikari.ChannelType.GUILD_STAGE],
@@ -648,13 +648,13 @@ def test_to_channel_select_menu_builder():
     assert builder.is_disabled is mock_menu.is_disabled
 
 
-def test_to_channel_select_menu_builder_when_placeholder_is_none():
+def test_to_channel_select_menu_builder_when_placeholder_is_none() -> None:
     builder = yuyo.to_builder.to_channel_select_menu_builder(mock.Mock(channel_types=[], placeholder=None))
 
     assert builder.placeholder is hikari.UNDEFINED
 
 
-def test_to_text_select_menu_builder():
+def test_to_text_select_menu_builder() -> None:
     mock_opt_1 = hikari.SelectMenuOption(
         label="kfdkldfkldfs",
         value="fdldkfjlkjfdsklj",
@@ -701,13 +701,13 @@ def test_to_text_select_menu_builder():
     assert builder.is_disabled is mock_menu.is_disabled
 
 
-def test_to_text_select_menu_builder_when_placeholder_is_none():
+def test_to_text_select_menu_builder_when_placeholder_is_none() -> None:
     builder = yuyo.to_builder.to_text_select_menu_builder(mock.Mock(options=[], placeholder=None))
 
     assert builder.placeholder is hikari.UNDEFINED
 
 
-def test_to_select_menu_builder():
+def test_to_select_menu_builder() -> None:
     mock_menu = hikari.SelectMenuComponent(
         type=hikari.ComponentType.ROLE_SELECT_MENU,
         custom_id="123321432",
@@ -727,13 +727,13 @@ def test_to_select_menu_builder():
     assert builder.is_disabled is mock_menu.is_disabled
 
 
-def test_to_select_menu_builder_when_placeholder_is_none():
+def test_to_select_menu_builder_when_placeholder_is_none() -> None:
     builder = yuyo.to_builder.to_select_menu_builder(mock.Mock(placeholder=None))
 
     assert builder.placeholder is hikari.UNDEFINED
 
 
-def test_to_select_menu_builder_when_channel():
+def test_to_select_menu_builder_when_channel() -> None:
     mock_menu = hikari.ChannelSelectMenuComponent(
         type=hikari.ComponentType.CHANNEL_SELECT_MENU,
         custom_id="123321432",
@@ -750,7 +750,7 @@ def test_to_select_menu_builder_when_channel():
     assert builder.type is hikari.ComponentType.CHANNEL_SELECT_MENU
 
 
-def test_to_select_menu_builder_when_text():
+def test_to_select_menu_builder_when_text() -> None:
     mock_menu = hikari.TextSelectMenuComponent(
         type=hikari.ComponentType.TEXT_SELECT_MENU,
         custom_id="123321432",

@@ -49,121 +49,121 @@ except ModuleNotFoundError:
 
 
 class TestModalContext:
-    def test_cache_property(self):
+    def test_cache_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.cache is mock_client.cache
 
-    def test_client_property(self):
+    def test_client_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.client is mock_client
 
-    def test_events_property(self):
+    def test_events_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.events is mock_client.events
 
-    def test_rest_property(self):
+    def test_rest_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.rest is mock_client.rest
 
-    def test_server_property(self):
+    def test_server_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.server is mock_client.server
 
-    def test_shards_property(self):
+    def test_shards_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.shards is mock_client.shards
 
-    def test_voice_property(self):
+    def test_voice_property(self) -> None:
         mock_client = mock.Mock()
         context = modals.ModalContext(mock_client, mock.Mock(), "", "", {}, mock.Mock())
 
         assert context.voice is mock_client.voice
 
-    def test_component_ids_property(self):
+    def test_component_ids_property(self) -> None:
         components = {"id": "meow"}
         context = modals.ModalContext(mock.Mock(), mock.Mock(), "", "", components, mock.Mock())
 
         assert context.component_ids is components
 
     @pytest.mark.skip(reason="TODO")
-    async def test_create_initial_response(self): ...
+    async def test_create_initial_response(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    async def test_defer(self): ...
+    async def test_defer(self) -> None: ...
 
 
 class TestModalClient:
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_context_manager(self): ...
+    async def test_context_manager(self) -> None: ...
 
-    def test_alluka_property(self):
+    def test_alluka_property(self) -> None:
         client = modals.ModalClient()
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(modals.ModalClient) is client
 
-    def test_alluka_property_when_alluka_local_client(self):
+    def test_alluka_property_when_alluka_local_client(self) -> None:
         with alluka.local.scope_client() as expected_alluka_client:
             client = modals.ModalClient()
 
             assert client.alluka is expected_alluka_client
 
-    def test_alluka_property_when_passed_through(self):
+    def test_alluka_property_when_passed_through(self) -> None:
         mock_alluka = mock.Mock()
         client = modals.ModalClient(alluka=mock_alluka)
 
         assert client.alluka is mock_alluka
         mock_alluka.set_type_dependency.assert_not_called()
 
-    def test_cache_property(self):
+    def test_cache_property(self) -> None:
         mock_cache = mock.Mock()
 
         client = modals.ModalClient(cache=mock_cache)
 
         assert client.cache is mock_cache
 
-    def test_events_property(self):
+    def test_events_property(self) -> None:
         mock_events = mock.Mock()
 
         client = modals.ModalClient(event_manager=mock_events)
 
         assert client.events is mock_events
 
-    def test_rest_property(self):
+    def test_rest_property(self) -> None:
         mock_rest = mock.Mock()
 
         client = modals.ModalClient(rest=mock_rest)
 
         assert client.rest is mock_rest
 
-    def test_server_property(self):
+    def test_server_property(self) -> None:
         mock_server = mock.Mock()
 
         client = modals.ModalClient(server=mock_server)
 
         assert client.server is mock_server
 
-    def test_shards_property(self):
+    def test_shards_property(self) -> None:
         mock_shards = mock.Mock()
 
         client = modals.ModalClient(shards=mock_shards)
 
         assert client.shards is mock_shards
 
-    def test_voice_property(self):
+    def test_voice_property(self) -> None:
         mock_voice = mock.Mock()
 
         client = modals.ModalClient(voice=mock_voice)
@@ -171,123 +171,123 @@ class TestModalClient:
         assert client.voice is mock_voice
 
     @pytest.mark.skip(reason="TODO")
-    def test_from_gateway_bot(self): ...
+    def test_from_gateway_bot(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_from_rest_bot(self): ...
+    def test_from_rest_bot(self) -> None: ...
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
     @pytest.mark.skip(reason="TODO")
-    def test_from_tanjun(self): ...
+    def test_from_tanjun(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_from_rest_bot_when_bot_managed(self): ...
+    def test_from_rest_bot_when_bot_managed(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test__remove_task(self): ...
+    def test__remove_task(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test__add_task(self): ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio
-    async def test__on_starting(self): ...
+    def test__add_task(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test__on_stopping(self): ...
+    async def test__on_starting(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test__gc(self): ...
-
-    @pytest.mark.skip(reason="TODO")
-    def test_close(self): ...
-
-    @pytest.mark.skip(reason="TODO")
-    def test_open(self): ...
+    async def test__on_stopping(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_on_gateway_event_for_other_interaction_type(self): ...
+    async def test__gc(self) -> None: ...
+
+    @pytest.mark.skip(reason="TODO")
+    def test_close(self) -> None: ...
+
+    @pytest.mark.skip(reason="TODO")
+    def test_open(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_on_gateway_event_for_modal(self): ...
+    async def test_on_gateway_event_for_other_interaction_type(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_on_gateway_event_for_expired_modal(self): ...
+    async def test_on_gateway_event_for_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_on_rest_request_for_modal(self): ...
+    async def test_on_gateway_event_for_expired_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_on_rest_request_for_expired_modal(self): ...
+    async def test_on_rest_request_for_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_modal(self): ...
+    @pytest.mark.asyncio
+    async def test_on_rest_request_for_expired_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_modal_when_custom_id_already_registered(self): ...
+    def test_set_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_modal_when_no_timeout_set(self): ...
+    def test_set_modal_when_custom_id_already_registered(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_set_modal_when_timeout_is_none(self): ...
+    def test_set_modal_when_no_timeout_set(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_modal(self): ...
+    def test_set_modal_when_timeout_is_none(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_get_modal_when_not_registered(self): ...
+    def test_get_modal(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_remove_modal(self): ...
+    def test_get_modal_when_not_registered(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_remove_modal_when_not_registered(self): ...
+    def test_remove_modal(self) -> None: ...
+
+    @pytest.mark.skip(reason="TODO")
+    def test_remove_modal_when_not_registered(self) -> None: ...
 
 
 class TestModal:
     @pytest.mark.skip(reason="TODO")
-    def test_subclassing_behaviour(self): ...
+    def test_subclassing_behaviour(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_subclassing_behaviour_for_multiple_inheritance(self): ...
+    def test_subclassing_behaviour_for_multiple_inheritance(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_add_static_text_input(self): ...
+    def test_add_static_text_input(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_add_static_text_input_with_optional_fields(self): ...
+    def test_add_static_text_input_with_optional_fields(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_static_text_input(self): ...
+    def test_static_text_input(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
-    def test_static_text_input_with_optional_fields(self): ...
-
-    @pytest.mark.skip(reason="TODO")
-    @pytest.mark.asyncio
-    async def test_execute(self): ...
+    def test_static_text_input_with_optional_fields(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_execute_when_missing_default_for_a_field(self): ...
+    async def test_execute(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_execute_when_field_type_mismatch(self): ...
+    async def test_execute_when_missing_default_for_a_field(self) -> None: ...
 
     @pytest.mark.skip(reason="TODO")
     @pytest.mark.asyncio
-    async def test_execute_when_field_defaults(self): ...
+    async def test_execute_when_field_type_mismatch(self) -> None: ...
 
-    def test_with_text_input_descriptor(self):
+    @pytest.mark.skip(reason="TODO")
+    @pytest.mark.asyncio
+    async def test_execute_when_field_defaults(self) -> None: ...
+
+    def test_with_text_input_descriptor(self) -> None:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext,
@@ -328,7 +328,7 @@ class TestModal:
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
     @pytest.mark.parametrize("default", ["meep", "x" * 4000, "a"])
-    def test_with_text_input_descriptor_uses_string_default_as_value(self, default: str):
+    def test_with_text_input_descriptor_uses_string_default_as_value(self, default: str) -> None:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default=default)
@@ -349,7 +349,7 @@ class TestModal:
         assert isinstance(field, modals._TrackedField)
         assert field.default == default
 
-    def test_with_text_input_descriptor_with_non_str_default(self):
+    def test_with_text_input_descriptor_with_non_str_default(self) -> None:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default=123)
@@ -370,7 +370,7 @@ class TestModal:
         assert isinstance(field, modals._TrackedField)
         assert field.default == 123
 
-    def test_with_text_input_descriptor_when_string_default_over_4000_chars(self):
+    def test_with_text_input_descriptor_when_string_default_over_4000_chars(self) -> None:
         @modals.as_modal_template()
         async def modal_template(
             ctx: modals.ModalContext, a_field: str | int = modals.text_input("bababooi", default="x" * 4001)
@@ -391,7 +391,7 @@ class TestModal:
         assert isinstance(field, modals._TrackedField)
         assert field.default == "x" * 4001
 
-    def test_with_text_input_descriptor_with_defaults(self):
+    def test_with_text_input_descriptor_with_defaults(self) -> None:
         @modals.as_modal_template()
         async def modal_template(ctx: modals.ModalContext, b_field: str = modals.text_input("eaaaaaaa")) -> None: ...
 
@@ -420,7 +420,7 @@ class TestModal:
         assert field.parameter == "b_field"
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
-    def test_handles_overflowing_text_input_descriptor(self):
+    def test_handles_overflowing_text_input_descriptor(self) -> None:
         @modals.as_modal_template
         async def modal_template(
             ctx: modals.ModalContext,
@@ -443,7 +443,7 @@ class TestModal:
         assert isinstance(component, hikari.api.TextInputBuilder)
         assert component.label == "sdfsd"
 
-    def test_with_text_modals_options_class(self):
+    def test_with_text_modals_options_class(self) -> None:
         class ModalOptions(modals.ModalOptions):
             fieldy: str = modals.text_input("fieldy")
             meowy: str | None = modals.text_input(
@@ -511,7 +511,7 @@ class TestModal:
         assert field.parameter == "meowy"
         assert field.type is hikari.ComponentType.TEXT_INPUT
 
-    def test_with_text_modals_options_class_handles_inheritance(self):
+    def test_with_text_modals_options_class_handles_inheritance(self) -> None:
         class ModalOptions(modals.ModalOptions):
             fieldy: str = modals.text_input("field")
 
@@ -570,7 +570,7 @@ class TestModal:
         assert field.parameter == "booy"
         assert field.id_match == custom_id_3
 
-    def test_with_text_modals_options_class_handles_mixed_inheritance(self):
+    def test_with_text_modals_options_class_handles_mixed_inheritance(self) -> None:
         class ModalOptions(modals.ModalOptions):
             fallen: str = modals.text_input("flat")
 
@@ -647,7 +647,7 @@ class TestModal:
 
 
 @pytest.mark.asyncio
-async def test_modal():
+async def test_modal() -> None:
     mock_ctx = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -665,7 +665,7 @@ async def test_modal():
 
 
 @pytest.mark.asyncio
-async def test_modal_with_defaults():
+async def test_modal_with_defaults() -> None:
     mock_ctx = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -683,7 +683,7 @@ async def test_modal_with_defaults():
 
 
 @pytest.mark.asyncio
-async def test_as_modal():
+async def test_as_modal() -> None:
     mock_ctx = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -701,7 +701,7 @@ async def test_as_modal():
 
 
 @pytest.mark.asyncio
-async def test_as_modal_with_defaults():
+async def test_as_modal_with_defaults() -> None:
     mock_ctx = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -719,7 +719,7 @@ async def test_as_modal_with_defaults():
 
 
 @pytest.mark.asyncio
-async def test_as_modal_with_defaults_when_no_parameters_supplied():
+async def test_as_modal_with_defaults_when_no_parameters_supplied() -> None:
     mock_ctx = mock.Mock()
     mock_callback = mock.AsyncMock()
 
@@ -737,7 +737,7 @@ async def test_as_modal_with_defaults_when_no_parameters_supplied():
 
 
 @pytest.mark.asyncio
-async def test_as_modal_template():
+async def test_as_modal_template() -> None:
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
@@ -757,7 +757,7 @@ async def test_as_modal_template():
 
 
 @pytest.mark.asyncio
-async def test_as_modal_template_with_defaults():
+async def test_as_modal_template_with_defaults() -> None:
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
@@ -777,7 +777,7 @@ async def test_as_modal_template_with_defaults():
 
 
 @pytest.mark.asyncio
-async def test_as_modal_template_when_config_overriden_in_init_call():
+async def test_as_modal_template_when_config_overriden_in_init_call() -> None:
     mock_callback = mock.AsyncMock()
     mock_ctx = mock.Mock()
 
@@ -796,7 +796,7 @@ async def test_as_modal_template_when_config_overriden_in_init_call():
     mock_callback.assert_awaited_once_with(mock_ctx, "why don't we", other_thing="keep it coming back")
 
 
-def test_with_static_text_input():
+def test_with_static_text_input() -> None:
     modal_cls = modals.as_modal_template(mock.Mock())
     modal_cls.add_static_text_input = mock.Mock()
 
@@ -816,7 +816,7 @@ def test_with_static_text_input():
     )
 
 
-def test_with_static_text_input_with_defaults():
+def test_with_static_text_input_with_defaults() -> None:
     modal_cls = modals.as_modal_template(mock.Mock())
     modal_cls.add_static_text_input = mock.Mock()
 
@@ -846,7 +846,7 @@ def test_with_static_text_input_with_defaults():
     )
 
 
-def test_with_text_input():
+def test_with_text_input() -> None:
     mock_add_text_input = mock.Mock()
     modal_cls = modals.as_modal_template(mock.Mock())
     modal_cls.add_text_input = mock_add_text_input
@@ -868,7 +868,7 @@ def test_with_text_input():
     )
 
 
-def test_with_text_input_with_defaults():
+def test_with_text_input_with_defaults() -> None:
     mock_add_text_input = mock.Mock()
     modal_cls = modals.as_modal_template(mock.Mock())
     modal_cls.add_text_input = mock_add_text_input

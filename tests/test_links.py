@@ -40,8 +40,7 @@ import yuyo
 
 
 def mock_intable(integer: int) -> mock.Mock:
-    mock_str = mock.Mock(__int__=mock.Mock(return_value=integer))
-    return mock_str
+    return mock.Mock(__int__=mock.Mock(return_value=integer))
 
 
 @pytest.mark.parametrize(
@@ -51,7 +50,7 @@ def mock_intable(integer: int) -> mock.Mock:
         (mock.Mock(hikari.InviteCode, code="MakeAmerica_gay-again"), "https://discord.gg/MakeAmerica_gay-again"),
     ],
 )
-def test_make_invite_link(invite: str | hikari.InviteCode, expected_str: str):
+def test_make_invite_link(invite: str | hikari.InviteCode, expected_str: str) -> None:
     invite_link = yuyo.links.make_invite_link(invite)
 
     assert invite_link == expected_str
@@ -90,7 +89,7 @@ _INVITE_LINKS = [
 
 class TestInviteLink:
     @pytest.mark.parametrize(("raw_link", "invite_code"), _INVITE_LINKS)
-    def test_find(self, raw_link: str, invite_code: str):
+    def test_find(self, raw_link: str, invite_code: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.InviteLink.find(
@@ -101,10 +100,10 @@ class TestInviteLink:
         assert link.code == invite_code
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_when_none(self, string: str):
+    def test_find_when_none(self, string: str) -> None:
         assert yuyo.links.InviteLink.find(mock.AsyncMock(), string) is None
 
-    def test_find_iter(self):
+    def test_find_iter(self) -> None:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.gg/cute_egg.meow 341123dsa"
@@ -117,11 +116,11 @@ class TestInviteLink:
         ]
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_iter_when_none(self, string: str):
+    def test_find_iter_when_none(self, string: str) -> None:
         assert list(yuyo.links.InviteLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "invite_code"), _INVITE_LINKS)
-    def test_from_link(self, raw_link: str, invite_code: str):
+    def test_from_link(self, raw_link: str, invite_code: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.InviteLink.from_link(mock_app, raw_link)
@@ -129,12 +128,12 @@ class TestInviteLink:
         assert link.code == invite_code
 
     @pytest.mark.parametrize("string", ["lgpfrp0342", "https://discord.com/api/v43"])
-    def test_from_link_when_invalid_link(self, string: str):
+    def test_from_link_when_invalid_link(self, string: str) -> None:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.InviteLink.from_link(mock.AsyncMock(), string)
 
     @pytest.mark.asyncio
-    async def test_fetch_invite(self):
+    async def test_fetch_invite(self) -> None:
         mock_app = mock.AsyncMock()
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
 
@@ -143,7 +142,7 @@ class TestInviteLink:
         assert result is mock_app.rest.fetch_invite.return_value
         mock_app.rest.fetch_invite.assert_awaited_once_with("Brisket")
 
-    def test_get_invite(self):
+    def test_get_invite(self) -> None:
         mock_app = mock.Mock()
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
 
@@ -152,7 +151,7 @@ class TestInviteLink:
         assert result is mock_app.cache.get_invite.return_value
         mock_app.cache.get_invite.assert_called_once_with("Brisket")
 
-    def test_get_invite_when_cacheless(self):
+    def test_get_invite_when_cacheless(self) -> None:
         mock_app = mock.Mock(hikari.RESTAware)
         link = yuyo.links.InviteLink(_app=mock_app, _code="Brisket")
 
@@ -175,7 +174,7 @@ def test_make_message_link(
     channel: hikari.SnowflakeishOr[hikari.PartialChannel],
     message: hikari.SnowflakeishOr[hikari.PartialMessage],
     expected_str: str,
-):
+) -> None:
     result = yuyo.links.make_message_link(channel, message, guild=guild)
 
     assert result == expected_str
@@ -221,7 +220,7 @@ _MESSAGE_LINKS: list[tuple[str, int | None, int, int]] = [
 
 class TestMessageLink:
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id", "message_id"), _MESSAGE_LINKS)
-    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int):
+    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.MessageLink.find(
@@ -234,10 +233,10 @@ class TestMessageLink:
         assert link.message_id == message_id
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_when_none(self, string: str):
+    def test_find_when_none(self, string: str) -> None:
         assert yuyo.links.MessageLink.find(mock.AsyncMock(), string) is None
 
-    def test_find_iter(self):
+    def test_find_iter(self) -> None:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.com/channels/341123/43213/43212 341123dsa"
@@ -260,11 +259,11 @@ class TestMessageLink:
         "string",
         ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123", "discord.com/channels/341123/43213/43212"],
     )
-    def test_find_iter_when_none(self, string: str):
+    def test_find_iter_when_none(self, string: str) -> None:
         assert list(yuyo.links.MessageLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id", "message_id"), _MESSAGE_LINKS)
-    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int):
+    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int, message_id: int) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.MessageLink.from_link(mock_app, raw_link)
@@ -276,11 +275,11 @@ class TestMessageLink:
     @pytest.mark.parametrize(
         "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.com/channels/341123/43213/43212"]
     )
-    def test_from_link_when_invalid_link(self, string: str):
+    def test_from_link_when_invalid_link(self, string: str) -> None:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.MessageLink.from_link(mock.AsyncMock(), string)
 
-    def test_str_cast(self):
+    def test_str_cast(self) -> None:
         link = yuyo.links.MessageLink(
             _app=mock.AsyncMock(),
             _channel_id=hikari.Snowflake(543123),
@@ -290,7 +289,7 @@ class TestMessageLink:
 
         assert str(link) == "https://discord.com/channels/123321123/543123/54123123"
 
-    def test_str_cast_when_in_dm(self):
+    def test_str_cast_when_in_dm(self) -> None:
         link = yuyo.links.MessageLink(
             _app=mock.AsyncMock(),
             _channel_id=hikari.Snowflake(21334123),
@@ -301,7 +300,7 @@ class TestMessageLink:
         assert str(link) == "https://discord.com/channels/@me/21334123/6565234"
 
     @pytest.mark.asyncio
-    async def test_fetch_message(self):
+    async def test_fetch_message(self) -> None:
         mock_app = mock.AsyncMock()
         link = yuyo.links.MessageLink(
             _app=mock_app,
@@ -315,7 +314,7 @@ class TestMessageLink:
         assert result is mock_app.rest.fetch_message.return_value
         mock_app.rest.fetch_message.assert_awaited_once_with(1223322, 6521312)
 
-    def test_get_message(self):
+    def test_get_message(self) -> None:
         mock_app = mock.Mock()
         link = yuyo.links.MessageLink(
             _app=mock_app,
@@ -329,7 +328,7 @@ class TestMessageLink:
         assert result is mock_app.cache.get_message.return_value
         mock_app.cache.get_message.assert_called_once_with(541123123)
 
-    def test_get_message_when_cacheless(self):
+    def test_get_message_when_cacheless(self) -> None:
         mock_app = mock.Mock(hikari.RESTAware)
         link = yuyo.links.MessageLink(
             _app=mock_app,
@@ -356,7 +355,7 @@ def test_make_channel_link(
     guild: hikari.SnowflakeishOr[hikari.PartialGuild] | None,
     channel: hikari.SnowflakeishOr[hikari.PartialChannel],
     expected_str: str,
-):
+) -> None:
     result = yuyo.links.make_channel_link(channel, guild=guild)
 
     assert result == expected_str
@@ -403,7 +402,7 @@ _CHANNEL_LINKS: list[tuple[str, int | None, int]] = [
 
 class TestChannelInvite:
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id"), _CHANNEL_LINKS)
-    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int):
+    def test_find(self, raw_link: str, guild_id: int | None, channel_id: int) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.ChannelLink.find(
@@ -415,10 +414,10 @@ class TestChannelInvite:
         assert link.channel_id == channel_id
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_when_none(self, string: str):
+    def test_find_when_none(self, string: str) -> None:
         assert yuyo.links.ChannelLink.find(mock.AsyncMock(), string) is None
 
-    def test_find_iter(self):
+    def test_find_iter(self) -> None:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.com/channels/3212/4312312 341123dsa"
@@ -436,11 +435,11 @@ class TestChannelInvite:
         "string",
         ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123", "discord.com/channels/341123/43213/43212"],
     )
-    def test_find_iter_when_none(self, string: str):
+    def test_find_iter_when_none(self, string: str) -> None:
         assert list(yuyo.links.ChannelLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "guild_id", "channel_id"), _CHANNEL_LINKS)
-    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int):
+    def test_from_link(self, raw_link: str, guild_id: int | None, channel_id: int) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.ChannelLink.from_link(mock_app, raw_link)
@@ -451,36 +450,36 @@ class TestChannelInvite:
     @pytest.mark.parametrize(
         "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.com/channels/341123/43213"]
     )
-    def test_from_link_when_invalid_link(self, string: str):
+    def test_from_link_when_invalid_link(self, string: str) -> None:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.ChannelLink.from_link(mock.AsyncMock(), string)
 
-    def test_is_dm_link_property(self):
+    def test_is_dm_link_property(self) -> None:
         link = yuyo.links.ChannelLink(
             _app=mock.AsyncMock(), _channel_id=hikari.Snowflake(123321), _guild_id=hikari.Snowflake(4434)
         )
 
         assert link.is_dm_link is False
 
-    def test_is_dm_link_property_when_is_dm(self):
+    def test_is_dm_link_property_when_is_dm(self) -> None:
         link = yuyo.links.ChannelLink(_app=mock.AsyncMock(), _channel_id=hikari.Snowflake(543345), _guild_id=None)
 
         assert link.is_dm_link is True
 
-    def test_str_cast(self):
+    def test_str_cast(self) -> None:
         link = yuyo.links.ChannelLink(
             _app=mock.AsyncMock(), _channel_id=hikari.Snowflake(553212), _guild_id=hikari.Snowflake(32123)
         )
 
         assert str(link) == "https://discord.com/channels/32123/553212"
 
-    def test_str_cast_when_in_dm(self):
+    def test_str_cast_when_in_dm(self) -> None:
         link = yuyo.links.ChannelLink(_app=mock.AsyncMock(), _channel_id=hikari.Snowflake(21334123), _guild_id=None)
 
         assert str(link) == "https://discord.com/channels/@me/21334123"
 
     @pytest.mark.asyncio
-    async def test_fetch_channel(self):
+    async def test_fetch_channel(self) -> None:
         mock_app = mock.AsyncMock()
         link = yuyo.links.ChannelLink(
             _app=mock_app, _guild_id=hikari.Snowflake(431123), _channel_id=hikari.Snowflake(223311)
@@ -491,7 +490,7 @@ class TestChannelInvite:
         assert result is mock_app.rest.fetch_channel.return_value
         mock_app.rest.fetch_channel.assert_awaited_once_with(223311)
 
-    def test_get_channel_when_user_cache_hit(self):
+    def test_get_channel_when_user_cache_hit(self) -> None:
         mock_app = mock.Mock()
         mock_app.cache.get_thread.return_value = None
         link = yuyo.links.ChannelLink(
@@ -503,7 +502,7 @@ class TestChannelInvite:
         assert result is mock_app.cache.get_guild_channel.return_value
         mock_app.cache.get_guild_channel.assert_called_once_with(65434)
 
-    def test_get_channel_when_thread_cache_hit(self):
+    def test_get_channel_when_thread_cache_hit(self) -> None:
         mock_app = mock.Mock()
         mock_app.cache.get_guild_channel.return_value = None
         link = yuyo.links.ChannelLink(
@@ -515,7 +514,7 @@ class TestChannelInvite:
         assert result is mock_app.cache.get_thread.return_value
         mock_app.cache.get_thread.assert_called_once_with(745234)
 
-    def test_get_channel_when_not_found(self):
+    def test_get_channel_when_not_found(self) -> None:
         mock_app = mock.Mock()
         mock_app.cache.get_guild_channel.return_value = None
         mock_app.cache.get_thread.return_value = None
@@ -527,7 +526,7 @@ class TestChannelInvite:
         mock_app.cache.get_guild_channel.assert_called_once_with(5432134)
         mock_app.cache.get_thread.assert_called_once_with(5432134)
 
-    def test_get_channel_when_cacheless(self):
+    def test_get_channel_when_cacheless(self) -> None:
         mock_app = mock.Mock(hikari.RESTAware)
         link = yuyo.links.ChannelLink(
             _app=mock_app, _guild_id=hikari.Snowflake(431123), _channel_id=hikari.Snowflake(64234132)
@@ -538,7 +537,7 @@ class TestChannelInvite:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_fetch_guild(self):
+    async def test_fetch_guild(self) -> None:
         mock_app = mock.AsyncMock()
         link = yuyo.links.ChannelLink(
             _app=mock_app, _guild_id=hikari.Snowflake(5412123), _channel_id=hikari.Snowflake(64234132)
@@ -550,7 +549,7 @@ class TestChannelInvite:
         mock_app.rest.fetch_guild.assert_awaited_once_with(5412123)
 
     @pytest.mark.asyncio
-    async def test_fetch_guild_for_dm_link(self):
+    async def test_fetch_guild_for_dm_link(self) -> None:
         mock_app = mock.Mock()
         link = yuyo.links.ChannelLink(_app=mock_app, _guild_id=None, _channel_id=hikari.Snowflake(64234132))
 
@@ -558,7 +557,7 @@ class TestChannelInvite:
 
         assert result is None
 
-    def test_get_guild(self):
+    def test_get_guild(self) -> None:
         mock_app = mock.Mock()
         link = yuyo.links.ChannelLink(
             _app=mock_app, _guild_id=hikari.Snowflake(641231), _channel_id=hikari.Snowflake(64234132)
@@ -569,7 +568,7 @@ class TestChannelInvite:
         assert result is mock_app.cache.get_guild.return_value
         mock_app.cache.get_guild.assert_called_once_with(641231)
 
-    def test_get_guild_for_dm_link(self):
+    def test_get_guild_for_dm_link(self) -> None:
         mock_app = mock.Mock()
         link = yuyo.links.ChannelLink(_app=mock_app, _guild_id=None, _channel_id=hikari.Snowflake(64234132))
 
@@ -577,7 +576,7 @@ class TestChannelInvite:
 
         assert result is None
 
-    def test_get_guild_when_cacheless(self):
+    def test_get_guild_when_cacheless(self) -> None:
         mock_app = mock.Mock(hikari.RESTAware)
         link = yuyo.links.ChannelLink(
             _app=mock_app, _guild_id=hikari.Snowflake(431123), _channel_id=hikari.Snowflake(64234132)
@@ -595,7 +594,7 @@ class TestChannelInvite:
         (mock.Mock(hikari.Template, code="standingHere.iRealise"), "https://discord.new/standingHere.iRealise"),
     ],
 )
-def test_make_template_link(template: str | hikari.Template, expected_str: str):
+def test_make_template_link(template: str | hikari.Template, expected_str: str) -> None:
     result = yuyo.links.make_template_link(template)
 
     assert result == expected_str
@@ -627,7 +626,7 @@ _TEMPLATE_LINKS = [
 
 class TestTemplateLink:
     @pytest.mark.parametrize(("raw_link", "template_code"), _TEMPLATE_LINKS)
-    def test_find(self, raw_link: str, template_code: str):
+    def test_find(self, raw_link: str, template_code: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.TemplateLink.find(
@@ -638,10 +637,10 @@ class TestTemplateLink:
         assert link.code == template_code
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_when_none(self, string: str):
+    def test_find_when_none(self, string: str) -> None:
         assert yuyo.links.TemplateLink.find(mock.AsyncMock(), string) is None
 
-    def test_find_iter(self):
+    def test_find_iter(self) -> None:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.new/motivated_egg.nyaa 341123dsa"
@@ -661,11 +660,11 @@ class TestTemplateLink:
             "discord.new/Turn-the_grey.haze-into_sky-blue",
         ],
     )
-    def test_find_iter_when_none(self, string: str):
+    def test_find_iter_when_none(self, string: str) -> None:
         assert list(yuyo.links.TemplateLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "template_code"), _TEMPLATE_LINKS)
-    def test_from_link(self, raw_link: str, template_code: str):
+    def test_from_link(self, raw_link: str, template_code: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.TemplateLink.from_link(mock_app, raw_link)
@@ -675,17 +674,17 @@ class TestTemplateLink:
     @pytest.mark.parametrize(
         "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.new/Turn-the_grey.haze-into_sky-blue"]
     )
-    def test_from_link_when_invalid_link(self, string: str):
+    def test_from_link_when_invalid_link(self, string: str) -> None:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.TemplateLink.from_link(mock.AsyncMock(), string)
 
-    def test_str_cast(self):
+    def test_str_cast(self) -> None:
         link = yuyo.links.TemplateLink(_app=mock.AsyncMock(), _code="Turn-the_grey.haze-into_sky-blue")
 
         assert str(link) == "https://discord.new/Turn-the_grey.haze-into_sky-blue"
 
     @pytest.mark.asyncio
-    async def test_fetch_template(self):
+    async def test_fetch_template(self) -> None:
         mock_app = mock.AsyncMock()
         link = yuyo.links.TemplateLink(_app=mock_app, _code="Brisket")
 
@@ -702,7 +701,9 @@ class TestTemplateLink:
         (mock_intable(4312123), "gflop2l3434", "https://discord.com/api/webhooks/4312123/gflop2l3434"),
     ],
 )
-def test_make_webhook_link(webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], token: str, expected_str: str):
+def test_make_webhook_link(
+    webhook: hikari.SnowflakeishOr[hikari.PartialWebhook], token: str, expected_str: str
+) -> None:
     result = yuyo.links.make_webhook_link(webhook, token)
 
     assert result == expected_str
@@ -738,7 +739,7 @@ _WEBHOOK_LINKS = [
 
 class TestWebhookLink:
     @pytest.mark.parametrize(("raw_link", "webhook_id", "token"), _WEBHOOK_LINKS)
-    def test_find(self, raw_link: str, webhook_id: int, token: str):
+    def test_find(self, raw_link: str, webhook_id: int, token: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.WebhookLink.find(
@@ -751,10 +752,10 @@ class TestWebhookLink:
         assert link.token == token
 
     @pytest.mark.parametrize("string", ["lkdfoklfdspo32409324", "https://discord.com/api/v9/users/o123123"])
-    def test_find_when_none(self, string: str):
+    def test_find_when_none(self, string: str) -> None:
         assert yuyo.links.WebhookLink.find(mock.AsyncMock(), string) is None
 
-    def test_find_iter(self):
+    def test_find_iter(self) -> None:
         mock_app = mock.AsyncMock()
         string = (
             "hg4po34123 https://discord.com/api/webhooks/5431231/i-am_the.catgirl 341123dsa"
@@ -774,11 +775,11 @@ class TestWebhookLink:
             "discord.com/api/v420/webhooks/65434/lie_lie-lie",
         ],
     )
-    def test_find_iter_when_none(self, string: str):
+    def test_find_iter_when_none(self, string: str) -> None:
         assert list(yuyo.links.WebhookLink.find_iter(mock.AsyncMock(), string)) == []
 
     @pytest.mark.parametrize(("raw_link", "webhook_id", "token"), _WEBHOOK_LINKS)
-    def test_from_link(self, raw_link: str, webhook_id: int, token: str):
+    def test_from_link(self, raw_link: str, webhook_id: int, token: str) -> None:
         mock_app = mock.AsyncMock()
 
         link = yuyo.links.WebhookLink.from_link(mock_app, raw_link)
@@ -790,17 +791,17 @@ class TestWebhookLink:
     @pytest.mark.parametrize(
         "string", ["lgpfrp0342", "https://discord.com/api/v43", "discord.com/api/v420/webhooks/65434/lie_lie-lie"]
     )
-    def test_from_link_when_invalid_link(self, string: str):
+    def test_from_link_when_invalid_link(self, string: str) -> None:
         with pytest.raises(ValueError, match="Link doesn't match pattern"):
             yuyo.links.WebhookLink.from_link(mock.AsyncMock(), string)
 
-    def test_str_cast(self):
+    def test_str_cast(self) -> None:
         link = yuyo.links.WebhookLink(_app=mock.AsyncMock(), _token="lielielie", _webhook_id=hikari.Snowflake(123342))
 
         assert str(link) == "https://discord.com/api/webhooks/123342/lielielie"
 
     @pytest.mark.asyncio
-    async def test_fetch_webhook(self):
+    async def test_fetch_webhook(self) -> None:
         mock_app = mock.AsyncMock()
         mock_app.rest.fetch_webhook.return_value = mock.Mock(hikari.IncomingWebhook)
         link = yuyo.links.WebhookLink(
@@ -810,16 +811,16 @@ class TestWebhookLink:
         result = await link.fetch_webhook()
 
         assert result is mock_app.rest.fetch_webhook.return_value
-        mock_app.rest.fetch_webhook.assert_awaited_once_with(654345, token="I'm the one to blame")  # noqa: S106
+        mock_app.rest.fetch_webhook.assert_awaited_once_with(654345, token="I'm the one to blame")
 
 
-def test_make_oauth_link():
+def test_make_oauth_link() -> None:
     link = yuyo.links.make_oauth_link(652312, [hikari.OAuth2Scope.EMAIL, hikari.OAuth2Scope.IDENTIFY])
 
     assert link == "https://discord.com/api/oauth2/authorize?client_id=652312&scope=email+identify"
 
 
-def test_make_oauth_link_with_optional_cnfig():
+def test_make_oauth_link_with_optional_cnfig() -> None:
     link = yuyo.links.make_oauth_link(
         675345123,
         [hikari.OAuth2Scope.CONNECTIONS],
@@ -839,7 +840,7 @@ def test_make_oauth_link_with_optional_cnfig():
     )
 
 
-def test_make_oauth_link_with_unique_objects():
+def test_make_oauth_link_with_unique_objects() -> None:
     application = hikari.PartialApplication(id=hikari.Snowflake(876234123), name="", description="", icon_hash="")
     guild = hikari.PartialGuild(app=mock.AsyncMock(), id=hikari.Snowflake(453123312), icon_hash="", name="")
     link = yuyo.links.make_oauth_link(
@@ -852,13 +853,13 @@ def test_make_oauth_link_with_unique_objects():
     )
 
 
-def test_make_bot_invite():
+def test_make_bot_invite() -> None:
     link = yuyo.links.make_bot_invite(54123)
 
     assert link == "https://discord.com/api/oauth2/authorize?client_id=54123&scope=bot&permissions=0"
 
 
-def test_make_bot_invite_with_optional_config():
+def test_make_bot_invite_with_optional_config() -> None:
     link = yuyo.links.make_bot_invite(4532234, disable_guild_select=True, guild=654123, permissions=234)
 
     assert link == (
@@ -867,13 +868,13 @@ def test_make_bot_invite_with_optional_config():
     )
 
 
-def test_make_bot_invite_when_permissions_is_none():
+def test_make_bot_invite_when_permissions_is_none() -> None:
     link = yuyo.links.make_bot_invite(65123123, permissions=None)
 
     assert link == "https://discord.com/api/oauth2/authorize?client_id=65123123&scope=bot"
 
 
-def test_make_bot_invite_with_unique_objects():
+def test_make_bot_invite_with_unique_objects() -> None:
     application = hikari.PartialApplication(id=hikari.Snowflake(7683452), name="", description="", icon_hash="")
     guild = hikari.PartialGuild(app=mock.AsyncMock(), id=hikari.Snowflake(562341), icon_hash="", name="")
     link = yuyo.links.make_bot_invite(application, guild=guild)

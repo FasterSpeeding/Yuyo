@@ -17,11 +17,11 @@ import hikari
 import yuyo
 
 
-def create_client(bot: hikari.GatewayBotAware):
+def create_client(bot: hikari.GatewayBotAware) -> None:
     yuyo.chunk_tracker.ChunkTracker.from_gateway_bot(bot)
 
 
-def chunk_request_finished_event(bot: hikari.impl.GatewayBot):
+def chunk_request_finished_event(bot: hikari.impl.GatewayBot) -> None:
     @bot.listen()
     async def on_chunk_request_finished(event: yuyo.chunk_tracker.ChunkRequestFinishedEvent) -> None:
         event.app
@@ -34,13 +34,13 @@ def chunk_request_finished_event(bot: hikari.impl.GatewayBot):
         event.not_found_ids  # type: collections.abc.Collection[hikari.Snowflake]
 
 
-def finished_chunking_event(bot: hikari.impl.GatewayBot):
+def finished_chunking_event(bot: hikari.impl.GatewayBot) -> None:
     @bot.listen()
     async def on_finished_chunking(event: yuyo.chunk_tracker.FinishedChunkingEvent) -> None:
         event.app
 
 
-def shard_finished_chunking_event(bot: hikari.impl.GatewayBot):
+def shard_finished_chunking_event(bot: hikari.impl.GatewayBot) -> None:
     @bot.listen()
     async def on_shard_finished_chunking(event: yuyo.chunk_tracker.ShardFinishedChunkingEvent) -> None:
         event.app

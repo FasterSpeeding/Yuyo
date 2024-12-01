@@ -60,6 +60,8 @@ _ComponentResponseT = (
 
 _LOGGER = logging.getLogger("hikari.yuyo.components")
 
+_MAX_MENTIONS = 100
+
 
 def _delete_after_to_float(delete_after: datetime.timedelta | float | int, /) -> float:
     return delete_after.total_seconds() if isinstance(delete_after, datetime.timedelta) else float(delete_after)
@@ -238,7 +240,7 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
     def voice(self) -> hikari.api.VoiceComponent | None:
         """Object of the Hikari voice component this context's client was initialised with."""
 
-    def set_ephemeral_default(self, state: bool, /) -> Self:
+    def set_ephemeral_default(self, state: bool, /) -> Self:  # noqa: FBT001
         """Set the ephemeral default state for this context.
 
         Parameters
@@ -258,7 +260,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
             _INTERACTION_LIFETIME - (datetime.datetime.now(tz=datetime.UTC) - self._interaction.created_at)
         ).total_seconds()
         if delete_after + 10 > time_left:
-            raise ValueError("This interaction will have expired before delete_after is reached")
+            error_message = "This interaction will have expired before delete_after is reached"
+            raise ValueError(error_message)
 
         return delete_after
 
@@ -326,7 +329,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
 
         async with self._response_lock:
             if self._has_been_deferred:
-                raise RuntimeError("Context has already been responded to")
+                error_message = "Context has already been responded to"
+                raise RuntimeError(error_message)
 
             self._has_been_deferred = True
             if self._response_future:
@@ -552,12 +556,14 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         )
         delete_after = self._validate_delete_after(delete_after) if delete_after is not None else None
         if self._has_responded:
-            raise RuntimeError("Initial response has already been created")
+            error_message = "Initial response has already been created"
+            raise RuntimeError(error_message)
 
         if self._has_been_deferred:
-            raise RuntimeError(
+            error_message = (
                 "edit_initial_response must be used to set the initial response after a context has been deferred"
             )
+            raise RuntimeError(error_message)
 
         if not self._response_future:
             await self._interaction.create_initial_response(
@@ -772,7 +778,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
                 self._has_responded = True
                 return
 
-            raise LookupError("Context has no last response")
+            error_message = "Context has no last response"
+            raise LookupError(error_message)
 
         await self._interaction.delete_message(self._last_response_id)
 
@@ -1044,7 +1051,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
                 role_mentions=role_mentions,
             )
 
-        raise LookupError("Context has no previous responses")
+        error_message = "Context has no previous responses"
+        raise LookupError(error_message)
 
     async def fetch_initial_response(self) -> hikari.Message:
         """Fetch the initial response for this context.
@@ -1080,7 +1088,8 @@ class BaseContext(abc.ABC, typing.Generic[_InteractionT]):
         if self._has_responded:
             return await self.fetch_initial_response()
 
-        raise LookupError("Context has no previous known responses")
+        error_message = "Context has no previous known responses"
+        raise LookupError(error_message)
 
     @typing.overload
     async def respond(
@@ -1367,19 +1376,24 @@ class InteractionError(Exception):
             * If more than 100 entries are passed for `user_mentions`.
         """
         if attachment and attachments:
-            raise ValueError("Cannot specify both attachment and attachments")
+            error_message = "Cannot specify both attachment and attachments"
+            raise ValueError(error_message)
 
         if component and components:
-            raise ValueError("Cannot specify both component and components")
+            error_message = "Cannot specify both component and components"
+            raise ValueError(error_message)
 
         if embed and embeds:
-            raise ValueError("Cannot specify both embed and embeds")
+            error_message = "Cannot specify both embed and embeds"
+            raise ValueError(error_message)
 
-        if isinstance(role_mentions, collections.Sequence) and len(role_mentions) > 100:
-            raise ValueError("Cannot specify more than 100 role mentions")
+        if isinstance(role_mentions, collections.Sequence) and len(role_mentions) > _MAX_MENTIONS:
+            error_message = f"Cannot specify more than {_MAX_MENTIONS} role mentions"
+            raise ValueError(error_message)
 
-        if isinstance(user_mentions, collections.Sequence) and len(user_mentions) > 100:
-            raise ValueError("Cannot specify more than 100 user mentions")
+        if isinstance(user_mentions, collections.Sequence) and len(user_mentions) > _MAX_MENTIONS:
+            error_message = f"Cannot specify more than {_MAX_MENTIONS} user mentions"
+            raise ValueError(error_message)
 
         self._attachments = [attachment] if attachment else attachments
         self._content = content

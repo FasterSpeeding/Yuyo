@@ -430,7 +430,7 @@ class ChunkTracker:
             guild, include_presences=include_presences, query=query, limit=limit, users=users, nonce=nonce
         )
 
-    def set_auto_chunk_members(self, state: bool, /, *, chunk_presences: bool = True) -> Self:
+    def set_auto_chunk_members(self, state: bool, /, *, chunk_presences: bool = True) -> Self:  # noqa: FBT001
         """Configure whether this should request member chunks in response to GUILD_CREATE.
 
         This may be useful for filling 3rd party caches but may conflict with

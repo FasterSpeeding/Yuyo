@@ -53,23 +53,23 @@ except ModuleNotFoundError:
 
 
 class TestInteractionError:
-    def test_init_dunder_method_when_both_attachment_and_attachments_passed(self):
+    def test_init_dunder_method_when_both_attachment_and_attachments_passed(self) -> None:
         with pytest.raises(ValueError, match="Cannot specify both attachment and attachments"):
             yuyo.InteractionError(attachment=mock.Mock(), attachments=[mock.Mock()])
 
-    def test_init_dunder_method_when_both_component_and_components_passed(self):
+    def test_init_dunder_method_when_both_component_and_components_passed(self) -> None:
         with pytest.raises(ValueError, match="Cannot specify both component and components"):
             yuyo.InteractionError(component=mock.Mock(), components=[mock.Mock()])
 
-    def test_init_dunder_method_when_both_embed_and_embeds_passed(self):
+    def test_init_dunder_method_when_both_embed_and_embeds_passed(self) -> None:
         with pytest.raises(ValueError, match="Cannot specify both embed and embeds"):
             yuyo.InteractionError(embed=mock.Mock(), embeds=[mock.Mock()])
 
-    def test_str_dunder_method(self):
+    def test_str_dunder_method(self) -> None:
         assert str(yuyo.InteractionError("bar")) == "bar"
 
     @pytest.mark.asyncio
-    async def test_send(self):
+    async def test_send(self) -> None:
         error = yuyo.InteractionError()
         mock_context = mock.AsyncMock()
 
@@ -89,7 +89,7 @@ class TestInteractionError:
         )
 
     @pytest.mark.asyncio
-    async def test_send_when_all_fields(self):
+    async def test_send_when_all_fields(self) -> None:
         mock_attachment = mock.Mock()
         mock_component = mock.Mock()
         mock_embed = mock.Mock()
@@ -121,7 +121,7 @@ class TestInteractionError:
         )
 
     @pytest.mark.asyncio
-    async def test_send_when_singular_field_aliases(self):
+    async def test_send_when_singular_field_aliases(self) -> None:
         mock_attachment = mock.Mock()
         mock_component = mock.Mock()
         mock_embed = mock.Mock()
@@ -145,22 +145,22 @@ class TestInteractionError:
 
 
 class TestBaseContext:
-    def test_author_property(self):
+    def test_author_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.author is mock_interaction.user
 
     @property
-    def test_channel_id(self):
+    def test_channel_id(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.channel_id is mock_interaction.channel_id
 
-    def test_created_at_property(self):
+    def test_created_at_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.created_at is mock_interaction.created_at
 
@@ -177,50 +177,50 @@ class TestBaseContext:
             ),
         ],
     )
-    def test_expires_at_property(self, now: datetime.datetime, expires_at: datetime.datetime):
+    def test_expires_at_property(self, now: datetime.datetime, expires_at: datetime.datetime) -> None:
         with freezegun.freeze_time(now):
             date = datetime.datetime.now(tz=datetime.UTC)
 
             context = yuyo.components.Context(
-                mock.Mock(), mock.Mock(created_at=date), "", "", register_task=lambda v: None
+                mock.Mock(), mock.Mock(created_at=date), "", "", register_task=lambda _: None
             )
 
             assert context.expires_at == expires_at
 
-    def test_guild_id_property(self):
+    def test_guild_id_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.guild_id is mock_interaction.guild_id
 
-    def test_id_match_property(self):
+    def test_id_match_property(self) -> None:
         context = yuyo.components.Context(
-            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda v: None
+            mock.Mock(), mock.Mock(), "yeyeye meow meow", "", register_task=lambda _: None
         )
 
         assert context.id_match == "yeyeye meow meow"
 
-    def test_id_metadata_property(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda v: None)
+    def test_id_metadata_property(self) -> None:
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(), "", "very meta girl", register_task=lambda _: None)
 
         assert context.id_metadata == "very meta girl"
 
-    def test_interaction_property(self):
+    def test_interaction_property(self) -> None:
         mock_interaction = mock.Mock()
 
         context = yuyo.components.Context(
-            mock.Mock(), mock_interaction, "yeyeye meow meow", "", register_task=lambda v: None
+            mock.Mock(), mock_interaction, "yeyeye meow meow", "", register_task=lambda _: None
         )
 
         assert context.interaction is mock_interaction
 
-    def test_member_property(self):
+    def test_member_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.member is mock_interaction.member
 
-    def test_shard_property(self):
+    def test_shard_property(self) -> None:
         mock_shard = mock.Mock()
         mock_client = mock.Mock(shards=mock.MagicMock(spec=hikari.ShardAware, shard_count=5, shards={2: mock_shard}))
         context = yuyo.components.Context(
@@ -228,24 +228,24 @@ class TestBaseContext:
             mock.Mock(guild_id=hikari.Snowflake(123321123312)),
             "yeyeye meow meow",
             "",
-            register_task=lambda v: None,
+            register_task=lambda _: None,
         )
 
         assert context.shard is mock_shard
 
-    def test_shard_property_when_dm(self):
+    def test_shard_property_when_dm(self) -> None:
         mock_shard = mock.Mock()
         mock_client = mock.Mock(shards=mock.Mock(shards={0: mock_shard}))
         context = yuyo.components.Context(
-            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda _: None
         )
 
         assert context.shard is mock_shard
 
-    def test_shard_property_when_no_shards(self):
+    def test_shard_property_when_no_shards(self) -> None:
         mock_client = mock.Mock(shards=None)
         context = yuyo.components.Context(
-            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda v: None
+            mock_client, mock.Mock(guild_id=None), "yeyeye meow meow", "", register_task=lambda _: None
         )
         context._client = mock.Mock(shards=None)
 
@@ -253,101 +253,101 @@ class TestBaseContext:
 
 
 class TestComponentContext:
-    def test_cache_property(self):
+    def test_cache_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.cache is mock_client.cache
 
-    def test_client_property(self):
+    def test_client_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.client is mock_client
 
-    def test_events_property(self):
+    def test_events_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.events is mock_client.events
 
-    def test_rest_property(self):
+    def test_rest_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.rest is mock_client.rest
 
-    def test_server_property(self):
+    def test_server_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.server is mock_client.server
 
-    def test_shards_property(self):
+    def test_shards_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.shards is mock_client.shards
 
-    def test_voice_property(self):
+    def test_voice_property(self) -> None:
         mock_client = mock.Mock()
-        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock_client, mock.Mock(), "", "", register_task=lambda _: None)
 
         assert context.voice is mock_client.voice
 
-    def test_selected_channels_property(self):
+    def test_selected_channels_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.selected_channels is mock_interaction.resolved.channels
 
-    def test_selected_channels_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+    def test_selected_channels_property_when_no_resolved(self) -> None:
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda _: None)
 
         assert context.selected_channels == {}
 
-    def test_selected_roles_property(self):
+    def test_selected_roles_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.selected_roles is mock_interaction.resolved.roles
 
-    def test_selected_roles_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+    def test_selected_roles_property_when_no_resolved(self) -> None:
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda _: None)
 
         assert context.selected_roles == {}
 
-    def test_selected_texts_property(self):
+    def test_selected_texts_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.selected_texts is mock_interaction.values
 
-    def test_selected_users_property(self):
+    def test_selected_users_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.selected_users is mock_interaction.resolved.users
 
-    def test_selected_users_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+    def test_selected_users_property_when_no_resolved(self) -> None:
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda _: None)
 
         assert context.selected_users == {}
 
-    def test_selected_members_property(self):
+    def test_selected_members_property(self) -> None:
         mock_interaction = mock.Mock()
-        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda v: None)
+        context = yuyo.components.Context(mock.Mock(), mock_interaction, "", "", register_task=lambda _: None)
 
         assert context.selected_members is mock_interaction.resolved.members
 
-    def test_selected_members_property_when_no_resolved(self):
-        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda v: None)
+    def test_selected_members_property_when_no_resolved(self) -> None:
+        context = yuyo.components.Context(mock.Mock(), mock.Mock(resolved=None), "", "", register_task=lambda _: None)
 
         assert context.selected_members == {}
 
 
 class TestComponentClient:
-    def test___init___when_event_managed(self):
+    def test___init___when_event_managed(self) -> None:
         mock_event_manger = mock.Mock()
 
         client = yuyo.ComponentClient(event_manager=mock_event_manger, event_managed=True)
@@ -356,7 +356,7 @@ class TestComponentClient:
             [mock.call(hikari.StartingEvent, client._on_starting), mock.call(hikari.StoppingEvent, client._on_stopping)]
         )
 
-    def test___init___when_event_managed_is_none_but_event_manager_passed(self):
+    def test___init___when_event_managed_is_none_but_event_manager_passed(self) -> None:
         mock_event_manger = mock.Mock()
 
         client = yuyo.ComponentClient(event_manager=mock_event_manger, event_managed=None)
@@ -365,20 +365,20 @@ class TestComponentClient:
             [mock.call(hikari.StartingEvent, client._on_starting), mock.call(hikari.StoppingEvent, client._on_stopping)]
         )
 
-    def test_alluka(self):
+    def test_alluka(self) -> None:
         client = yuyo.ComponentClient(event_manager=mock.Mock())
 
         assert isinstance(client.alluka, alluka.Client)
         assert client.alluka.get_type_dependency(yuyo.ComponentClient) is client
 
-    def test_alluka_when_alluka_local_client(self):
+    def test_alluka_when_alluka_local_client(self) -> None:
         with alluka.local.scope_client() as expected_alluka_client:
             client = yuyo.ComponentClient(event_manager=mock.Mock())
 
             assert client.alluka is expected_alluka_client
             assert client.alluka.get_type_dependency(yuyo.ComponentClient) is client
 
-    def test_alluka_with_passed_through_client(self):
+    def test_alluka_with_passed_through_client(self) -> None:
         mock_alluka = mock.Mock()
 
         client = yuyo.ComponentClient(alluka=mock_alluka, event_manager=mock.Mock())
@@ -386,49 +386,49 @@ class TestComponentClient:
         assert client.alluka is mock_alluka
         mock_alluka.set_type_dependency.assert_not_called()
 
-    def test_cache_property(self):
+    def test_cache_property(self) -> None:
         mock_cache = mock.Mock()
 
         client = yuyo.ComponentClient(cache=mock_cache)
 
         assert client.cache is mock_cache
 
-    def test_events_property(self):
+    def test_events_property(self) -> None:
         mock_events = mock.Mock()
 
         client = yuyo.ComponentClient(event_manager=mock_events)
 
         assert client.events is mock_events
 
-    def test_rest_property(self):
+    def test_rest_property(self) -> None:
         mock_rest = mock.Mock()
 
         client = yuyo.ComponentClient(rest=mock_rest)
 
         assert client.rest is mock_rest
 
-    def test_server_property(self):
+    def test_server_property(self) -> None:
         mock_server = mock.Mock()
 
         client = yuyo.ComponentClient(server=mock_server)
 
         assert client.server is mock_server
 
-    def test_shards_property(self):
+    def test_shards_property(self) -> None:
         mock_shards = mock.Mock()
 
         client = yuyo.ComponentClient(shards=mock_shards)
 
         assert client.shards is mock_shards
 
-    def test_voice_property(self):
+    def test_voice_property(self) -> None:
         mock_voice = mock.Mock()
 
         client = yuyo.ComponentClient(voice=mock_voice)
 
         assert client.voice is mock_voice
 
-    def test_from_gateway_bot(self):
+    def test_from_gateway_bot(self) -> None:
         class GatewayBotProto(hikari.RESTAware, hikari.ShardAware, hikari.EventManagerAware, typing.Protocol): ...
 
         mock_bot = mock.Mock(GatewayBotProto)
@@ -450,7 +450,7 @@ class TestComponentClient:
             voice=mock_bot.voice,
         )
 
-    def test_from_gateway_bot_with_optional_kwargs(self):
+    def test_from_gateway_bot_with_optional_kwargs(self) -> None:
         mock_alluka = mock.Mock()
         mock_bot = mock.Mock()
         mock_init = mock.Mock(return_value=None)
@@ -471,7 +471,7 @@ class TestComponentClient:
             voice=mock_bot.voice,
         )
 
-    def test_from_rest_bot(self):
+    def test_from_rest_bot(self) -> None:
         mock_bot = mock.Mock()
         mock_init = mock.Mock(return_value=None)
 
@@ -485,7 +485,7 @@ class TestComponentClient:
         mock_bot.add_shutdown_callback.assert_not_called()
         mock_bot.add_startup_callback.assert_not_called()
 
-    def test_from_rest_bot_with_optional_kwargs(self):
+    def test_from_rest_bot_with_optional_kwargs(self) -> None:
         mock_alluka = mock.Mock()
         mock_bot = mock.Mock()
         mock_init = mock.Mock(return_value=None)
@@ -501,7 +501,7 @@ class TestComponentClient:
         mock_bot.add_startup_callback.assert_called_once_with(stub_client._on_starting)
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
-    def test_from_tanjun(self):
+    def test_from_tanjun(self) -> None:
         assert tanjun
 
         mock_bot = mock.Mock()
@@ -531,7 +531,7 @@ class TestComponentClient:
         )
 
     @pytest.mark.skipif(tanjun is None, reason="Tanjun specific test")
-    def test_from_tanjun_when_not_tanjun_managed(self):
+    def test_from_tanjun_when_not_tanjun_managed(self) -> None:
         assert tanjun
 
         mock_bot = mock.Mock()
@@ -556,7 +556,7 @@ class TestComponentClient:
         mock_bot.add_client_callback.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test__on_starting(self):
+    async def test__on_starting(self) -> None:
         mock_open = mock.Mock()
 
         class StubClient(yuyo.ComponentClient):
@@ -569,7 +569,7 @@ class TestComponentClient:
         mock_open.assert_called_once_with()
 
     @pytest.mark.asyncio
-    async def test__on_stopping(self):
+    async def test__on_stopping(self) -> None:
         mock_close = mock.Mock()
 
         class StubClient(yuyo.ComponentClient):
@@ -583,31 +583,31 @@ class TestComponentClient:
 
     @pytest.mark.skip(reason="Not implemented yet")
     @pytest.mark.asyncio
-    async def test__gc(self): ...
+    async def test__gc(self) -> None: ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    def test_close(self): ...
+    def test_close(self) -> None: ...
 
     @pytest.mark.skip(reason="Not implemented yet")
-    def test_open(self): ...
-
-    @pytest.mark.skip(reason="Not implemented yet")
-    @pytest.mark.asyncio
-    async def test_on_gateway_event(self): ...
+    def test_open(self) -> None: ...
 
     @pytest.mark.skip(reason="Not implemented yet")
     @pytest.mark.asyncio
-    async def test_on_rest_request(self): ...
+    async def test_on_gateway_event(self) -> None: ...
+
+    @pytest.mark.skip(reason="Not implemented yet")
+    @pytest.mark.asyncio
+    async def test_on_rest_request(self) -> None: ...
 
 
 class TestSingleExecutor:
-    def test_custom_ids_property(self):
+    def test_custom_ids_property(self) -> None:
         executor = yuyo.components.SingleExecutor("dkkpoeewlk", mock.Mock())
 
         assert executor.custom_ids == ["dkkpoeewlk"]
 
     @pytest.mark.asyncio
-    async def test_execute(self):
+    async def test_execute(self) -> None:
         mock_callback = mock.AsyncMock()
         client = yuyo.components.Client()
         ctx = yuyo.components.ComponentContext(client, mock.Mock(), "", "", lambda _: None)
@@ -619,7 +619,7 @@ class TestSingleExecutor:
         mock_callback.assert_awaited_once_with(ctx)
 
 
-def test_as_single_executor():
+def test_as_single_executor() -> None:
     mock_callback = mock.Mock()
 
     result = yuyo.components.as_single_executor("yeet", ephemeral_default=True)(mock_callback)
@@ -635,7 +635,7 @@ class TestComponentExecutor: ...
 
 
 class TestActionColumnExecutor:
-    def test_init_id_metadata_handling(self):
+    def test_init_id_metadata_handling(self) -> None:
         class Column(yuyo.ActionColumnExecutor):
             __slots__ = ()
 
@@ -667,14 +667,14 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.SelectMenuBuilder)
         assert component.custom_id == "$qY^N`e%|!:meowers"
 
-    def test_add_builder(self):
+    def test_add_builder(self) -> None:
         mock_builder = mock.Mock()
 
         executor = yuyo.components.ActionColumnExecutor().add_builder(mock_builder)
 
         assert executor.rows[0].components[0] is mock_builder
 
-    def test_add_static_builder(self):
+    def test_add_static_builder(self) -> None:
         mock_builder = mock.Mock()
 
         column_template = yuyo.components.column_template().add_static_builder(mock_builder)
@@ -685,7 +685,7 @@ class TestActionColumnExecutor:
         assert column_template().rows[0].components[0] is mock_builder
         assert SubClass().rows[0].components[0] is mock_builder
 
-    def test_add_select_menu(self):
+    def test_add_select_menu(self) -> None:
         mock_callback = mock.Mock()
 
         column = yuyo.components.ActionColumnExecutor().add_select_menu(
@@ -711,7 +711,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 12
         assert component.is_disabled is True
 
-    def test_add_select_menu_with_defaults(self):
+    def test_add_select_menu_with_defaults(self) -> None:
         mock_callback = mock.Mock()
 
         column = yuyo.components.ActionColumnExecutor().add_select_menu(
@@ -731,7 +731,7 @@ class TestActionColumnExecutor:
 
         assert column._callbacks[component.custom_id] is mock_callback
 
-    def test_add_static_select_menu(self):
+    def test_add_static_select_menu(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -760,7 +760,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 11
         assert component.is_disabled is True
 
-    def test_add_static_select_menu_with_defaults(self):
+    def test_add_static_select_menu_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -781,7 +781,7 @@ class TestActionColumnExecutor:
 
         assert column._callbacks[component.custom_id] is mock_callback
 
-    def test_with_interactive_button_descriptor(self):
+    def test_with_interactive_button_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -802,7 +802,7 @@ class TestActionColumnExecutor:
         assert component.label == "nyaa"
         assert component.is_disabled is True
 
-    def test_with_interactive_button_descriptor_with_defaults(self):
+    def test_with_interactive_button_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -822,7 +822,7 @@ class TestActionColumnExecutor:
         assert component.is_disabled is False
 
     @pytest.mark.asyncio
-    async def test_with_interactive_button_descriptor_when_called_as_a_method(self):
+    async def test_with_interactive_button_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -840,7 +840,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_interactive_button_descriptor_when_accessed_on_class(self):
+    async def test_with_interactive_button_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -850,7 +850,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_botton is mock_callback
 
-    def test_with_link_button_descriptor(self):
+    def test_with_link_button_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -870,7 +870,7 @@ class TestActionColumnExecutor:
         assert component.label == "x"
         assert component.is_disabled is True
 
-    def test_with_link_button_descriptor_with_defaults(self):
+    def test_with_link_button_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -888,7 +888,7 @@ class TestActionColumnExecutor:
         assert component.label is hikari.UNDEFINED
         assert component.is_disabled is False
 
-    def test_with_mentionable_menu_descriptor(self):
+    def test_with_mentionable_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -910,7 +910,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 3
         assert component.max_values == 12
 
-    def test_with_mentionable_menu_descriptor_with_defaults(self):
+    def test_with_mentionable_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -931,7 +931,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_mentionable_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_mentionable_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -949,7 +949,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_mentionable_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_mentionable_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -959,7 +959,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_mentionable_menu is mock_callback
 
-    def test_with_role_menu_descriptor(self):
+    def test_with_role_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -981,7 +981,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 3
         assert component.max_values == 12
 
-    def test_with_role_menu_descriptor_with_defaults(self):
+    def test_with_role_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1002,7 +1002,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_role_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_role_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1020,7 +1020,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_role_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_role_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1030,7 +1030,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_role_menu is mock_callback
 
-    def test_with_user_menu_descriptor(self):
+    def test_with_user_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1052,7 +1052,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 3
         assert component.max_values == 12
 
-    def test_with_user_menu_descriptor_with_defaults(self):
+    def test_with_user_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1073,7 +1073,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_user_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_user_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1091,7 +1091,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_user_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_user_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1101,7 +1101,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_user_menu is mock_callback
 
-    def test_with_select_menu_descriptor(self):
+    def test_with_select_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1128,7 +1128,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 3
         assert component.max_values == 12
 
-    def test_with_select_menu_descriptor_with_defaults(self):
+    def test_with_select_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1149,7 +1149,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_select_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_select_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1167,7 +1167,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_select_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_select_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1177,7 +1177,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_menu is mock_callback
 
-    def test_with_channel_menu_descriptor(self):
+    def test_with_channel_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1208,7 +1208,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 2
         assert component.max_values == 5
 
-    def test_with_channel_menu_descriptor_with_defaults(self):
+    def test_with_channel_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1229,7 +1229,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_channel_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_channel_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1247,7 +1247,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_channel_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_channel_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1257,7 +1257,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_channel_menu is mock_callback
 
-    def test_with_text_menu_descriptor(self):
+    def test_with_text_menu_descriptor(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1292,7 +1292,7 @@ class TestActionColumnExecutor:
         assert component.min_values == 11
         assert component.max_values == 15
 
-    def test_with_text_menu_descriptor_with_defaults(self):
+    def test_with_text_menu_descriptor_with_defaults(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1324,7 +1324,7 @@ class TestActionColumnExecutor:
         assert component.max_values == 1
 
     @pytest.mark.asyncio
-    async def test_with_text_menu_descriptor_when_called_as_a_method(self):
+    async def test_with_text_menu_descriptor_when_called_as_a_method(self) -> None:
         mock_callback = mock.AsyncMock()
         mock_ctx = mock.Mock()
 
@@ -1342,7 +1342,7 @@ class TestActionColumnExecutor:
         mock_callback.assert_awaited_once_with(column, mock_ctx)
 
     @pytest.mark.asyncio
-    async def test_with_text_menu_descriptor_when_accessed_on_class(self):
+    async def test_with_text_menu_descriptor_when_accessed_on_class(self) -> None:
         mock_callback = mock.AsyncMock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1352,7 +1352,7 @@ class TestActionColumnExecutor:
 
         assert Column.on_text_menu is mock_callback
 
-    def test_with_builder_descriptor(self):
+    def test_with_builder_descriptor(self) -> None:
         mock_builder = mock.Mock()
 
         class Column(yuyo.components.ActionColumnExecutor):
@@ -1362,7 +1362,7 @@ class TestActionColumnExecutor:
 
         assert Column().rows[0].components[0] is mock_builder
 
-    def test_static_button_row_behaviour(self):
+    def test_static_button_row_behaviour(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1454,7 +1454,7 @@ class TestActionColumnExecutor:
         assert isinstance(row.components[3], hikari.api.LinkButtonBuilder)
         assert row.components[3].label == "de"
 
-    def test_static_select_menu_row_behaviour(self):
+    def test_static_select_menu_row_behaviour(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1505,7 +1505,7 @@ class TestActionColumnExecutor:
         assert isinstance(row.components[0], hikari.api.SelectMenuBuilder)
         assert row.components[0].type is hikari.ComponentType.MENTIONABLE_SELECT_MENU
 
-    def test_mixed_static_row_behaviour(self):
+    def test_mixed_static_row_behaviour(self) -> None:
         class Column(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -1857,7 +1857,7 @@ class TestActionColumnExecutor:
         assert isinstance(component, hikari.api.InteractiveButtonBuilder)
         assert component.label == "show time"
 
-    def test_overriding_behaviour(self):
+    def test_overriding_behaviour(self) -> None:
         class ParentColumn(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -2033,7 +2033,7 @@ class TestActionColumnExecutor:
         assert component.url == "https://example.com/new"
         assert component.label == "new"
 
-    def test_overriding_with_not_implemented(self):
+    def test_overriding_with_not_implemented(self) -> None:
         class ParentColumn(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -2055,7 +2055,7 @@ class TestActionColumnExecutor:
         assert ParentColumn().rows
         assert not Column().rows
 
-    def test_overriding_mixed(self):
+    def test_overriding_mixed(self) -> None:
         class ParentColumn(yuyo.components.ActionColumnExecutor):
             __slots__ = ()
 
@@ -2125,7 +2125,7 @@ class TestActionColumnExecutor:
         assert component.custom_id == "custoard"
 
 
-def test_ensure_parse_channel_types_has_every_channel_class():
+def test_ensure_parse_channel_types_has_every_channel_class() -> None:
     for _, attribute in inspect.getmembers(hikari):
         if isinstance(attribute, type) and issubclass(attribute, hikari.PartialChannel):
             result = yuyo.components._parse_channel_types(attribute)
