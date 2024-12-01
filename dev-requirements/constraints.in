@@ -1,4 +1,4 @@
-alluka>=0.2.0, <1
+alluka>=0.4, <1
 hikari>=2.0.0.dev118, <3
 asgiref~=3.0
 hikari[server]
