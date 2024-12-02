@@ -68,6 +68,8 @@ plugins:
             show_signature_annotations: false
             show_source: false
             show_submodules: false
+            preload_modules:
+              - hikari
 
 watch:
   - CHANGELOG.md
