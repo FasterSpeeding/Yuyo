@@ -850,7 +850,7 @@ class ServiceManager(AbstractManager):
                 self._me_lock = asyncio.Lock()
 
             async with self._me_lock:
-                self._me = await self._rest.fetch_my_user()
+                self._me = self._me or await self._rest.fetch_my_user()
 
         if not self._user_agent:
             self._user_agent = _USER_AGENT.format(self._me)
