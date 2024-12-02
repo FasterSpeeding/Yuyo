@@ -176,7 +176,7 @@ project_name = "yuyo"
 top_level_targets = ["./docs_src", "./examples", "./noxfile.py", "./yuyo", "./tests"]
 
 [tool.piped.extra_installs]
-slot_check = [".[sake]"] 
+slot_check = [".[sake]"]
 test = [".[asgi, sake]"]
 
 [tool.piped.github_actions.freeze_for_pr]
