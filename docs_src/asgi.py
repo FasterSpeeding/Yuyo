@@ -12,7 +12,7 @@
 # pyright: reportArgumentType=none
 import os
 
-import agraffe  # type: ignore  # TODO: add py.typed to agraffe  # noqa: PGH003
+import agraffe  # type: ignore  # TODO: add py.typed to agraffe
 import fastapi
 import tanjun
 
