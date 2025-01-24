@@ -53,6 +53,7 @@ import datetime
 import enum
 import functools
 import itertools
+import sys
 import types
 import typing
 
@@ -75,6 +76,13 @@ if typing.TYPE_CHECKING:
     _ModalT = typing.TypeVar("_ModalT", bound="Modal")
     __SelfishSig = typing_extensions.Concatenate[_T, _P]
     _SelfishSig = __SelfishSig[_T, ...]
+
+
+if sys.version_info >= (3, 10):
+    _UnionTypes = frozenset((typing.Union, types.UnionType))
+
+else:
+    _UnionTypes = frozenset((typing.Union,))
 
 
 _CoroT = collections.abc.Coroutine[typing.Any, typing.Any, _T]
@@ -1588,6 +1596,18 @@ def with_text_input(
     )
 
 
+def _snoop_types(type_: typing.Any, /) -> collections.Iterator[typing.Any]:
+    origin = typing.get_origin(type_)
+    if origin in _UnionTypes:
+        yield from itertools.chain.from_iterable(map(_snoop_types, typing.get_args(type_)))
+
+    elif origin is typing.Annotated:
+        yield from _snoop_types(typing.get_args(type_)[0])
+
+    else:
+        yield type_
+
+
 def _parse_descriptors(
     callback: collections.abc.Callable[..., typing.Any], /
 ) -> collections.abc.Iterable[tuple[str, _ComponentDescriptor]]:
@@ -1598,8 +1618,10 @@ def _parse_descriptors(
         elif parameter.annotation is parameter.empty:
             continue
 
-        if isinstance(parameter.annotation, type) and issubclass(parameter.annotation, ModalOptions):
-            yield name, _ModalOptionsDescriptor(parameter.annotation)
+        for type_ in _snoop_types(parameter.annotation):
+            if isinstance(type_, type) and issubclass(type_, ModalOptions):
+                yield name, _ModalOptionsDescriptor(type_)
+                break
 
 
 class _ComponentDescriptor(abc.ABC):
