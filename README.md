@@ -28,7 +28,7 @@ specifically, the [usage guide](https://yuyo.cursed.solutions/usage/).
 
 # Support
 
-Go to the [support server](https://discord.gg/bZ7BrYJ63g) for support with Tanjun.
+Go to the [support server](https://discord.gg/bZ7BrYJ63g) for support.
 
 # Contributing
 
