@@ -28,7 +28,7 @@ specifically, the [usage guide](https://yuyo.cursed.solutions/usage/).
 
 # Support
 
-[Hikari's support guild](https://discord.gg/hikari) provides for support for Yuyo.
+Go to the [support server](https://discord.gg/bZ7BrYJ63g) for support with Tanjun.
 
 # Contributing
 
