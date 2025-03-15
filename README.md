@@ -1,3 +1,5 @@
+# IF YOU CAME HERE FROM HIKARI'S README GO BACK AND PICK ANOTHER LBIRARY
+
 # Yuyo
 
 A collection of utility classes and functions designed to expand Hikari.
